@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "favorites" jsonb DEFAULT '[]'::jsonb NOT NULL;
