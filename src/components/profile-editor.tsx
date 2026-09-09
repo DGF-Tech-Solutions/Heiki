@@ -12,11 +12,12 @@
  * prodotto, non una mancanza:
  *  - il nome di un badge, perche' i badge si guadagnano e non si scelgono;
  *  - il livello di fiducia di un badge o di un account, perche' lo assegna la
- *    verifica automatica. Se fossero modificabili a mano, la spunta "verificato"
- *    non varrebbe piu' niente per nessuno.
+ *    verifica automatica. Se fossero modificabili a mano, la spunta
+ *    "verificato" non varrebbe piu' niente per nessuno.
  * Si puo' decidere cosa esporre e in che ordine: quella e' presentazione.
  */
 
+import type { ReactNode } from "react";
 import type { ProfileViewData } from "./profile-view";
 import {
   ACCENTS,
@@ -26,14 +27,15 @@ import {
   type CustomizationKey,
   type ProfileCustomization,
 } from "@/lib/profile/customization";
+import { Button, cx, display, Empty, Field, Input, Textarea } from "./ui";
 
 const ACCENT_SWATCH: Readonly<Record<string, string>> = {
-  gold: "#e5b24c",
-  violet: "#9b7bf0",
-  cyan: "#4fd6e0",
-  lime: "#b8e04f",
-  rose: "#f07ba8",
-  ember: "linear-gradient(135deg, #f0824c, #e5b24c)",
+  brand: "#6425ff",
+  magenta: "#e0169a",
+  ocean: "#0870d8",
+  forest: "#12805a",
+  sunset: "#e2510f",
+  gold: "#b07d05",
 };
 
 export const BIO_LIMIT = 280;
@@ -79,133 +81,115 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
   const shownBadges = value.badges.filter((badge) => badge.shown !== false).length;
 
   return (
-    <div className="editor__panel">
-      {/* --------------------------------------------------------- identita' */}
-      <section className="group">
-        <div className="group__head">
-          <h2 className="group__title">Identita&apos;</h2>
-          <span className="group__hint">Come ti trovano e come ti presenti</span>
-        </div>
-
-        <label className="field">
-          <span className="field__label">
-            Nome visualizzato
-            <Counter value={value.displayName.length} limit={NAME_LIMIT} />
-          </span>
-          <input
-            className="input"
+    <div className="grid gap-5">
+      <Group title="Chi sei" hint="Come ti trovano e come ti presenti">
+        <Field
+          label="Nome visualizzato"
+          hint={<Counter value={value.displayName.length} limit={NAME_LIMIT} />}
+        >
+          <Input
             value={value.displayName}
             maxLength={NAME_LIMIT}
             onChange={(event) => patch({ displayName: event.target.value })}
           />
-        </label>
+        </Field>
 
-        <label className="field">
-          <span className="field__label">
-            Handle
-            <span className="field__hint">/u/{value.username || "…"}</span>
-          </span>
-          <input
-            className="input input--mono"
+        <Field label="Handle" hint={`/u/${value.username || "…"}`}>
+          <Input
+            className="font-mono"
             value={value.username}
             maxLength={20}
             onChange={(event) => patch({ username: slugify(event.target.value) })}
           />
-        </label>
+        </Field>
 
-        <label className="field">
-          <span className="field__label">
-            Paese o regione
-            <span className="field__hint">facoltativo</span>
-          </span>
-          <input
-            className="input"
+        <Field label="Paese o regione" hint="facoltativo">
+          <Input
             value={value.country ?? ""}
             maxLength={40}
             placeholder="Italia"
             onChange={(event) => patch({ country: event.target.value })}
           />
-        </label>
+        </Field>
 
-        <label className="field" style={{ marginBottom: 0 }}>
-          <span className="field__label">
-            Bio
-            <Counter value={(value.bio ?? "").length} limit={BIO_LIMIT} />
-          </span>
-          <textarea
-            className="textarea"
+        <Field
+          label="Bio"
+          hint={<Counter value={(value.bio ?? "").length} limit={BIO_LIMIT} />}
+          className="mb-0"
+        >
+          <Textarea
             value={value.bio ?? ""}
             maxLength={BIO_LIMIT}
             onChange={(event) => patch({ bio: event.target.value })}
           />
-        </label>
-      </section>
+        </Field>
+      </Group>
 
-      {/* ----------------------------------------------------------- aspetto */}
-      <section className="group">
-        <div className="group__head">
-          <h2 className="group__title">Aspetto</h2>
-          <span className="group__hint">
-            Tutti i cosmetici sono disegni nostri: nessun asset dei giochi
-          </span>
-        </div>
-
-        <div className="subgroup">
-          <span className="subgroup__label">
-            Accento
-            <span className="field__hint">colora livello, badge e dettagli</span>
-          </span>
-          <div className="swatches">
+      <Group title="Aspetto" hint="Tutti i cosmetici sono disegni nostri: nessun asset dei giochi">
+        <Subgroup label="Accento" hint="colora livello, badge e dettagli">
+          <div className="flex flex-wrap gap-2.5">
             {ACCENTS.map((option) => {
               const locked = option.premium && !canUsePremium;
+              const active = value.customization.accent === option.id;
               return (
                 <button
                   key={option.id}
                   type="button"
-                  className="swatch-btn"
-                  style={{ ["--swatch-color" as string]: ACCENT_SWATCH[option.id] ?? "#e5b24c" }}
-                  data-premium={option.premium || undefined}
-                  aria-pressed={value.customization.accent === option.id}
+                  disabled={locked}
+                  aria-pressed={active}
                   aria-label={`${option.label}${option.premium ? " (premium)" : ""}`}
                   title={locked ? `${option.label} — richiede il premium` : option.description}
-                  disabled={locked}
                   onClick={() => setCustom("accent", option.id)}
-                />
+                  style={{ background: ACCENT_SWATCH[option.id] ?? "#6425ff" }}
+                  className={cx(
+                    "relative size-8 cursor-pointer rounded-full border border-rule transition-transform",
+                    "hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
+                    active && "ring-2 ring-ink ring-offset-2",
+                  )}
+                >
+                  {option.premium ? (
+                    <span className="absolute -top-1 -right-1 grid size-3.5 place-items-center rounded-full bg-paper text-[8px] leading-none text-gold">
+                      ★
+                    </span>
+                  ) : null}
+                </button>
               );
             })}
           </div>
-        </div>
+        </Subgroup>
 
         {CUSTOMIZATION_GROUPS.filter((group) => group.key !== "accent").map((group) => (
-          <div className="subgroup" key={group.key}>
-            <span className="subgroup__label">
-              {group.label}
-              <span className="field__hint">{group.hint}</span>
-            </span>
-            <div className="chips">
+          <Subgroup key={group.key} label={group.label} hint={group.hint}>
+            <div className="flex flex-wrap gap-2">
               {group.options.map((option) => {
                 const locked = option.premium && !canUsePremium;
+                const active = value.customization[group.key] === option.id;
                 return (
                   <button
                     key={option.id}
                     type="button"
-                    className="chip"
-                    aria-pressed={value.customization[group.key] === option.id}
-                    title={locked ? `${option.label} — richiede il premium` : option.description}
                     disabled={locked}
+                    aria-pressed={active}
+                    title={locked ? `${option.label} — richiede il premium` : option.description}
                     onClick={() => setCustom(group.key, option.id)}
+                    className={cx(
+                      "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-card border px-3 text-[13px] transition-colors",
+                      "disabled:cursor-not-allowed disabled:opacity-40",
+                      active
+                        ? "border-brand bg-brand-soft font-medium text-ink"
+                        : "border-rule text-ink-2 hover:border-ink-3 hover:text-ink",
+                    )}
                   >
                     {option.label}
-                    {option.premium ? <span className="chip__star">★</span> : null}
+                    {option.premium ? <span className="text-[9px] text-gold">★</span> : null}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </Subgroup>
         ))}
-      </section>
+      </Group>
 
-      {/* --------------------------------------------------------- preferiti */}
       <ListGroup
         title="Personaggi preferiti"
         hint="Compaiono in cima al profilo, nell'ordine che scegli"
@@ -214,51 +198,48 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         create={() => ""}
         addLabel="Aggiungi preferito"
         renderFields={(item, update) => (
-          <input
-            className="mini-input"
+          <MiniInput
             value={item}
             placeholder="Nome del personaggio"
             maxLength={40}
-            onChange={(event) => update(event.target.value)}
+            onChange={(next) => update(next)}
           />
         )}
       />
 
-      {/* ------------------------------------------------------------- badge */}
-      <section className="group">
-        <div className="group__head">
-          <h2 className="group__title">Vetrina dei badge</h2>
-          <span className="group__hint">
-            {shownBadges} esposti su {BADGE_SHOWCASE_LIMIT} posti. I badge si guadagnano: puoi
-            scegliere quali mostrare e in che ordine, non rinominarli.
-          </span>
-        </div>
-
+      <Group
+        title="Vetrina dei badge"
+        hint={`${shownBadges} esposti su ${BADGE_SHOWCASE_LIMIT} posti. I badge si guadagnano: scegli quali mostrare e in che ordine, non come si chiamano.`}
+      >
         {value.badges.length === 0 ? (
-          <p className="empty" style={{ padding: 16, fontSize: 13 }}>
-            Nessun badge ancora.
-          </p>
+          <Empty>Nessun badge ancora.</Empty>
         ) : (
-          <div className="editor-list">
+          <div className="grid gap-2">
             {value.badges.map((badge, index) => {
               const shown = badge.shown !== false;
               const atLimit = !shown && shownBadges >= BADGE_SHOWCASE_LIMIT;
               return (
-                <div className="editor-row" key={badge.id}>
+                <Row key={badge.id}>
                   <Reorder
                     index={index}
                     length={value.badges.length}
                     onMove={(from, to) => patch({ badges: move(value.badges, from, to) })}
                   />
-                  <span className="editor-row__body" style={{ gap: 2 }}>
-                    <span style={{ fontSize: 13 }}>
+                  <span className="min-w-0 flex-1 basis-40">
+                    <span className="block text-[13px]">
                       {badge.icon ?? "◇"} {badge.name}
                     </span>
-                    <span className="badge__trust">{badge.trust.toLowerCase()}</span>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-ink-3">
+                      {badge.trust.toLowerCase()}
+                    </span>
                   </span>
-                  <label className="toggle" title={atLimit ? "Vetrina piena" : undefined}>
+                  <label
+                    className="inline-flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-ink-2"
+                    title={atLimit ? "Vetrina piena" : undefined}
+                  >
                     <input
                       type="checkbox"
+                      className="size-3.5 accent-brand"
                       checked={shown}
                       disabled={atLimit}
                       onChange={(event) =>
@@ -272,14 +253,13 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                     />
                     esponi
                   </label>
-                </div>
+                </Row>
               );
             })}
           </div>
         )}
-      </section>
+      </Group>
 
-      {/* -------------------------------------------------- profili di gioco */}
       <ListGroup
         title="Profili di gioco"
         hint="Solo UID pubblici. Non chiediamo mai le credenziali del tuo account di gioco, e il livello di fiducia lo assegna la verifica automatica."
@@ -296,44 +276,38 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         addLabel="Collega un profilo"
         renderFields={(account, update) => (
           <>
-            <input
-              className="mini-input"
+            <MiniInput
               value={account.game}
               placeholder="Gioco"
               maxLength={40}
-              onChange={(event) => update({ ...account, game: event.target.value })}
+              onChange={(game) => update({ ...account, game })}
             />
-            <span style={{ display: "flex", gap: 6 }}>
-              <input
-                className="mini-input mini-input--mono"
+            <span className="flex gap-1.5">
+              <MiniInput
+                mono
                 value={account.uid}
                 placeholder="UID"
                 maxLength={24}
-                onChange={(event) => update({ ...account, uid: event.target.value })}
+                onChange={(uid) => update({ ...account, uid })}
               />
-              <input
-                className="mini-input"
+              <MiniInput
                 value={account.nickname ?? ""}
                 placeholder="Nickname"
                 maxLength={30}
-                onChange={(event) => update({ ...account, nickname: event.target.value })}
+                onChange={(nickname) => update({ ...account, nickname })}
               />
             </span>
           </>
         )}
         renderAside={(account, update) => (
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={account.shown !== false}
-              onChange={(event) => update({ ...account, shown: event.target.checked })}
-            />
-            mostra
-          </label>
+          <Toggle
+            checked={account.shown !== false}
+            label="mostra"
+            onChange={(shown) => update({ ...account, shown })}
+          />
         )}
       />
 
-      {/* ------------------------------------------------------------- build */}
       <ListGroup
         title="Build"
         hint="Decidi quali rendere pubbliche sul profilo"
@@ -351,42 +325,37 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         addLabel="Aggiungi build"
         renderFields={(build, update) => (
           <>
-            <input
-              className="mini-input"
+            <MiniInput
               value={build.name}
               placeholder="Nome della build"
               maxLength={50}
-              onChange={(event) => update({ ...build, name: event.target.value })}
+              onChange={(name) => update({ ...build, name })}
             />
-            <span style={{ display: "flex", gap: 6 }}>
-              <input
-                className="mini-input"
+            <span className="flex gap-1.5">
+              <MiniInput
                 value={build.character}
                 placeholder="Personaggio"
                 maxLength={40}
-                onChange={(event) => update({ ...build, character: event.target.value })}
+                onChange={(character) => update({ ...build, character })}
               />
-              <input
-                className="mini-input mini-input--mono"
+              <MiniInput
+                mono
                 value={build.median || ""}
                 placeholder="Danno"
                 inputMode="numeric"
-                onChange={(event) =>
-                  update({ ...build, median: Number(event.target.value.replace(/\D/g, "")) || 0 })
+                onChange={(raw) =>
+                  update({ ...build, median: Number(String(raw).replace(/\D/g, "")) || 0 })
                 }
               />
             </span>
           </>
         )}
         renderAside={(build, update) => (
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={build.isPublic !== false}
-              onChange={(event) => update({ ...build, isPublic: event.target.checked })}
-            />
-            pubblica
-          </label>
+          <Toggle
+            checked={build.isPublic !== false}
+            label="pubblica"
+            onChange={(isPublic) => update({ ...build, isPublic })}
+          />
         )}
       />
     </div>
@@ -395,13 +364,114 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
 
 /* ------------------------------------------------------------- ausiliari */
 
+function Group({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-card border border-rule bg-paper p-5">
+      <div className="mb-3.5">
+        <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>{title}</h2>
+        <span className="mt-1 block text-xs text-ink-3">{hint}</span>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Subgroup({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="mt-4 border-t border-rule-2 pt-4 first:mt-0 first:border-0 first:pt-0">
+      <span className="mb-2.5 flex items-baseline justify-between gap-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-ink-3">
+        {label}
+        <span className="text-[11px] normal-case tracking-normal">{hint}</span>
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function Row({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-card border border-rule-2 bg-paper-2 px-3 py-2.5">
+      {children}
+    </div>
+  );
+}
+
+function MiniInput({
+  value,
+  onChange,
+  mono = false,
+  ...props
+}: {
+  value: string | number;
+  onChange: (value: string) => void;
+  mono?: boolean;
+  placeholder?: string;
+  maxLength?: number;
+  inputMode?: "numeric";
+}) {
+  return (
+    <input
+      {...props}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={cx(
+        "h-[30px] w-full rounded-sm border border-rule bg-paper px-2.5 text-[13px] text-ink",
+        "focus:border-brand focus:outline-none",
+        mono && "font-mono text-xs",
+      )}
+    />
+  );
+}
+
+function Toggle({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-ink-2">
+      <input
+        type="checkbox"
+        className="size-3.5 accent-brand"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      {label}
+    </label>
+  );
+}
+
 function Counter({ value, limit }: { value: number; limit: number }) {
   return (
-    <span className={value > limit * 0.9 ? "counter counter--over" : "counter"}>
+    <span className={cx("font-mono", value > limit * 0.9 ? "text-hot" : "text-ink-3")}>
       {value}/{limit}
     </span>
   );
 }
+
+const ICON_BTN =
+  "grid place-items-center rounded-sm border border-rule text-[9px] text-ink-3 cursor-pointer " +
+  "hover:border-ink-3 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed";
 
 function Reorder({
   index,
@@ -413,10 +483,10 @@ function Reorder({
   onMove: (from: number, to: number) => void;
 }) {
   return (
-    <span className="editor-row__grip">
+    <span className="flex flex-col gap-0.5">
       <button
         type="button"
-        className="icon-btn"
+        className={cx(ICON_BTN, "h-4.5 w-6")}
         aria-label="Sposta su"
         disabled={index === 0}
         onClick={() => onMove(index, index - 1)}
@@ -425,8 +495,8 @@ function Reorder({
       </button>
       <button
         type="button"
-        className="icon-btn"
-        aria-label="Sposta giu'"
+        className={cx(ICON_BTN, "h-4.5 w-6")}
+        aria-label="Sposta giù"
         disabled={index === length - 1}
         onClick={() => onMove(index, index + 1)}
       >
@@ -457,56 +527,46 @@ function ListGroup<T>({
   onChange: (items: T[]) => void;
   create: () => T;
   addLabel: string;
-  renderFields: (item: T, update: (next: T) => void) => React.ReactNode;
-  renderAside?: (item: T, update: (next: T) => void) => React.ReactNode;
+  renderFields: (item: T, update: (next: T) => void) => ReactNode;
+  renderAside?: (item: T, update: (next: T) => void) => ReactNode;
 }) {
   return (
-    <section className="group">
-      <div className="group__head">
-        <h2 className="group__title">{title}</h2>
-        <span className="group__hint">{hint}</span>
-      </div>
-
+    <Group title={title} hint={hint}>
       {items.length === 0 ? (
-        <p className="empty" style={{ padding: 16, fontSize: 13 }}>
-          Niente qui, per ora.
-        </p>
+        <Empty>Niente qui, per ora.</Empty>
       ) : (
-        <div className="editor-list">
+        <div className="grid gap-2">
           {items.map((item, index) => {
             const update = (next: T) => onChange(replace(items, index, next));
             return (
-              <div className="editor-row" key={index}>
+              <Row key={index}>
                 <Reorder
                   index={index}
                   length={items.length}
                   onMove={(from, to) => onChange(move(items, from, to))}
                 />
-                <span className="editor-row__body">{renderFields(item, update)}</span>
+                <span className="grid min-w-0 flex-1 basis-36 gap-1.5">
+                  {renderFields(item, update)}
+                </span>
                 {renderAside?.(item, update)}
                 <button
                   type="button"
-                  className="icon-btn icon-btn--danger"
+                  className={cx(ICON_BTN, "size-6 text-xs hover:border-hot hover:text-hot")}
                   aria-label="Rimuovi"
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
                 >
                   ×
                 </button>
-              </div>
+              </Row>
             );
           })}
         </div>
       )}
 
-      <button
-        type="button"
-        className="btn"
-        style={{ marginTop: 12, height: 32 }}
-        onClick={() => onChange([...items, create()])}
-      >
+      <Button size="sm" className="mt-3" onClick={() => onChange([...items, create()])}>
         + {addLabel}
-      </button>
-    </section>
+      </Button>
+    </Group>
   );
 }
 

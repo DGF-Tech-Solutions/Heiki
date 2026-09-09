@@ -25,7 +25,7 @@ export default async function ProfilePage({ params }: Props) {
 
   if (!(await databaseReachable())) {
     return (
-      <main className="shell profile">
+      <main className="mx-auto w-full max-w-[1200px] px-6 py-10">
         <DemoNotice />
         <SetupHint />
       </main>
@@ -43,7 +43,7 @@ export default async function ProfilePage({ params }: Props) {
   // dell'editor nel suo bundle, e nessun tasto che non potrebbe usare.
   if (!isOwner || !session?.user?.id) {
     return (
-      <main className="shell profile">
+      <main className="mx-auto w-full max-w-[1200px] px-6 py-10">
         <ProfileView data={data} />
       </main>
     );
@@ -52,7 +52,7 @@ export default async function ProfilePage({ params }: Props) {
   const premiumActive = await hasActivePremium(session.user.id);
 
   return (
-    <main className="shell" style={{ paddingTop: 8 }}>
+    <main className="mx-auto w-full max-w-[1200px] px-6 pt-2">
       <ProfileWorkspace
         initial={data}
         canEdit

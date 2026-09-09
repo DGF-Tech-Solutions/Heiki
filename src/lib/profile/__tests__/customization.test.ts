@@ -20,7 +20,7 @@ import { levelFromXp, levelProgress, xpForLevel, MAX_LEVEL } from "../level";
 
 describe("normalizeCustomization", () => {
   it("conserva una combinazione valida", () => {
-    const input = { accent: "cyan", frame: "notched", background: "dots", layout: "compact" };
+    const input = { accent: "ocean", frame: "notched", background: "dots", layout: "compact" };
     expect(normalizeCustomization(input)).toEqual(input);
   });
 
@@ -38,23 +38,23 @@ describe("normalizeCustomization", () => {
   it("regge null, undefined e tipi primitivi", () => {
     expect(normalizeCustomization(null)).toEqual(DEFAULT_CUSTOMIZATION);
     expect(normalizeCustomization(undefined)).toEqual(DEFAULT_CUSTOMIZATION);
-    expect(normalizeCustomization("gold")).toEqual(DEFAULT_CUSTOMIZATION);
+    expect(normalizeCustomization("brand")).toEqual(DEFAULT_CUSTOMIZATION);
   });
 
   it("ignora chiavi estranee invece di propagarle", () => {
-    const result = normalizeCustomization({ accent: "violet", isAdmin: true });
+    const result = normalizeCustomization({ accent: "ocean", isAdmin: true });
     expect(Object.keys(result).sort()).toEqual(["accent", "background", "frame", "layout"]);
   });
 });
 
 describe("stripPremium", () => {
   it("lascia intatte le scelte di chi ha il premium", () => {
-    const chosen = { accent: "ember", frame: "glow", background: "aurora", layout: "editorial" };
+    const chosen = { accent: "sunset", frame: "glow", background: "wash", layout: "editorial" };
     expect(stripPremium(chosen, true)).toEqual(chosen);
   });
 
   it("riporta al default solo le opzioni premium", () => {
-    const chosen = { accent: "ember", frame: "notched", background: "aurora", layout: "compact" };
+    const chosen = { accent: "sunset", frame: "notched", background: "wash", layout: "compact" };
     const result = stripPremium(chosen, false);
 
     expect(result.accent).toBe(DEFAULT_CUSTOMIZATION.accent);
@@ -65,9 +65,9 @@ describe("stripPremium", () => {
   });
 
   it("non muta l'oggetto ricevuto", () => {
-    const chosen = { accent: "ember", frame: "glow", background: "grid", layout: "standard" };
+    const chosen = { accent: "sunset", frame: "glow", background: "grid", layout: "standard" };
     stripPremium(chosen, false);
-    expect(chosen.accent).toBe("ember");
+    expect(chosen.accent).toBe("sunset");
   });
 });
 
@@ -107,7 +107,7 @@ describe("toCosmeticRecord", () => {
   });
 
   it("il giro completo salva-e-rileggi non perde informazione", () => {
-    const chosen = { accent: "rose", frame: "glow", background: "scan", layout: "editorial" };
+    const chosen = { accent: "gold", frame: "glow", background: "stripes", layout: "editorial" };
     expect(normalizeCustomization(toCosmeticRecord(chosen))).toEqual(chosen);
   });
 });

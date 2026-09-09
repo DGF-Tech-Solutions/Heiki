@@ -8,6 +8,7 @@ import { users } from "@/lib/db/schema";
 import { ProfileWorkspace } from "@/components/profile-workspace";
 import type { ProfileViewData } from "@/components/profile-view";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
+import { display, eyebrow } from "@/components/ui";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { saveProfileAction } from "@/lib/profile/actions";
 import { listGameModules } from "@/lib/games/registry";
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 export default async function ProfileSettingsPage() {
   if (!(await databaseReachable())) {
     return (
-      <main className="shell profile">
+      <main className="mx-auto w-full max-w-[1200px] px-6 py-10">
         <DemoNotice />
         <SetupHint />
       </main>
@@ -37,16 +38,16 @@ export default async function ProfileSettingsPage() {
     session.user.id !== undefined && (await hasActivePremium(session.user.id));
 
   return (
-    <main className="shell" style={{ paddingTop: 34 }}>
+    <main className="mx-auto w-full max-w-[1200px] px-6 pt-8">
       <header style={{ marginBottom: 8 }}>
-        <p className="eyebrow">Impostazioni</p>
-        <h1 className="display" style={{ fontSize: 34, marginTop: 12 }}>
+        <p className={eyebrow}>Impostazioni</p>
+        <h1 className={`${display} mt-3 text-[34px]`}>
           Personalizza il profilo
         </h1>
-        <p className="lede" style={{ marginTop: 12, fontSize: 15 }}>
-          Le modifiche appaiono subito nell&apos;anteprima a destra. Diventano pubbliche quando
-          salvi. La tua pagina e&apos; su{" "}
-          <Link href={`/u/${data.username}`} className="mono" style={{ color: "var(--gold)" }}>
+        <p className="mt-3 max-w-[62ch] text-[15px] text-ink-2">
+          Cambi a sinistra, vedi il risultato a destra. Diventa pubblico solo quando salvi. La tua
+          pagina è{" "}
+          <Link href={`/u/${data.username}`} className="font-mono font-semibold text-brand hover:underline">
             /u/{data.username}
           </Link>
           .

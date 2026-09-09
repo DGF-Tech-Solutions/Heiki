@@ -19,28 +19,28 @@ export interface CosmeticOption {
 
 /** Colore d'accento: la scelta piu' visibile, quindi la prima nell'editor. */
 export const ACCENTS: readonly CosmeticOption[] = [
-  { id: "gold", label: "Oro", description: "Il colore di sistema", premium: false },
-  { id: "violet", label: "Viola", description: "Freddo, contrasto alto", premium: false },
-  { id: "cyan", label: "Ciano", description: "Tecnico, da terminale", premium: false },
-  { id: "lime", label: "Lime", description: "Acido, molto vivo", premium: false },
-  { id: "rose", label: "Rosa", description: "Caldo, saturo", premium: true },
-  { id: "ember", label: "Brace", description: "Sfumatura calda animata", premium: true },
+  { id: "brand", label: "Viola", description: "Il colore di sistema", premium: false },
+  { id: "magenta", label: "Magenta", description: "Caldo e molto acceso", premium: false },
+  { id: "ocean", label: "Oceano", description: "Blu profondo, sobrio", premium: false },
+  { id: "forest", label: "Bosco", description: "Verde scuro, riposante", premium: false },
+  { id: "sunset", label: "Tramonto", description: "Arancio bruciato", premium: true },
+  { id: "gold", label: "Oro", description: "Il colore del cinque stelle", premium: true },
 ];
 
 export const FRAMES: readonly CosmeticOption[] = [
-  { id: "none", label: "Nessuna", description: "Solo il bordo di base", premium: false },
+  { id: "none", label: "Nessuna", description: "Solo il blocco pieno", premium: false },
   { id: "hairline", label: "Filo", description: "Un tratto sottile a distanza", premium: false },
   { id: "double", label: "Doppia", description: "Due tratti concentrici", premium: false },
   { id: "notched", label: "Tagliata", description: "Angoli smussati", premium: false },
-  { id: "glow", label: "Alone", description: "Bagliore nel colore d'accento", premium: true },
+  { id: "glow", label: "Alone", description: "Ombra colorata sotto l'avatar", premium: true },
 ];
 
 export const BACKGROUNDS: readonly CosmeticOption[] = [
   { id: "plain", label: "Liscio", description: "Nessuna trama", premium: false },
   { id: "grid", label: "Griglia", description: "Reticolo tecnico", premium: false },
   { id: "dots", label: "Punti", description: "Trama a pois radi", premium: false },
-  { id: "aurora", label: "Aurora", description: "Sfumature morbide in movimento", premium: true },
-  { id: "scan", label: "Scanline", description: "Righe orizzontali da CRT", premium: true },
+  { id: "wash", label: "Velatura", description: "Sfumatura diagonale nel tuo colore", premium: true },
+  { id: "stripes", label: "Diagonali", description: "Righe inclinate", premium: true },
 ];
 
 export const LAYOUTS: readonly CosmeticOption[] = [
@@ -59,7 +59,7 @@ export interface ProfileCustomization {
 }
 
 export const DEFAULT_CUSTOMIZATION: ProfileCustomization = {
-  accent: "gold",
+  accent: "brand",
   frame: "hairline",
   background: "grid",
   layout: "standard",

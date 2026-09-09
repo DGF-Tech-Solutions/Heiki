@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RegisterForm } from "./register-form";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
+import { display, eyebrow } from "@/components/ui";
 import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
 
@@ -17,38 +18,40 @@ export default async function RegisterPage() {
   const demoMode = !(await databaseReachable());
 
   return (
-    <main className="shell auth">
+    <main className="mx-auto grid w-full max-w-[1200px] items-start gap-14 px-6 pt-13 pb-20 lg:grid-cols-[1fr_0.85fr]">
       <div>
-        <p className="eyebrow">Registrazione</p>
-        <h1 className="display" style={{ fontSize: "clamp(32px, 4.6vw, 52px)", marginTop: 16 }}>
-          Il profilo e&apos; la tua firma.
+        <p className={eyebrow}>Registrazione</p>
+        <h1 className={`${display} mt-4 text-[clamp(32px,4.6vw,52px)]`}>
+          Il profilo è la tua firma.
         </h1>
-        <p className="lede" style={{ marginTop: 18 }}>
-          Build salvate, squadre, personaggi preferiti e i badge che ti sei guadagnato, tutto su una
-          pagina che puoi mandare in giro con un link.
+        <p className="mt-4 max-w-[48ch] text-base text-ink-2">
+          Build salvate, squadre, preferiti e i badge che ti sei guadagnato. Tutto su una pagina che
+          mandi in giro con un link.
         </p>
 
-        <ul style={{ margin: "26px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 12 }}>
-          <li className="lede" style={{ fontSize: 14, margin: 0 }}>
-            <strong style={{ color: "var(--chalk)" }}>I badge si guadagnano.</strong> Quelli
-            verificati leggono il tuo profilo di gioco pubblico. Non chiediamo mai le credenziali
-            del tuo account di gioco.
+        <ul className="mt-7 grid list-none gap-4 p-0">
+          <li className="border-l-[3px] border-brand pl-3.5 text-sm text-ink-2">
+            <strong className="text-ink">I badge si guadagnano.</strong> Quelli verificati leggono
+            il tuo profilo di gioco pubblico. Non ti chiediamo mai le credenziali del gioco.
           </li>
-          <li className="lede" style={{ fontSize: 14, margin: 0 }}>
-            <strong style={{ color: "var(--chalk)" }}>Il livello sale con i riconoscimenti.</strong>{" "}
-            Guide approvate e voti ricevuti, non numero di messaggi pubblicati.
+          <li className="border-l-[3px] border-brand pl-3.5 text-sm text-ink-2">
+            <strong className="text-ink">Il livello sale se sei utile.</strong> Contano le guide
+            approvate e i voti che ricevi, non quanti messaggi scrivi.
           </li>
         </ul>
       </div>
 
-      <div className="auth__panel">
+      <div className="rounded-card border border-rule border-t-[3px] border-t-brand bg-paper p-7">
         <DemoNotice />
         <RegisterForm demoMode={demoMode} />
-
         <SetupHint />
 
-        <p className="form-foot">
-          Hai gia&apos; un profilo? <Link href="/entra">Entra</Link>.
+        <p className="mt-4.5 border-t border-rule-2 pt-4 text-[13px] text-ink-2">
+          Hai già un profilo?{" "}
+          <Link href="/entra" className="font-semibold text-brand hover:underline">
+            Entra
+          </Link>
+          .
         </p>
       </div>
     </main>

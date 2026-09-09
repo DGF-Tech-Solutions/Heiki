@@ -2,16 +2,17 @@
  * L'elemento firma del sito.
  *
  * Su una piattaforma gacha la scelta ovvia sarebbe aprire con l'artwork dei
- * personaggi. Qui si apre con la distribuzione di una simulazione reale, per due
- * ragioni: e' cio' che il prodotto sa fare e nessun concorrente mette in prima
- * pagina, ed e' interamente materiale nostro - nessun asset di un publisher.
+ * personaggi. Qui si apre con la distribuzione di una simulazione reale: e' cio'
+ * che il prodotto sa fare e nessun concorrente mette in prima pagina, ed e'
+ * interamente materiale nostro - nessun asset di un publisher.
  *
- * Le barre dentro l'intervallo p10-p90 sono accese, quelle fuori spente: si
- * legge a colpo d'occhio dove cade il risultato nove volte su dieci. L'oro,
- * unico colore acceso del sistema, marca la mediana.
+ * Le barre dentro l'intervallo p10-p90 sono piene, quelle fuori spente: si legge
+ * a colpo d'occhio dove cade il risultato nove volte su dieci. La linea magenta
+ * marca la mediana.
  */
 
 import type { DistributionStats, Histogram } from "@/lib/engine";
+import { eyebrow, numeric } from "./ui";
 
 interface Props {
   histogram: Histogram;
@@ -33,21 +34,20 @@ export function DistributionChart({ histogram, stats, title, caption, formatValu
   const plotHeight = HEIGHT - PAD_BOTTOM;
   const span = histogram.max - histogram.min;
 
-  /** Posizione orizzontale di un valore sull'asse. */
   const xFor = (value: number) =>
     span > 0 ? ((value - histogram.min) / span) * WIDTH : WIDTH / 2;
 
-  const medianX = xFor(stats.median);
-
   return (
-    <figure className="plot" style={{ margin: 0 }}>
-      <div className="plot__head">
-        <span className="plot__title">{title}</span>
-        <span className="eyebrow">{caption}</span>
+    <figure className="m-0 rounded-card border border-rule bg-paper px-5 pt-4.5 pb-3.5">
+      <div className="mb-3.5 flex items-baseline justify-between gap-4 border-b border-rule-2 pb-3">
+        <span className="font-display text-sm font-bold uppercase tracking-[-0.005em] [font-variation-settings:'wdth'_92]">
+          {title}
+        </span>
+        <span className={eyebrow}>{caption}</span>
       </div>
 
       <svg
-        className="plot__svg"
+        className="block h-auto w-full"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         preserveAspectRatio="none"
         role="img"
@@ -63,7 +63,7 @@ export function DistributionChart({ histogram, stats, title, caption, formatValu
           return (
             <rect
               key={index}
-              className={inner ? "plot__bar plot__bar--inner" : "plot__bar"}
+              fill={inner ? "var(--color-brand)" : "var(--color-paper-3)"}
               x={index * barWidth}
               y={plotHeight - height}
               width={Math.max(barWidth - 1, 0.5)}
@@ -72,42 +72,62 @@ export function DistributionChart({ histogram, stats, title, caption, formatValu
           );
         })}
 
-        <line className="plot__axis" x1={0} y1={plotHeight} x2={WIDTH} y2={plotHeight} />
         <line
-          className="plot__median"
-          x1={medianX}
-          y1={0}
-          x2={medianX}
+          x1={0}
+          y1={plotHeight}
+          x2={WIDTH}
           y2={plotHeight}
-          strokeDasharray="3 3"
+          stroke="var(--color-rule)"
+          strokeWidth={1}
+        />
+        <line
+          x1={xFor(stats.median)}
+          y1={0}
+          x2={xFor(stats.median)}
+          y2={plotHeight}
+          stroke="var(--color-hot)"
+          strokeWidth={2}
         />
 
-        <text className="plot__tick" x={0} y={HEIGHT - 4}>
+        <text
+          x={0}
+          y={HEIGHT - 4}
+          className="font-mono text-[9px]"
+          fill="var(--color-ink-3)"
+        >
           {format(histogram.min)}
         </text>
-        <text className="plot__tick" x={WIDTH} y={HEIGHT - 4} textAnchor="end">
+        <text
+          x={WIDTH}
+          y={HEIGHT - 4}
+          textAnchor="end"
+          className="font-mono text-[9px]"
+          fill="var(--color-ink-3)"
+        >
           {format(histogram.max)}
         </text>
       </svg>
 
-      <figcaption className="plot__legend">
-        <div>
-          <span className="swatch" style={{ background: "var(--violet)" }} aria-hidden />
-          <span>p10</span>
-          <b>{format(stats.p10)}</b>
-        </div>
-        <div>
-          <span className="swatch" style={{ background: "var(--gold)" }} aria-hidden />
-          <span>mediana</span>
-          <b>{format(stats.median)}</b>
-        </div>
-        <div>
-          <span className="swatch" style={{ background: "var(--violet)" }} aria-hidden />
-          <span>p90</span>
-          <b>{format(stats.p90)}</b>
-        </div>
+      <figcaption className="mt-3 flex flex-wrap gap-4.5 border-t border-rule-2 pt-3">
+        <Legend color="var(--color-brand)" label="p10" value={format(stats.p10)} />
+        <Legend color="var(--color-hot)" label="mediana" value={format(stats.median)} />
+        <Legend color="var(--color-brand)" label="p90" value={format(stats.p90)} />
       </figcaption>
     </figure>
+  );
+}
+
+function Legend({ color, label, value }: { color: string; label: string; value: string }) {
+  return (
+    <div className="flex items-baseline gap-2 font-mono text-[11px] text-ink-3">
+      <span
+        className="size-2 flex-none translate-y-px"
+        style={{ background: color }}
+        aria-hidden
+      />
+      <span>{label}</span>
+      <b className={`${numeric} text-[13px] font-medium text-ink`}>{value}</b>
+    </div>
   );
 }
 

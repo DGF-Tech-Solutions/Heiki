@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProfileWorkspace } from "@/components/profile-workspace";
 import type { ProfileViewData } from "@/components/profile-view";
+import { buttonClass } from "@/components/ui";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/profile/customization";
 
 /**
@@ -27,7 +28,7 @@ const SAMPLE: ProfileViewData = {
   bio: "Theorycrafting su Grand Cross e Star Rail. Scrivo rotazioni, misuro tutto due volte e pubblico solo quello che regge alla simulazione.",
   country: "Italia",
   xp: 2480,
-  favorites: ["Unita' Forza", "Unita' Destrezza"],
+  favorites: ["Unità Forza", "Unità Destrezza"],
   customization: DEFAULT_CUSTOMIZATION,
   badges: [
     { id: "b1", name: "Roster completo", trust: "VERIFIED", icon: "✦", shown: true },
@@ -38,15 +39,29 @@ const SAMPLE: ProfileViewData = {
     { id: "b6", name: "Clear piano 12", trust: "DECLARED", icon: "◇", shown: false },
   ],
   gameAccounts: [
-    { id: "g1", game: "Grand Cross", uid: "3941 8820", nickname: "franz", trust: "VERIFIED", shown: true },
-    { id: "g2", game: "Honkai Star Rail", uid: "700412955", nickname: "franz", trust: "IMPORTED", shown: true },
+    {
+      id: "g1",
+      game: "Grand Cross",
+      uid: "3941 8820",
+      nickname: "franz",
+      trust: "VERIFIED",
+      shown: true,
+    },
+    {
+      id: "g2",
+      game: "Honkai Star Rail",
+      uid: "700412955",
+      nickname: "franz",
+      trust: "IMPORTED",
+      shown: true,
+    },
   ],
   builds: [
     {
       id: "s1",
       name: "Apertura a 3 turni",
       game: "Grand Cross",
-      character: "Unita' Forza",
+      character: "Unità Forza",
       median: 186_400,
       patch: "0.0.0",
       isPublic: true,
@@ -55,7 +70,7 @@ const SAMPLE: ProfileViewData = {
       id: "s2",
       name: "Sostegno prolungato",
       game: "Grand Cross",
-      character: "Unita' Destrezza",
+      character: "Unità Destrezza",
       median: 94_150,
       patch: "0.0.0",
       isPublic: true,
@@ -64,7 +79,7 @@ const SAMPLE: ProfileViewData = {
       id: "s3",
       name: "Difensiva lunga",
       game: "Grand Cross",
-      character: "Unita' Vita",
+      character: "Unità Vita",
       median: 61_300,
       patch: "0.0.0",
       isPublic: false,
@@ -74,15 +89,14 @@ const SAMPLE: ProfileViewData = {
 
 export default function ProfilePreviewPage() {
   return (
-    <main className="shell" style={{ paddingTop: 34 }}>
-      <div className="preview-flag">
-        <strong style={{ color: "var(--violet)" }}>Anteprima</strong>
-        <span>
-          Dati di esempio, nessun account reale. Premi <strong>Modifica profilo</strong> per
-          personalizzare tutto: il salvataggio resta in questo browser finche&apos; non attivi il
-          database.
+    <main className="mx-auto w-full max-w-[1200px] px-6 pt-8">
+      <div className="mb-6 flex flex-wrap items-center gap-3.5 rounded-card border border-rule border-l-4 border-l-brand bg-brand-soft px-4 py-3.5 text-[13px] text-ink-2">
+        <strong className="text-brand">Anteprima</strong>
+        <span className="flex-1 basis-72">
+          Dati di esempio, nessun account vero. Premi <strong>Modifica profilo</strong> e cambia
+          quello che vuoi: si salva in questo browser finché non accendi il database.
         </span>
-        <Link href="/registrati" className="btn" style={{ marginLeft: "auto", height: 32 }}>
+        <Link href="/registrati" className={buttonClass("outline", "sm")}>
           Crea il tuo
         </Link>
       </div>

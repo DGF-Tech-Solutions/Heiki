@@ -611,6 +611,12 @@ export const posts = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     bodyMd: text("body_md").notNull(),
+    /**
+     * Risultato di simulazione allegato al post: e' cio' che distingue questa
+     * community da un forum. Porta seed e patch, quindi chiunque puo' rifare il
+     * calcolo e ottenere gli stessi numeri invece di doversi fidare.
+     */
+    attachment: jsonb("attachment").$type<Record<string, unknown>>(),
     score: integer("score").default(0).notNull(),
     commentCount: integer("comment_count").default(0).notNull(),
     pinned: boolean("pinned").default(false).notNull(),

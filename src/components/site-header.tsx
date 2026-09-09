@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/auth/permissions";
+import { buttonClass, Tag } from "./ui";
 
 /**
  * L'intestazione conosce lo stato della sessione, quindi e' un componente
@@ -12,25 +13,29 @@ export async function SiteHeader() {
   const user = session?.user;
 
   return (
-    <header className="masthead">
-      <div className="shell masthead__inner">
-        <Link href="/" className="wordmark">
-          Gacha<span>Zone</span>
+    <header className="sticky top-0 z-20 border-b-2 border-ink bg-paper">
+      <div className="mx-auto flex h-[58px] w-full max-w-[1200px] items-center gap-6 px-6">
+        <Link
+          href="/"
+          className="whitespace-nowrap font-display text-xl font-extrabold uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_78]"
+        >
+          Gacha<span className="text-brand">Zone</span>
         </Link>
 
-        <nav className="masthead__nav">
-          <Link href="/#moduli">Moduli</Link>
-          <Link href="/#motore">Motore</Link>
+        <nav className="ml-auto flex items-center gap-5 text-sm font-medium">
+          <Link href="/" className="text-ink-2 hover:text-brand">
+            Giochi
+          </Link>
 
-          <span className="masthead__auth">
+          <span className="flex items-center gap-2.5 border-l border-rule pl-5">
             {user ? (
               <>
-                <Link href="/impostazioni/profilo" className="btn btn--ghost">
+                <Link href="/impostazioni/profilo" className={buttonClass("ghost", "sm")}>
                   Personalizza
                 </Link>
-                <Link href={`/u/${user.username}`} className="btn btn--ghost">
+                <Link href={`/u/${user.username}`} className={buttonClass("ghost", "sm")}>
                   {user.username}
-                  <span className="tag">{ROLE_LABELS[user.role] ?? "Utente"}</span>
+                  <Tag>{ROLE_LABELS[user.role] ?? "Utente"}</Tag>
                 </Link>
                 <form
                   action={async () => {
@@ -38,18 +43,18 @@ export async function SiteHeader() {
                     await signOut({ redirectTo: "/" });
                   }}
                 >
-                  <button type="submit" className="btn btn--ghost">
+                  <button type="submit" className={buttonClass("ghost", "sm")}>
                     Esci
                   </button>
                 </form>
               </>
             ) : (
               <>
-                <Link href="/entra" className="btn btn--ghost masthead__nav-keep">
+                <Link href="/entra" className={buttonClass("ghost", "sm")}>
                   Entra
                 </Link>
-                <Link href="/registrati" className="btn btn--primary masthead__nav-keep">
-                  Crea il profilo
+                <Link href="/registrati" className={buttonClass("primary", "sm")}>
+                  Iscriviti
                 </Link>
               </>
             )}

@@ -12,3 +12,6 @@ next-env.d.ts
 # Cartelle di build alternative usate per le verifiche
 .next-check/
 .next-build/
+
+# Pagine salvate da altri siti, tenute solo come riferimento locale
+/*.html

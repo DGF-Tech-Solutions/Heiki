@@ -16,6 +16,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { ProfileView } from "./profile-view";
 import type { ProfileViewData } from "./profile-view";
 import { ProfileEditorPanel, toDraft, type ProfileDraft } from "./profile-editor";
+import { Button, cx, eyebrow, numeric } from "./ui";
 
 const DRAFT_KEY = "gachazone:profile-draft";
 
@@ -65,7 +66,7 @@ export function ProfileWorkspace({
     if (demoMode || !saveAction) {
       try {
         window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        setStatus("Salvato in questo browser. Con il database attivo finira' sul tuo account.");
+        setStatus("Salvato in questo browser. Col database acceso finirà sul tuo account.");
       } catch {
         setStatus("Il browser non consente il salvataggio locale.");
       }
@@ -96,46 +97,42 @@ export function ProfileWorkspace({
   return (
     <>
       {canEdit ? (
-        <div className="workbar">
-          <span className="workbar__label">
-            <span className="eyebrow">{editing ? "Modalita' modifica" : "Il tuo profilo"}</span>
-            <span className="mono workbar__handle">/u/{draft.username || "…"}</span>
+        <div className="sticky top-[58px] z-15 mb-1 flex flex-wrap items-center gap-3.5 border-b border-rule bg-paper py-3.5">
+          <span className="grid gap-0.5">
+            <span className={eyebrow}>{editing ? "Stai modificando" : "Il tuo profilo"}</span>
+            <span className={cx(numeric, "text-xs text-ink-3")}>/u/{draft.username || "…"}</span>
           </span>
 
-          <span className="workbar__actions">
+          <span className="ml-auto flex flex-wrap items-center gap-2.5">
             {editing ? (
               <>
-                <span className="editor__status">
+                <span className={cx(numeric, "text-[11px] text-ink-3")}>
                   {status ?? (dirty ? "Modifiche non salvate" : "Nessuna modifica")}
                 </span>
-                <button type="button" className="btn" onClick={discard} disabled={!dirty}>
+                <Button onClick={discard} disabled={!dirty}>
                   Annulla
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  onClick={save}
-                  disabled={pending || !dirty}
-                >
-                  {pending ? "Salvataggio…" : "Salva"}
-                </button>
-                <button type="button" className="btn btn--ghost" onClick={close}>
+                </Button>
+                <Button variant="primary" onClick={save} disabled={pending || !dirty}>
+                  {pending ? "Salvo…" : "Salva"}
+                </Button>
+                <Button variant="ghost" onClick={close}>
                   Chiudi
-                </button>
+                </Button>
               </>
             ) : (
               <>
-                {status ? <span className="editor__status">{status}</span> : null}
-                <button
-                  type="button"
-                  className="btn btn--primary"
+                {status ? (
+                  <span className={cx(numeric, "text-[11px] text-ink-3")}>{status}</span>
+                ) : null}
+                <Button
+                  variant="primary"
                   onClick={() => {
                     setStatus(null);
                     setEditing(true);
                   }}
                 >
                   Modifica profilo
-                </button>
+                </Button>
               </>
             )}
           </span>
@@ -143,12 +140,13 @@ export function ProfileWorkspace({
       ) : null}
 
       {editing ? (
-        <div className="editor">
+        <div className="grid items-start gap-10 pt-6 pb-20 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)]">
           <ProfileEditorPanel value={draft} onChange={update} canUsePremium={canUsePremium} />
-          <div className="editor__preview">
-            <div className="editor__preview-tag">
-              <span className="eyebrow">Anteprima dal vivo</span>
-              <span className="mono" style={{ fontSize: 11, color: "var(--faint)" }}>
+
+          <div className="overflow-hidden rounded-card border border-rule bg-paper px-7 pt-6 pb-8 lg:sticky lg:top-[124px]">
+            <div className="mb-5 flex items-center justify-between gap-3 border-b border-rule-2 pb-3.5">
+              <span className={eyebrow}>Anteprima dal vivo</span>
+              <span className={cx(numeric, "text-[11px] text-ink-3")}>
                 /u/{draft.username || "…"}
               </span>
             </div>
@@ -156,7 +154,7 @@ export function ProfileWorkspace({
           </div>
         </div>
       ) : (
-        <div className="profile">
+        <div className="pt-6 pb-16">
           <ProfileView data={draft} />
         </div>
       )}

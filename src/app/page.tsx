@@ -1,183 +1,157 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { DistributionChart } from "@/components/distribution-chart";
-import { listGameModules, simulate } from "@/lib/games/registry";
-import type { GameModule } from "@/lib/games/types";
-import type { SimulationResult } from "@/lib/engine";
+import { PostCard } from "@/components/community/post-card";
+import { cx, display, Empty, eyebrow, numeric, SectionHead, Tag } from "@/components/ui";
+import { getStore } from "@/lib/community/store";
+import { sortFeed } from "@/lib/community/ranking";
+import { listGames } from "@/lib/games/catalog";
+import { getGameModule } from "@/lib/games/registry";
+import { rankCharacters } from "@/lib/games/preview";
 
 /**
- * La home esegue una simulazione vera durante il render.
+ * Radice del sito: si sceglie il gioco.
  *
- * Non e' una demo finta: e' lo stesso motore che usera' il calcolatore, con lo
- * stesso seed e lo stesso dataset. Essendo fatto di funzioni pure gira identico
- * qui sul server e nel browser, ed e' il motivo per cui questa pagina resta
- * completamente statica.
+ * Non c'e' una frase di apertura. Chi arriva qui sa gia' cosa cerca - o viene da
+ * una ricerca, e allora atterra direttamente su una scheda personaggio. Una
+ * pagina di ingresso che deve convincere serve ai prodotti che si vendono, non
+ * agli strumenti che si usano.
  */
-export default function Home() {
-  const modules = listGameModules();
-  const featured = modules[0];
-  const showcase = featured ? runDemo(featured) : null;
+
+export const metadata: Metadata = {
+  title: "GachaZone — build, calcoli e community per i giochi gacha",
+  description:
+    "Schede personaggio, simulazioni di danno verificabili e community per Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero e Wuthering Waves.",
+};
+
+export default async function Home() {
+  const games = listGames();
+
+  const store = await getStore();
+  const latest = sortFeed(await store.listPosts(null, null, null), "hot").slice(0, 4);
 
   return (
-    <main>
-      <section className="shell hero">
-        <div>
-          <p className="eyebrow">
-            {featured ? `Motore di calcolo · ${featured.name}` : "Motore di calcolo"}
-          </p>
-          <h1 className="display hero__title">
-            Una build non e&apos; un numero.
-            <br />
-            E&apos; una <em>distribuzione</em>.
-          </h1>
-          <p className="lede" style={{ marginTop: 22 }}>
-            GachaZone simula la tua squadra migliaia di volte e non ti dice solo quanto danno fai,
-            ma quanto spesso lo fai. Percentili, turni per uccidere, probabilita&apos; di chiudere
-            il piano.
-          </p>
+    <main className="mx-auto w-full max-w-[1200px] px-6 pt-8 pb-20">
+      <section>
+        <SectionHead title="Giochi" aside={<span className={eyebrow}>{games.length} previsti</span>} />
 
-          <div className="hero__actions">
-            <Link href="/registrati" className="btn btn--primary">
-              Crea il profilo
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {games.map((game) => {
+            const module = getGameModule(game.slug);
+            const characters = module?.characters.length ?? 0;
+
+            if (!game.available) {
+              return (
+                <div
+                  key={game.slug}
+                  className="rounded-card border border-dashed border-rule bg-paper-2 p-4"
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3
+                      className={cx(display, "text-base text-ink-3 [font-variation-settings:'wdth'_92]")}
+                    >
+                      {game.shortName}
+                    </h3>
+                    <Tag>in arrivo</Tag>
+                  </div>
+                  <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={game.slug}
+                href={`/${game.slug}`}
+                className="rounded-card border border-rule bg-paper p-4 transition-colors hover:border-brand"
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className={cx(display, "text-base [font-variation-settings:'wdth'_92]")}>
+                    {game.shortName}
+                  </h3>
+                  <Tag tone="brand">attivo</Tag>
+                </div>
+                <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
+                <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>
+                  {characters} personaggi · dati {module?.dataset.patch}
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mt-11 border-t border-rule pt-9">
+        <SectionHead
+          title="Ultimi post"
+          aside={
+            <Link
+              href={`/${games.find((game) => game.available)?.slug ?? ""}`}
+              className={cx(eyebrow, "text-brand hover:underline")}
+            >
+              Community →
             </Link>
-            <Link href="/entra" className="btn">
-              Entra
-            </Link>
+          }
+        />
+
+        {latest.length === 0 ? (
+          <Empty>Ancora nessuna discussione.</Empty>
+        ) : (
+          <div className="grid gap-3.5">
+            {latest.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
           </div>
-
-          <p className="hero__note">
-            Stesso seed, stesso dataset, stessi numeri. Un risultato che condividi mostra a
-            chiunque esattamente cio&apos; che hai visto tu.
-          </p>
-        </div>
-
-        {showcase && featured ? (
-          <DistributionChart
-            histogram={showcase.damageHistogram}
-            stats={showcase.damage}
-            title="Danno totale su 2.000 simulazioni"
-            caption={`seed ${showcase.seed}`}
-          />
-        ) : null}
+        )}
       </section>
 
-      <section className="shell section" id="moduli">
-        <div className="section__head">
-          <h2 className="section__title">Moduli registrati</h2>
-          <span className="eyebrow">{modules.length} di 5 previsti</span>
-        </div>
-
-        <div style={{ display: "grid", gap: 16 }}>
-          {modules.map((module) => (
-            <ModuleCard key={module.id} module={module} />
-          ))}
-        </div>
-      </section>
-
-      <section className="shell section" id="motore">
-        <div className="section__head">
-          <h2 className="section__title">Come e&apos; costruito</h2>
-        </div>
-
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-          <article className="card">
-            <h3 className="card__title">Il risultato e&apos; sempre una distribuzione</h3>
-            <p className="lede" style={{ marginTop: 10, fontSize: 14 }}>
-              I giochi a turni deterministici e quelli a carte casuali passano dallo stesso
-              contratto. Chi legge il risultato non deve sapere quale dei due sta guardando.
-            </p>
-          </article>
-          <article className="card">
-            <h3 className="card__title">Il calcolo gira nel tuo browser</h3>
-            <p className="lede" style={{ marginTop: 10, fontSize: 14 }}>
-              Nessuna chiamata al server mentre muovi uno slider: i numeri si aggiornano subito, e
-              il costo di calcolo non cresce con il numero di utenti.
-            </p>
-          </article>
-          <article className="card">
-            <h3 className="card__title">Le patch non riscrivono il passato</h3>
-            <p className="lede" style={{ marginTop: 10, fontSize: 14 }}>
-              Ogni build resta legata alla versione di dati con cui e&apos; stata calcolata. Quando
-              esce una patch te lo diciamo, non cambiamo i tuoi numeri di nascosto.
-            </p>
-          </article>
-        </div>
-      </section>
+      <TopCharacters />
     </main>
   );
 }
 
-function ModuleCard({ module }: { module: GameModule }) {
-  const result = runDemo(module);
-  const unit = module.timeUnit === "turns" ? "turni" : "s";
+/** Estratto della classifica: e' la porta d'ingresso alle schede personaggio. */
+function TopCharacters() {
+  const game = listGames().find((entry) => entry.available);
+  const module = game ? getGameModule(game.slug) : undefined;
+  if (!game || !module) return null;
+
+  const ranked = rankCharacters(module).slice(0, 5);
+  if (ranked.length === 0) return null;
 
   return (
-    <article className="card">
-      <div className="card__head">
-        <h3 className="card__title">{module.name}</h3>
-        <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span className="tag">{module.publisher}</span>
-          <span className={module.paradigm === "stochastic" ? "tag tag--violet" : "tag tag--gold"}>
-            {module.paradigm === "stochastic" ? "Monte Carlo" : "deterministico"}
-          </span>
-          <span className="tag">dataset {module.dataset.patch}</span>
-        </span>
-      </div>
+    <section className="mt-11 border-t border-rule pt-9">
+      <SectionHead
+        title={`Classifica ${game.shortName}`}
+        aside={
+          <Link
+            href={`/${game.slug}/classifica`}
+            className={cx(eyebrow, "text-brand hover:underline")}
+          >
+            Classifica completa →
+          </Link>
+        }
+      />
 
-      {result === null ? (
-        <p className="lede" style={{ marginTop: 12, fontSize: 14 }}>
-          Modulo registrato, nessuna simulazione di prova configurata.
-        </p>
-      ) : (
-        <dl className="readout">
-          <div>
-            <dt>Danno mediano</dt>
-            <dd>{Math.round(result.damage.median).toLocaleString("it-IT")}</dd>
-          </div>
-          <div>
-            <dt>Intervallo p10-p90</dt>
-            <dd style={{ fontSize: 15 }}>
-              {Math.round(result.damage.p10).toLocaleString("it-IT")} –{" "}
-              {Math.round(result.damage.p90).toLocaleString("it-IT")}
-            </dd>
-          </div>
-          <div>
-            <dt>Turni per uccidere</dt>
-            <dd>
-              {result.timeToKill === null ? "—" : result.timeToKill.median}
-              <small>{result.timeToKill === null ? "mai" : unit}</small>
-            </dd>
-          </div>
-          <div>
-            <dt>Probabilita&apos; di kill</dt>
-            <dd>
-              {Math.round(result.killRate * 100)}
-              <small>%</small>
-            </dd>
-          </div>
-        </dl>
-      )}
-    </article>
-  );
-}
-
-/** Simulazione dimostrativa: intero roster del modulo contro il primo bersaglio. */
-function runDemo(module: GameModule): SimulationResult | null {
-  const target = module.targets[0];
-  if (target === undefined || module.characters.length === 0) return null;
-
-  const actors = module.characters.map((character, index) =>
-    module.resolveActor({ characterId: character.id, level: 80, rank: 0 }, `slot${index + 1}`),
-  );
-
-  return simulate(
-    module,
-    {
-      gameId: module.id,
-      datasetPatch: module.dataset.patch,
-      actors,
-      rotation: { id: "demo", name: "Demo", steps: [], repeat: 20 },
-      target,
-    },
-    { iterations: 2000, seed: 20260909 },
+      <ol className="m-0 grid list-none gap-2 p-0">
+        {ranked.map((row, index) => (
+          <li
+            key={row.character.id}
+            className="flex flex-wrap items-center gap-3 rounded-card border border-rule bg-paper px-4 py-2.5"
+          >
+            <span className={cx(numeric, "w-5 text-ink-3")}>{index + 1}</span>
+            <Link
+              href={`/${game.slug}/personaggi/${row.character.id}`}
+              className="font-semibold hover:text-brand"
+            >
+              {row.character.name}
+            </Link>
+            <Tag>{row.character.role}</Tag>
+            <span className={cx(numeric, "ml-auto font-medium")}>
+              {Math.round(row.result.damage.median).toLocaleString("it-IT")}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

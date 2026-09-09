@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { registerAction, type FormState } from "@/lib/auth/actions";
+import { Button, Field, Input, Notice } from "@/components/ui";
 
 const INITIAL: FormState = {};
 
@@ -12,19 +13,14 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
   return (
     <form action={action} noValidate>
       {state.error ? (
-        <p className="notice notice--error" role="alert" style={{ marginBottom: 18 }}>
+        <Notice tone="error" className="mb-4">
           {state.error}
-        </p>
+        </Notice>
       ) : null}
 
-      <label className="field">
-        <span className="field__label">
-          Handle
-          <span className="field__hint">gachazone.it/u/…</span>
-        </span>
-        <input
-          className="input input--mono"
-          type="text"
+      <Field label="Handle" hint="gachazone.it/u/…" error={errors.username}>
+        <Input
+          className="font-mono"
           name="username"
           autoComplete="username"
           required
@@ -33,27 +29,20 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
           placeholder="ilmionome"
           aria-invalid={errors.username ? true : undefined}
         />
-        {errors.username ? <span className="field__error">{errors.username}</span> : null}
-      </label>
+      </Field>
 
-      <label className="field">
-        <span className="field__label">Nome visualizzato</span>
-        <input
-          className="input"
-          type="text"
+      <Field label="Nome visualizzato" error={errors.displayName}>
+        <Input
           name="displayName"
           autoComplete="nickname"
           required
           maxLength={40}
           aria-invalid={errors.displayName ? true : undefined}
         />
-        {errors.displayName ? <span className="field__error">{errors.displayName}</span> : null}
-      </label>
+      </Field>
 
-      <label className="field">
-        <span className="field__label">Email</span>
-        <input
-          className="input"
+      <Field label="Email" error={errors.email}>
+        <Input
           type="email"
           name="email"
           autoComplete="email"
@@ -61,16 +50,10 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
           placeholder="tu@esempio.it"
           aria-invalid={errors.email ? true : undefined}
         />
-        {errors.email ? <span className="field__error">{errors.email}</span> : null}
-      </label>
+      </Field>
 
-      <label className="field">
-        <span className="field__label">
-          Password
-          <span className="field__hint">almeno 10 caratteri</span>
-        </span>
-        <input
-          className="input"
+      <Field label="Password" hint="almeno 10 caratteri" error={errors.password}>
+        <Input
           type="password"
           name="password"
           autoComplete="new-password"
@@ -78,20 +61,20 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
           minLength={10}
           aria-invalid={errors.password ? true : undefined}
         />
-        {errors.password ? <span className="field__error">{errors.password}</span> : null}
-      </label>
+      </Field>
 
-      <button
+      <Button
         type="submit"
-        className={demoMode ? "btn btn--block" : "btn btn--primary btn--block"}
+        variant={demoMode ? "outline" : "primary"}
+        className="w-full"
         disabled={pending}
       >
-        {pending ? "Creazione in corso…" : "Crea il profilo"}
-      </button>
+        {pending ? "Creo…" : "Crea il profilo"}
+      </Button>
 
       {demoMode ? (
-        <p className="field__hint" style={{ marginTop: 10, color: "var(--faint)" }}>
-          Senza database questo modulo porta anch&apos;esso al profilo di esempio.
+        <p className="mt-2.5 text-[11px] text-ink-3">
+          Senza database anche questo modulo porta al profilo di esempio.
         </p>
       ) : null}
     </form>

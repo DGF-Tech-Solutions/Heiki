@@ -3,8 +3,8 @@
  *
  * Non sa da dove arrivano i dati: la pagina pubblica glieli passa dal database,
  * l'editor glieli passa dal proprio stato React a ogni battuta di tasto. Un solo
- * componente per entrambi, cosi' l'anteprima dal vivo non e' una
- * approssimazione di com'e' fatta la pagina vera: e' la pagina vera.
+ * componente per entrambi, cosi' l'anteprima dal vivo non e' un'approssimazione
+ * della pagina vera: e' la pagina vera.
  */
 
 import { ROLE_LABELS, type Role } from "@/lib/auth/permissions";
@@ -14,6 +14,7 @@ import {
   DEFAULT_CUSTOMIZATION,
   type ProfileCustomization,
 } from "@/lib/profile/customization";
+import { cx, display, Empty, eyebrow, numeric, SectionHead, Stat, StatGrid, Tag } from "./ui";
 
 export type BadgeTrust = "VERIFIED" | "IMPORTED" | "DECLARED";
 
@@ -75,38 +76,56 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
   const publicBuilds = data.builds.filter((b) => b.isPublic !== false);
   const verified = shownBadges.filter((b) => b.trust === "VERIFIED").length;
 
+  const compact = custom.layout === "compact";
+  const editorial = custom.layout === "editorial";
+
   return (
     <div
-      className="profile-canvas"
+      className="profile-canvas relative isolate"
       data-accent={custom.accent}
       data-frame={custom.frame}
       data-background={custom.background}
       data-layout={custom.layout}
     >
-      <header className="profile__head">
-        <div className="avatar" aria-hidden>
+      <header className="flex flex-wrap items-end gap-5 border-b-2 border-ink pb-5">
+        <div
+          className={cx(
+            "avatar relative grid flex-none place-items-center rounded-card font-display font-extrabold text-white",
+            compact ? "size-14 text-2xl" : editorial ? "size-24 text-4xl" : "size-[72px] text-[32px]",
+          )}
+          style={{ background: "var(--accent)" }}
+          aria-hidden
+        >
           {(data.displayName || data.username || "?").slice(0, 1).toUpperCase()}
         </div>
 
-        <div>
-          <h1 className="profile__name">{data.displayName || data.username}</h1>
-          <p className="profile__handle" style={{ margin: "6px 0 0" }}>
+        <div className="min-w-0">
+          <h1
+            className={cx(
+              display,
+              "profile__name",
+              compact ? "text-2xl" : editorial ? "text-[clamp(30px,5vw,46px)]" : "text-[32px]",
+            )}
+          >
+            {data.displayName || data.username}
+          </h1>
+
+          <p className="m-0 mt-1.5 flex flex-wrap items-center gap-2 font-mono text-[13px] text-ink-3">
             @{data.username}
-            <span className="tag" style={{ marginLeft: 10 }}>
-              {ROLE_LABELS[data.role]}
-            </span>
-            {data.country ? (
-              <span style={{ marginLeft: 10, color: "var(--faint)" }}>{data.country}</span>
-            ) : null}
+            <Tag tone="accent">{ROLE_LABELS[data.role]}</Tag>
+            {data.country ? <span>{data.country}</span> : null}
           </p>
         </div>
 
-        <div className="level">
-          <span className="eyebrow">Livello {progress.level}</span>
-          <span className="level__bar">
-            <span className="level__fill" style={{ width: `${Math.round(progress.ratio * 100)}%` }} />
+        <div className="ml-auto text-right">
+          <span className={eyebrow}>Livello {progress.level}</span>
+          <span className="mt-1.5 block h-1.5 w-[170px] overflow-hidden rounded-full bg-paper-3">
+            <span
+              className="block h-full"
+              style={{ width: `${Math.round(progress.ratio * 100)}%`, background: "var(--accent)" }}
+            />
           </span>
-          <span className="mono" style={{ fontSize: 11, color: "var(--faint)" }}>
+          <span className={cx(numeric, "text-[11px] text-ink-3")}>
             {progress.maxed
               ? "livello massimo"
               : `${data.xp.toLocaleString("it-IT")} XP · ${progress.needed - progress.current} al prossimo`}
@@ -115,139 +134,164 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
       </header>
 
       {data.bio ? (
-        <p className="lede" style={{ marginTop: 26, maxWidth: "62ch", whiteSpace: "pre-line" }}>
+        <p
+          className={cx(
+            "mt-6 whitespace-pre-line text-ink-2",
+            editorial ? "max-w-[72ch] text-lg" : "max-w-[62ch] text-base",
+          )}
+        >
           {data.bio}
         </p>
       ) : null}
 
-      <dl className="readout" style={{ borderTop: "none", marginTop: 26, paddingTop: 0 }}>
-        <div>
-          <dt>Badge verificati</dt>
-          <dd>{verified}</dd>
-        </div>
-        <div>
-          <dt>Build pubbliche</dt>
-          <dd>{publicBuilds.length}</dd>
-        </div>
-        <div>
-          <dt>Profili collegati</dt>
-          <dd>{shownAccounts.length}</dd>
-        </div>
-        <div>
-          <dt>Esperienza</dt>
-          <dd>{data.xp.toLocaleString("it-IT")}</dd>
-        </div>
-      </dl>
+      <StatGrid className="mt-6">
+        <Stat label="Badge verificati" value={verified} />
+        <Stat label="Build pubbliche" value={publicBuilds.length} />
+        <Stat label="Profili collegati" value={shownAccounts.length} />
+        <Stat label="Esperienza" value={data.xp.toLocaleString("it-IT")} />
+      </StatGrid>
 
       {data.favorites.length > 0 ? (
-        <section className="section">
-          <div className="section__head">
-            <h2 className="section__title">Preferiti</h2>
-          </div>
-          <ul className="badges">
+        <section className={compact ? "py-8" : "py-11"}>
+          <SectionHead title="Preferiti" />
+          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
             {data.favorites.map((name) => (
-              <li key={name} className="badge">
-                <span className="badge__mark" aria-hidden>
+              <li
+                key={name}
+                className="flex items-center gap-2.5 rounded-card border border-rule bg-paper py-2 pr-3 pl-2.5"
+              >
+                <span
+                  className="grid size-6.5 flex-none place-items-center rounded-sm text-[13px] text-white"
+                  style={{ background: "var(--accent)" }}
+                  aria-hidden
+                >
                   ♥
                 </span>
-                <span className="badge__name">{name}</span>
+                <span className="text-[13px] font-semibold">{name}</span>
               </li>
             ))}
           </ul>
         </section>
       ) : null}
 
-      <section className="section">
-        <div className="section__head">
-          <h2 className="section__title">Badge</h2>
-          <span className="eyebrow">
-            {verified} verificati su {shownBadges.length}
-          </span>
-        </div>
+      <section className={compact ? "py-8" : "py-11"}>
+        <SectionHead
+          title="Badge"
+          aside={
+            <span className={eyebrow}>
+              {verified} verificati su {shownBadges.length}
+            </span>
+          }
+        />
 
         {shownBadges.length === 0 ? (
-          <p className="empty">
-            Nessun badge in vetrina. Collega un profilo di gioco per sbloccare quelli verificati.
-          </p>
+          <Empty>
+            Vetrina vuota. Collega un profilo di gioco per sbloccare i badge verificati.
+          </Empty>
         ) : (
-          <ul className="badges">
-            {shownBadges.map((badge) => (
-              <li
-                key={badge.id}
-                className={`badge ${badge.trust === "VERIFIED" ? "badge--verified" : "badge--declared"}`}
-                title={badge.description ?? undefined}
-              >
-                <span className="badge__mark" aria-hidden>
-                  {badge.icon ?? (badge.trust === "VERIFIED" ? "✦" : "◇")}
-                </span>
-                <span>
-                  <span className="badge__name">{badge.name}</span>
-                  <br />
-                  <span className="badge__trust">{TRUST_LABEL[badge.trust]}</span>
-                </span>
-              </li>
-            ))}
+          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+            {shownBadges.map((badge) => {
+              const isVerified = badge.trust === "VERIFIED";
+              return (
+                <li
+                  key={badge.id}
+                  title={badge.description ?? undefined}
+                  className={cx(
+                    "flex items-center gap-2.5 rounded-card border py-2 pr-3 pl-2.5",
+                    isVerified ? "border-[var(--accent)] bg-paper" : "border-rule bg-paper-2",
+                  )}
+                >
+                  <span
+                    className={cx(
+                      "grid size-6.5 flex-none place-items-center rounded-sm text-[13px]",
+                      isVerified ? "text-white" : "bg-paper-3 text-ink-3",
+                    )}
+                    style={isVerified ? { background: "var(--accent)" } : undefined}
+                    aria-hidden
+                  >
+                    {badge.icon ?? (isVerified ? "✦" : "◇")}
+                  </span>
+                  <span>
+                    <span className="block text-[13px] leading-tight font-semibold">
+                      {badge.name}
+                    </span>
+                    <span
+                      className={cx(
+                        "font-mono text-[9px] uppercase tracking-[0.09em]",
+                        isVerified ? "font-medium text-[var(--accent)]" : "text-ink-3",
+                      )}
+                    >
+                      {TRUST_LABEL[badge.trust]}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
 
-      <section className="section">
-        <div className="section__head">
-          <h2 className="section__title">Profili di gioco</h2>
-          <span className="eyebrow">solo UID pubblici</span>
-        </div>
+      <section className={compact ? "py-8" : "py-11"}>
+        <SectionHead
+          title="Profili di gioco"
+          aside={<span className={eyebrow}>solo UID pubblici</span>}
+        />
 
         {shownAccounts.length === 0 ? (
-          <p className="empty">Nessun profilo collegato.</p>
+          <Empty>Nessun profilo collegato.</Empty>
         ) : (
-          <ul className="rows">
-            {shownAccounts.map((account) => (
-              <li key={account.id} className="row">
-                <span className="row__main">
+          <ul className="m-0 list-none overflow-hidden rounded-card border border-rule p-0">
+            {shownAccounts.map((account, index) => (
+              <li
+                key={account.id}
+                className={cx(
+                  "flex flex-wrap items-center gap-3.5 bg-paper px-4 py-3.5",
+                  index > 0 && "border-t border-rule-2",
+                )}
+              >
+                <span className="flex-1 basis-56 text-sm">
                   <strong>{account.game}</strong>
                   {account.nickname ? (
-                    <span style={{ color: "var(--mute)" }}> · {account.nickname}</span>
+                    <span className="text-ink-3"> · {account.nickname}</span>
                   ) : null}
                 </span>
-                <span className="mono" style={{ fontSize: 12, color: "var(--faint)" }}>
-                  UID {account.uid}
-                </span>
-                <span className={account.trust === "VERIFIED" ? "tag tag--gold" : "tag"}>
+                <span className={cx(numeric, "text-xs text-ink-3")}>UID {account.uid}</span>
+                <Tag tone={account.trust === "VERIFIED" ? "accent" : "neutral"}>
                   {TRUST_LABEL[account.trust]}
-                </span>
+                </Tag>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="section">
-        <div className="section__head">
-          <h2 className="section__title">Build pubbliche</h2>
-          <span className="eyebrow">{publicBuilds.length} condivise</span>
-        </div>
+      <section className={compact ? "pt-8" : "pt-11"}>
+        <SectionHead
+          title="Build pubbliche"
+          aside={<span className={eyebrow}>{publicBuilds.length} condivise</span>}
+        />
 
         {publicBuilds.length === 0 ? (
-          <p className="empty">Nessuna build pubblica.</p>
+          <Empty>Nessuna build pubblica.</Empty>
         ) : (
-          <div className="build-grid">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {publicBuilds.map((build) => (
-              <article key={build.id} className="card">
-                <div className="card__head">
-                  <h3 className="card__title" style={{ fontSize: 16 }}>
+              <article key={build.id} className="rounded-card border border-rule bg-paper p-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className={cx(display, "text-base [font-variation-settings:'wdth'_92]")}>
                     {build.name}
                   </h3>
-                  <span className="tag">{build.patch}</span>
+                  <Tag>{build.patch}</Tag>
                 </div>
-                <p className="mono" style={{ fontSize: 12, color: "var(--faint)", margin: "8px 0 0" }}>
+                <p className={cx(numeric, "m-0 mt-2 text-xs text-ink-3")}>
                   {build.game} · {build.character}
                 </p>
-                <dl className="readout" style={{ gridTemplateColumns: "1fr" }}>
-                  <div>
-                    <dt>Danno mediano</dt>
-                    <dd>{Math.round(build.median).toLocaleString("it-IT")}</dd>
-                  </div>
-                </dl>
+                <p className={cx(numeric, "m-0 mt-3 text-xl font-medium tracking-[-0.02em]")}>
+                  {Math.round(build.median).toLocaleString("it-IT")}
+                  <span className="ml-1.5 font-mono text-[10px] font-normal tracking-normal text-ink-3 uppercase">
+                    mediana
+                  </span>
+                </p>
               </article>
             ))}
           </div>
