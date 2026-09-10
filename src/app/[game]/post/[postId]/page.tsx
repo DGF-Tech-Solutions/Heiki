@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { VoteControl } from "@/components/community/vote-control";
 import { AttachmentCard } from "@/components/community/attachment-card";
 import { CommentThread } from "@/components/community/comment-thread";
-import { GameNav } from "@/components/game-nav";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { findGame } from "@/lib/games/catalog";
 import { cx, display, Notice, SectionHead } from "@/components/ui";
@@ -44,9 +43,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <>
-      <GameNav game={game} section="" />
-
-      <main className="mx-auto w-full max-w-[860px] px-6 pt-6 pb-20">
+      <main className="max-w-[820px] pt-6 pb-20">
         <Breadcrumb
           items={[
             { label: findGame(game)?.shortName ?? "Gioco", href: `/${game}` },

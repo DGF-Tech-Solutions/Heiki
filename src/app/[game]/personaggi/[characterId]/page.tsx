@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GameNav } from "@/components/game-nav";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Freshness, formatDate } from "@/components/freshness";
 import { PostCard } from "@/components/community/post-card";
@@ -32,8 +31,8 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game, characterId } = await params;
   const entry = findGame(game);
-  const module = entry ? requireGameModule(game) : null;
-  const character = module ? findCharacter(module, characterId) : undefined;
+  const gameModule = entry ? requireGameModule(game) : null;
+  const character = gameModule ? findCharacter(gameModule, characterId) : undefined;
 
   if (!character) return { title: "Personaggio · GachaZone" };
 
@@ -59,14 +58,14 @@ export default async function CharacterPage({ params }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const module = requireGameModule(game);
-  const character = findCharacter(module, characterId);
-  const actor = resolveCharacter(module, characterId);
+  const gameModule = requireGameModule(game);
+  const character = findCharacter(gameModule, characterId);
+  const actor = resolveCharacter(gameModule, characterId);
   if (!character || !actor) notFound();
 
-  const result = simulateSolo(module, characterId);
-  const target = module.targets[0];
-  const unit = module.timeUnit === "turns" ? "turni" : "s";
+  const result = simulateSolo(gameModule, characterId);
+  const target = gameModule.targets[0];
+  const unit = gameModule.timeUnit === "turns" ? "turni" : "s";
 
   const actions = Object.values(actor.actions);
   const ultimate = actions.find((action) => action.meta?.["isUltimate"] === true);
@@ -78,13 +77,11 @@ export default async function CharacterPage({ params }: Props) {
     .filter((post) => post.attachment?.character === character.name)
     .slice(0, 3);
 
-  const others = module.characters.filter((item) => item.id !== character.id);
+  const others = gameModule.characters.filter((item) => item.id !== character.id);
 
   return (
     <>
-      <GameNav game={game} section="/personaggi" />
-
-      <main className="mx-auto w-full max-w-[1200px] px-6 pt-6 pb-20">
+      <main className="pt-6 pb-20">
         <Breadcrumb
           items={[
             { label: entry.shortName, href: `/${game}` },
@@ -102,7 +99,7 @@ export default async function CharacterPage({ params }: Props) {
             <Tag tone="brand">{character.affinity}</Tag>
             <Tag>{character.role}</Tag>
             <Tag tone="gold">{character.rarity}★</Tag>
-            <Tag>dati {module.dataset.patch}</Tag>
+            <Tag>dati {gameModule.dataset.patch}</Tag>
           </div>
         </header>
 
@@ -111,7 +108,7 @@ export default async function CharacterPage({ params }: Props) {
           entries={[
             {
               label: "Dati di gioco",
-              value: `patch ${module.dataset.patch} · ${formatDate(module.dataset.releasedAt)}`,
+              value: `patch ${gameModule.dataset.patch} · ${formatDate(gameModule.dataset.releasedAt)}`,
             },
             { label: "Calcoli", value: `motore v0.1 · seed ${result?.seed ?? "—"}` },
           ]}
@@ -179,7 +176,7 @@ export default async function CharacterPage({ params }: Props) {
               </p>
               <DataTable
                 head={["Statistica", "Valore"]}
-                rows={module.statModel.map((definition) => [
+                rows={gameModule.statModel.map((definition) => [
                   definition.label,
                   formatStat(actor.stats[definition.key] ?? definition.defaultValue, definition.kind),
                 ])}

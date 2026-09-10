@@ -55,10 +55,10 @@ export function checkAttachment(
   gameSlug: string,
   attachment: SimulationAttachment,
 ): AttachmentCheck {
-  const module = getGameModule(gameSlug);
-  if (!module) return NOT_VERIFIABLE("modulo di gioco non caricato");
+  const gameModule = getGameModule(gameSlug);
+  if (!gameModule) return NOT_VERIFIABLE("modulo di gioco non caricato");
 
-  if (attachment.patch !== module.dataset.patch) {
+  if (attachment.patch !== gameModule.dataset.patch) {
     // Numeri prodotti con un'altra versione dei dati: non sono sbagliati, sono
     // di un altro momento. Rifare il conto adesso non dimostrerebbe niente.
     return NOT_VERIFIABLE(`prodotto sulla patch ${attachment.patch}`);
@@ -70,10 +70,10 @@ export function checkAttachment(
     return NOT_VERIFIABLE("iterazioni non dichiarate");
   }
 
-  const ids = resolveCharacterIds(module, attachment);
+  const ids = resolveCharacterIds(gameModule, attachment);
   if (ids === null) return NOT_VERIFIABLE("personaggi non risolvibili");
 
-  const result = simulateTeam(module, ids, undefined, {
+  const result = simulateTeam(gameModule, ids, undefined, {
     seed: attachment.seed,
     iterations: attachment.iterations,
   });
@@ -98,16 +98,16 @@ export function checkAttachment(
  * scritti prima che il campo esistesse.
  */
 function resolveCharacterIds(
-  module: NonNullable<ReturnType<typeof getGameModule>>,
+  gameModule: NonNullable<ReturnType<typeof getGameModule>>,
   attachment: SimulationAttachment,
 ): string[] | null {
   if (attachment.characterIds && attachment.characterIds.length > 0) {
-    const known = new Set(module.characters.map((character) => character.id));
+    const known = new Set(gameModule.characters.map((character) => character.id));
     const ids = attachment.characterIds.filter((id) => known.has(id));
     return ids.length === attachment.characterIds.length ? [...ids] : null;
   }
 
-  const byName = new Map(module.characters.map((character) => [character.name, character.id]));
+  const byName = new Map(gameModule.characters.map((character) => [character.name, character.id]));
   const names = attachment.team.length > 0 ? attachment.team : [attachment.character];
   const ids = names.map((name) => byName.get(name)).filter((id): id is string => id != null);
 

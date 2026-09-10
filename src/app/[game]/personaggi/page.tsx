@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GameNav } from "@/components/game-nav";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { cx, display, Empty, eyebrow, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
@@ -29,16 +28,14 @@ export default async function CharacterListPage({ params, searchParams }: Props)
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const module = requireGameModule(game);
-  const ranked = rankCharacters(module);
-  const roles = [...new Set(module.characters.map((character) => character.role))].sort();
+  const gameModule = requireGameModule(game);
+  const ranked = rankCharacters(gameModule);
+  const roles = [...new Set(gameModule.characters.map((character) => character.role))].sort();
   const visible = ruolo ? ranked.filter((row) => row.character.role === ruolo) : ranked;
 
   return (
     <>
-      <GameNav game={game} section="/personaggi" />
-
-      <main className="mx-auto w-full max-w-[1200px] px-6 pt-6 pb-20">
+      <main className="pt-6 pb-20">
         <Breadcrumb
           items={[{ label: entry.shortName, href: `/${game}` }, { label: "Personaggi" }]}
         />
@@ -47,8 +44,8 @@ export default async function CharacterListPage({ params, searchParams }: Props)
           <p className={eyebrow}>{entry.shortName}</p>
           <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>Personaggi</h1>
           <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">
-            {module.characters.length} personaggi nel dataset {module.dataset.patch}. Il danno è
-            simulato da solo contro {module.targets[0]?.name ?? "il bersaglio di riferimento"}, a
+            {gameModule.characters.length} personaggi nel dataset {gameModule.dataset.patch}. Il danno è
+            simulato da solo contro {gameModule.targets[0]?.name ?? "il bersaglio di riferimento"}, a
             parità di livello.
           </p>
         </header>

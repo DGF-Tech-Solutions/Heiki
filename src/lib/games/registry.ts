@@ -13,7 +13,7 @@ import type { GameModule } from "./types";
 
 const MODULES: readonly GameModule[] = [grandCrossModule];
 
-const BY_SLUG = new Map<string, GameModule>(MODULES.map((module) => [module.slug, module]));
+const BY_SLUG = new Map<string, GameModule>(MODULES.map((gameModule) => [gameModule.slug, gameModule]));
 
 export function listGameModules(): readonly GameModule[] {
   return MODULES;
@@ -24,11 +24,11 @@ export function getGameModule(slug: string): GameModule | undefined {
 }
 
 export function requireGameModule(slug: string): GameModule {
-  const module = BY_SLUG.get(slug);
-  if (module === undefined) {
+  const gameModule = BY_SLUG.get(slug);
+  if (gameModule === undefined) {
     throw new Error(`Nessun modulo di gioco registrato per lo slug "${slug}"`);
   }
-  return module;
+  return gameModule;
 }
 
 export interface SimulateOptions {
@@ -48,17 +48,17 @@ export interface SimulateOptions {
  * averlo salvato.
  */
 export function simulate(
-  module: GameModule,
+  gameModule: GameModule,
   input: SimulationInput,
   options: SimulateOptions = {},
 ): SimulationResult {
-  const simulator = module.simulateOnce ?? createTimelineSimulator(module.computeDamage);
+  const simulator = gameModule.simulateOnce ?? createTimelineSimulator(gameModule.computeDamage);
 
   return runSimulation(simulator, input, {
-    paradigm: module.paradigm,
-    iterations: options.iterations ?? module.defaultIterations,
+    paradigm: gameModule.paradigm,
+    iterations: options.iterations ?? gameModule.defaultIterations,
     seed:
       options.seed ??
-      seedFromString(`${module.id}:${input.rotation.id}:${module.dataset.checksum}`),
+      seedFromString(`${gameModule.id}:${input.rotation.id}:${gameModule.dataset.checksum}`),
   });
 }

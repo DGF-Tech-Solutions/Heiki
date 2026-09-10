@@ -28,7 +28,6 @@ type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
 const UNCONFIGURED_URL = "postgresql://unset:unset@127.0.0.1:1/unset";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __gachazoneSql: Client | undefined;
 }
 

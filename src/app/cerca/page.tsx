@@ -49,9 +49,9 @@ export default async function SearchPage({ searchParams }: Props) {
       ? listGames()
           .filter((game) => game.available)
           .flatMap((game) => {
-            const module = getGameModule(game.slug);
-            if (!module) return [];
-            return module.characters
+            const gameModule = getGameModule(game.slug);
+            if (!gameModule) return [];
+            return gameModule.characters
               .filter((character) => character.name.toLowerCase().includes(needle))
               .map((character) => ({ game, character }));
           })

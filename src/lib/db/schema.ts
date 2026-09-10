@@ -191,8 +191,7 @@ export const profiles = pgTable(
     country: text("country"),
     level: integer("level").default(1).notNull(),
     xp: integer("xp").default(0).notNull(),
-    /** cosmetici attivi: { frame, background, effect, theme, layout } -> codice */
-    /** personalizzazione: { accent, frame, background, layout } -> id opzione */
+    /** personalizzazione attiva: { accent, frame, background, layout } -> id opzione */
     cosmetics: jsonb("cosmetics").$type<Record<string, string>>().default({}).notNull(),
     /** personaggi preferiti, nell'ordine scelto dall'utente */
     favorites: jsonb("favorites").$type<string[]>().default([]).notNull(),
@@ -764,6 +763,9 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "POST_REPLY",
   "COMMENT_REPLY",
   "NEW_FOLLOWER",
+  // Riservato: avvisare a ogni voto sarebbe rumore, ma una soglia ("il tuo post
+  // ha raggiunto 50 voti") ha senso. Il valore resta perche' aggiungerlo dopo
+  // richiede una migrazione dell'enum, che in Postgres non e' gratis.
   "POST_VOTED",
 ]);
 

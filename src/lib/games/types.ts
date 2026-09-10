@@ -100,6 +100,6 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
   readonly defaultIterations?: number;
 }
 
-export function isStochastic(module: GameModule): boolean {
-  return module.paradigm === "stochastic";
+export function isStochastic(gameModule: GameModule): boolean {
+  return gameModule.paradigm === "stochastic";
 }

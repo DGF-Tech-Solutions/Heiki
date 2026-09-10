@@ -36,8 +36,8 @@ export default async function Home() {
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((game) => {
-            const module = getGameModule(game.slug);
-            const characters = module?.characters.length ?? 0;
+            const gameModule = getGameModule(game.slug);
+            const characters = gameModule?.characters.length ?? 0;
 
             if (!game.available) {
               return (
@@ -72,7 +72,7 @@ export default async function Home() {
                 </div>
                 <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
                 <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>
-                  {characters} personaggi · dati {module?.dataset.patch}
+                  {characters} personaggi · dati {gameModule?.dataset.patch}
                 </p>
               </Link>
             );
@@ -112,10 +112,10 @@ export default async function Home() {
 /** Estratto della classifica: e' la porta d'ingresso alle schede personaggio. */
 function TopCharacters() {
   const game = listGames().find((entry) => entry.available);
-  const module = game ? getGameModule(game.slug) : undefined;
-  if (!game || !module) return null;
+  const gameModule = game ? getGameModule(game.slug) : undefined;
+  if (!game || !gameModule) return null;
 
-  const ranked = rankCharacters(module).slice(0, 5);
+  const ranked = rankCharacters(gameModule).slice(0, 5);
   if (ranked.length === 0) return null;
 
   return (

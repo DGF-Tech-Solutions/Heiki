@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GameNav } from "@/components/game-nav";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { DistributionChart } from "@/components/distribution-chart";
 import { cx, display, Empty, eyebrow, Notice, Stat, StatGrid, Tag } from "@/components/ui";
@@ -41,31 +40,29 @@ export default async function ToolsPage({ params, searchParams }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const module = requireGameModule(game);
-  const valid = new Set(module.characters.map((character) => character.id));
+  const gameModule = requireGameModule(game);
+  const valid = new Set(gameModule.characters.map((character) => character.id));
 
   const selected = (squadra ?? "")
     .split(",")
     .map((id) => id.trim())
     .filter((id) => valid.has(id));
 
-  const target = module.targets.find((item) => item.id === bersaglio) ?? module.targets[0];
-  const result = selected.length > 0 ? simulateTeam(module, selected, target?.id) : null;
-  const unit = module.timeUnit === "turns" ? "turni" : "s";
+  const target = gameModule.targets.find((item) => item.id === bersaglio) ?? gameModule.targets[0];
+  const result = selected.length > 0 ? simulateTeam(gameModule, selected, target?.id) : null;
+  const unit = gameModule.timeUnit === "turns" ? "turni" : "s";
 
   const teamLink = (ids: readonly string[], targetId?: string) => {
     const search = new URLSearchParams();
     if (ids.length > 0) search.set("squadra", ids.join(","));
-    if (targetId && targetId !== module.targets[0]?.id) search.set("bersaglio", targetId);
+    if (targetId && targetId !== gameModule.targets[0]?.id) search.set("bersaglio", targetId);
     const suffix = search.toString();
     return suffix ? `/${game}/strumenti?${suffix}` : `/${game}/strumenti`;
   };
 
   return (
     <>
-      <GameNav game={game} section="/strumenti" />
-
-      <main className="mx-auto w-full max-w-[1200px] px-6 pt-6 pb-20">
+      <main className="pt-6 pb-20">
         <Breadcrumb
           items={[{ label: entry.shortName, href: `/${game}` }, { label: "Strumenti" }]}
         />
@@ -95,7 +92,7 @@ export default async function ToolsPage({ params, searchParams }: Props) {
               </h2>
 
               <ul className="m-0 grid list-none gap-1.5 p-0">
-                {module.characters.map((character) => {
+                {gameModule.characters.map((character) => {
                   const active = selected.includes(character.id);
                   const next = active
                     ? selected.filter((id) => id !== character.id)
@@ -145,7 +142,7 @@ export default async function ToolsPage({ params, searchParams }: Props) {
                 Bersaglio
               </h2>
               <ul className="m-0 grid list-none gap-1.5 p-0">
-                {module.targets.map((item) => (
+                {gameModule.targets.map((item) => (
                   <li key={item.id}>
                     <Link
                       href={teamLink(selected, item.id)}
@@ -202,7 +199,7 @@ export default async function ToolsPage({ params, searchParams }: Props) {
                 <p className="text-[13px] text-ink-3">
                   Squadra:{" "}
                   {selected
-                    .map((id) => module.characters.find((c) => c.id === id)?.name ?? id)
+                    .map((id) => gameModule.characters.find((c) => c.id === id)?.name ?? id)
                     .join(" · ")}
                 </p>
               </div>

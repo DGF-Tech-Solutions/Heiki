@@ -16,26 +16,26 @@ import { ITERATIONS, simulateTeam } from "@/lib/games/preview";
 import { requireGameModule } from "@/lib/games/registry";
 
 const GAME = "grand-cross";
-const module = requireGameModule(GAME);
+const gameModule = requireGameModule(GAME);
 
 /** Allegato onesto: prodotto dal motore, come farebbe il sito. */
 function honestAttachment(seed = 4242): SimulationAttachment {
-  const ids = module.characters.slice(0, 2).map((character) => character.id);
-  const result = simulateTeam(module, ids, undefined, { seed, iterations: ITERATIONS });
+  const ids = gameModule.characters.slice(0, 2).map((character) => character.id);
+  const result = simulateTeam(gameModule, ids, undefined, { seed, iterations: ITERATIONS });
   if (!result) throw new Error("simulazione non disponibile");
 
   return {
     kind: "simulation",
-    game: module.name,
-    character: module.characters[0]?.name ?? "",
-    team: ids.map((id) => module.characters.find((c) => c.id === id)?.name ?? id),
+    game: gameModule.name,
+    character: gameModule.characters[0]?.name ?? "",
+    team: ids.map((id) => gameModule.characters.find((c) => c.id === id)?.name ?? id),
     median: result.damage.median,
     p10: result.damage.p10,
     p90: result.damage.p90,
     timeToKill: result.timeToKill?.median ?? null,
-    timeUnit: module.timeUnit,
+    timeUnit: gameModule.timeUnit,
     killRate: result.killRate,
-    patch: module.dataset.patch,
+    patch: gameModule.dataset.patch,
     seed,
     iterations: result.iterations,
     characterIds: ids,
@@ -83,7 +83,7 @@ describe("checkAttachment", () => {
     // Rieseguito con le iterazioni dichiarate, il risultato coincide. Il campo
     // esiste proprio per non accusare qualcuno per un parametro diverso.
     const honest = honestAttachment();
-    const other = simulateTeam(module, honest.characterIds ?? [], undefined, {
+    const other = simulateTeam(gameModule, honest.characterIds ?? [], undefined, {
       seed: honest.seed,
       iterations: 300,
     });

@@ -31,7 +31,7 @@ Il sito parte su <http://localhost:3000>.
 
 ```bash
 npm run db:reset     # butta il database e ricostruisce da zero
-npm run db:smoke     # 21 controlli sul percorso reale col database
+npm run db:smoke     # 30 controlli sul percorso reale col database
 docker compose logs  # cosa dice Postgres
 ```
 
@@ -40,7 +40,7 @@ docker compose logs  # cosa dice Postgres
 | Comando | Cosa fa |
 |---|---|
 | `npm run dev` | Sito in sviluppo su :3000 |
-| `npm test` | Suite di test (107) |
+| `npm test` | Suite di test (118) |
 | `npm run typecheck` | TypeScript senza emissione |
 | `npm run build` | Build di produzione |
 | `npm run db:generate` | Genera una migrazione dopo aver cambiato lo schema |
@@ -49,6 +49,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:smoke` | Verifica il percorso reale sul database |
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
+| `npm run lint` | ESLint su `src` e `scripts` |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 
 ### Docker
@@ -88,23 +89,44 @@ PostgreSQL · Auth.js v5 · Vitest. Alias `@/*` su `src/`.
 src/app/
   page.tsx                    scelta gioco + ultimi post + classifica
   [game]/                     tutto il contenuto di un gioco
+    layout.tsx                selettore gioco + barra laterale a gruppi
     page.tsx                  feed della community
     personaggi/[characterId]  scheda personaggio
+    nemici/                   bersagli usati nei calcoli
     classifica/               ordinamento per danno simulato
     strumenti/                simulatore di squadra
     post/[postId]/            discussione
   u/[username]/               profilo pubblico
+  cerca/                      ricerca su personaggi e discussioni
+  notifiche/                  risposte e nuovi seguaci
   entra, registrati, impostazioni/profilo
 
 src/lib/engine/               motore: funzioni pure, nessuno stato, nessuna rete
 src/lib/games/                contratto dei moduli + catalogo + registro
-src/lib/community/            feed, ordinamento, archivio (DB e memoria)
+src/lib/community/            feed, ordinamento, archivio (DB e memoria), riverifica
+src/lib/social/               seguire, notifiche, suggerimenti
 src/lib/profile/              livelli, cosmetici, salvataggio
 src/lib/auth/                 Auth.js, ruoli, permessi
 src/lib/db/                   schema Drizzle e client
 src/components/ui.tsx         primitive dell'interfaccia
 scripts/                      setup, migrazioni, seed, verifica di fumo
 ```
+
+### Navigazione a gruppi
+
+Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
+(Personaggi, Nemici) · **Strumenti** (Simulatore, Classifica) · **Community**
+(Discussioni).
+
+Sono tre e non cinque, e non è una svista. I siti di riferimento del settore ne
+usano cinque perché hanno anche *Guide* ed *Endgame*; qui esisteranno quando
+avranno contenuto. Un gruppo vuoto in navigazione promette qualcosa che non c'è,
+e chi ci clicca una volta non ci clicca più.
+
+Per aggiungerli servono: per **Guide** l'interfaccia sopra lo schema già
+presente (`guides`, `guideRevisions`) con il sistema di patch verificata; per
+**Endgame** i dati dei nemici per modalità, che con dati segnaposto sarebbero
+invenzione.
 
 ### Il gioco è il primo segmento dell'URL
 
@@ -146,11 +168,32 @@ Zero modifiche al resto.
 - **Stocastico** (Grand Cross): implementa anche `simulateOnce`, che il runner
   ripete in Monte Carlo.
 
+### La riverifica degli allegati
+
+Un post dichiara mediana e seed; **il motore rigira il calcolo e confronta**.
+Altrove una build consigliata è l'affermazione di qualcuno, qui è un conto
+rifacibile — e il sito lo rifà da solo.
+
+Tre esiti, non due. *Non verificabile* (patch diversa, iterazioni non
+dichiarate, personaggi ignoti) è diverso da *non riprodotto* (il conto è stato
+fatto e dà un altro numero): confonderli marchierebbe come sospetti dei post
+che sono solo vecchi. E l'esito neutro non mostra nulla, perché un segno di
+dubbio su un post innocente fa più danno di nessun segno.
+
+Gira solo sulla pagina della discussione, non nel feed: sono 1.500 simulazioni,
+e la verifica serve dove qualcuno valuta l'affermazione, non mentre scorre una
+lista.
+
 ### La community
 
 Un post può portare il **risultato di una simulazione** con seed e patch:
 chiunque può rifare il conto e ottenere gli stessi numeri. È ciò che distingue
 questo posto da un forum — non si discute per opinioni.
+
+Seguire, notifiche e cronologia dei post chiudono il ciclo che riporta la gente
+indietro: segui qualcuno, quel qualcuno scrive, lo vieni a sapere, torni. Senza,
+ogni visita riparte da zero e una discussione muore dopo il primo messaggio.
+Richiedono un'identità vera, quindi funzionano solo con il database attivo.
 
 L'ordinamento "di tendenza" decade con l'età, perché una prima pagina che non
 cambia mai smette di essere frequentata. Il `+1` sul punteggio fa emergere i
@@ -204,7 +247,13 @@ Decisioni costose o impossibili da aggiungere dopo.
   vetrina di gioco non deve perderlo.
 - **`purchases.withdrawalWaived`** — obbligo UE sui beni digitali: senza rinuncia
   esplicita al recesso, il cliente ha 14 giorni per il rimborso.
-- **`posts.attachment`** — il risultato di simulazione allegato, con seed e patch.
+- **`posts.attachment`** — il risultato di simulazione allegato, con seed, patch
+  e **iterazioni**: senza queste il confronto fallirebbe per un parametro
+  diverso invece che per disonestà.
+- **`follows`** con chiave primaria composta — il doppione lo impedisce il
+  database, non una query che qualcuno un giorno dimenticherà.
+- **`attachmentChecks.engineVersion`** — quando il motore cambia, le verifiche
+  memorizzate scadono da sole.
 
 ---
 
@@ -227,7 +276,7 @@ La classifica lo dichiara in pagina.
 ## Prossimi passi
 
 1. Costruttore di rotazioni: scegliere l'ordine delle azioni invece di lasciarlo
-   alla priorità automatica
+   alla priorità automatica. È anche ciò che rende sensato il gruppo *Strumenti*
 2. Primo modulo deterministico su un gioco HoYo, per validare il contratto sul
    secondo paradigma
 3. Guide con sistema di patch verificata

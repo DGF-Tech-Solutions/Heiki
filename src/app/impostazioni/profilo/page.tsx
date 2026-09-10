@@ -90,7 +90,7 @@ async function loadOwnProfile(userId: string): Promise<ProfileViewData | null> {
 
     if (!row) return null;
 
-    const gameNames = new Map(listGameModules().map((module) => [module.id, module.name]));
+    const gameNames = new Map(listGameModules().map((gameModule) => [gameModule.id, gameModule.name]));
     const showcased = new Set(row.showcase.map((slot) => slot.badgeId));
     const order = new Map(row.showcase.map((slot) => [slot.badgeId, slot.position]));
     const hasShowcase = row.showcase.length > 0;

@@ -29,28 +29,28 @@ const HOUR = 3_600_000;
  * proprio nella pagina che dovrebbe mostrare come funziona la verifica.
  */
 function attachmentFor(characterIds: string[], seed: number): SimulationAttachment | null {
-  const module = getGameModule("grand-cross");
-  if (!module) return null;
+  const gameModule = getGameModule("grand-cross");
+  if (!gameModule) return null;
 
-  const result = simulateTeam(module, characterIds, undefined, { seed, iterations: ITERATIONS });
+  const result = simulateTeam(gameModule, characterIds, undefined, { seed, iterations: ITERATIONS });
   if (!result) return null;
 
   const names = characterIds.map(
-    (id) => module.characters.find((character) => character.id === id)?.name ?? id,
+    (id) => gameModule.characters.find((character) => character.id === id)?.name ?? id,
   );
 
   return {
     kind: "simulation",
-    game: module.name,
+    game: gameModule.name,
     character: names[0] ?? "",
     team: names,
     median: result.damage.median,
     p10: result.damage.p10,
     p90: result.damage.p90,
     timeToKill: result.timeToKill?.median ?? null,
-    timeUnit: module.timeUnit,
+    timeUnit: gameModule.timeUnit,
     killRate: result.killRate,
-    patch: module.dataset.patch,
+    patch: gameModule.dataset.patch,
     seed,
     iterations: result.iterations,
     characterIds,

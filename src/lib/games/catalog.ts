@@ -65,7 +65,7 @@ const PLANNED: readonly PlannedGame[] = [
 ];
 
 export function listGames(): GameEntry[] {
-  const registered = new Set(listGameModules().map((module) => module.slug));
+  const registered = new Set(listGameModules().map((gameModule) => gameModule.slug));
   return PLANNED.map((game) => ({ ...game, available: registered.has(game.slug) }));
 }
 
@@ -84,10 +84,50 @@ export function defaultGameSlug(): string {
   return first?.slug ?? PLANNED[0]!.slug;
 }
 
-/** Sezioni dentro un gioco. L'ordine e' quello della barra di navigazione. */
-export const GAME_SECTIONS: readonly { path: string; label: string }[] = [
-  { path: "", label: "Community" },
-  { path: "/personaggi", label: "Personaggi" },
-  { path: "/classifica", label: "Classifica" },
-  { path: "/strumenti", label: "Strumenti" },
+/**
+ * Sezioni dentro un gioco, raggruppate.
+ *
+ * La forma ricalca i siti di riferimento del settore: una barra laterale con
+ * gruppi, non una fila di voci in alto. Regge la crescita - un gruppo si allunga
+ * senza che la navigazione debba essere ripensata - ed e' il motivo per cui
+ * Prydwen la usa con cinque gruppi.
+ *
+ * Qui i gruppi sono tre, non cinque, e non e' una svista: "Guide" ed "Endgame"
+ * esisteranno quando avranno contenuto. Un gruppo vuoto in navigazione promette
+ * qualcosa che non c'e', e chi ci clicca una volta non ci clicca piu'.
+ */
+export interface GameSection {
+  path: string;
+  label: string;
+  /** descrizione breve, mostrata come titolo del collegamento */
+  hint: string;
+}
+
+export interface GameSectionGroup {
+  label: string;
+  items: readonly GameSection[];
+}
+
+export const GAME_GROUPS: readonly GameSectionGroup[] = [
+  {
+    label: "Database",
+    items: [
+      { path: "/personaggi", label: "Personaggi", hint: "Statistiche, abilita' e danno simulato" },
+      { path: "/nemici", label: "Nemici", hint: "Bersagli usati nei calcoli" },
+    ],
+  },
+  {
+    label: "Strumenti",
+    items: [
+      { path: "/strumenti", label: "Simulatore squadra", hint: "Componi e calcola" },
+      { path: "/classifica", label: "Classifica danno", hint: "Ordinata dal motore, non a giudizio" },
+    ],
+  },
+  {
+    label: "Community",
+    items: [{ path: "", label: "Discussioni", hint: "Build e rotazioni condivise" }],
+  },
 ];
+
+/** Tutte le sezioni in fila, per chi ha bisogno dell'elenco piatto. */
+export const GAME_SECTIONS: readonly GameSection[] = GAME_GROUPS.flatMap((group) => group.items);

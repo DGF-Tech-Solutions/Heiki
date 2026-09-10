@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GameNav } from "@/components/game-nav";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
@@ -39,18 +38,16 @@ export default async function RankingPage({ params, searchParams }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const module = requireGameModule(game);
+  const gameModule = requireGameModule(game);
   const target =
-    module.targets.find((item) => item.id === bersaglio) ?? module.targets[0];
-  const ranked = rankCharacters(module, target?.id);
+    gameModule.targets.find((item) => item.id === bersaglio) ?? gameModule.targets[0];
+  const ranked = rankCharacters(gameModule, target?.id);
   const best = ranked[0]?.result.damage.median ?? 1;
-  const unit = module.timeUnit === "turns" ? "turni" : "s";
+  const unit = gameModule.timeUnit === "turns" ? "turni" : "s";
 
   return (
     <>
-      <GameNav game={game} section="/classifica" />
-
-      <main className="mx-auto w-full max-w-[1200px] px-6 pt-6 pb-20">
+      <main className="pt-6 pb-20">
         <Breadcrumb
           items={[{ label: entry.shortName, href: `/${game}` }, { label: "Classifica" }]}
         />
@@ -73,10 +70,10 @@ export default async function RankingPage({ params, searchParams }: Props) {
           </span>
         </Notice>
 
-        {module.targets.length > 1 ? (
+        {gameModule.targets.length > 1 ? (
           <nav className="mb-4 flex flex-wrap items-center gap-2" aria-label="Bersaglio">
             <span className={cx(eyebrow, "mr-1")}>Bersaglio</span>
-            {module.targets.map((item) => (
+            {gameModule.targets.map((item) => (
               <Link
                 key={item.id}
                 href={`/${game}/classifica?bersaglio=${item.id}`}

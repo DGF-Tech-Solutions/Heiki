@@ -103,11 +103,11 @@ async function seedGames(): Promise<Map<string, string>> {
   const ids = new Map<string, string>();
 
   for (const [index, game] of listGames().entries()) {
-    const module = getGameModule(game.slug);
+    const gameModule = getGameModule(game.slug);
     const paradigm =
-      module?.paradigm === "stochastic"
+      gameModule?.paradigm === "stochastic"
         ? "STOCHASTIC"
-        : module?.paradigm === "turn"
+        : gameModule?.paradigm === "turn"
           ? "TURN"
           : "TIMELINE";
 
@@ -145,16 +145,16 @@ async function seedGames(): Promise<Map<string, string>> {
 
 async function seedDatasets(gameIds: ReadonlyMap<string, string>): Promise<void> {
   for (const [slug, gameId] of gameIds) {
-    const module = getGameModule(slug);
-    if (!module) continue;
+    const gameModule = getGameModule(slug);
+    if (!gameModule) continue;
 
     await db
       .insert(schema.datasetVersions)
       .values({
         gameId,
-        patch: module.dataset.patch,
-        checksum: module.dataset.checksum,
-        releasedAt: new Date(module.dataset.releasedAt),
+        patch: gameModule.dataset.patch,
+        checksum: gameModule.dataset.checksum,
+        releasedAt: new Date(gameModule.dataset.releasedAt),
         isCurrent: true,
       })
       .onConflictDoNothing();

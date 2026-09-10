@@ -178,7 +178,7 @@ async function loadProfile(username: string): Promise<ProfileViewData | null> {
 
     // I nomi dei giochi vengono dai moduli registrati, non dal database: e' il
     // modulo la fonte di verita' su come si chiama un gioco.
-    const gameNames = new Map(listGameModules().map((module) => [module.id, module.name]));
+    const gameNames = new Map(listGameModules().map((gameModule) => [gameModule.id, gameModule.name]));
 
     // La vetrina decide cosa si vede e in che ordine. Se non e' mai stata
     // configurata si mostrano tutti i badge, cosi' un profilo nuovo non appare

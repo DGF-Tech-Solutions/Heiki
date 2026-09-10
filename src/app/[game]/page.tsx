@@ -3,7 +3,6 @@ import Link from "next/link";
 import { PostCard } from "@/components/community/post-card";
 import { Composer } from "@/components/community/composer";
 import { SponsorSlot } from "@/components/community/sponsor-slot";
-import { GameNav } from "@/components/game-nav";
 import { buttonClass, Card, cx, display, Empty, Notice } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import { FEED_SORTS, isFeedSort, sortFeed, type FeedSort } from "@/lib/community/ranking";
@@ -70,9 +69,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <GameNav game={game} section="" />
-
-      <main className="mx-auto w-full max-w-[1200px] px-6 pt-6 pb-20">
+      <main className="pt-6 pb-20">
         {store.volatile ? (
           <Notice className="mb-4">
             <span>

@@ -23,12 +23,12 @@ export const SEED = 20260909;
 const MAX_TURNS = 20;
 
 export function resolveCharacter(
-  module: GameModule,
+  gameModule: GameModule,
   characterId: string,
   slot = "slot1",
 ): ResolvedActor | null {
   try {
-    return module.resolveActor(
+    return gameModule.resolveActor(
       { characterId, level: REFERENCE_LEVEL, rank: 0 },
       slot,
     );
@@ -38,18 +38,18 @@ export function resolveCharacter(
 }
 
 export function findCharacter(
-  module: GameModule,
+  gameModule: GameModule,
   characterId: string,
 ): CharacterSummary | undefined {
-  return module.characters.find((character) => character.id === characterId);
+  return gameModule.characters.find((character) => character.id === characterId);
 }
 
-export function defaultTarget(module: GameModule, targetId?: string): Target | undefined {
+export function defaultTarget(gameModule: GameModule, targetId?: string): Target | undefined {
   if (targetId) {
-    const wanted = module.targets.find((target) => target.id === targetId);
+    const wanted = gameModule.targets.find((target) => target.id === targetId);
     if (wanted) return wanted;
   }
-  return module.targets[0];
+  return gameModule.targets[0];
 }
 
 /** Simula una squadra. Restituisce null se manca qualcosa per calcolare. */
@@ -60,27 +60,27 @@ export interface SimulateOverrides {
 }
 
 export function simulateTeam(
-  module: GameModule,
+  gameModule: GameModule,
   characterIds: readonly string[],
   targetId?: string,
   overrides: SimulateOverrides = {},
 ): SimulationResult | null {
-  const target = defaultTarget(module, targetId);
+  const target = defaultTarget(gameModule, targetId);
   if (target === undefined || characterIds.length === 0) return null;
 
   const actors: ResolvedActor[] = [];
   characterIds.forEach((id, index) => {
-    const actor = resolveCharacter(module, id, `slot${index + 1}`);
+    const actor = resolveCharacter(gameModule, id, `slot${index + 1}`);
     if (actor) actors.push(actor);
   });
 
   if (actors.length === 0) return null;
 
   return simulate(
-    module,
+    gameModule,
     {
-      gameId: module.id,
-      datasetPatch: module.dataset.patch,
+      gameId: gameModule.id,
+      datasetPatch: gameModule.dataset.patch,
       actors,
       rotation: { id: `team-${characterIds.join("-")}`, name: "Confronto", steps: [], repeat: MAX_TURNS },
       target,
@@ -93,11 +93,11 @@ export function simulateTeam(
 }
 
 export function simulateSolo(
-  module: GameModule,
+  gameModule: GameModule,
   characterId: string,
   targetId?: string,
 ): SimulationResult | null {
-  return simulateTeam(module, [characterId], targetId);
+  return simulateTeam(gameModule, [characterId], targetId);
 }
 
 export interface RankedCharacter {
@@ -112,11 +112,11 @@ export interface RankedCharacter {
  * livello, lo stesso bersaglio e lo stesso seed per tutti. Discutibile nei
  * presupposti - che sono dichiarati - ma non nell'aritmetica.
  */
-export function rankCharacters(module: GameModule, targetId?: string): RankedCharacter[] {
+export function rankCharacters(gameModule: GameModule, targetId?: string): RankedCharacter[] {
   const ranked: RankedCharacter[] = [];
 
-  for (const character of module.characters) {
-    const result = simulateSolo(module, character.id, targetId);
+  for (const character of gameModule.characters) {
+    const result = simulateSolo(gameModule, character.id, targetId);
     if (result) ranked.push({ character, result });
   }
 
