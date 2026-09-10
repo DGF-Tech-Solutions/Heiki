@@ -1,0 +1,119 @@
+/**
+ * Ricerca e filtri sul roster.
+ *
+ * Funzioni pure, separate dalla pagina di proposito: sono la parte che si puo'
+ * sbagliare in silenzio - un accento che non combacia, un contatore che conta
+ * le voci sbagliate - e in un componente React andrebbero verificate a occhio.
+ * Qui si verificano con dei test.
+ *
+ * Il Core non sa niente di Grand Cross: legge solo HeroEntry.
+ */
+
+import type { HeroEntry } from "./types";
+
+export interface HeroFilter {
+  rarity?: string | null;
+  affinity?: string | null;
+  obtainable?: string | null;
+  search?: string;
+}
+
+/** Campo su cui contare le voci per i contatori dei filtri. */
+export type HeroFacet = "rarity" | "affinity" | "obtainedAs";
+
+/**
+ * Forma confrontabile di un testo.
+ *
+ * Gli accenti vanno tolti perche' i nomi arrivano dal gioco in inglese ma chi
+ * cerca scrive all'italiana, e le parentesi quadre perche' sono nel dato ma
+ * nessuno le digita: senza, cercare "free wind" non troverebbe "[Free Wind]".
+ */
+function normalize(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[[\]']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Testo su cui cerca l'utente: tutto quello che ha in mano guardando la card. */
+function haystack(hero: HeroEntry): string {
+  return normalize(`${hero.name} ${hero.epithet} ${hero.group} ${hero.id}`);
+}
+
+/**
+ * Applica i filtri attivi.
+ *
+ * I criteri si sommano (rarita' E attributo), e quelli non valorizzati non
+ * restringono niente: e' il comportamento che ci si aspetta da una fila di
+ * pulsanti dove "Tutti" e' uno stato, non un filtro.
+ *
+ * La ricerca accetta piu' parole e le richiede tutte, in qualsiasi ordine:
+ * "meliodas ira" trova "The Wrath of Meliodas" senza doverne indovinare la
+ * forma esatta.
+ */
+export function filterHeroes(heroes: readonly HeroEntry[], filter: HeroFilter): HeroEntry[] {
+  const words = normalize(filter.search ?? "").split(" ").filter(Boolean);
+
+  return heroes.filter((hero) => {
+    if (filter.rarity && hero.rarity !== filter.rarity) return false;
+    if (filter.affinity && hero.affinity !== filter.affinity) return false;
+    if (filter.obtainable && hero.obtainedAs !== filter.obtainable) return false;
+    if (words.length === 0) return true;
+
+    const text = haystack(hero);
+    return words.every((word) => text.includes(word));
+  });
+}
+
+/**
+ * Quante voci per ogni valore di una sfaccettatura.
+ *
+ * Serve a scrivere il numero sui pulsanti dei filtri. Va calcolato sull'elenco
+ * gia' filtrato dagli ALTRI criteri, non su quello completo: un pulsante che
+ * promette 118 voci e poi ne mostra 3 e' peggio che non avere il numero.
+ */
+export function countHeroes(
+  heroes: readonly HeroEntry[],
+  facet: HeroFacet,
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const hero of heroes) {
+    const value = hero[facet];
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return counts;
+}
+
+export type HeroOrder = "roster" | "name" | "group";
+
+/**
+ * Ordina senza toccare l'elenco ricevuto.
+ *
+ * "roster" e' l'ordine in cui il modulo li dichiara - per Grand Cross e'
+ * l'ordine di uscita, dal piu' recente - ed e' il default perche' e' l'unico
+ * che risponde alla domanda "cosa e' uscito ultimamente".
+ */
+export function sortHeroes(heroes: readonly HeroEntry[], order: HeroOrder): HeroEntry[] {
+  const sorted = [...heroes];
+  const byName = (a: HeroEntry, b: HeroEntry) => a.name.localeCompare(b.name, "it");
+
+  if (order === "name") return sorted.sort(byName);
+  if (order === "group") {
+    return sorted.sort((a, b) => a.group.localeCompare(b.group, "it") || byName(a, b));
+  }
+  return sorted;
+}
+
+/**
+ * Percorso della card di un eroe.
+ *
+ * Convenzione unica del progetto: `public/eroi/<gioco>/<id>.png` a 128px e la
+ * stessa sotto `2x/` a 256px. Le immagini non sono versionate - sono asset del
+ * gioco - e le mette in piedi `npm run eroi:import`.
+ */
+export function heroCardSrc(gameSlug: string, heroId: string, scale: 1 | 2 = 1): string {
+  return scale === 2 ? `/eroi/${gameSlug}/2x/${heroId}.png` : `/eroi/${gameSlug}/${heroId}.png`;
+}

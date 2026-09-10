@@ -50,6 +50,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
+| `npm run eroi:import` | Rigenera roster e card dalla pipeline di estrazione |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 
 ### Docker
@@ -91,6 +92,7 @@ src/app/
   [game]/                     tutto il contenuto di un gioco
     layout.tsx                selettore gioco + barra laterale a gruppi
     page.tsx                  feed della community
+    eroi/                     roster completo, filtri per rarita' e attributo
     personaggi/[characterId]  scheda personaggio
     nemici/                   bersagli usati nei calcoli
     classifica/               ordinamento per danno simulato
@@ -109,13 +111,14 @@ src/lib/profile/              livelli, cosmetici, salvataggio
 src/lib/auth/                 Auth.js, ruoli, permessi
 src/lib/db/                   schema Drizzle e client
 src/components/ui.tsx         primitive dell'interfaccia
-scripts/                      setup, migrazioni, seed, verifica di fumo
+src/components/heroes/        sfoglia il roster: filtri e griglia
+scripts/                      setup, migrazioni, seed, importazione roster
 ```
 
 ### Navigazione a gruppi
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Personaggi, Nemici) · **Strumenti** (Simulatore, Classifica) · **Community**
+(Eroi, Personaggi, Nemici) · **Strumenti** (Simulatore, Classifica) · **Community**
 (Discussioni).
 
 Sono tre e non cinque, e non è una svista. I siti di riferimento del settore ne
@@ -167,6 +170,32 @@ Zero modifiche al resto.
   `computeDamage`. Il risolutore di rotazioni condiviso fa il resto.
 - **Stocastico** (Grand Cross): implementa anche `simulateOnce`, che il runner
   ripete in Monte Carlo.
+
+### Il roster e gli asset del gioco
+
+La sezione **Eroi** elenca 373 unità di Grand Cross con la card che il gioco
+mostra davvero: cornice della rarità, sfondo, ritratto e bollino dell'attributo.
+I dati non stanno nel client - il gioco li scarica - e le immagini sono dentro
+bundle Unity con un'intestazione civetta. Ricavarli è stato un lavoro a sé, che
+vive fuori da questo repository.
+
+Il confine passa qui, e non è formale:
+
+- **i dati** (nomi, rarità, attributi) sono fatti, e stanno nel repository in
+  `src/lib/games/grand-cross/heroes.generated.ts`
+- **le immagini** sono asset di Netmarble rielaborati, e non sono versionate.
+  Stanno in `public/eroi/`, che è in `.gitignore`
+
+Metterle in un repository su GitHub sarebbe ridistribuirle. `npm run eroi:import`
+le rimette a posto da una copia locale della pipeline di estrazione, indicata
+dalla variabile `GC_ASSETS`. Chi clona senza quella copia vede il roster con i
+riquadri vuoti: nomi, filtri e conteggi funzionano lo stesso.
+
+Il roster è separato da **Personaggi** perché rispondono a due domande diverse.
+Personaggi elenca le unità che il motore sa simulare, e sono poche perché ognuna
+va calibrata a mano. Eroi le elenca tutte, perché per riconoscere un'unità e
+sapere che attributo ha non serve aver calibrato niente. Le due sezioni
+convergeranno man mano che il dataset cresce.
 
 ### La riverifica degli allegati
 
@@ -282,3 +311,4 @@ La classifica lo dichiara in pagina.
 3. Guide con sistema di patch verificata
 4. Card profilo condivisibile come OG image
 5. Moderazione e segnalazioni
+6. Scheda del singolo eroe sotto `/[game]/eroi/<id>`, con abilità e splash art

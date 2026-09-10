@@ -101,6 +101,15 @@ export interface GameSection {
   label: string;
   /** descrizione breve, mostrata come titolo del collegamento */
   hint: string;
+  /**
+   * Contenuto del modulo senza il quale la sezione non ha niente da mostrare.
+   *
+   * Non tutti i giochi arrivano allo stesso punto: il roster di Grand Cross e'
+   * costato l'estrazione degli asset dal client, e per gli altri non esiste
+   * ancora. Dichiararlo qui evita l'alternativa peggiore, cioe' una voce di
+   * menu che porta a una pagina vuota.
+   */
+  needs?: "roster";
 }
 
 export interface GameSectionGroup {
@@ -112,6 +121,7 @@ export const GAME_GROUPS: readonly GameSectionGroup[] = [
   {
     label: "Database",
     items: [
+      { path: "/eroi", label: "Eroi", hint: "Roster completo, per rarita' e attributo", needs: "roster" },
       { path: "/personaggi", label: "Personaggi", hint: "Statistiche, abilita' e danno simulato" },
       { path: "/nemici", label: "Nemici", hint: "Bersagli usati nei calcoli" },
     ],
@@ -131,3 +141,22 @@ export const GAME_GROUPS: readonly GameSectionGroup[] = [
 
 /** Tutte le sezioni in fila, per chi ha bisogno dell'elenco piatto. */
 export const GAME_SECTIONS: readonly GameSection[] = GAME_GROUPS.flatMap((group) => group.items);
+
+/**
+ * Le sezioni di UN gioco: come GAME_GROUPS, ma senza quelle che il suo modulo
+ * non puo' riempire.
+ *
+ * Va chiamata lato server e passata alla barra laterale gia' pronta. La
+ * tentazione sarebbe farla risolvere alla barra stessa, che gia' conosce lo
+ * slug; significherebbe pero' importare il registro dei moduli in un componente
+ * client, e con esso il motore di calcolo e ogni dataset, dentro il bundle del
+ * browser. Un elenco di voci non vale quel prezzo.
+ */
+export function gameGroups(slug: string): GameSectionGroup[] {
+  const gameModule = getGameModule(slug);
+
+  return GAME_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => item.needs === undefined || gameModule?.[item.needs]),
+  })).filter((group) => group.items.length > 0);
+}

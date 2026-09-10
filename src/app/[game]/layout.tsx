@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { GameSwitcher } from "@/components/game-nav";
 import { GameSidebar } from "@/components/game-sidebar";
-import { findGame, isPlayable } from "@/lib/games/catalog";
+import { findGame, gameGroups, isPlayable } from "@/lib/games/catalog";
 
 /**
  * Guscio di tutte le pagine di un gioco.
@@ -29,7 +29,7 @@ export default async function GameLayout({
 
       <div className="mx-auto grid w-full max-w-[1200px] items-start gap-8 px-6 lg:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
         <aside className="hidden pt-6 lg:sticky lg:top-[110px] lg:block">
-          <GameSidebar game={game} />
+          <GameSidebar game={game} groups={gameGroups(game)} />
         </aside>
 
         <div className="min-w-0">{children}</div>

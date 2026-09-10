@@ -49,6 +49,59 @@ export interface CharacterSummary {
 }
 
 /**
+ * Voce del roster completo, quello che si sfoglia.
+ *
+ * Distinta da CharacterSummary di proposito. Quella descrive le unita' che il
+ * motore sa simulare: poche, con moltiplicatori calibrati a mano. Questa e'
+ * l'elenco integrale come appare nel gioco - centinaia di voci - e serve a
+ * cercare, filtrare e riconoscere, non a calcolare. Tenerle separate evita che
+ * il roster debba aspettare la calibrazione per esistere, e che il simulatore
+ * si ritrovi in lista unita' di cui non sa niente.
+ */
+export interface HeroEntry {
+  /** identificatore nel gioco; e' anche il nome del file immagine */
+  id: string;
+  /** personaggio di base: piu' voci lo condividono ("Meliodas" ne ha 14) */
+  group: string;
+  name: string;
+  /** epiteto della versione, fra parentesi quadre nel gioco */
+  epithet: string;
+  /** rarita' attuale */
+  rarity: string;
+  /** rarita' con cui esce dal gacha: dice quanto costa ottenerlo */
+  obtainedAs: string;
+  /** attributo o elemento; corrisponde a un HeroAffinity.id */
+  affinity: string;
+}
+
+/** Attributo di un eroe, col colore con cui il gioco lo identifica. */
+export interface HeroAffinity {
+  id: string;
+  label: string;
+  color: string;
+  /** secondo colore, per i rari attributi doppi */
+  colorAlt?: string;
+}
+
+/**
+ * Roster sfogliabile di un gioco.
+ *
+ * Le sfaccettature sono dichiarate invece che dedotte dalle voci: l'ordine
+ * ("LR prima di UR") e i colori non si ricavano contando, e un filtro che
+ * cambia ordine quando cambia il dataset e' un filtro che confonde.
+ */
+export interface HeroRoster {
+  /** elenco completo, gia' nell'ordine di presentazione */
+  readonly heroes: readonly HeroEntry[];
+  /** rarita' esistenti, dalla piu' alta */
+  readonly rarities: readonly string[];
+  /** rarita' di uscita dal gacha, dalla piu' alta */
+  readonly obtainable: readonly string[];
+  /** attributi esistenti, nell'ordine del gioco */
+  readonly affinities: readonly HeroAffinity[];
+}
+
+/**
  * Una build utente, nella forma specifica del gioco.
  * Il Core la tratta come opaca e la salva in `Build.payload`.
  */
@@ -79,6 +132,15 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
   readonly targets: readonly Target[];
 
   readonly characters: readonly CharacterSummary[];
+
+  /**
+   * Roster completo, se il modulo ce l'ha.
+   *
+   * Opzionale perche' dipende da quanto e' accessibile il gioco: per Grand
+   * Cross e' costato l'estrazione degli asset dal client. Un modulo senza
+   * roster resta valido, semplicemente non ha la sezione Eroi.
+   */
+  readonly roster?: HeroRoster;
 
   /**
    * Converte una build salvata in un attore eseguibile dal motore.

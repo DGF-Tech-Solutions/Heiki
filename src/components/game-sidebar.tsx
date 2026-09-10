@@ -8,23 +8,33 @@
  * Una barra orizzontale regge quattro voci, non dodici.
  *
  * E' un componente client solo per sapere dove ci si trova: la voce attiva la
- * decide il percorso corrente, non il chiamante. Cosi' nessuna pagina deve
+ * decide il percorso corrente, non il chiamante.
+ *
+ * Quali voci esistano lo decide invece il chiamante, che gira sul server: qui
+ * arrivano gia' filtrate. Risolverle qui costringerebbe a importare il registro
+ * dei moduli - e con esso il motore e i dataset - nel bundle del browser. Cosi' nessuna pagina deve
  * ricordarsi di dichiarare in che sezione sta - una cosa che prima o poi
  * qualcuno dimentica, e la barra indica il posto sbagliato.
  */
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GAME_GROUPS } from "@/lib/games/catalog";
+import type { GameSectionGroup } from "@/lib/games/catalog";
 import { cx, eyebrow } from "./ui";
 
-export function GameSidebar({ game }: { game: string }) {
+export function GameSidebar({
+  game,
+  groups,
+}: {
+  game: string;
+  groups: readonly GameSectionGroup[];
+}) {
   const pathname = usePathname();
   const base = `/${game}`;
 
   return (
     <nav aria-label="Sezioni del gioco" className="grid gap-5">
-      {GAME_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.label}>
           <p className={cx(eyebrow, "mb-2")}>{group.label}</p>
 

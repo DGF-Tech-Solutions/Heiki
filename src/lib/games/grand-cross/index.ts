@@ -48,6 +48,7 @@ import {
   type Attribute,
   type SkillData,
 } from "./data";
+import { ROSTER } from "./roster";
 
 export interface GrandCrossBuild extends GameBuildPayload {
   characterId: string;
@@ -461,6 +462,7 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   statModel: STAT_MODEL,
   targets: TARGETS,
   characters: CHARACTERS,
+  roster: ROSTER,
   resolveActor,
   computeDamage,
   simulateOnce,

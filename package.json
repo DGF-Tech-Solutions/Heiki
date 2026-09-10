@@ -28,6 +28,7 @@
     "db:seed": "tsx scripts/seed.mts",
     "db:reset": "docker compose down -v && node scripts/setup.mjs",
     "db:smoke": "tsx scripts/smoke-db.mts",
+    "eroi:import": "tsx scripts/import-heroes.mts",
     "docker:app": "docker compose --profile app up --build"
   },
   "dependencies": {
