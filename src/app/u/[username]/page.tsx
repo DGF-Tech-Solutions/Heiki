@@ -8,6 +8,13 @@ import { ProfileView, type ProfileViewData } from "@/components/profile-view";
 import { ProfileWorkspace } from "@/components/profile-workspace";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
 import { saveProfileAction } from "@/lib/profile/actions";
+import { followCounts, isFollowing } from "@/lib/social/actions";
+import { FollowButton } from "@/components/social/follow-button";
+import { PostCard } from "@/components/community/post-card";
+import { getStore } from "@/lib/community/store";
+import { sortFeed } from "@/lib/community/ranking";
+import { currentViewer } from "@/lib/community/actions";
+import { cx, Empty, eyebrow, SectionHead, Stat, StatGrid } from "@/components/ui";
 import { listGameModules } from "@/lib/games/registry";
 import { normalizeCustomization } from "@/lib/profile/customization";
 
@@ -39,12 +46,63 @@ export default async function ProfilePage({ params }: Props) {
   const session = await safeSession();
   const isOwner = session?.user?.username?.toLowerCase() === handle;
 
+  const owner = await ownerRow(handle);
+  const counts = owner ? await followCounts(owner.id) : { followers: 0, following: 0 };
+  const following = owner && !isOwner ? await isFollowing(owner.id) : false;
+
+  // Cronologia: un profilo senza cio' che la persona ha scritto e' una carta
+  // d'identita', non un profilo.
+  const viewer = await currentViewer();
+  const store = await getStore();
+  const authored = sortFeed(
+    (await store.listPosts(null, null, viewer)).filter(
+      (post) => post.author.username.toLowerCase() === handle,
+    ),
+    "new",
+  ).slice(0, 5);
+
+  const social = (
+    <>
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        <StatGrid columns="repeat(2, minmax(0, 140px))" className="flex-none">
+          <Stat label="Seguaci" value={counts.followers} />
+          <Stat label="Segue" value={counts.following} />
+        </StatGrid>
+
+        {owner && !isOwner && session?.user?.id ? (
+          <FollowButton
+            username={data.username}
+            initialFollowing={following}
+            initialFollowers={counts.followers}
+          />
+        ) : null}
+      </div>
+
+      <section className="mt-10 border-t border-rule pt-8">
+        <SectionHead
+          title="Ha scritto"
+          aside={<span className={eyebrow}>{authored.length} post recenti</span>}
+        />
+        {authored.length === 0 ? (
+          <Empty>Nessun post pubblicato.</Empty>
+        ) : (
+          <div className="grid gap-3.5">
+            {authored.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  );
+
   // Chi non e' il proprietario riceve la pagina statica: nessun codice
   // dell'editor nel suo bundle, e nessun tasto che non potrebbe usare.
   if (!isOwner || !session?.user?.id) {
     return (
-      <main className="mx-auto w-full max-w-[1200px] px-6 py-10">
+      <main className={cx("mx-auto w-full max-w-[1200px] px-6 py-10")}>
         <ProfileView data={data} />
+        {social}
       </main>
     );
   }
@@ -60,6 +118,7 @@ export default async function ProfilePage({ params }: Props) {
         demoMode={false}
         saveAction={saveProfileAction}
       />
+      {social}
     </main>
   );
 }
@@ -67,6 +126,19 @@ export default async function ProfilePage({ params }: Props) {
 async function safeSession() {
   try {
     return await auth();
+  } catch {
+    return null;
+  }
+}
+
+/** Serve l'id per contare seguaci e sapere se lo si segue. */
+async function ownerRow(handle: string): Promise<{ id: string } | null> {
+  try {
+    const row = await db.query.users.findFirst({
+      where: eq(users.username, handle),
+      columns: { id: true },
+    });
+    return row ?? null;
   } catch {
     return null;
   }

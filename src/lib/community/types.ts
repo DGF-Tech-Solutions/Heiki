@@ -32,6 +32,15 @@ export interface SimulationAttachment {
   killRate: number;
   patch: string;
   seed: number;
+  /**
+   * Iterazioni con cui e' stato prodotto il risultato. Serve alla riverifica:
+   * il motore e' deterministico dato il seed, ma solo a parita' di iterazioni.
+   * Senza questo campo il confronto potrebbe fallire per un motivo che non ha
+   * niente a che vedere con l'onesta' di chi ha pubblicato.
+   */
+  iterations: number;
+  /** id dei personaggi, per poter rieseguire il calcolo senza indovinare i nomi */
+  characterIds?: readonly string[];
 }
 
 export type Vote = -1 | 0 | 1;
@@ -132,5 +141,53 @@ export function toAttachmentRecord(
     killRate: value.killRate,
     patch: value.patch,
     seed: value.seed,
+    iterations: value.iterations,
+    characterIds: value.characterIds ? [...value.characterIds] : undefined,
+  };
+}
+
+/**
+ * Ricostruisce un allegato letto da colonna jsonb.
+ *
+ * Il database restituisce `unknown`, non un tipo: dichiararlo con un cast e'
+ * una bugia al compilatore che prima o poi si paga a runtime. E si e' pagata -
+ * le righe scritte prima che esistesse il campo `iterations` facevano cadere la
+ * pagina del feed.
+ *
+ * Ogni campo viene controllato; quelli mancanti prendono un valore neutro.
+ * `iterations: 0` significa "non dichiarate", e la riverifica lo tratta come
+ * non verificabile invece di accusare qualcuno.
+ */
+export function normalizeAttachment(value: unknown): SimulationAttachment | null {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  if (raw["kind"] !== "simulation") return null;
+
+  const text = (key: string): string => (typeof raw[key] === "string" ? (raw[key] as string) : "");
+  const num = (key: string): number => (typeof raw[key] === "number" ? (raw[key] as number) : 0);
+
+  const team = Array.isArray(raw["team"])
+    ? (raw["team"] as unknown[]).filter((item): item is string => typeof item === "string")
+    : [];
+
+  const characterIds = Array.isArray(raw["characterIds"])
+    ? (raw["characterIds"] as unknown[]).filter((item): item is string => typeof item === "string")
+    : undefined;
+
+  return {
+    kind: "simulation",
+    game: text("game"),
+    character: text("character"),
+    team,
+    median: num("median"),
+    p10: num("p10"),
+    p90: num("p90"),
+    timeToKill: typeof raw["timeToKill"] === "number" ? (raw["timeToKill"] as number) : null,
+    timeUnit: raw["timeUnit"] === "seconds" ? "seconds" : "turns",
+    killRate: num("killRate"),
+    patch: text("patch"),
+    seed: num("seed"),
+    iterations: num("iterations"),
+    ...(characterIds && characterIds.length > 0 ? { characterIds } : {}),
   };
 }

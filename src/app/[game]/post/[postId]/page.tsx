@@ -11,6 +11,7 @@ import { cx, display, Notice, SectionHead } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import { relativeTime } from "@/lib/community/ranking";
 import { getStore } from "@/lib/community/store";
+import { cachedCheck } from "@/lib/community/verify";
 import { ROLE_LABELS } from "@/lib/auth/permissions";
 
 interface Props {
@@ -34,6 +35,12 @@ export default async function PostPage({ params }: Props) {
   const post = await store.getPost(postId, viewer);
 
   if (!post) notFound();
+
+  // La riverifica gira qui e non nel feed: e' costosa, e serve nel punto in cui
+  // qualcuno valuta davvero l'affermazione invece di scorrere una lista.
+  const check = post.attachment
+    ? await cachedCheck(post.id, post.game, post.attachment)
+    : undefined;
 
   return (
     <>
@@ -83,7 +90,7 @@ export default async function PostPage({ params }: Props) {
               ))}
             </div>
 
-            {post.attachment ? <AttachmentCard data={post.attachment} /> : null}
+            {post.attachment ? <AttachmentCard data={post.attachment} check={check} /> : null}
           </div>
         </article>
 

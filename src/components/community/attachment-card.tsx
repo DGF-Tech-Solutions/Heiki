@@ -12,9 +12,17 @@
  */
 
 import type { SimulationAttachment } from "@/lib/community/types";
-import { Stat, StatGrid, Tag } from "../ui";
+import type { AttachmentCheck } from "@/lib/community/verify";
+import { cx, Stat, StatGrid, Tag } from "../ui";
 
-export function AttachmentCard({ data }: { data: SimulationAttachment }) {
+export function AttachmentCard({
+  data,
+  check,
+}: {
+  data: SimulationAttachment;
+  /** esito della riverifica; assente nel feed, dove non si ricalcola */
+  check?: AttachmentCheck;
+}) {
   const span = Math.max(1, data.p90 - data.p10);
   const position = Math.min(100, Math.max(0, ((data.median - data.p10) / span) * 100));
   const unit = data.timeUnit === "turns" ? "turni" : "s";
@@ -23,6 +31,7 @@ export function AttachmentCard({ data }: { data: SimulationAttachment }) {
     <figure className="m-0 mt-3.5 rounded-card border border-rule bg-paper-2 p-3.5">
       <figcaption className="mb-3 flex flex-wrap items-center gap-2.5">
         <Tag tone="brand">simulazione</Tag>
+        {check ? <CheckBadge check={check} /> : null}
         <span className="font-mono text-[11px] text-ink-3">
           {data.character} · {data.team.length} unità · patch {data.patch}
         </span>
@@ -53,8 +62,47 @@ export function AttachmentCard({ data }: { data: SimulationAttachment }) {
       </div>
 
       <p className="m-0 mt-2 font-mono text-[10px] text-ink-3">
-        seed {data.seed} · rifallo tu e ti escono gli stessi numeri
+        seed {data.seed}
+        {data.iterations > 0 ? ` · ${data.iterations.toLocaleString("it-IT")} tentativi` : ""} ·
+        rifallo tu e ti escono gli stessi numeri
       </p>
+
+      {check?.status === "mismatch" ? (
+        <p className="m-0 mt-2 text-[11px] text-hot">
+          Rieseguendo il calcolo con questo seed la mediana risulta{" "}
+          {Math.round(check.recomputed ?? 0).toLocaleString("it-IT")} invece di{" "}
+          {Math.round(check.declared ?? 0).toLocaleString("it-IT")}.
+        </p>
+      ) : null}
     </figure>
+  );
+}
+
+/**
+ * Etichetta dell'esito.
+ *
+ * "Non verificabile" non compare: un segno di dubbio su un post innocente - dati
+ * di un'altra patch, personaggi non piu' presenti - fa piu' danno di nessun
+ * segno. Si dichiara solo quando si ha qualcosa da dichiarare.
+ */
+function CheckBadge({ check }: { check: AttachmentCheck }) {
+  if (check.status === "unverifiable") return null;
+
+  const verified = check.status === "match";
+
+  return (
+    <span
+      title={
+        verified
+          ? "Il motore ha rifatto il calcolo con questo seed e ottiene gli stessi numeri."
+          : "Rieseguendo il calcolo con questo seed i numeri non coincidono."
+      }
+      className={cx(
+        "inline-flex h-5 items-center gap-1 rounded-[2px] px-[7px] font-mono text-[10px] font-medium uppercase tracking-[0.06em]",
+        verified ? "bg-[#128a5b] text-white" : "bg-hot text-white",
+      )}
+    >
+      {verified ? "✓ verificato" : "✗ non riprodotto"}
+    </span>
   );
 }

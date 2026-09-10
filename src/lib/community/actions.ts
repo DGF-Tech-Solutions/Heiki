@@ -15,6 +15,7 @@ import { auth } from "@/lib/auth";
 import { databaseReachable, db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { normalizeCustomization } from "@/lib/profile/customization";
+import { notifyOnComment } from "@/lib/social/actions";
 import { GUEST, getStore, type Viewer } from "./store";
 import { HUBS } from "./types";
 import type { Vote } from "./types";
@@ -123,6 +124,13 @@ export async function createCommentAction(
 
   const store = await getStore();
   await store.createComment(parsed.data, viewer);
+
+  // Chi ha scritto il post e chi ha scritto il commento padre sono due persone
+  // diverse: senza avviso, la conversazione si interrompe per chi non e' il
+  // proprietario del post.
+  await notifyOnComment(parsed.data.postId, parsed.data.parentId ?? null, viewer.id).catch(
+    () => {},
+  );
 
   revalidatePath("/", "layout");
   return {};

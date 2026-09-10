@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/auth/permissions";
-import { buttonClass, Tag } from "./ui";
+import { unreadCount } from "@/lib/social/actions";
+import { buttonClass, cx, Tag } from "./ui";
 
 /**
  * L'intestazione conosce lo stato della sessione, quindi e' un componente
@@ -11,6 +12,7 @@ import { buttonClass, Tag } from "./ui";
 export async function SiteHeader() {
   const session = await safeSession();
   const user = session?.user;
+  const unread = user ? await safeUnread() : 0;
 
   return (
     <header className="sticky top-0 z-20 border-b-2 border-ink bg-paper">
@@ -22,7 +24,16 @@ export async function SiteHeader() {
           Gacha<span className="text-brand">Zone</span>
         </Link>
 
-        <nav className="ml-auto flex items-center gap-5 text-sm font-medium">
+        <form action="/cerca" className="ml-auto hidden md:block">
+          <input
+            name="q"
+            placeholder="Cerca"
+            aria-label="Cerca"
+            className="h-8 w-44 rounded-card border border-rule bg-paper px-3 text-[13px] focus:border-brand focus:outline-none"
+          />
+        </form>
+
+        <nav className="flex items-center gap-5 text-sm font-medium md:ml-0 ml-auto">
           <Link href="/" className="text-ink-2 hover:text-brand">
             Giochi
           </Link>
@@ -30,6 +41,18 @@ export async function SiteHeader() {
           <span className="flex items-center gap-2.5 border-l border-rule pl-5">
             {user ? (
               <>
+                <Link
+                  href="/notifiche"
+                  className={cx(buttonClass("ghost", "sm"), "relative")}
+                  aria-label={unread > 0 ? `Notifiche: ${unread} da leggere` : "Notifiche"}
+                >
+                  Notifiche
+                  {unread > 0 ? (
+                    <span className="grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  ) : null}
+                </Link>
                 <Link href="/impostazioni/profilo" className={buttonClass("ghost", "sm")}>
                   Personalizza
                 </Link>
@@ -70,5 +93,14 @@ async function safeSession() {
     return await auth();
   } catch {
     return null;
+  }
+}
+
+/** Il conteggio non deve poter far cadere l'intestazione di ogni pagina. */
+async function safeUnread(): Promise<number> {
+  try {
+    return await unreadCount();
+  } catch {
+    return 0;
   }
 }

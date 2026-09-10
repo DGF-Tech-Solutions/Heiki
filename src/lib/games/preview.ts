@@ -18,8 +18,8 @@ import type { CharacterSummary, GameModule } from "./types";
 /** Livello di riferimento per i confronti. Uguale per tutti, altrimenti la
  *  classifica misurerebbe gli investimenti e non i personaggi. */
 export const REFERENCE_LEVEL = 80;
-const ITERATIONS = 1500;
-const SEED = 20260909;
+export const ITERATIONS = 1500;
+export const SEED = 20260909;
 const MAX_TURNS = 20;
 
 export function resolveCharacter(
@@ -53,10 +53,17 @@ export function defaultTarget(module: GameModule, targetId?: string): Target | u
 }
 
 /** Simula una squadra. Restituisce null se manca qualcosa per calcolare. */
+export interface SimulateOverrides {
+  /** per rieseguire esattamente un calcolo pubblicato da qualcun altro */
+  seed?: number;
+  iterations?: number;
+}
+
 export function simulateTeam(
   module: GameModule,
   characterIds: readonly string[],
   targetId?: string,
+  overrides: SimulateOverrides = {},
 ): SimulationResult | null {
   const target = defaultTarget(module, targetId);
   if (target === undefined || characterIds.length === 0) return null;
@@ -78,7 +85,10 @@ export function simulateTeam(
       rotation: { id: `team-${characterIds.join("-")}`, name: "Confronto", steps: [], repeat: MAX_TURNS },
       target,
     },
-    { iterations: ITERATIONS, seed: SEED },
+    {
+      iterations: overrides.iterations ?? ITERATIONS,
+      seed: overrides.seed ?? SEED,
+    },
   );
 }
 

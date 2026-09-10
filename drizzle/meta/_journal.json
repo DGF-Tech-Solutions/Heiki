@@ -22,6 +22,13 @@
       "when": 1788986872708,
       "tag": "0002_silent_medusa",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789037290910,
+      "tag": "0003_nostalgic_orphan",
+      "breakpoints": true
     }
   ]
 }

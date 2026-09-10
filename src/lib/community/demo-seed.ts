@@ -9,9 +9,53 @@
  * database reale: vivono solo nell'archivio in memoria.
  */
 
-import type { Author, CommentNode, PostDetail, SponsorItem } from "./types";
+import { getGameModule } from "@/lib/games/registry";
+import { ITERATIONS, simulateTeam } from "@/lib/games/preview";
+import type {
+  Author,
+  CommentNode,
+  PostDetail,
+  SimulationAttachment,
+  SponsorItem,
+} from "./types";
 
 const HOUR = 3_600_000;
+
+/**
+ * Gli allegati di esempio sono CALCOLATI dal motore, non scritti a mano.
+ *
+ * Serve perche' il sito riverifica gli allegati: numeri inventati risulterebbero
+ * "non riprodotti" e il feed di esempio sembrerebbe pieno di gente che bara,
+ * proprio nella pagina che dovrebbe mostrare come funziona la verifica.
+ */
+function attachmentFor(characterIds: string[], seed: number): SimulationAttachment | null {
+  const module = getGameModule("grand-cross");
+  if (!module) return null;
+
+  const result = simulateTeam(module, characterIds, undefined, { seed, iterations: ITERATIONS });
+  if (!result) return null;
+
+  const names = characterIds.map(
+    (id) => module.characters.find((character) => character.id === id)?.name ?? id,
+  );
+
+  return {
+    kind: "simulation",
+    game: module.name,
+    character: names[0] ?? "",
+    team: names,
+    median: result.damage.median,
+    p10: result.damage.p10,
+    p90: result.damage.p90,
+    timeToKill: result.timeToKill?.median ?? null,
+    timeUnit: module.timeUnit,
+    killRate: result.killRate,
+    patch: module.dataset.patch,
+    seed,
+    iterations: result.iterations,
+    characterIds,
+  };
+}
 
 function ago(hours: number): string {
   return new Date(Date.now() - hours * HOUR).toISOString();
@@ -61,7 +105,7 @@ export const DEMO_POSTS: readonly PostDetail[] = [
 
 Sbagliato. Se prima piazzo **Spezza guardia** il debuff sulla difesa resta attivo per tre turni, e l'ultimate ci cade dentro invece che fuori.
 
-Stessa squadra, stesso bersaglio, stesso seed: **186.400** contro **158.100** di mediana. Il p10 sale ancora di piu', quindi non e' fortuna: e' proprio la coda bassa che si alza.
+Stessa squadra, stesso bersaglio, stesso seed: i numeri in allegato. Il p10 sale piu' della mediana, quindi non e' fortuna: e' proprio la coda bassa che si alza.
 
 L'unico caso in cui non conviene e' se il bersaglio muore comunque entro due turni, perche' li' il debuff non fa in tempo a ripagarsi.`,
     author: author("mira"),
@@ -69,20 +113,10 @@ L'unico caso in cui non conviene e' se il bersaglio muore comunque entro due tur
     commentCount: 4,
     createdAt: ago(5),
     myVote: 0,
-    attachment: {
-      kind: "simulation",
-      game: "The Seven Deadly Sins: Grand Cross",
-      character: "Unita' Forza",
-      team: ["Unita' Forza", "Unita' Destrezza", "Unita' Vita"],
-      median: 186_400,
-      p10: 141_200,
-      p90: 232_900,
-      timeToKill: 11,
-      timeUnit: "turns",
-      killRate: 0.87,
-      patch: "0.0.0",
-      seed: 20260909,
-    },
+    attachment: attachmentFor(
+      ["placeholder-str-dps", "placeholder-dex-support", "placeholder-hp-tank"],
+      20260909,
+    ),
     comments: [
       comment(
         "c1",
@@ -158,20 +192,10 @@ Guardare solo la media qui sarebbe fuorviante.`,
     commentCount: 1,
     createdAt: ago(30),
     myVote: 0,
-    attachment: {
-      kind: "simulation",
-      game: "The Seven Deadly Sins: Grand Cross",
-      character: "Unita' Destrezza",
-      team: ["Unita' Destrezza", "Unita' Vita", "Unita' Forza"],
-      median: 94_150,
-      p10: 81_700,
-      p90: 108_400,
-      timeToKill: 18,
-      timeUnit: "turns",
-      killRate: 0.62,
-      patch: "0.0.0",
-      seed: 771_204,
-    },
+    attachment: attachmentFor(
+      ["placeholder-dex-support", "placeholder-hp-tank", "placeholder-str-dps"],
+      771_204,
+    ),
     comments: [
       comment(
         "c7",

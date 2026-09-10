@@ -21,12 +21,12 @@ import { eq } from "drizzle-orm";
 
 loadEnv();
 
-const { db } = await import("../src/lib/db/index.ts");
-const schema = await import("../src/lib/db/schema.ts");
-const { listGames } = await import("../src/lib/games/catalog.ts");
-const { getGameModule } = await import("../src/lib/games/registry.ts");
-const { HUBS } = await import("../src/lib/community/types.ts");
-const customization = await import("../src/lib/profile/customization.ts");
+const { db } = await import("@/lib/db");
+const schema = await import("@/lib/db/schema");
+const { listGames } = await import("@/lib/games/catalog");
+const { getGameModule } = await import("@/lib/games/registry");
+const { HUBS } = await import("@/lib/community/types");
+const customization = await import("@/lib/profile/customization");
 
 /** Legge .env senza dipendenze: poche righe, niente pacchetto in piu'. */
 function loadEnv(): void {

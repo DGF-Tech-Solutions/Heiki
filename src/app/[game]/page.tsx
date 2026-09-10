@@ -10,10 +10,13 @@ import { FEED_SORTS, isFeedSort, sortFeed, type FeedSort } from "@/lib/community
 import { getStore } from "@/lib/community/store";
 import { HUBS } from "@/lib/community/types";
 import { findGame } from "@/lib/games/catalog";
+import { auth } from "@/lib/auth";
+import { followedUserIds, suggestedUsers } from "@/lib/social/actions";
+import { databaseReachable } from "@/lib/db";
 
 interface Props {
   params: Promise<{ game: string }>;
-  searchParams: Promise<{ hub?: string; sort?: string }>;
+  searchParams: Promise<{ hub?: string; sort?: string; vista?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -36,6 +39,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
 
   const hub = HUBS.some((item) => item.slug === query.hub) ? (query.hub ?? null) : null;
   const sort: FeedSort = isFeedSort(query.sort) ? query.sort : "hot";
+  const onlyFollowed = query.vista === "seguiti";
 
   const viewer = await currentViewer();
   const store = await getStore();
@@ -44,11 +48,22 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
     store.listSponsors(),
   ]);
 
-  const posts = sortFeed(rawPosts, sort);
-  const link = (nextHub: string | null, nextSort: FeedSort) => {
+  // Il filtro sui seguiti e' in memoria: il feed carica al massimo cento post e
+  // una join in piu' non pagherebbe. Il punto da cambiare, quando i numeri
+  // cresceranno, e' solo questo.
+  const session = await safeSession();
+  const followedUsernames = await followedNames(session?.user?.id);
+  const visible = onlyFollowed
+    ? rawPosts.filter((post) => followedUsernames.has(post.author.username))
+    : rawPosts;
+
+  const posts = sortFeed(visible, sort);
+  const suggestions = onlyFollowed && posts.length === 0 ? await safeSuggestions() : [];
+  const link = (nextHub: string | null, nextSort: FeedSort, followed = onlyFollowed) => {
     const search = new URLSearchParams();
     if (nextHub) search.set("hub", nextHub);
     if (nextSort !== "hot") search.set("sort", nextSort);
+    if (followed) search.set("vista", "seguiti");
     const suffix = search.toString();
     return suffix ? `/${game}?${suffix}` : `/${game}`;
   };
@@ -65,6 +80,35 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
               contenuti stanno nella memoria del server e spariscono al riavvio.
             </span>
           </Notice>
+        ) : null}
+
+        {session?.user ? (
+          <nav className="mb-4 flex gap-5 border-b border-rule" aria-label="Vista">
+            <Link
+              href={link(hub, sort, false)}
+              aria-current={!onlyFollowed ? "page" : undefined}
+              className={cx(
+                "-mb-px border-b-2 pb-2.5 text-sm",
+                onlyFollowed
+                  ? "border-transparent text-ink-2 hover:text-ink"
+                  : "border-brand font-semibold text-ink",
+              )}
+            >
+              Tutti
+            </Link>
+            <Link
+              href={link(hub, sort, true)}
+              aria-current={onlyFollowed ? "page" : undefined}
+              className={cx(
+                "-mb-px border-b-2 pb-2.5 text-sm",
+                onlyFollowed
+                  ? "border-brand font-semibold text-ink"
+                  : "border-transparent text-ink-2 hover:text-ink",
+              )}
+            >
+              Seguiti
+            </Link>
+          </nav>
         ) : null}
 
         <Composer game={game} defaultHub={hub ?? "build"} />
@@ -101,7 +145,42 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,300px)]">
           <div className="grid gap-3.5">
             {posts.length === 0 ? (
-              <Empty>Ancora niente in questa sezione.</Empty>
+              onlyFollowed ? (
+                <Card>
+                  <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
+                    Non segui ancora nessuno
+                  </h2>
+                  <p className="mt-2 text-[13px] text-ink-2">
+                    Questa vista mostra solo i post di chi segui. Comincia da qui:
+                  </p>
+                  {suggestions.length === 0 ? (
+                    <p className="mt-2 text-[13px] text-ink-3">
+                      Nessun profilo da suggerire per ora.
+                    </p>
+                  ) : (
+                    <ul className="mt-3 grid list-none gap-1.5 p-0">
+                      {suggestions.map((person) => (
+                        <li key={person.username}>
+                          <Link
+                            href={`/u/${person.username}`}
+                            className="flex items-center gap-2.5 rounded-card border border-rule px-3 py-2 text-sm hover:border-brand"
+                          >
+                            <span className="font-semibold">{person.displayName}</span>
+                            <span className="font-mono text-[11px] text-ink-3">
+                              @{person.username}
+                            </span>
+                            <span className="ml-auto font-mono text-[11px] text-ink-3">
+                              {person.followers} seguaci
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Card>
+              ) : (
+                <Empty>Ancora niente in questa sezione.</Empty>
+              )
             ) : (
               posts.map((post) => <PostCard key={post.id} post={post} />)
             )}
@@ -140,4 +219,42 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
       </main>
     </>
   );
+}
+
+async function safeSession() {
+  try {
+    return await auth();
+  } catch {
+    return null;
+  }
+}
+
+/** Username seguiti dal visitatore. Vuoto senza sessione o senza database. */
+async function followedNames(userId: string | undefined): Promise<Set<string>> {
+  if (!userId || !(await databaseReachable())) return new Set();
+
+  try {
+    const ids = await followedUserIds(userId);
+    if (ids.length === 0) return new Set();
+
+    const { db } = await import("@/lib/db");
+    const { users } = await import("@/lib/db/schema");
+    const { inArray } = await import("drizzle-orm");
+
+    const rows = await db.query.users.findMany({
+      where: inArray(users.id, ids),
+      columns: { username: true },
+    });
+    return new Set(rows.map((row) => row.username));
+  } catch {
+    return new Set();
+  }
+}
+
+async function safeSuggestions() {
+  try {
+    return await suggestedUsers();
+  } catch {
+    return [];
+  }
 }

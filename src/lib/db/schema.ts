@@ -730,6 +730,103 @@ export const sponsorPlacements = pgTable(
   ],
 );
 
+// ---------------------------------------------------------------- social
+
+/**
+ * Grafo di chi segue chi.
+ *
+ * E' la meta' del ciclo che fa tornare la gente: seguire qualcuno crea
+ * l'aspettativa di trovare qualcosa di nuovo la prossima volta. Senza,
+ * ogni visita riparte da zero.
+ *
+ * Chiave primaria composta: un utente puo' seguirne un altro una volta sola, e
+ * il vincolo lo impone il database invece di una query di controllo che qualcuno
+ * un giorno dimenticherebbe.
+ */
+export const follows = pgTable(
+  "follows",
+  {
+    followerId: uuid("follower_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    followingId: uuid("following_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.followerId, table.followingId] }),
+    index("follows_following_idx").on(table.followingId),
+  ],
+);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "POST_REPLY",
+  "COMMENT_REPLY",
+  "NEW_FOLLOWER",
+  "POST_VOTED",
+]);
+
+/**
+ * Notifiche.
+ *
+ * L'altra meta' del ciclo: qualcuno risponde, tu lo vieni a sapere, torni.
+ * Senza notifiche una discussione muore dopo il primo messaggio perche' nessuno
+ * si accorge che e' andata avanti.
+ *
+ * `actorId` e' chi ha fatto la cosa, `userId` chi la riceve. Si registra il
+ * riferimento al bersaglio ma non il testo: il messaggio si compone al momento
+ * della lettura, cosi' se un post viene modificato la notifica non resta con
+ * una copia vecchia.
+ */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum("type").notNull(),
+    postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
+    commentId: uuid("comment_id").references(() => comments.id, { onDelete: "cascade" }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("notifications_user_created_idx").on(table.userId, table.createdAt),
+    index("notifications_unread_idx").on(table.userId, table.readAt),
+  ],
+);
+
+/**
+ * Esito della riverifica di un allegato.
+ *
+ * Un post dichiara mediana e seed; il motore rigira il calcolo e confronta. Se i
+ * numeri non tornano, il post lo dice. E' il pezzo che nessun altro sito puo'
+ * avere: altrove una build e' un'affermazione, qui e' un conto rifacibile.
+ *
+ * L'esito si memorizza per non ricalcolare a ogni visita, con la versione del
+ * motore usata: quando il motore cambia, la verifica va rifatta.
+ */
+export const attachmentChecks = pgTable(
+  "attachment_checks",
+  {
+    postId: uuid("post_id")
+      .primaryKey()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    engineVersion: text("engine_version").notNull(),
+    /** true = i numeri dichiarati coincidono con quelli ricalcolati */
+    matches: boolean("matches").notNull(),
+    /** scostamento relativo sulla mediana, per mostrare quanto e' lontano */
+    deviation: text("deviation"),
+    checkedAt: timestamp("checked_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("attachment_checks_matches_idx").on(table.matches)],
+);
+
 // ---------------------------------------------------------------- billing
 
 /**
@@ -818,6 +915,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   comments: many(comments),
   votes: many(votes),
   purchases: many(purchases),
+  // follows punta due volte a users, quindi le due direzioni vanno nominate:
+  // senza relationName Drizzle non sa quale colonna usare per quale verso.
+  following: many(follows, { relationName: "following" }),
+  followers: many(follows, { relationName: "followers" }),
+  notifications: many(notifications, { relationName: "notificationsReceived" }),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -983,4 +1085,20 @@ export const purchasesRelations = relations(purchases, ({ one }) => ({
 
 export const donationsRelations = relations(donations, ({ one }) => ({
   user: one(users, { fields: [donations.userId], references: [users.id] }),
+}));
+
+export const followsRelations = relations(follows, ({ one }) => ({
+  follower: one(users, { fields: [follows.followerId], references: [users.id], relationName: "following" }),
+  following: one(users, { fields: [follows.followingId], references: [users.id], relationName: "followers" }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  recipient: one(users, { fields: [notifications.userId], references: [users.id], relationName: "notificationsReceived" }),
+  actor: one(users, { fields: [notifications.actorId], references: [users.id], relationName: "notificationsCaused" }),
+  post: one(posts, { fields: [notifications.postId], references: [posts.id] }),
+  comment: one(comments, { fields: [notifications.commentId], references: [comments.id] }),
+}));
+
+export const attachmentChecksRelations = relations(attachmentChecks, ({ one }) => ({
+  post: one(posts, { fields: [attachmentChecks.postId], references: [posts.id] }),
 }));

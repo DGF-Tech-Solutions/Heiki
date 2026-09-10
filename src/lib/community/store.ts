@@ -19,7 +19,7 @@ import { databaseReachable, db } from "@/lib/db";
 import { comments, games, hubs, posts, profiles, users, votes } from "@/lib/db/schema";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { DEMO_POSTS, DEMO_SPONSORS } from "./demo-seed";
-import { hubName, toAttachmentRecord } from "./types";
+import { hubName, normalizeAttachment, toAttachmentRecord } from "./types";
 import type {
   Author,
   CommentNode,
@@ -516,7 +516,5 @@ export function excerptOf(body: string, limit = 180): string {
 }
 
 function readAttachment(value: unknown): SimulationAttachment | null {
-  if (!value || typeof value !== "object") return null;
-  const candidate = value as { kind?: unknown };
-  return candidate.kind === "simulation" ? (value as SimulationAttachment) : null;
+  return normalizeAttachment(value);
 }
