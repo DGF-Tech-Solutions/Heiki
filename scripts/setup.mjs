@@ -94,9 +94,28 @@ if (existsSync(ENV)) {
   detail("copiato da .env.example");
 }
 
+// Le variabili aggiunte al progetto DOPO che uno sviluppatore si e' creato il
+// .env non arriverebbero mai da sole: la copia avviene solo alla creazione.
+// Si aggiungono in coda, senza toccare i valori esistenti - il file puo'
+// contenere credenziali vere di chi lo ha in mano.
+let env = readFileSync(ENV, "utf8");
+const declared = new Set([...env.matchAll(/^\s*([A-Z0-9_]+)\s*=/gim)].map((m) => m[1]));
+const missing = [...readFileSync(ENV_EXAMPLE, "utf8").matchAll(/^\s*([A-Z0-9_]+)\s*=(.*)$/gim)]
+  .filter((match) => !declared.has(match[1]))
+  .map((match) => `${match[1]}=${(match[2] ?? "").trim()}`);
+
+if (missing.length > 0) {
+  const today = new Date().toISOString().slice(0, 10);
+  const block = missing.join("\n");
+  env = `${env.trimEnd()}\n\n# Aggiunte da .env.example il ${today}\n${block}\n`;
+  writeFileSync(ENV, env, "utf8");
+
+  const names = missing.map((line) => line.split("=")[0]).join(", ");
+  detail(`aggiunte ${missing.length} variabili: ${names}`);
+}
+
 // Il segreto e' l'unica cosa che non puo' stare nell'esempio: va generato per
 // ogni sviluppatore. Senza, Auth.js rifiuta di partire.
-let env = readFileSync(ENV, "utf8");
 if (/^AUTH_SECRET\s*=\s*""?\s*$/m.test(env) || !/^AUTH_SECRET=/m.test(env)) {
   const secret = randomBytes(32).toString("base64");
   env = /^AUTH_SECRET=/m.test(env)
