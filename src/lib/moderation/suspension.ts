@@ -1,0 +1,54 @@
+/**
+ * Stato di sospensione di un account.
+ *
+ * Vive in un file a parte e non fra le azioni di moderazione perche' lo legge
+ * chi scrive un post o un commento: se stesse in un modulo "use server" ogni
+ * export dovrebbe essere un'azione raggiungibile dal client, e questa e' una
+ * funzione interna.
+ *
+ * Una sospensione non cancella nulla e non nasconde il profilo: toglie soltanto
+ * la possibilita' di scrivere. Chi e' sospeso continua a leggere il sito - il
+ * contrario sarebbe una punizione sproporzionata e spingerebbe solo a crearsi un
+ * secondo account.
+ */
+
+import { and, desc, gt, isNull, or, eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { suspensions } from "@/lib/db/schema";
+
+export interface SuspensionState {
+  active: boolean;
+  reason?: string;
+  /** null quando e' a tempo indeterminato */
+  until?: Date | null;
+}
+
+/**
+ * Una sospensione e' attiva se non e' stata revocata e non e' scaduta.
+ * La scadenza si valuta qui e non con un lavoro periodico: senza processi
+ * pianificati una sospensione a termine si spegnerebbe solo se qualcuno passasse
+ * a spegnerla.
+ */
+export async function suspensionFor(userId: string): Promise<SuspensionState> {
+  const row = await db.query.suspensions.findFirst({
+    where: and(
+      eq(suspensions.userId, userId),
+      isNull(suspensions.liftedAt),
+      or(isNull(suspensions.until), gt(suspensions.until, new Date())),
+    ),
+    orderBy: [desc(suspensions.createdAt)],
+    columns: { reason: true, until: true },
+  });
+
+  if (!row) return { active: false };
+  return { active: true, reason: row.reason, until: row.until };
+}
+
+/** Messaggio da mostrare a chi prova a scrivere mentre e' sospeso. */
+export function suspensionMessage(state: SuspensionState): string {
+  const when = state.until
+    ? `fino al ${state.until.toLocaleDateString("it-IT")}`
+    : "a tempo indeterminato";
+  const reason = state.reason ? ` Motivo: ${state.reason}` : "";
+  return `Il tuo account è sospeso ${when} e non può pubblicare.${reason}`;
+}

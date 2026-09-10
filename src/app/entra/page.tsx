@@ -61,6 +61,12 @@ export default async function LoginPage() {
 
         <SetupHint />
 
+        <p className="mt-4 text-[13px] text-ink-2">
+          <Link href="/password" className="font-semibold text-brand hover:underline">
+            Password dimenticata?
+          </Link>
+        </p>
+
         <p className="mt-4.5 border-t border-rule-2 pt-4 text-[13px] text-ink-2">
           Non hai un profilo?{" "}
           <Link href="/registrati" className="font-semibold text-brand hover:underline">

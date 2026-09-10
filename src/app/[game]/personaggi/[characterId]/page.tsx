@@ -10,6 +10,8 @@ import { findGame } from "@/lib/games/catalog";
 import { findCharacter, resolveCharacter, simulateSolo, REFERENCE_LEVEL } from "@/lib/games/preview";
 import { requireGameModule } from "@/lib/games/registry";
 import { getStore } from "@/lib/community/store";
+import { getGuideStore } from "@/lib/guides/store";
+import { isStale } from "@/lib/guides/types";
 import { sortFeed } from "@/lib/community/ranking";
 
 /**
@@ -48,6 +50,7 @@ const SECTIONS = [
   { id: "statistiche", label: "Statistiche" },
   { id: "abilita", label: "Abilità" },
   { id: "buff", label: "Effetti" },
+  { id: "guide", label: "Guide" },
   { id: "community", label: "Dalla community" },
   { id: "collegati", label: "Altri personaggi" },
 ] as const;
@@ -76,6 +79,11 @@ export default async function CharacterPage({ params }: Props) {
   const posts = sortFeed(await store.listPosts(game, null, null), "hot")
     .filter((post) => post.attachment?.character === character.name)
     .slice(0, 3);
+
+  const guideStore = await getGuideStore();
+  const guides = (await guideStore.list(game)).filter(
+    (guide) => guide.characterId === character.id,
+  );
 
   const others = gameModule.characters.filter((item) => item.id !== character.id);
 
@@ -225,6 +233,50 @@ export default async function CharacterPage({ params }: Props) {
                     String(buff.maxStacks),
                   ])}
                 />
+              )}
+            </Section>
+
+            {/*
+              Le guide agganciate a questo personaggio, con la stessa
+              dichiarazione di patch che portano nel loro elenco: se il collegamento
+              qui non dicesse che una guida e' vecchia, la scheda personaggio
+              diventerebbe il posto da cui si arriva ai numeri scaduti.
+            */}
+            <Section id="guide" title="Guide">
+              {guides.length === 0 ? (
+                <Empty>
+                  Nessuna guida agganciata a {character.name}. I numeri qui sopra li calcola il
+                  motore sul dataset corrente: una guida serve per il metodo, non per i valori.
+                </Empty>
+              ) : (
+                <ul className="m-0 grid list-none gap-2.5 p-0">
+                  {guides.map((guide) => {
+                    const stale = isStale(guide.verifiedPatch, gameModule.dataset.patch);
+                    return (
+                      <li
+                        key={guide.id}
+                        className="rounded-card border border-rule bg-paper px-4 py-3"
+                      >
+                        <div className="mb-1 flex flex-wrap items-center gap-2.5">
+                          <Link
+                            href={`/${game}/guide/${guide.slug}`}
+                            className="text-sm font-semibold hover:text-brand"
+                          >
+                            {guide.title}
+                          </Link>
+                          {stale ? (
+                            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot">
+                              da rivedere
+                            </span>
+                          ) : (
+                            <Tag tone="brand">patch {guide.verifiedPatch}</Tag>
+                          )}
+                        </div>
+                        <p className="m-0 text-[13px] text-ink-2">{guide.excerpt}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
             </Section>
 

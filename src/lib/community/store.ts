@@ -323,6 +323,7 @@ const dbStore: CommunityStore = {
       attachment: readAttachment(row.attachment),
       myVote: postBallots.get(row.id) ?? 0,
       comments: roots,
+      hidden: row.hidden,
     };
   },
 

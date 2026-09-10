@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { VoteControl } from "@/components/community/vote-control";
 import { AttachmentCard } from "@/components/community/attachment-card";
 import { CommentThread } from "@/components/community/comment-thread";
+import { ReportButton } from "@/components/community/report-button";
+import { ModControls } from "@/components/moderation/mod-controls";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { findGame } from "@/lib/games/catalog";
 import { cx, display, Notice, SectionHead } from "@/components/ui";
@@ -11,7 +13,7 @@ import { currentViewer } from "@/lib/community/actions";
 import { relativeTime } from "@/lib/community/ranking";
 import { getStore } from "@/lib/community/store";
 import { cachedCheck } from "@/lib/community/verify";
-import { ROLE_LABELS } from "@/lib/auth/permissions";
+import { can, ROLE_LABELS } from "@/lib/auth/permissions";
 
 interface Props {
   params: Promise<{ game: string; postId: string }>;
@@ -35,6 +37,13 @@ export default async function PostPage({ params }: Props) {
 
   if (!post) notFound();
 
+  const isModerator = can(viewer?.role, "moderate");
+
+  // Un post nascosto resta leggibile solo a chi modera: serve per rivedere la
+  // decisione. Per tutti gli altri e' come se non esistesse - 404 e non un
+  // messaggio, perche' dire "esiste ma e' nascosto" e' comunque pubblicarlo.
+  if (post.hidden && !isModerator) notFound();
+
   // La riverifica gira qui e non nel feed: e' costosa, e serve nel punto in cui
   // qualcuno valuta davvero l'affermazione invece di scorrere una lista.
   const check = post.attachment
@@ -51,6 +60,13 @@ export default async function PostPage({ params }: Props) {
             { label: post.title },
           ]}
         />
+
+        {post.hidden ? (
+          <Notice tone="warn" className="mb-5">
+            Questo contenuto è nascosto: lo vedi perché moderi. Chi non modera trova una pagina
+            inesistente.
+          </Notice>
+        ) : null}
 
         <article data-accent={post.author.accent} className="flex gap-3.5 border-b border-rule pb-6">
           <VoteControl
@@ -88,6 +104,13 @@ export default async function PostPage({ params }: Props) {
             </div>
 
             {post.attachment ? <AttachmentCard data={post.attachment} check={check} /> : null}
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <ReportButton targetType="POST" targetId={post.id} canReport={viewer !== null} />
+              {isModerator ? (
+                <ModControls targetType="POST" targetId={post.id} hidden={post.hidden ?? false} />
+              ) : null}
+            </div>
           </div>
         </article>
 
@@ -112,7 +135,12 @@ export default async function PostPage({ params }: Props) {
             </Notice>
           ) : null}
 
-          <CommentThread postId={post.id} comments={post.comments} canWrite={viewer !== null} />
+          <CommentThread
+            postId={post.id}
+            comments={post.comments}
+            canWrite={viewer !== null}
+            canModerate={isModerator}
+          />
         </section>
       </main>
     </>

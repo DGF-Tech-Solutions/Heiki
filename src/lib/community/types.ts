@@ -74,6 +74,12 @@ export interface CommentNode {
 export interface PostDetail extends FeedPost {
   body: string;
   comments: readonly CommentNode[];
+  /**
+   * Un post nascosto da un moderatore non sparisce dal database: resta
+   * raggiungibile solo a chi modera, che deve poterlo rileggere per decidere se
+   * la decisione era giusta. Per tutti gli altri la pagina risponde 404.
+   */
+  hidden?: boolean;
 }
 
 /**

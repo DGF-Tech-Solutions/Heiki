@@ -40,13 +40,14 @@ docker compose logs  # cosa dice Postgres
 | Comando | Cosa fa |
 |---|---|
 | `npm run dev` | Sito in sviluppo su :3000 |
-| `npm test` | Suite di test (118) |
+| `npm test` | Suite di test (168) |
 | `npm run typecheck` | TypeScript senza emissione |
 | `npm run build` | Build di produzione |
 | `npm run db:generate` | Genera una migrazione dopo aver cambiato lo schema |
 | `npm run db:migrate` | Applica le migrazioni |
 | `npm run db:seed` | Popola giochi, sezioni, badge, cosmetici |
-| `npm run db:smoke` | Verifica il percorso reale sul database |
+| `npm run db:smoke` | Verifica il percorso reale sul database (53 controlli) |
+| `npm run promote -- <email> ADMIN` | Assegna un ruolo: serve per il primo amministratore |
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
@@ -97,39 +98,53 @@ src/app/
     nemici/                   bersagli usati nei calcoli
     classifica/               ordinamento per danno simulato
     strumenti/                simulatore di squadra
+    guide/                    elenco, scrittura, revisione, patch verificata
     post/[postId]/            discussione
   u/[username]/               profilo pubblico
   cerca/                      ricerca su personaggi e discussioni
   notifiche/                  risposte e nuovi seguaci
-  entra, registrati, impostazioni/profilo
+  moderazione/                coda segnalazioni, sospensioni, registro (MODERATOR+)
+  admin/                      ruoli, slot sponsorizzati, stato dataset (ADMIN)
+  premium/                    cosa si compra e cosa no
+  legale/                     privacy, termini, cookie
+  entra, registrati, password/, impostazioni/{profilo,account}
 
 src/lib/engine/               motore: funzioni pure, nessuno stato, nessuna rete
 src/lib/games/                contratto dei moduli + catalogo + registro
 src/lib/community/            feed, ordinamento, archivio (DB e memoria), riverifica
+src/lib/guides/               guide: tipi, archivio (DB e memoria), azioni redazionali
+src/lib/moderation/           segnalazioni, provvedimenti, stato di sospensione
+src/lib/admin/                ruoli e slot sponsorizzati
+src/lib/billing/              entitlement premium (separato dai ruoli)
+src/lib/markdown.ts           markdown -> albero, senza HTML iniettato
+src/lib/rate-limit.ts         limite di tentativi a finestra scorrevole
 src/lib/social/               seguire, notifiche, suggerimenti
 src/lib/profile/              livelli, cosmetici, salvataggio
 src/lib/auth/                 Auth.js, ruoli, permessi
 src/lib/db/                   schema Drizzle e client
 src/components/ui.tsx         primitive dell'interfaccia
 src/components/heroes/        sfoglia il roster: filtri e griglia
-scripts/                      setup, migrazioni, seed, importazione roster
+scripts/                      setup, migrazioni, seed, verifica di fumo,
+                              ruoli, importazione roster
 ```
 
 ### Navigazione a gruppi
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Eroi, Personaggi, Nemici) · **Strumenti** (Simulatore, Classifica) · **Community**
-(Discussioni).
+(Eroi, Personaggi, Nemici) · **Strumenti** (Simulatore, Classifica) · **Guide**
+(Guide e rotazioni) · **Community** (Discussioni).
 
-Sono tre e non cinque, e non è una svista. I siti di riferimento del settore ne
-usano cinque perché hanno anche *Guide* ed *Endgame*; qui esisteranno quando
-avranno contenuto. Un gruppo vuoto in navigazione promette qualcosa che non c'è,
-e chi ci clicca una volta non ci clicca più.
+Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
+ha un roster, dichiarato con `needs` in `GAME_GROUPS` e filtrato da
+`gameGroups(slug)`. Una voce di menu che porta a una pagina vuota è peggio di una
+voce che non c'è.
 
-Per aggiungerli servono: per **Guide** l'interfaccia sopra lo schema già
-presente (`guides`, `guideRevisions`) con il sistema di patch verificata; per
-**Endgame** i dati dei nemici per modalità, che con dati segnaposto sarebbero
-invenzione.
+Sono quattro e non cinque, e non è una svista. I siti di riferimento del settore
+ne usano cinque perché hanno anche *Endgame*; qui esisterà quando avrà contenuto.
+Un gruppo vuoto in navigazione promette qualcosa che non c'è, e chi ci clicca una
+volta non ci clicca più. *Guide* è entrato quando ha avuto pagine da mostrare,
+non prima: servono i dati dei nemici per modalità perché anche *Endgame* diventi
+qualcosa di diverso da un'invenzione.
 
 ### Il gioco è il primo segmento dell'URL
 
@@ -248,6 +263,103 @@ non tocca i permessi redazionali.
 Il calcolatore resta **pubblico**: chiedere l'account prima di dare valore uccide
 la conversione. L'account serve per salvare e condividere.
 
+Quello che c'è, e perché è fatto così:
+
+- **Recupero password** — il gettone è memorizzato **con l'impronta SHA-256**,
+  non in chiaro: chi legge il database non può usarlo. Vale una volta sola, dura
+  un'ora e chiude tutte le sessioni aperte. La richiesta risponde **la stessa
+  cosa** che l'indirizzo esista o no, altrimenti la pagina diventerebbe un modo
+  per sapere chi è iscritto.
+- **Errori di accesso indistinguibili** — email sbagliata e password sbagliata
+  danno lo stesso messaggio, per lo stesso motivo.
+- **Cambio email e password** — chiedono la password attuale: chi si siede al
+  computer di qualcun altro con la sessione aperta non deve poter prendersi
+  l'account. Cambiare la password chiude le altre sessioni, perché spesso si
+  cambia proprio quando si sospetta un accesso altrui.
+- **Eliminazione** — chiede la password e la parola `ELIMINA` digitata a mano. È
+  l'unico modo per distinguere una decisione da un clic sbagliato su un'azione
+  irreversibile.
+
+### Le guide
+
+Una guida qui non è un articolo: è un contenuto che **dichiara in quale patch è
+stato verificato**. È la differenza fra un sito che invecchia in silenzio e uno
+in cui chi legge sa quanto fidarsi.
+
+Il percorso ha tre passaggi e ruoli diversi per ognuno, di proposito:
+
+1. un **collaboratore** scrive; la guida nasce come bozza e non è pubblica;
+2. quando la ritiene finita la manda **in revisione** — è l'autore a dichiarare
+   di aver finito, nessun altro può farlo per lui;
+3. un **redattore** pubblica e dichiara la patch di verifica.
+
+Il terzo passaggio non è delegabile all'autore. Se chiunque potesse apporre da
+solo il contrassegno "verificata per la patch X", quel contrassegno non
+significherebbe più niente — ed è l'unica cosa che questa sezione vende.
+
+Quando il dataset supera la patch dichiarata, la guida si segna **da rivedere**
+da sola: in elenco, nella scheda del personaggio collegato e in cima alla pagina.
+Nessuno deve ricordarsi di farlo a mano, ed è per questo che `verifiedPatch` sta
+nello schema dal primo giorno.
+
+Il markdown è un **sottoinsieme** e non usa `dangerouslySetInnerHTML`: il testo
+viene trasformato in un albero e gli elementi li scelgono `src/lib/markdown.ts` e
+`src/components/markdown.tsx`, da un elenco chiuso. Con la strada opposta ogni
+`<script>` scritto da un autore diventerebbe codice eseguito da chi legge. Il
+prezzo è che tabelle e immagini non ci sono: sta scritto nella pagina di
+scrittura, così nessuno lo scopre dopo aver pubblicato.
+
+### Moderazione
+
+Gli strumenti vanno costruiti **prima** che servano, perché il giorno in cui
+servono non c'è tempo di scriverli.
+
+- **Nascondere, non cancellare.** Un contenuto nascosto resta nel database con
+  chi ha deciso e quando; esce dal feed e la sua pagina risponde 404 a tutti
+  tranne a chi modera, che deve poterlo rileggere per rivedere la decisione.
+- **Sospendere è un'altra decisione.** Non cancella quello che la persona ha
+  scritto e non le impedisce di leggere: le toglie la possibilità di scrivere.
+  La scadenza si valuta in lettura, quindi non serve nessun lavoro periodico per
+  spegnere una sospensione a termine.
+- **Ogni azione finisce nel registro**, in fondo a `/moderazione`. Un moderatore
+  che agisce senza traccia è un problema più grande di quello che sta risolvendo.
+- **`/moderazione` e `/admin` rispondono 404**, non 403, a chi non ha il ruolo:
+  un "non hai i permessi" è un indizio su dove attaccare.
+
+Eliminare un account **non cancella i post**: passano a un utente segnaposto.
+Cancellarli spezzerebbe le discussioni di altre persone, che non hanno chiesto di
+perderle.
+
+### Limite di tentativi
+
+`src/lib/rate-limit.ts`, finestra scorrevole, in memoria del processo. Copre
+accesso, registrazione, recupero password, pubblicazione, commenti e
+segnalazioni.
+
+Il limite è dichiarato: con più istanze del server ognuna conta per conto
+proprio, quindi il tetto reale è il tetto per il numero di istanze. Ferma un
+attacco banale, non uno distribuito — per quello serve un archivio condiviso, e
+il punto da cambiare è solo quel file. Si è preferito questo a nessun limite: un
+limite imperfetto ferma la quasi totalità dei tentativi automatici, l'assenza di
+limite non ne ferma nessuno.
+
+La finestra è scorrevole e non a intervalli fissi perché con gli intervalli fissi
+si consuma tutto il limite in fondo a uno e si ricomincia subito nel successivo,
+ottenendo il doppio dei tentativi. C'è un test che lo verifica.
+
+### Il primo amministratore
+
+Il pannello di amministrazione richiede di essere amministratori per entrarci,
+quindi il primo non può nascere dal sito:
+
+```bash
+npm run promote -- tua@email.it ADMIN
+```
+
+L'alternativa — promuovere automaticamente il primo iscritto — regalerebbe il
+controllo del sito a chiunque arrivi primo alla pagina di registrazione, se il
+database venisse esposto prima del lancio.
+
 ### I cosmetici
 
 Si vende **presentazione, mai status**. Cornici, sfondi, accenti e impaginazioni
@@ -283,6 +395,14 @@ Decisioni costose o impossibili da aggiungere dopo.
   database, non una query che qualcuno un giorno dimenticherà.
 - **`attachmentChecks.engineVersion`** — quando il motore cambia, le verifiche
   memorizzate scadono da sole.
+- **`suspensions.until` che ammette `null`** — `null` è "a tempo indeterminato",
+  ed è più leggibile di una data lontanissima. La differenza si legge nella
+  colonna, non va dedotta.
+- **`passwordResetTokens.tokenHash` e `usedAt`** — impronta invece del gettone,
+  e uso singolo imposto dalla colonna. Sono le due cose che non si possono
+  aggiungere dopo aver già distribuito gettoni in chiaro.
+- **`posts.hidden` / `comments.hidden` invece della cancellazione** — la
+  moderazione è reversibile e lascia traccia; `modActions` dice chi ha deciso.
 
 ---
 
@@ -308,7 +428,8 @@ La classifica lo dichiara in pagina.
    alla priorità automatica. È anche ciò che rende sensato il gruppo *Strumenti*
 2. Primo modulo deterministico su un gioco HoYo, per validare il contratto sul
    secondo paradigma
-3. Guide con sistema di patch verificata
+3. Scheda del singolo eroe sotto `/[game]/eroi/<id>`, con abilità e splash art
 4. Card profilo condivisibile come OG image
-5. Moderazione e segnalazioni
-6. Scheda del singolo eroe sotto `/[game]/eroi/<id>`, con abilità e splash art
+5. Incasso vero: `/premium` descrive il piano ma non lo vende, e non c'è nessun
+   pulsante che finga di farlo
+6. Gruppo *Endgame*, quando ci saranno i dati dei nemici per modalità

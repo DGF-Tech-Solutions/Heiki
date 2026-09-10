@@ -829,6 +829,59 @@ export const attachmentChecks = pgTable(
   (table) => [index("attachment_checks_matches_idx").on(table.matches)],
 );
 
+/**
+ * Gettoni per il recupero della password.
+ *
+ * Si memorizza l'IMPRONTA del gettone, non il gettone: se il database finisse
+ * nelle mani sbagliate, chi lo legge non potrebbe usarne nessuno per entrare in
+ * un account. E' la stessa ragione per cui non si conservano le password.
+ *
+ * `usedAt` rende il gettone monouso: senza, un collegamento intercettato
+ * resterebbe valido fino alla scadenza anche dopo essere stato usato.
+ */
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("password_reset_token_key").on(table.tokenHash),
+    index("password_reset_user_idx").on(table.userId),
+  ],
+);
+
+/**
+ * Segnalazioni gia' presenti in `reports`; qui si registra soltanto quando un
+ * utente e' sospeso, perche' e' una proprieta' dell'account e non di un
+ * contenuto. Un moderatore deve poter fermare qualcuno senza cancellare cio'
+ * che ha scritto.
+ */
+export const suspensions = pgTable(
+  "suspensions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    moderatorId: uuid("moderator_id")
+      .notNull()
+      .references(() => users.id),
+    reason: text("reason").notNull(),
+    /** null = a tempo indeterminato */
+    until: timestamp("until", { withTimezone: true }),
+    liftedAt: timestamp("lifted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("suspensions_user_idx").on(table.userId, table.liftedAt)],
+);
+
 // ---------------------------------------------------------------- billing
 
 /**
@@ -922,6 +975,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   following: many(follows, { relationName: "following" }),
   followers: many(follows, { relationName: "followers" }),
   notifications: many(notifications, { relationName: "notificationsReceived" }),
+  suspensions: many(suspensions, { relationName: "suspensionsReceived" }),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -1103,4 +1157,33 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 
 export const attachmentChecksRelations = relations(attachmentChecks, ({ one }) => ({
   post: one(posts, { fields: [attachmentChecks.postId], references: [posts.id] }),
+}));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, { fields: [passwordResetTokens.userId], references: [users.id] }),
+}));
+
+export const suspensionsRelations = relations(suspensions, ({ one }) => ({
+  user: one(users, {
+    fields: [suspensions.userId],
+    references: [users.id],
+    relationName: "suspensionsReceived",
+  }),
+  moderator: one(users, {
+    fields: [suspensions.moderatorId],
+    references: [users.id],
+    relationName: "suspensionsIssued",
+  }),
+}));
+
+/**
+ * reports e modActions puntano a users una sola volta ciascuna, quindi non
+ * serve nominare le relazioni: la colonna e' univoca.
+ */
+export const reportsRelations = relations(reports, ({ one }) => ({
+  reporter: one(users, { fields: [reports.reporterId], references: [users.id] }),
+}));
+
+export const modActionsRelations = relations(modActions, ({ one }) => ({
+  moderator: one(users, { fields: [modActions.moderatorId], references: [users.id] }),
 }));

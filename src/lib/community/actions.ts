@@ -16,6 +16,8 @@ import { databaseReachable, db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { notifyOnComment } from "@/lib/social/actions";
+import { suspensionFor, suspensionMessage } from "@/lib/moderation/suspension";
+import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { GUEST, getStore, type Viewer } from "./store";
 import { HUBS } from "./types";
 import type { Vote } from "./types";
@@ -81,6 +83,31 @@ export async function currentViewer(): Promise<Viewer | null> {
   };
 }
 
+/**
+ * Cancello comune a chi scrive.
+ *
+ * Due controlli, in quest'ordine: il tetto di frequenza (che ferma anche chi
+ * agisce in buona fede con uno script) e la sospensione (che ferma una persona
+ * precisa). Il tetto viene prima perche' non richiede una lettura sul database.
+ *
+ * Nella modalita' dimostrativa la sospensione non si legge: non c'e' database e
+ * non c'e' un account vero da sospendere.
+ */
+async function writeGuard(
+  viewer: Viewer,
+  rule: "post" | "comment",
+): Promise<ActionState | null> {
+  const limit = rateLimit(rule, viewer.id);
+  if (!limit.allowed) return { error: retryMessage(limit) };
+
+  if (!(await databaseReachable())) return null;
+
+  const suspension = await suspensionFor(viewer.id);
+  if (suspension.active) return { error: suspensionMessage(suspension) };
+
+  return null;
+}
+
 export async function createPostAction(
   _previous: ActionState,
   formData: FormData,
@@ -97,6 +124,9 @@ export async function createPostAction(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
   }
+
+  const blocked = await writeGuard(viewer, "post");
+  if (blocked) return blocked;
 
   const store = await getStore();
   const id = await store.createPost(parsed.data, viewer);
@@ -121,6 +151,9 @@ export async function createCommentAction(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
   }
+
+  const blocked = await writeGuard(viewer, "comment");
+  if (blocked) return blocked;
 
   const store = await getStore();
   await store.createComment(parsed.data, viewer);

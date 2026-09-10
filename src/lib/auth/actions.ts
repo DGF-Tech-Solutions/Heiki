@@ -15,6 +15,7 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { databaseReachable, db } from "@/lib/db";
+import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { profiles, users } from "@/lib/db/schema";
 import { signIn } from "./index";
 
@@ -75,6 +76,11 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
 
   const { username, displayName, email, password } = parsed.data;
 
+  // Il limite arriva dopo la validazione: un modulo compilato male non deve
+  // consumare i tentativi di chi sta solo sbagliando a digitare.
+  const registerLimit = rateLimit("register", email);
+  if (!registerLimit.allowed) return { error: retryMessage(registerLimit) };
+
   const existingEmail = await db.query.users.findFirst({
     where: eq(users.email, email),
     columns: { id: true },
@@ -122,6 +128,11 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   if (!email || !password) {
     return { error: "Inserisci email e password" };
   }
+
+  // Senza un tetto, il modulo di accesso e' una porta aperta: si possono
+  // provare migliaia di password al secondo.
+  const limit = rateLimit("login", email.toLowerCase());
+  if (!limit.allowed) return { error: retryMessage(limit) };
 
   try {
     await signIn("credentials", { email, password, redirectTo: "/" });

@@ -11,6 +11,8 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { VoteControl } from "./vote-control";
+import { ReportButton } from "./report-button";
+import { ModControls } from "../moderation/mod-controls";
 import { createCommentAction, type ActionState } from "@/lib/community/actions";
 import { relativeTime } from "@/lib/community/ranking";
 import { ROLE_LABELS } from "@/lib/auth/permissions";
@@ -24,10 +26,12 @@ export function CommentThread({
   postId,
   comments,
   canWrite,
+  canModerate = false,
 }: {
   postId: string;
   comments: readonly CommentNode[];
   canWrite: boolean;
+  canModerate?: boolean;
 }) {
   return (
     <div>
@@ -46,6 +50,7 @@ export function CommentThread({
               comment={comment}
               depth={0}
               canWrite={canWrite}
+              canModerate={canModerate}
             />
           ))}
         </ul>
@@ -59,11 +64,13 @@ function CommentItem({
   comment,
   depth,
   canWrite,
+  canModerate,
 }: {
   postId: string;
   comment: CommentNode;
   depth: number;
   canWrite: boolean;
+  canModerate: boolean;
 }) {
   const [replying, setReplying] = useState(false);
 
@@ -97,15 +104,23 @@ function CommentItem({
 
           <p className="m-0 text-sm leading-relaxed">{comment.body}</p>
 
-          {canWrite && depth < MAX_DEPTH ? (
-            <button
-              type="button"
-              className="mt-1.5 cursor-pointer border-0 bg-transparent p-0 text-xs text-ink-3 hover:text-ink"
-              onClick={() => setReplying((open) => !open)}
-            >
-              {replying ? "Annulla" : "Rispondi"}
-            </button>
-          ) : null}
+          <div className="mt-1.5 flex flex-wrap items-center gap-3">
+            {canWrite && depth < MAX_DEPTH ? (
+              <button
+                type="button"
+                className="cursor-pointer border-0 bg-transparent p-0 text-xs text-ink-3 hover:text-ink"
+                onClick={() => setReplying((open) => !open)}
+              >
+                {replying ? "Annulla" : "Rispondi"}
+              </button>
+            ) : null}
+
+            <ReportButton targetType="COMMENT" targetId={comment.id} canReport={canWrite} />
+
+            {canModerate ? (
+              <ModControls targetType="COMMENT" targetId={comment.id} hidden={false} />
+            ) : null}
+          </div>
 
           {replying ? (
             <CommentForm
@@ -127,6 +142,7 @@ function CommentItem({
               comment={reply}
               depth={depth + 1}
               canWrite={canWrite}
+              canModerate={canModerate}
             />
           ))}
         </ul>

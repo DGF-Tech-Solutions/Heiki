@@ -17,7 +17,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 loadEnv();
 
@@ -27,6 +27,7 @@ const { listGames } = await import("@/lib/games/catalog");
 const { getGameModule } = await import("@/lib/games/registry");
 const { HUBS } = await import("@/lib/community/types");
 const customization = await import("@/lib/profile/customization");
+const { DEMO_GUIDES } = await import("@/lib/guides/demo-seed");
 
 /** Legge .env senza dipendenze: poche righe, niente pacchetto in piu'. */
 function loadEnv(): void {
@@ -254,6 +255,48 @@ async function seedSponsor(gameIds: ReadonlyMap<string, string>): Promise<void> 
   });
 }
 
+/**
+ * Guide di esempio.
+ *
+ * Una guida ha un autore obbligatorio, e questo script NON crea utenti: un
+ * account fittizio comparirebbe nella community come una persona vera. Quindi
+ * le guide si popolano solo se esiste gia' un redattore, e altrimenti la
+ * sezione resta vuota - con il suo messaggio, che e' informativo.
+ */
+async function seedGuides(gameIds: ReadonlyMap<string, string>): Promise<number> {
+  const existing = await db.query.guides.findFirst({ columns: { id: true } });
+  if (existing) return 0;
+
+  const editor = await db.query.users.findFirst({
+    columns: { id: true },
+    where: inArray(schema.users.role, ["EDITOR", "MODERATOR", "ADMIN"]),
+  });
+  if (!editor) return 0;
+
+  let inserted = 0;
+
+  for (const guide of DEMO_GUIDES) {
+    const gameId = gameIds.get(guide.game);
+    if (!gameId) continue;
+
+    await db.insert(schema.guides).values({
+      gameId,
+      authorId: editor.id,
+      slug: guide.slug,
+      title: guide.title,
+      excerpt: guide.excerpt,
+      bodyMd: guide.body,
+      status: "PUBLISHED",
+      verifiedPatch: guide.verifiedPatch,
+      characterId: guide.characterId,
+      publishedAt: guide.publishedAt ? new Date(guide.publishedAt) : new Date(),
+    });
+    inserted += 1;
+  }
+
+  return inserted;
+}
+
 async function main(): Promise<void> {
   if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL non impostata: copia .env.example in .env");
@@ -270,6 +313,11 @@ async function main(): Promise<void> {
   await seedCosmetics();
   await seedSponsor(gameIds);
 
+  const guides = await seedGuides(gameIds);
+  if (guides === 0) {
+    console.log("  guide: nessun redattore in archivio, sezione lasciata vuota");
+  }
+
   const counts = await Promise.all([
     db.$count(schema.games),
     db.$count(schema.datasetVersions),
@@ -277,6 +325,7 @@ async function main(): Promise<void> {
     db.$count(schema.badges),
     db.$count(schema.cosmetics),
     db.$count(schema.sponsorPlacements),
+    db.$count(schema.guides),
   ]);
 
   console.log("Fatto:");
@@ -286,6 +335,7 @@ async function main(): Promise<void> {
   console.log(`  badges             ${counts[3]}`);
   console.log(`  cosmetics          ${counts[4]}`);
   console.log(`  sponsor_placements ${counts[5]}`);
+  console.log(`  guides             ${counts[6]}`);
 
   process.exit(0);
 }

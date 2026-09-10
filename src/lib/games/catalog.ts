@@ -92,9 +92,10 @@ export function defaultGameSlug(): string {
  * senza che la navigazione debba essere ripensata - ed e' il motivo per cui
  * Prydwen la usa con cinque gruppi.
  *
- * Qui i gruppi sono tre, non cinque, e non e' una svista: "Guide" ed "Endgame"
- * esisteranno quando avranno contenuto. Un gruppo vuoto in navigazione promette
- * qualcosa che non c'e', e chi ci clicca una volta non ci clicca piu'.
+ * I gruppi sono quattro, non cinque: "Endgame" esistera' quando avra' contenuto.
+ * Un gruppo vuoto in navigazione promette qualcosa che non c'e', e chi ci clicca
+ * una volta non ci clicca piu'. "Guide" e' entrato quando la sezione ha avuto
+ * pagine da mostrare, non prima.
  */
 export interface GameSection {
   path: string;
@@ -131,6 +132,16 @@ export const GAME_GROUPS: readonly GameSectionGroup[] = [
     items: [
       { path: "/strumenti", label: "Simulatore squadra", hint: "Componi e calcola" },
       { path: "/classifica", label: "Classifica danno", hint: "Ordinata dal motore, non a giudizio" },
+    ],
+  },
+  {
+    label: "Guide",
+    items: [
+      {
+        path: "/guide",
+        label: "Guide e rotazioni",
+        hint: "Con la patch in cui i numeri sono stati verificati",
+      },
     ],
   },
   {

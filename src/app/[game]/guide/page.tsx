@@ -1,0 +1,173 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Breadcrumb } from "@/components/breadcrumb";
+import { buttonClass, cx, display, Empty, eyebrow, Notice, Tag } from "@/components/ui";
+import { findGame } from "@/lib/games/catalog";
+import { requireGameModule } from "@/lib/games/registry";
+import { getGuideStore } from "@/lib/guides/store";
+import { isStale, STATUS_LABELS } from "@/lib/guides/types";
+import { formatDate } from "@/components/freshness";
+import { can } from "@/lib/auth/permissions";
+import { currentViewer } from "@/lib/community/actions";
+
+/**
+ * Elenco delle guide di un gioco.
+ *
+ * Ogni riga dichiara la patch in cui e' stata verificata, e quelle scadute lo
+ * dicono in elenco - non solo aprendole. E' l'informazione che serve prima di
+ * decidere se leggere: scoprirlo in fondo alla pagina significa aver perso
+ * cinque minuti su numeri vecchi.
+ *
+ * Le bozze e le guide in revisione compaiono solo a chi le puo' toccare, e
+ * marcate: un elenco che mescola contenuto pubblicato e lavori in corso non e'
+ * un indice, e' un cassetto.
+ */
+
+interface Props {
+  params: Promise<{ game: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { game } = await params;
+  const entry = findGame(game);
+  return {
+    title: `Guide di ${entry?.shortName ?? "gioco"} · GachaZone`,
+    description: `Guide e rotazioni per ${entry?.name ?? "questo gioco"}, con la patch in cui i numeri sono stati verificati.`,
+  };
+}
+
+export default async function GuidesPage({ params }: Props) {
+  const { game } = await params;
+
+  const entry = findGame(game);
+  if (!entry) notFound();
+
+  const gameModule = requireGameModule(game);
+  const currentPatch = gameModule.dataset.patch;
+
+  const viewer = await currentViewer();
+  const store = await getGuideStore();
+
+  // Senza database si vede tutto il percorso: scrivere, mandare in revisione,
+  // pubblicare. Mostrare solo l'elenco vorrebbe dire far valutare la sezione
+  // dalla sua parte meno interessante.
+  const role = store.volatile ? "EDITOR" : viewer?.role;
+  const canWrite = can(role, "submitGuide");
+  const canReview = can(role, "publishGuide");
+
+  const all = await store.list(game, { includeUnpublished: canReview });
+
+  const published = all.filter((guide) => guide.status === "PUBLISHED");
+  const inProgress = all.filter((guide) => guide.status !== "PUBLISHED");
+
+  return (
+    <main className="pt-6 pb-20">
+      <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: "Guide" }]} />
+
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-rule pb-5">
+        <div>
+          <p className={eyebrow}>{entry.shortName}</p>
+          <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>Guide</h1>
+          <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">
+            Ogni guida dice in quale patch è stata controllata. Quando il dataset supera quella
+            patch, la guida si segna da sola come da rivedere: patch corrente {currentPatch}.
+          </p>
+        </div>
+
+        {canWrite ? (
+          <Link href={`/${game}/guide/nuova`} className={buttonClass("primary")}>
+            Scrivi una guida
+          </Link>
+        ) : null}
+      </header>
+
+      {store.volatile ? (
+        <Notice tone="warn" className="mb-6">
+          Modalità dimostrativa: queste guide vivono in memoria e si azzerano al riavvio del
+          server.
+        </Notice>
+      ) : null}
+
+      {published.length === 0 ? (
+        <Empty>
+          Nessuna guida pubblicata per {entry.shortName}. È la sezione più lenta da riempire e la
+          più difficile da falsificare: una guida sbagliata si vede subito.
+        </Empty>
+      ) : (
+        <ul className="m-0 grid list-none gap-3.5 p-0">
+          {published.map((guide) => {
+            const stale = isStale(guide.verifiedPatch, currentPatch);
+            return (
+              <li
+                key={guide.id}
+                className="rounded-card border border-rule bg-paper p-4 transition-colors hover:border-ink-3"
+              >
+                <div className="mb-2 flex flex-wrap items-center gap-2.5">
+                  {guide.verifiedPatch === null ? (
+                    <Tag>patch non dichiarata</Tag>
+                  ) : (
+                    <Tag tone={stale ? "neutral" : "brand"}>
+                      {stale ? `verificata su ${guide.verifiedPatch}` : `patch ${currentPatch}`}
+                    </Tag>
+                  )}
+                  {stale ? (
+                    <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot">
+                      da rivedere
+                    </span>
+                  ) : null}
+                  <span className="ml-auto font-mono text-[11px] text-ink-3">
+                    {guide.publishedAt ? formatDate(guide.publishedAt) : "—"}
+                  </span>
+                </div>
+
+                <h2
+                  className={cx(display, "mb-1.5 text-[19px] leading-[1.2]")}
+                  data-accent={guide.author.accent}
+                >
+                  <Link href={`/${game}/guide/${guide.slug}`} className="hover:text-brand">
+                    {guide.title}
+                  </Link>
+                </h2>
+
+                <p className="m-0 text-sm leading-relaxed text-ink-2">{guide.excerpt}</p>
+
+                <p className="m-0 mt-2.5 text-xs text-ink-3">
+                  di{" "}
+                  <Link href={`/u/${guide.author.username}`} className="text-ink-2 hover:text-brand">
+                    {guide.author.displayName}
+                  </Link>
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {canReview && inProgress.length > 0 ? (
+        <section className="mt-10">
+          <h2 className={cx(display, "mb-3 text-lg")}>Non pubblicate</h2>
+          <ul className="m-0 grid list-none gap-2 p-0">
+            {inProgress.map((guide) => (
+              <li
+                key={guide.id}
+                className="flex flex-wrap items-center gap-3 rounded-card border border-dashed border-rule bg-paper-2 px-4 py-3 text-sm"
+              >
+                <Tag>{STATUS_LABELS[guide.status]}</Tag>
+                <Link
+                  href={`/${game}/guide/${guide.slug}`}
+                  className="font-medium hover:text-brand"
+                >
+                  {guide.title}
+                </Link>
+                <span className="ml-auto font-mono text-[11px] text-ink-3">
+                  {guide.author.username}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </main>
+  );
+}

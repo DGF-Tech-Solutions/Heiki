@@ -30,12 +30,12 @@
     }
   },
   "include": [
+    "**/*.mts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.mts",
     ".next/types/**/*.ts",
-    "next-env.d.ts",
-    ".next-check/types/**/*.ts"
+    ".next-verify/types/**/*.ts",
+    "next-env.d.ts"
   ],
   "exclude": [
     "node_modules"

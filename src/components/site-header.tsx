@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
-import { ROLE_LABELS } from "@/lib/auth/permissions";
+import { can, ROLE_LABELS } from "@/lib/auth/permissions";
 import { unreadCount } from "@/lib/social/actions";
 import { buttonClass, cx, Tag } from "./ui";
 
@@ -41,6 +41,25 @@ export async function SiteHeader() {
           <span className="flex items-center gap-2.5 border-l border-rule pl-5">
             {user ? (
               <>
+                {/* Le aree riservate compaiono solo a chi le puo' aprire: un
+                    collegamento visibile a tutti sarebbe una porta annunciata. */}
+                {can(user.role, "moderate") ? (
+                  <Link
+                    href="/moderazione"
+                    className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot hover:underline"
+                  >
+                    Coda
+                  </Link>
+                ) : null}
+                {can(user.role, "administer") ? (
+                  <Link
+                    href="/admin"
+                    className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+                  >
+                    Admin
+                  </Link>
+                ) : null}
+
                 <Link
                   href="/notifiche"
                   className={cx(buttonClass("ghost", "sm"), "relative")}

@@ -26,6 +26,8 @@ const { getStore } = await import("@/lib/community/store");
 const { requireGameModule } = await import("@/lib/games/registry");
 const { ITERATIONS, simulateTeam } = await import("@/lib/games/preview");
 const { cachedCheck } = await import("@/lib/community/verify");
+const { getGuideStore } = await import("@/lib/guides/store");
+const { suspensionFor } = await import("@/lib/moderation/suspension");
 
 function loadEnv(): void {
   const path = resolve(process.cwd(), ".env");
@@ -323,6 +325,179 @@ async function main(): Promise<void> {
       "una mediana gonfiata risulta non riprodotta",
       inflatedCheck?.status === "mismatch",
       inflatedCheck?.status,
+    );
+  }
+
+  /* --------------------------------------------------- segnalazioni -- */
+
+  // Le azioni di moderazione passano da auth() e qui non c'e' una sessione:
+  // si esercita quindi il livello sotto, quello che contiene le regole sui dati
+  // - inserimento della segnalazione, effetto del nascondere sul feed, stato
+  // della sospensione.
+  const [report] = await db
+    .insert(schema.reports)
+    .values({
+      reporterId: otherId,
+      targetType: "POST",
+      targetId: postId,
+      reason: "numeri",
+      details: "Verifica di fumo.",
+    })
+    .returning({ id: schema.reports.id });
+
+  const openReports = await db.$count(schema.reports, eq(schema.reports.status, "OPEN"));
+  check("la segnalazione entra in coda aperta", openReports >= 1, String(openReports));
+
+  await db.update(schema.posts).set({ hidden: true }).where(eq(schema.posts.id, postId));
+
+  const hiddenFeed = await store.listPosts("grand-cross", null, viewer);
+  check(
+    "un post nascosto esce dal feed",
+    !hiddenFeed.some((post) => post.id === postId),
+    `${hiddenFeed.length} nel feed`,
+  );
+
+  const hiddenDetail = await store.getPost(postId, viewer);
+  check("il post nascosto resta leggibile e si dichiara tale", hiddenDetail?.hidden === true);
+
+  await db.update(schema.posts).set({ hidden: false }).where(eq(schema.posts.id, postId));
+  const restored = await store.listPosts("grand-cross", null, viewer);
+  check(
+    "ripristinarlo lo riporta nel feed",
+    restored.some((post) => post.id === postId),
+  );
+
+  if (report) {
+    await db
+      .update(schema.reports)
+      .set({ status: "RESOLVED" })
+      .where(eq(schema.reports.id, report.id));
+
+    const stillOpen = await db.$count(
+      schema.reports,
+      and(eq(schema.reports.id, report.id), eq(schema.reports.status, "OPEN")),
+    );
+    check("chiudere la segnalazione la toglie dalla coda", stillOpen === 0);
+  }
+
+  /* ---------------------------------------------------- sospensioni -- */
+
+  const beforeSuspension = await suspensionFor(otherId);
+  check("senza provvedimenti l'account non risulta sospeso", beforeSuspension.active === false);
+
+  const [suspension] = await db
+    .insert(schema.suspensions)
+    .values({
+      userId: otherId,
+      moderatorId: userId,
+      reason: "Verifica di fumo: sospensione a termine.",
+      until: new Date(Date.now() + 86_400_000),
+    })
+    .returning({ id: schema.suspensions.id });
+
+  const during = await suspensionFor(otherId);
+  check("la sospensione attiva viene letta col motivo", during.active && Boolean(during.reason));
+
+  if (suspension) {
+    await db
+      .update(schema.suspensions)
+      .set({ liftedAt: new Date() })
+      .where(eq(schema.suspensions.id, suspension.id));
+  }
+
+  check("revocarla la spegne", (await suspensionFor(otherId)).active === false);
+
+  // Una sospensione scaduta non deve valere: la scadenza si valuta in lettura,
+  // e senza questo controllo servirebbe un lavoro periodico per spegnerla.
+  const [expired] = await db
+    .insert(schema.suspensions)
+    .values({
+      userId: otherId,
+      moderatorId: userId,
+      reason: "Verifica di fumo: sospensione scaduta.",
+      until: new Date(Date.now() - 86_400_000),
+    })
+    .returning({ id: schema.suspensions.id });
+
+  check("una sospensione scaduta non blocca piu'", (await suspensionFor(otherId)).active === false);
+
+  if (expired) {
+    await db.delete(schema.suspensions).where(eq(schema.suspensions.id, expired.id));
+  }
+
+  /* --------------------------------------------------------- guide -- */
+
+  const guideStore = await getGuideStore();
+  check("l'archivio delle guide e' quello su database", guideStore.volatile === false);
+
+  const writer = { id: userId, username: "collaudo", displayName: "Collaudo", accent: "ocean" };
+  const guideTitle = "Verifica di fumo della sezione guide";
+  const guideBody = [
+    "## Perche' questa guida esiste",
+    "",
+    "Serve alla verifica di fumo per esercitare creazione, revisione e dichiarazione della patch sul database vero, con un corpo abbastanza lungo da superare la soglia minima prevista dal modulo di scrittura.",
+    "",
+    "- primo punto",
+    "- secondo punto",
+  ].join("\n");
+
+  const known = await guideStore.get("grand-cross", "verifica-di-fumo-della-sezione-guide");
+  const guideSlugUsed =
+    known?.slug ??
+    (await guideStore.create(
+      { game: "grand-cross", title: guideTitle, body: guideBody, characterId: null },
+      writer,
+    ));
+
+  const guide = await guideStore.get("grand-cross", guideSlugUsed);
+
+  if (!guide) {
+    check("la guida di prova esiste", false, "non rileggibile");
+  } else {
+    // Rilanciabile: se la guida c'era gia' pubblicata, la si riporta a bozza
+    // per esercitare comunque tutto il percorso.
+    if (guide.status !== "DRAFT") await guideStore.setStatus(guide.id, "DRAFT");
+
+    const draft = await guideStore.get("grand-cross", guideSlugUsed);
+    check("la guida parte come bozza", draft?.status === "DRAFT", draft?.status);
+
+    check(
+      "una bozza non compare nell'elenco pubblico",
+      !(await guideStore.list("grand-cross")).some((item) => item.slug === guideSlugUsed),
+    );
+    check(
+      "la bozza compare a chi revisiona",
+      (await guideStore.list("grand-cross", { includeUnpublished: true })).some(
+        (item) => item.slug === guideSlugUsed,
+      ),
+    );
+
+    await guideStore.setStatus(guide.id, "PUBLISHED");
+    const published = await guideStore.get("grand-cross", guideSlugUsed);
+    check("pubblicarla le assegna una data", published?.publishedAt !== null);
+    check(
+      "pubblicata compare nell'elenco pubblico",
+      (await guideStore.list("grand-cross")).some((item) => item.slug === guideSlugUsed),
+    );
+
+    const patch = requireGameModule("grand-cross").dataset.patch;
+    await guideStore.setVerifiedPatch(guide.id, patch, writer);
+    const verified = await guideStore.get("grand-cross", guideSlugUsed);
+    check("la patch dichiarata viene riletta", verified?.verifiedPatch === patch);
+    check("la dichiarazione lascia traccia in cronologia", (verified?.revisions.length ?? 0) >= 1);
+
+    await guideStore.update(guide.id, { title: guideTitle }, writer, "nota della verifica");
+    const edited = await guideStore.get("grand-cross", guideSlugUsed);
+    check(
+      "la modifica aggiunge una voce di cronologia",
+      (edited?.revisions.length ?? 0) > (verified?.revisions.length ?? 0),
+    );
+
+    // Lo slug e' unico su tutta la tabella, ma l'indirizzo contiene il gioco:
+    // chiedere la stessa guida sotto un altro gioco non deve trovarla.
+    check(
+      "una guida non e' raggiungibile dall'indirizzo di un altro gioco",
+      (await guideStore.get("genshin-impact", guideSlugUsed)) === null,
     );
   }
 

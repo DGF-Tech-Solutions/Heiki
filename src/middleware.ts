@@ -15,5 +15,11 @@ export default middleware;
 export const config = {
   // Il calcolatore resta pubblico di proposito: chiedere l'account prima di
   // dare valore uccide la conversione. L'account serve per SALVARE.
-  matcher: ["/impostazioni/:path*", "/redazione/:path*", "/admin/:path*"],
+  matcher: [
+    "/impostazioni/:path*",
+    "/notifiche",
+    "/moderazione/:path*",
+    "/redazione/:path*",
+    "/admin/:path*",
+  ],
 };

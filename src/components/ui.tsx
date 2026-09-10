@@ -270,7 +270,7 @@ export function Notice({
   children,
   className,
 }: {
-  tone?: "info" | "error";
+  tone?: "info" | "warn" | "error";
   children: ReactNode;
   className?: string;
 }) {
@@ -280,7 +280,9 @@ export function Notice({
         "flex gap-3 rounded-card border border-rule border-l-4 px-4 py-3 text-[13px]",
         tone === "error"
           ? "border-l-hot bg-hot-soft text-[#9c0f3c]"
-          : "border-l-brand bg-brand-soft text-ink-2",
+          : tone === "warn"
+            ? "border-l-gold bg-gold-soft text-[#7a5100]"
+            : "border-l-brand bg-brand-soft text-ink-2",
         className,
       )}
       role={tone === "error" ? "alert" : undefined}
