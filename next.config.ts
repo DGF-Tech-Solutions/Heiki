@@ -15,6 +15,9 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Richiesto dall'immagine Docker: produce .next/standalone, un server
+  // autosufficiente senza node_modules. In sviluppo non cambia nulla.
+  output: "standalone",
   distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
     // Il motore di calcolo gira lato client: niente di esso deve finire nel bundle server.

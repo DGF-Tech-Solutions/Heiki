@@ -1,3 +1,12 @@
+# Ambiente di sviluppo.
+#
+#   docker compose up -d              solo Postgres (uso quotidiano)
+#   docker compose --profile app up   anche l'applicazione, per chi non ha Node
+#
+# Il primo comando e' quello che serve tutti i giorni: il sito si avvia con
+# `npm run dev` in locale, perche' l'hot reload dentro un container su Windows
+# e' lento e renderebbe il lavoro peggiore.
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -16,6 +25,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gachazone-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Dentro la rete di compose il database si chiama "postgres", non localhost.
+      DATABASE_URL: postgresql://gachazone:gachazone@postgres:5432/gachazone
+      AUTH_URL: http://localhost:3000
+      # Il segreto arriva dal .env locale, che non e' versionato. Il valore di
+      # riserva vuoto e' deliberato: senza, l'interpolazione fallirebbe anche per
+      # chi vuole solo il database, e il primo comando dopo il clone non
+      # funzionerebbe. Se manca, se ne lamenta Auth.js all'avvio dell'app.
+      AUTH_SECRET: ${AUTH_SECRET:-}
+    ports:
+      - "3000:3000"
 
 volumes:
   gachazone-pgdata:

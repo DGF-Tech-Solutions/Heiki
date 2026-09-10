@@ -5,6 +5,8 @@ import { VoteControl } from "@/components/community/vote-control";
 import { AttachmentCard } from "@/components/community/attachment-card";
 import { CommentThread } from "@/components/community/comment-thread";
 import { GameNav } from "@/components/game-nav";
+import { Breadcrumb } from "@/components/breadcrumb";
+import { findGame } from "@/lib/games/catalog";
 import { cx, display, Notice, SectionHead } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import { relativeTime } from "@/lib/community/ranking";
@@ -38,12 +40,13 @@ export default async function PostPage({ params }: Props) {
       <GameNav game={game} section="" />
 
       <main className="mx-auto w-full max-w-[860px] px-6 pt-6 pb-20">
-        <Link
-          href={`/${game}?hub=${post.hub}`}
-          className="mb-4 inline-block font-mono text-xs text-ink-3 hover:text-ink"
-        >
-          ← {post.hubName}
-        </Link>
+        <Breadcrumb
+          items={[
+            { label: findGame(game)?.shortName ?? "Gioco", href: `/${game}` },
+            { label: post.hubName, href: `/${game}?hub=${post.hub}` },
+            { label: post.title },
+          ]}
+        />
 
         <article data-accent={post.author.accent} className="flex gap-3.5 border-b border-rule pb-6">
           <VoteControl

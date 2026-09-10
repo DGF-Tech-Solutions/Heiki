@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameNav } from "@/components/game-nav";
+import { Breadcrumb } from "@/components/breadcrumb";
+import { Freshness, formatDate } from "@/components/freshness";
 import { PostCard } from "@/components/community/post-card";
 import { cx, display, Empty, eyebrow, numeric, Stat, StatGrid, Tag } from "@/components/ui";
 import { DistributionChart } from "@/components/distribution-chart";
@@ -83,12 +85,13 @@ export default async function CharacterPage({ params }: Props) {
       <GameNav game={game} section="/personaggi" />
 
       <main className="mx-auto w-full max-w-[1200px] px-6 pt-6 pb-20">
-        <Link
-          href={`/${game}/personaggi`}
-          className="mb-4 inline-block font-mono text-xs text-ink-3 hover:text-ink"
-        >
-          ← Personaggi
-        </Link>
+        <Breadcrumb
+          items={[
+            { label: entry.shortName, href: `/${game}` },
+            { label: "Personaggi", href: `/${game}/personaggi` },
+            { label: character.name },
+          ]}
+        />
 
         <header className="flex flex-wrap items-end gap-4 border-b-2 border-ink pb-5">
           <div>
@@ -102,6 +105,17 @@ export default async function CharacterPage({ params }: Props) {
             <Tag>dati {module.dataset.patch}</Tag>
           </div>
         </header>
+
+        <Freshness
+          className="mt-5"
+          entries={[
+            {
+              label: "Dati di gioco",
+              value: `patch ${module.dataset.patch} · ${formatDate(module.dataset.releasedAt)}`,
+            },
+            { label: "Calcoli", value: `motore v0.1 · seed ${result?.seed ?? "—"}` },
+          ]}
+        />
 
         <div className="grid items-start gap-10 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,220px)]">
           <div className="min-w-0">

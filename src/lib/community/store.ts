@@ -225,6 +225,17 @@ function countComments(nodes: readonly CommentNode[]): number {
 
 /* ========================================================= archivio su DB */
 
+/**
+ * Lo slug di un hub sul database porta il gioco davanti ("grand-cross:build")
+ * perche' deve essere unico nella tabella. Verso l'esterno conta solo la parte
+ * della sezione: e' quella che compare negli indirizzi e nei filtri del feed.
+ */
+function hubSlugOf(full: string): string {
+  const separator = full.indexOf(":");
+  return separator === -1 ? full : full.slice(separator + 1);
+}
+
+
 const dbStore: CommunityStore = {
   volatile: false,
 
@@ -240,11 +251,11 @@ const dbStore: CommunityStore = {
 
     return rows
       .filter((row) => game === null || row.hub.game?.slug === game)
-      .filter((row) => hub === null || row.hub.slug === hub)
+      .filter((row) => hub === null || hubSlugOf(row.hub.slug) === hub)
       .map((row) => ({
         id: row.id,
         game: row.hub.game?.slug ?? "",
-        hub: row.hub.slug,
+        hub: hubSlugOf(row.hub.slug),
         hubName: row.hub.name,
         title: row.title,
         excerpt: excerptOf(row.bodyMd),
@@ -301,7 +312,7 @@ const dbStore: CommunityStore = {
     return {
       id: row.id,
       game: row.hub.game?.slug ?? "",
-      hub: row.hub.slug,
+      hub: hubSlugOf(row.hub.slug),
       hubName: row.hub.name,
       title: row.title,
       excerpt: excerptOf(row.bodyMd),

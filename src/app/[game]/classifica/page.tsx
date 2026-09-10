@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameNav } from "@/components/game-nav";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { rankCharacters, REFERENCE_LEVEL } from "@/lib/games/preview";
@@ -50,6 +51,10 @@ export default async function RankingPage({ params, searchParams }: Props) {
       <GameNav game={game} section="/classifica" />
 
       <main className="mx-auto w-full max-w-[1200px] px-6 pt-6 pb-20">
+        <Breadcrumb
+          items={[{ label: entry.shortName, href: `/${game}` }, { label: "Classifica" }]}
+        />
+
         <header className="mb-5 border-b border-rule pb-5">
           <p className={eyebrow}>{entry.shortName}</p>
           <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>Classifica danno</h1>

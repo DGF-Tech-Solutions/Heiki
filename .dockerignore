@@ -1,0 +1,11 @@
+node_modules
+.next
+.next-check
+.next-build
+.git
+.env
+coverage
+*.log
+*.html
+Dockerfile
+.dockerignore

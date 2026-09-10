@@ -11,6 +11,7 @@
     "not dead"
   ],
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
     "build": "next build",
@@ -21,9 +22,13 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "tsx scripts/migrate.mts",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx scripts/seed.mts",
+    "db:reset": "docker compose down -v && node scripts/setup.mjs",
+    "db:smoke": "tsx scripts/smoke-db.mts",
+    "docker:app": "docker compose --profile app up --build"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
@@ -45,7 +50,11 @@
     "@vitejs/plugin-react": "^6.0.1",
     "drizzle-kit": "^0.31.6",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
