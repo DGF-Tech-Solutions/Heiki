@@ -40,7 +40,7 @@ docker compose logs  # cosa dice Postgres
 | Comando | Cosa fa |
 |---|---|
 | `npm run dev` | Sito in sviluppo su :3000 |
-| `npm test` | Suite di test (168) |
+| `npm test` | Suite di test (179) |
 | `npm run typecheck` | TypeScript senza emissione |
 | `npm run build` | Build di produzione |
 | `npm run db:generate` | Genera una migrazione dopo aver cambiato lo schema |
