@@ -15,11 +15,12 @@
  * parallelo da tenere allineato a mano.
  */
 
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { eq, inArray } from "drizzle-orm";
 
+import { loadEnv, requireDatabaseUrl } from "./env.mjs";
+
 loadEnv();
+requireDatabaseUrl();
 
 const { db } = await import("@/lib/db");
 const schema = await import("@/lib/db/schema");
@@ -30,18 +31,6 @@ const customization = await import("@/lib/profile/customization");
 const { DEMO_GUIDES } = await import("@/lib/guides/demo-seed");
 
 /** Legge .env senza dipendenze: poche righe, niente pacchetto in piu'. */
-function loadEnv(): void {
-  const path = resolve(process.cwd(), ".env");
-  if (!existsSync(path)) return;
-
-  for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i.exec(line);
-    if (!match) continue;
-    const [, key, rawValue] = match;
-    if (!key || process.env[key]) continue;
-    process.env[key] = (rawValue ?? "").replace(/^["']|["']$/g, "");
-  }
-}
 
 const BADGES = [
   {
@@ -264,9 +253,6 @@ async function seedSponsor(gameIds: ReadonlyMap<string, string>): Promise<void> 
  * sezione resta vuota - con il suo messaggio, che e' informativo.
  */
 async function seedGuides(gameIds: ReadonlyMap<string, string>): Promise<number> {
-  const existing = await db.query.guides.findFirst({ columns: { id: true } });
-  if (existing) return 0;
-
   const editor = await db.query.users.findFirst({
     columns: { id: true },
     where: inArray(schema.users.role, ["EDITOR", "MODERATOR", "ADMIN"]),
@@ -278,6 +264,15 @@ async function seedGuides(gameIds: ReadonlyMap<string, string>): Promise<number>
   for (const guide of DEMO_GUIDES) {
     const gameId = gameIds.get(guide.game);
     if (!gameId) continue;
+
+    // Il controllo e' per slug e non "esiste almeno una guida": altrimenti una
+    // sola guida scritta a mano bloccherebbe per sempre l'inserimento degli
+    // esempi, e lo script non sarebbe piu' rilanciabile.
+    const already = await db.query.guides.findFirst({
+      where: eq(schema.guides.slug, guide.slug),
+      columns: { id: true },
+    });
+    if (already) continue;
 
     await db.insert(schema.guides).values({
       gameId,
@@ -298,10 +293,6 @@ async function seedGuides(gameIds: ReadonlyMap<string, string>): Promise<number>
 }
 
 async function main(): Promise<void> {
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL non impostata: copia .env.example in .env");
-  }
-
   console.log("Popolamento in corso…");
 
   const gameIds = await seedGames();

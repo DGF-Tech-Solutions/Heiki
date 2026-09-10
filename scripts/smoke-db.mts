@@ -13,12 +13,13 @@
  *   npm run db:smoke
  */
 
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { and, eq, isNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
+import { loadEnv, requireDatabaseUrl } from "./env.mjs";
+
 loadEnv();
+requireDatabaseUrl();
 
 const { db } = await import("@/lib/db");
 const schema = await import("@/lib/db/schema");
@@ -29,17 +30,6 @@ const { cachedCheck } = await import("@/lib/community/verify");
 const { getGuideStore } = await import("@/lib/guides/store");
 const { suspensionFor } = await import("@/lib/moderation/suspension");
 
-function loadEnv(): void {
-  const path = resolve(process.cwd(), ".env");
-  if (!existsSync(path)) return;
-  for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i.exec(line);
-    if (!match) continue;
-    const [, key, rawValue] = match;
-    if (!key || process.env[key]) continue;
-    process.env[key] = (rawValue ?? "").replace(/^["']|["']$/g, "");
-  }
-}
 
 let failures = 0;
 
@@ -85,7 +75,6 @@ async function ensureUser(username: string, email: string, displayName: string):
 }
 
 async function main(): Promise<void> {
-  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL non impostata");
 
   console.log("Verifica su database reale\n");
 

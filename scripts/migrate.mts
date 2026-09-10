@@ -13,31 +13,18 @@
  * (`npm run db:generate`): qui si applicano soltanto.
  */
 
-import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
+import { loadEnv, requireDatabaseUrl } from "./env.mjs";
+
 loadEnv();
 
-function loadEnv(): void {
-  const path = resolve(process.cwd(), ".env");
-  if (!existsSync(path)) return;
-  for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i.exec(line);
-    if (!match) continue;
-    const [, key, rawValue] = match;
-    if (!key || process.env[key]) continue;
-    process.env[key] = (rawValue ?? "").replace(/^["']|["']$/g, "");
-  }
-}
 
-const url = process.env.DATABASE_URL;
-if (!url) {
-  console.error("DATABASE_URL non impostata: copia .env.example in .env o lancia `npm run setup`.");
-  process.exit(1);
-}
+const url = requireDatabaseUrl();
 
 // max: 1 perche' le migrazioni sono sequenziali; onnotice silenziato perche' i
 // NOTICE di idempotenza non sono informazione utile per chi lancia il comando.

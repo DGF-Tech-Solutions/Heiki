@@ -18,6 +18,14 @@
 
 import { eq, or } from "drizzle-orm";
 
+import { loadEnv, requireDatabaseUrl } from "./env.mjs";
+
+// Prima di tutto: @/lib/db legge DATABASE_URL quando viene caricato, quindi
+// l'ambiente va popolato prima dell'import - ed e' il motivo per cui qui si usa
+// await import e non un import statico.
+loadEnv();
+requireDatabaseUrl();
+
 const { db } = await import("@/lib/db");
 const schema = await import("@/lib/db/schema");
 const { ROLES, isRole } = await import("@/lib/auth/permissions");
@@ -28,10 +36,6 @@ function fail(message: string): never {
 }
 
 const [identifier, role] = process.argv.slice(2);
-
-if (!process.env.DATABASE_URL) {
-  fail("DATABASE_URL non impostata: copia .env.example in .env oppure lancia npm run setup");
-}
 
 if (!identifier || !role) {
   fail(
