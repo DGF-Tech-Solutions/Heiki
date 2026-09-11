@@ -137,6 +137,80 @@ export interface HeroAssets {
 }
 
 /**
+ * Una carta d'attacco, col testo esatto che il gioco le stampa sopra.
+ *
+ * Il testo cambia col rango della carta, e cambia nei valori: e' proprio quella
+ * differenza che interessa a chi la legge, quindi si conservano tutti i ranghi
+ * invece di tenere solo il massimo.
+ */
+export interface HeroCard {
+  name: string;
+  /** quale carta e': "A", "B", "ultimate", "coop" */
+  slot?: string;
+  /**
+   * Quale sprite le corrisponde, numerato da 1.
+   *
+   * Opzionale perche' l'accostamento fra l'immagine di una carta e il suo testo
+   * non si ricava: il numero nel nome dello sprite non ha relazione con l'id
+   * dell'abilita' (1 caso su 232 misurati), e la regola "la carta A ha il
+   * numero piu' basso" regge 92 volte su 110. C'e' solo dove una fonte lo
+   * dichiara, e dove manca la carta si mostra senza immagine invece di
+   * accostarne una a caso.
+   */
+  sprite?: number;
+  ranks: readonly { rank: number; text: string }[];
+}
+
+/**
+ * Carte e passiva di un eroe.
+ *
+ * NON vengono dal client: il client ha le descrizioni ma non la tabella che le
+ * lega a un eroe. Vengono dal wiki di community, e `source` lo dice perche' la
+ * differenza conta: un dato estratto dal gioco e uno trascritto da qualcuno non
+ * offrono la stessa garanzia, e chi legge ha diritto di distinguerli.
+ *
+ * Sono esclusi i giudizi - valutazioni, pro e contro, consigli d'uso: quelli
+ * sono opinioni di altri, e mescolarle ai fatti le renderebbe indistinguibili.
+ */
+export interface HeroAbilities {
+  cards: readonly HeroCard[];
+  /** l'attacco speciale: ha piu' ranghi delle carte, fino a sei */
+  ultimate?: HeroCard;
+  passive?: { name?: string; text?: string };
+  /** da dove arriva il testo, es. "7dshub.com" */
+  source: string;
+  /**
+   * I testi dei ranghi sono in inglese.
+   *
+   * Non e' una scelta: il client spedisce 285 descrizioni di abilita' in tutto,
+   * e sono MODELLI - "damage equal to {melee_val} of Attack" - che il server
+   * riempie. I valori per rango esistono solo risolti, e risolti li ha solo la
+   * fonte inglese. Il nome della carta invece e' in italiano dove il gioco
+   * l'ha tradotto, quindi le due cose vanno dichiarate separate.
+   */
+  textsInEnglish?: boolean;
+}
+
+/**
+ * Statistiche di un eroe al massimo livello.
+ *
+ * Vengono da fonte esterna: il client non le ha, stanno sul server del gioco.
+ * Due colonne perche' sono due domande diverse - quanto vale l'eroe nudo, e
+ * quanto vale equipaggiato - e mostrarne una sola nasconde quanto pesa
+ * l'equipaggiamento, che e' met&agrave; del gioco.
+ *
+ * I nomi delle statistiche restano quelli della fonte (`atk`, `critAtkPer`):
+ * tradurli qui vorrebbe dire decidere una volta per tutte come si chiamano, e
+ * quella e' una decisione dell'interfaccia.
+ */
+export interface HeroStats {
+  /** eroe al massimo, senza equipaggiamento */
+  readonly max: Readonly<Record<string, number>>;
+  /** eroe al massimo, con l'equipaggiamento migliore */
+  readonly maxGeared: Readonly<Record<string, number>>;
+}
+
+/**
  * Roster sfogliabile di un gioco.
  *
  * Le sfaccettature sono dichiarate invece che dedotte dalle voci: l'ordine
@@ -212,6 +286,22 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * Come heroTexts: la legge solo la scheda, renderizzata sul server.
    */
   readonly heroAssets?: Readonly<Record<string, HeroAssets>>;
+
+  /**
+   * Carte e passiva, da fonte esterna. Separati da heroAssets perche' hanno
+   * una provenienza diversa, e la provenienza va tenuta visibile fino in
+   * pagina.
+   */
+  readonly heroAbilities?: Readonly<Record<string, HeroAbilities>>;
+
+  /**
+   * Statistiche al massimo livello, da fonte esterna.
+   *
+   * Separate dalle altre per lo stesso motivo di sempre - le legge solo la
+   * scheda, renderizzata sul server - ma anche perche' sono la cosa che il
+   * motore potra' usare per calibrarsi, mentre i testi no.
+   */
+  readonly heroStats?: Readonly<Record<string, HeroStats>>;
 
   /**
    * Converte una build salvata in un attore eseguibile dal motore.

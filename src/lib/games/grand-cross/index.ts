@@ -48,7 +48,9 @@ import {
   type Attribute,
   type SkillData,
 } from "./data";
+import { HERO_ABILITIES } from "./hero-abilities.generated";
 import { HERO_ASSETS } from "./hero-assets.generated";
+import { HERO_STATS } from "./hero-stats.generated";
 import { HERO_TEXTS } from "./hero-texts.generated";
 import { ROSTER } from "./roster";
 
@@ -467,6 +469,8 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   roster: ROSTER,
   heroTexts: HERO_TEXTS,
   heroAssets: HERO_ASSETS,
+  heroAbilities: HERO_ABILITIES,
+  heroStats: HERO_STATS,
   resolveActor,
   computeDamage,
   simulateOnce,

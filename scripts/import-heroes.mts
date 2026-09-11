@@ -31,6 +31,8 @@ const DEST_IMAGES = resolve(ROOT, "public/eroi", GAME);
 const DEST_DATA = resolve(ROOT, "src/lib/games", GAME, "heroes.generated.ts");
 const DEST_TEXTS = resolve(ROOT, "src/lib/games", GAME, "hero-texts.generated.ts");
 const DEST_ASSETS = resolve(ROOT, "src/lib/games", GAME, "hero-assets.generated.ts");
+const DEST_ABILITIES = resolve(ROOT, "src/lib/games", GAME, "hero-abilities.generated.ts");
+const DEST_STATS = resolve(ROOT, "src/lib/games", GAME, "hero-stats.generated.ts");
 
 /** Forma delle voci in eroi.json, come le scrive la pipeline. */
 interface SourceHero {
@@ -236,6 +238,282 @@ ${entries.join("\n")}
     (fallbacks > 0 ? ` (${fallbacks} descrizioni rimaste in inglese)` : ""));
 }
 
+/* ------------------------------------------------------------ abilita' -- */
+
+/**
+ * Carte e passive dal wiki di community.
+ *
+ * Le produce `python scarica_wiki.py`. Non vengono dal client: il client ha le
+ * descrizioni ma non la tabella che le lega a un eroe, e quella sta sul server.
+ *
+ * Quando ci sono, le carte del wiki SOSTITUISCONO quelle dedotte dallo slug -
+ * e non e' un ripiego, e' un miglioramento. Lo slug dice quali carte
+ * appartengono al personaggio; il wiki dice quali appartengono a QUESTA
+ * versione. Le sette carte di `meliodas_demon` sono divise fra il Meliodas
+ * rosso, il blu e il verde, e per slug le davamo tutte e sette a ciascuno.
+ */
+interface SourceAbility {
+  pagina: string;
+  fonte: string;
+  carte: { nome: string; sprite: string; percorso?: string;
+           ranghi: { rango: number; testo: string }[] }[];
+  unica?: { nome?: string; testo?: string };
+}
+
+/**
+ * Forma confrontabile del nome di una carta.
+ *
+ * Le due fonti lo scrivono diverso: 7dshub mette le virgolette - `"Kill Shot"` -
+ * e il wiki no. Senza toglierle l'accostamento riusciva 44 volte invece di 122.
+ */
+function cardKey(name: string): string {
+  return name.trim().replace(/^["'“”]+|["'“”]+$/g, "").trim().toLowerCase();
+}
+
+const abilitiesJson = resolve(SOURCE, "eroi/abilita_eroi.json");
+const fromWiki = new Map<string, number>();
+/** eroe -> nome della carta -> quale sprite le corrisponde, numerato da 1 */
+const spriteByName = new Map<string, Map<string, number>>();
+
+if (!existsSync(abilitiesJson)) {
+  console.log(`  abilita_eroi.json non trovato: salto gli sprite delle carte.`);
+  console.log(`  (si genera con: python scarica_wiki.py, dentro _7dsgc)`);
+} else {
+  const source = JSON.parse(readFileSync(abilitiesJson, "utf8")) as Record<string, SourceAbility>;
+  const estratti = resolve(SOURCE, "7dsgc_estratti");
+  let copied = 0;
+
+  for (const hero of heroes) {
+    const hid = String(hero.heroId);
+    const voce = source[hid];
+    if (!voce) continue;
+
+    const perNome = new Map<string, number>();
+    let n = 0;
+    for (const carta of voce.carte) {
+      if (!carta.percorso) continue;
+      const from = resolve(estratti, carta.percorso);
+      if (!existsSync(from)) continue;
+      n++;
+
+      const dir = resolve(DEST_IMAGES, "carte", hid);
+      mkdirSync(dir, { recursive: true });
+      if (copyIfNewer(from, resolve(dir, `${n}.png`))) copied++;
+
+      // Il wiki e' l'unica fonte che dichiari QUALE sprite e' QUALE carta:
+      // scrive il nome del file accanto al nome della carta. E' per questo che
+      // resta in uso anche adesso che i testi vengono da altrove.
+      if (carta.nome) perNome.set(cardKey(carta.nome), n);
+    }
+    if (n > 0) {
+      fromWiki.set(hid, n);
+      spriteByName.set(hid, perNome);
+    }
+  }
+
+  console.log(
+    `  sprite delle carte: ${copied} copiati, ${fromWiki.size} eroi con l'accostamento del wiki`,
+  );
+}
+
+/* ---------------------------------------------- abilita' e statistiche -- */
+
+/**
+ * Carte, ultimate, passiva e statistiche dal database della pipeline.
+ *
+ * Lo produce `python costruisci_database.py`, che unisce due fonti perche'
+ * nessuna delle due basta:
+ *
+ *   7dshub   QUALI abilita' ha l'eroe, e i valori risolti per ogni rango
+ *   client   come si chiamano, in italiano dove il gioco l'ha tradotto
+ *
+ * Il legame fra eroe e abilita' non e' nel client - verificato anche cercando
+ * le tabelle per percorso di progetto fra tutti i 262.420 asset: esistono sei
+ * `db_*.csv`, tutti filtri di parolacce. E non si ricava dall'heroId, perche'
+ * gli id delle abilita' sono una numerazione a se': Lancelot ha l'abilita'
+ * 1005021 e l'heroId 1967502.
+ *
+ * Copre tutti e 373 gli eroi, dove il wiki si fermava a 167.
+ */
+interface SourceDbText {
+  it?: string;
+  en?: string;
+}
+
+interface SourceDbRank {
+  id: number;
+  rango: number;
+  nome?: SourceDbText;
+  testo_en?: string;
+}
+
+interface SourceDbCard {
+  tipo: string;
+  nome?: SourceDbText;
+  ranghi: SourceDbRank[];
+}
+
+interface SourceDbHero {
+  carte: SourceDbCard[];
+  passiva?: { nome?: SourceDbText; modello?: SourceDbText; livelli?: { testo_en?: string }[] };
+  statistiche?: { max?: Record<string, number>; max_con_equipaggiamento?: Record<string, number> };
+}
+
+const databaseJson = resolve(SOURCE, "eroi/database_eroi.json");
+
+if (!existsSync(databaseJson)) {
+  console.log(`  database_eroi.json non trovato: salto abilita' e statistiche.`);
+  console.log(`  (si genera con: python costruisci_database.py, dentro _7dsgc)`);
+} else {
+  const db = JSON.parse(readFileSync(databaseJson, "utf8")) as Record<string, SourceDbHero>;
+
+  // Italiano quando c'e', inglese quando il gioco non l'ha tradotto: la stessa
+  // regola dei testi degli eroi.
+  const pick = (t?: SourceDbText) => t?.it ?? t?.en;
+
+  const abilityRows: string[] = [];
+  const statRows: string[] = [];
+  let withCards = 0;
+  let withUltimate = 0;
+  let withPassive = 0;
+  let withStats = 0;
+  let italianNames = 0;
+  let pairedSprites = 0;
+
+  const renderCard = (card: SourceDbCard, hid: string): string | null => {
+    // `clean` toglie le virgolette con cui il gioco decora i nomi delle carte -
+    // sono le stesse che decorano gli epiteti, e sono della fonte, non del nome.
+    const raw = pick(card.nome);
+    const name = raw ? clean(raw) : undefined;
+    if (!name) return null;
+    const ranks = card.ranghi
+      .filter((r) => r.testo_en)
+      .map((r) => `{ rank: ${r.rango}, text: ${JSON.stringify(r.testo_en)} }`)
+      .join(", ");
+    if (!ranks) return null;
+    // Lo sprite si cerca col nome INGLESE: il wiki scrive in inglese, mentre
+    // `name` qui e' gia' l'italiano quando il gioco l'ha tradotto. Cercare con
+    // quello faceva combaciare 49 carte invece di 122.
+    const sprite = spriteByName.get(hid)?.get(cardKey(card.nome?.en ?? name));
+    if (sprite !== undefined) pairedSprites++;
+    if (card.nome?.it) italianNames++;
+    return (
+      `{ name: ${JSON.stringify(name)}, slot: ${JSON.stringify(card.tipo)}` +
+      (sprite !== undefined ? `, sprite: ${sprite}` : "") +
+      `, ranks: [${ranks}] }`
+    );
+  };
+
+  for (const hero of heroes) {
+    const hid = String(hero.heroId);
+    const voce = db[hid];
+    if (!voce) continue;
+
+    const cards = voce.carte
+      .filter((c) => c.tipo === "A" || c.tipo === "B")
+      .map((c) => renderCard(c, hid))
+      .filter((x): x is string => x !== null);
+
+    const ultimateCard = voce.carte.find((c) => c.tipo === "ultimate");
+    const ultimate = ultimateCard ? renderCard(ultimateCard, hid) : null;
+
+    // La passiva: il nome viene dal client quando tradotto, il testo dalla
+    // fonte inglese. `livelli` sono i gradi della passiva; il primo basta per
+    // la scheda, gli altri restano nel database della pipeline.
+    const passiveName = pick(voce.passiva?.nome);
+    const passiveText = voce.passiva?.livelli?.[0]?.testo_en;
+
+    if (cards.length === 0 && !ultimate && !passiveText) continue;
+
+    const parts: string[] = [];
+    parts.push(`    cards: [\n${cards.map((c) => `      ${c},`).join("\n")}\n    ],`);
+    if (ultimate) parts.push(`    ultimate: ${ultimate},`);
+    if (passiveText) {
+      parts.push(
+        `    passive: { name: ${JSON.stringify(passiveName ?? "")}, ` +
+          `text: ${JSON.stringify(passiveText)} },`,
+      );
+    }
+    parts.push(`    source: "7dshub.com",`);
+    parts.push(`    textsInEnglish: true,`);
+    abilityRows.push(`  ${JSON.stringify(hid)}: {\n${parts.join("\n")}\n  },`);
+
+    if (cards.length > 0) withCards++;
+    if (ultimate) withUltimate++;
+    if (passiveText) withPassive++;
+
+    const max = voce.statistiche?.max;
+    const geared = voce.statistiche?.max_con_equipaggiamento;
+    if (max && geared && Object.keys(max).length > 0) {
+      statRows.push(
+        `  ${JSON.stringify(hid)}: { max: ${JSON.stringify(max)}, ` +
+          `maxGeared: ${JSON.stringify(geared)} },`,
+      );
+      withStats++;
+    }
+  }
+
+  const generatedAbilities = `/**
+ * Carte, ultimate e passive degli eroi di Grand Cross.
+ *
+ * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
+ *
+ * DUE FONTI, e serve dirlo perche' danno garanzie diverse:
+ *
+ *   7dshub.com   quali abilita' ha l'eroe e cosa fanno a ogni rango
+ *   il client    il nome della carta in italiano, dove il gioco l'ha tradotto
+ *
+ * I TESTI DEI RANGHI SONO IN INGLESE, e non per pigrizia: il client spedisce
+ * 285 descrizioni di abilita' in tutto, e sono modelli - "damage equal to
+ * {melee_val} of Attack" - che il server riempie. Provando a ricostruire
+ * l'italiano sostituendo i valori nel modello si arriva a 377 ranghi su 4.812,
+ * e con i valori ancora in inglese dentro la frase. Un italiano a meta' e'
+ * peggio di un inglese dichiarato.
+ *
+ * Sono esclusi i giudizi - valutazioni, pro e contro, consigli: quelli sono
+ * opinioni, e il database deve restare la base su cui formarne di proprie.
+ */
+
+import type { HeroAbilities } from "../types";
+
+export const HERO_ABILITIES: Readonly<Record<string, HeroAbilities>> = {
+${abilityRows.join("\n")}
+};
+`;
+
+  const generatedStats = `/**
+ * Statistiche al massimo livello degli eroi di Grand Cross.
+ *
+ * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
+ *
+ * FONTE ESTERNA: 7dshub.com. Nel client non ci sono - le tiene il server del
+ * gioco - e questo e' il dato che rende calibrabile il motore, oggi a
+ * segnaposto in data.ts.
+ *
+ * Due colonne: l'eroe nudo e l'eroe equipaggiato. Mostrarne una sola
+ * nasconderebbe quanto pesa l'equipaggiamento, che e' meta' del gioco.
+ */
+
+import type { HeroStats } from "../types";
+
+export const HERO_STATS: Readonly<Record<string, HeroStats>> = {
+${statRows.join("\n")}
+};
+`;
+
+  writeFileSync(DEST_ABILITIES, generatedAbilities, "utf8");
+  writeFileSync(DEST_STATS, generatedStats, "utf8");
+  console.log(
+    `  abilita': ${withCards}/${heroes.length} con carte, ${withUltimate} con ultimate, ` +
+      `${withPassive} con passiva`,
+  );
+  console.log(
+    `  ${italianNames} nomi di carta in italiano, ` +
+      `${pairedSprites} accostati al proprio sprite dal wiki`,
+  );
+  console.log(`  statistiche: ${withStats}/${heroes.length} eroi`);
+}
+
 /* --------------------------------------------------------------- asset -- */
 
 /**
@@ -316,7 +594,11 @@ if (!existsSync(assetsJson)) {
     // Carte d'attacco: numerate da 1, nella cartella dell'eroe. Il numero nel
     // nome del file di origine non e' contiguo - il gioco salta dei valori -
     // quindi si rinumera, e l'ordine resta quello.
-    if (voce.carte && voce.carte.length > 0) {
+    // Chi ha le carte dal wiki le ha gia' esatte e gia' copiate: rifarlo per
+    // slug le sostituirebbe con un elenco piu' largo e meno preciso.
+    if (fromWiki.has(hid)) {
+      flags.push(`cards: ${fromWiki.get(hid)}`);
+    } else if (voce.carte && voce.carte.length > 0) {
       const dir = resolve(DEST_IMAGES, "carte", hid);
       mkdirSync(dir, { recursive: true });
       let n = 0;

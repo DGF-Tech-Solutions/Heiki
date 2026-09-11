@@ -13,16 +13,20 @@ import {
   heroSplashSrc,
 } from "@/lib/games/heroes";
 import { requireGameModule } from "@/lib/games/registry";
-import type { HeroAffinity, HeroEntry } from "@/lib/games/types";
+import type { HeroAffinity, HeroCard, HeroEntry, HeroStats } from "@/lib/games/types";
 
 /**
  * Scheda del singolo eroe.
  *
- * Mostra quello che il client del gioco sa davvero: nome, epiteto, rarita',
- * attributo e i testi che il gioco stesso gli assegna. Non ci sono statistiche
- * perche' non sono nel client - le scarica il gioco - e inventarle qui
- * significherebbe pubblicare numeri falsi su una pagina che sembra autorevole.
- * Quando ci saranno, andranno qui sotto.
+ * Mostra due cose con garanzie diverse, e la differenza resta visibile fino
+ * qui: dal client vengono nome, epiteto, attributo e i testi: sono estratti dal
+ * gioco. Da 7dshub vengono statistiche, carte, ultimate e passiva: il client
+ * non le ha - le tiene il server del gioco - e la pagina lo dichiara invece di
+ * far sembrare tutto ugualmente certo.
+ *
+ * I testi delle carte sono in inglese perche' il client ne spedisce 285 in
+ * tutto, e sono modelli coi segnaposto che il server riempie. Il nome della
+ * carta invece e' in italiano dove il gioco l'ha tradotto.
  *
  * Renderizzata sul server: e' l'unico posto che legge i testi lunghi, e cosi'
  * non finiscono nel bundle di chi sfoglia soltanto la griglia.
@@ -49,6 +53,8 @@ function lookup(game: string, heroId: string) {
     hero,
     text: gameModule.heroTexts?.[heroId],
     assets: gameModule.heroAssets?.[heroId],
+    abilities: gameModule.heroAbilities?.[heroId],
+    stats: gameModule.heroStats?.[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
   };
 }
@@ -75,7 +81,13 @@ export default async function HeroPage({ params }: Props) {
   const found = lookup(game, heroId);
   if (!found) notFound();
 
-  const { entry, roster, hero, text, assets, affinity } = found;
+  const { entry, roster, hero, text, assets, abilities, stats, affinity } = found;
+
+  // Quante carte mostrare quando NON c'e' il database delle abilita': e' il
+  // ripiego per un modulo che abbia gli sprite e non ancora i testi. Con il
+  // database si usa `abilities.cards`, che sono quelle di QUESTA versione,
+  // mentre gli sprite dedotti dallo slug sono tutti quelli del personaggio.
+  const cardCount = assets?.cards ?? 0;
 
   // Lo stesso personaggio esiste in piu' versioni: e' il tratto che definisce
   // questo gioco, e da una scheda e' la cosa che si vuole di piu' dopo averla
@@ -195,12 +207,14 @@ export default async function HeroPage({ params }: Props) {
         {/*
           Questi due testi sembravano decorazione e li avevo messi come
           citazioni. Non lo sono: descrivono cosa fa l'eroe in combattimento, e
-          sono gli unici testi sulle abilita' che il client lega all'heroId.
+          sono i soli testi sulle abilita' che il CLIENT lega all'heroId.
 
-          Le descrizioni della singola abilita' esistono - 3.187 passive e 463
-          attacchi - ma sono indicizzate con id propri, e la tabella che li
-          associa a un eroe sta sul server. Cercare di indovinare
-          l'accostamento produrrebbe schede autorevoli e sbagliate.
+          Restano anche adesso che le singole abilita' ci sono, perche' dicono
+          una cosa diversa: qui c'e' il ruolo dell'eroe nell'insieme, scritto
+          dal gioco e in italiano, mentre le carte qui sotto sono meccaniche in
+          inglese. La riga in fondo diceva che le descrizioni delle abilita'
+          stavano sul server e basta: era vero prima di avere gli id da 7dshub,
+          adesso non lo e' piu' ed e' stata tolta.
         */}
         {text?.loading || text?.summon ? (
           <section className="mb-7">
@@ -212,42 +226,60 @@ export default async function HeroPage({ params }: Props) {
             </div>
 
             <p className="mt-3 text-[13px] text-ink-3">
-              Il client descrive l’eroe nell’insieme. Le descrizioni della singola abilità stanno sul
-              server del gioco, non qui.
+              Come il gioco descrive l’eroe nell’insieme. Le singole carte sono qui sotto.
             </p>
           </section>
         ) : null}
 
-        {assets?.cards ? (
+        <Stats stats={stats} />
+
+        {abilities && abilities.cards.length > 0 ? (
+          <section className="mb-7">
+            <h2 className={cx(eyebrow, "mb-2.5")}>Carte d’attacco · {abilities.cards.length}</h2>
+
+            {/*
+              Una riga per carta, sprite a sinistra dove sappiamo qual e'.
+              L'accostamento fra un'immagine e il suo testo NON si ricava dai
+              nomi dei file: il numero nello sprite non ha relazione con l'id
+              dell'abilita' (1 caso su 232 controllati). Lo dichiara il wiki,
+              che scrive il nome del file accanto al nome della carta, e vale
+              per 232 carte. Per le altre si mostra il testo senza immagine:
+              meglio una colonna vuota di una carta accostata a caso.
+            */}
+            <ul className="m-0 grid list-none gap-3 p-0">
+              {abilities.cards.map((card, index) => (
+                <li key={index}>
+                  <CardRow game={game} heroId={hero.id} card={card} />
+                </li>
+              ))}
+            </ul>
+
+            <Hits hits={assets?.hits} />
+
+            <p className="mt-3 text-[13px] text-ink-3">
+              Quali carte ha l’eroe e cosa fanno a ogni rango viene da {abilities.source}: il
+              client tiene le descrizioni ma non il legame con l’eroe, che sta sul server del
+              gioco.
+              {abilities.textsInEnglish ? (
+                <> I testi restano in inglese — il client ne ha solo i modelli, senza i valori.</>
+              ) : null}
+            </p>
+          </section>
+        ) : cardCount > 0 ? (
+          /* Ripiego: ci sono gli sprite ma nessun testo. Vale per un modulo che
+             abbia le immagini e non ancora il database delle abilita'. */
           <section className="mb-7">
             <h2 className={cx(eyebrow, "mb-2.5")}>
-              Carte d’attacco · {assets.cards}
-              {assets.cardsApprox ? (
+              Carte d’attacco · {cardCount}
+              {assets?.cardsApprox ? (
                 <span className="ml-2 normal-case tracking-normal text-ink-3">
                   (stesso personaggio, grado di uscita diverso: da verificare)
                 </span>
               ) : null}
             </h2>
-
-            {/*
-              Sprite e descrizione affiancati, una riga per carta: e' la forma
-              che serve, ed e' gia' quella giusta anche adesso che la colonna di
-              destra ha poco da dire.
-
-              Quel poco e' esatto. Il testo che il gioco stampa sulla carta si
-              compone di un modello - "Inflicts damage equal to {melee_val} of
-              Attack on {target_val}" - piu' i valori, e nel client c'e' solo il
-              modello, senza il legame con l'eroe. Mettere qui il riassunto
-              generale dell'eroe farebbe sembrare descritta ogni singola carta:
-              sarebbe una nostra interpretazione travestita da dato.
-            */}
-            <ul className="m-0 grid list-none gap-3 p-0">
-              {Array.from({ length: assets.cards }, (_, index) => (
-                <li
-                  key={index}
-                  className="grid items-start gap-4 rounded-card border border-rule bg-paper p-3"
-                  style={{ gridTemplateColumns: "84px minmax(0, 1fr)" }}
-                >
+            <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
+              {Array.from({ length: cardCount }, (_, index) => (
+                <li key={index}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={heroCardArtSrc(game, hero.id, index + 1)}
@@ -255,20 +287,35 @@ export default async function HeroPage({ params }: Props) {
                     width={128}
                     height={256}
                     loading="lazy"
-                    className="block w-full rounded-[3px] bg-paper-2"
+                    className="block w-[84px] rounded-[3px] bg-paper-2"
                   />
-
-                  <div className="min-w-0">
-                    <p className={cx(eyebrow, "m-0")}>Carta {index + 1}</p>
-                    <p className="m-0 mt-1.5 text-[13px] text-ink-3">
-                      Descrizione non presente nel client.
-                    </p>
-                  </div>
                 </li>
               ))}
             </ul>
+            <Hits hits={assets?.hits} />
+          </section>
+        ) : null}
 
-            <Hits hits={assets.hits} />
+        {abilities?.ultimate ? (
+          <section className="mb-7">
+            <h2 className={cx(eyebrow, "mb-2.5")}>Ultimate</h2>
+            <CardRow game={game} heroId={hero.id} card={abilities.ultimate} />
+          </section>
+        ) : null}
+
+        {abilities?.passive?.text ? (
+          <section className="mb-7">
+            <h2 className={cx(eyebrow, "mb-2.5")}>Passiva</h2>
+            <div className="rounded-card border border-rule border-l-[3px] border-l-gold bg-paper-2 p-4">
+              {abilities.passive.name ? (
+                <p className="m-0 mb-1 font-semibold">{abilities.passive.name}</p>
+              ) : null}
+              <GameText
+                text={abilities.passive.text}
+                className="text-sm leading-relaxed text-ink-2"
+              />
+              <p className="m-0 mt-2 text-[12px] text-ink-3">Fonte: {abilities.source}</p>
+            </div>
           </section>
         ) : null}
 
@@ -367,6 +414,131 @@ function Hits({ hits }: { hits: Readonly<Record<string, number>> | undefined }) 
         </div>
       ))}
     </dl>
+  );
+}
+
+/**
+ * Una carta con i suoi ranghi.
+ *
+ * Lo sprite compare solo se `card.sprite` dice quale: senza, la colonna
+ * dell'immagine sparisce e il testo si prende tutta la riga. Accostare uno
+ * sprite qualsiasi riempirebbe meglio lo spazio e direbbe una cosa falsa.
+ */
+function CardRow({ game, heroId, card }: { game: string; heroId: string; card: HeroCard }) {
+  const art = card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null;
+
+  return (
+    <div
+      className="grid items-start gap-4 rounded-card border border-rule bg-paper p-3"
+      style={art ? { gridTemplateColumns: "84px minmax(0, 1fr)" } : undefined}
+    >
+      {art ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={art}
+          alt=""
+          width={128}
+          height={256}
+          loading="lazy"
+          className="block w-full rounded-[3px] bg-paper-2"
+        />
+      ) : null}
+
+      <div className="min-w-0">
+        <p className={cx(eyebrow, "m-0")}>
+          {card.name}
+          {card.slot === "A" || card.slot === "B" ? (
+            <span className="ml-2 text-ink-3">carta {card.slot}</span>
+          ) : null}
+        </p>
+
+        <dl className="m-0 mt-2 grid gap-1.5">
+          {card.ranks.map((rank) => (
+            <div key={rank.rank} className="flex items-baseline gap-2.5">
+              <dt
+                className={cx(
+                  numeric,
+                  "shrink-0 rounded-[2px] bg-paper-3 px-1.5 text-[10px] text-ink-2",
+                )}
+              >
+                R{rank.rank}
+              </dt>
+              <dd className="m-0 min-w-0 text-[13px] leading-snug">
+                <GameText text={rank.text} className="[&>p]:m-0" />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Le statistiche al massimo livello, nude e equipaggiate.
+ *
+ * Si mostrano le sei che si guardano davvero. Le altre - quindici per colonna -
+ * esistono nel dataset e non qui: una tabella di trenta numeri non e' piu'
+ * informativa, e' solo piu' lunga.
+ */
+const STAT_ROWS: readonly { key: string; label: string; percent?: boolean }[] = [
+  { key: "atk", label: "Attacco" },
+  { key: "def", label: "Difesa" },
+  { key: "hp", label: "Salute" },
+  { key: "critPer", label: "Tasso critico", percent: true },
+  { key: "critAtkPer", label: "Danno critico", percent: true },
+  { key: "fPower", label: "Potenza combattimento" },
+];
+
+/**
+ * `useGrouping: "always"` e non il default.
+ *
+ * In italiano il raggruppamento automatico salta i numeri di quattro cifre:
+ * nella stessa colonna uscivano `7412` e `10.002`, e due migliaia scritte in
+ * due modi diversi si leggono come due unita' di misura diverse.
+ */
+const numero = (n: number) => n.toLocaleString("it-IT", { useGrouping: "always" });
+
+function Stats({ stats }: { stats: HeroStats | undefined }) {
+  if (!stats) return null;
+
+  return (
+    <section className="mb-7">
+      <h2 className={cx(eyebrow, "mb-2.5")}>Statistiche al massimo</h2>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[320px] border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b border-rule text-left">
+              <th className="py-1.5 pr-3 font-normal text-ink-3">&nbsp;</th>
+              <th className="py-1.5 pr-3 font-normal text-ink-3">Senza equipaggiamento</th>
+              <th className="py-1.5 font-normal text-ink-3">Equipaggiato</th>
+            </tr>
+          </thead>
+          <tbody>
+            {STAT_ROWS.filter((row) => stats.max[row.key] !== undefined).map((row) => (
+              <tr key={row.key} className="border-b border-rule/60">
+                <td className="py-1.5 pr-3 text-ink-2">{row.label}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>
+                  {numero(stats.max[row.key]!)}
+                  {row.percent ? "%" : ""}
+                </td>
+                <td className={cx(numeric, "py-1.5 font-medium")}>
+                  {stats.maxGeared[row.key] !== undefined
+                    ? numero(stats.maxGeared[row.key]!)
+                    : "—"}
+                  {row.percent && stats.maxGeared[row.key] !== undefined ? "%" : ""}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="mt-3 text-[13px] text-ink-3">
+        Da 7dshub.com: nel client non ci sono, le tiene il server del gioco.
+      </p>
+    </section>
   );
 }
 
