@@ -48,6 +48,8 @@ import {
   type Attribute,
   type SkillData,
 } from "./data";
+import { HERO_ASSETS } from "./hero-assets.generated";
+import { HERO_TEXTS } from "./hero-texts.generated";
 import { ROSTER } from "./roster";
 
 export interface GrandCrossBuild extends GameBuildPayload {
@@ -463,6 +465,8 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   targets: TARGETS,
   characters: CHARACTERS,
   roster: ROSTER,
+  heroTexts: HERO_TEXTS,
+  heroAssets: HERO_ASSETS,
   resolveActor,
   computeDamage,
   simulateOnce,

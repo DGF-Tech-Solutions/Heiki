@@ -51,7 +51,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster e card dalla pipeline di estrazione |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 
 ### Docker
@@ -94,6 +94,7 @@ src/app/
     layout.tsx                selettore gioco + barra laterale a gruppi
     page.tsx                  feed della community
     eroi/                     roster completo, filtri per rarita' e attributo
+    eroi/[heroId]/            scheda dell'eroe: testi dal client del gioco
     personaggi/[characterId]  scheda personaggio
     nemici/                   bersagli usati nei calcoli
     classifica/               ordinamento per danno simulato
@@ -194,12 +195,66 @@ I dati non stanno nel client - il gioco li scarica - e le immagini sono dentro
 bundle Unity con un'intestazione civetta. Ricavarli è stato un lavoro a sé, che
 vive fuori da questo repository.
 
+I **testi** sono un caso a parte, e valeva la pena scavare: `LocalizeString_*.bytes`
+non sono file di testo ma **database SQLite** da 194.546 stringhe per lingua,
+cifrate. Lo schema, e il modo in cui l'ho ricavato, sono documentati in
+`_7dsgc/estrai_testi.py`: XOR con la chiave `NetmarbleFun&Cherry` dove il
+carattere usato in posizione *i* è `chiave[(k·(i+1)) mod 19]`, con `k` variabile
+per riga — e il XOR va applicato ai code point Unicode, non ai byte UTF-8, cosa
+che fa fallire tutti e soli i testi con accenti. Resa: 99,9%, in italiano e in
+inglese.
+
+Da lì arrivano descrizione, epiteto, titolo completo e frasi di caricamento per
+**tutti e 373 gli eroi**. I 59 che all'inizio sembravano assenti sono i
+personaggi in collaborazione — Re:Zero, Fire Force, KonoSuba, Solo Leveling —
+e le loro chiavi portano un prefisso (`nes_`, `ffx_`, `kzm_`, `lol_`): cercando
+`DB_hero_desc_<id>` esatto sparivano tutti insieme, e sembravano semplicemente
+troppo recenti per essere nel client.
+
+### Collegare un eroe ai suoi asset
+
+Non tutti i collegamenti danno la stessa garanzia, e la differenza va detta
+perché un'icona sbagliata su una scheda non si nota finché non la guarda
+qualcuno che conosce il personaggio.
+
+| Asset | Come si collega | Copertura |
+|---|---|---|
+| Illustrazione `hero_illust_…` | **heroId nel nome del file** | 370/373 |
+| Icona abilità esclusiva | **heroId nel nome del file** | 369/373 |
+| Colpi per abilità | **heroId nel nome del file** | 373/373 |
+| Carte d'attacco `icon_<slug>_<grado>_type01_skill_<n>` | slug + grado di uscita | 288/373 |
+| Ritratti `icon_hero_*` / `icon_skin_*` | slug ricavato dall'illustrazione | 349/373 |
+
+Le carte d'attacco sono 128×256 — nel gioco sono carte, non icone — e il
+rapporto 1:2 è il filtro più affidabile per riconoscerle. I **colpi per carta**
+invece sono certi per tutti e 373: `skill_attack_count_<id>.bytes` porta l'id
+nel nome, ed è l'**unico dato numerico di combattimento presente nel client**.
+
+Nel sito finiscono i collegamenti certi più le carte. I ritratti no, perché lo slug
+restringe al personaggio ma non alla variante — e proprio quel controllo ha
+mostrato che alla card di Tree Guardian King (slug `king_blade`) la pipeline
+aveva assegnato l'icona di Sabnak. Li mappa `_7dsgc/mappa_asset.py`, che
+registra il gruppo di candidati senza scegliere al posto di chi guarda.
+
+`_7dsgc/correggi_card.py` usa lo stesso vincolo per rifare le card che avevano
+il ritratto di un altro personaggio: cerca solo fra le icone di quel
+personaggio e sceglie la posa confrontandola con la card di 7dshub. Riscrive
+solo se il punteggio migliora davvero, quindi non tocca le card già giuste —
+Hawk & Elizabeth resta com'era perché il suo 7,5 batte il 29,5 dello slug nudo.
+Le quattro note sono rientrate nella norma: Baldr 39,7→8,1, Tree Guardian King
+38,8→7,5, Emilia 29,9→7,1, Rimuru 28,6→5,1. Sul roster intero lo scarto mediano
+resta 7,7, ma le card sotto 15 passano da 351 a 355 e quelle sopra 22 da 13 a 9.
+
 Il confine passa qui, e non è formale:
 
 - **i dati** (nomi, rarità, attributi) sono fatti, e stanno nel repository in
   `src/lib/games/grand-cross/heroes.generated.ts`
 - **le immagini** sono asset di Netmarble rielaborati, e non sono versionate.
   Stanno in `public/eroi/`, che è in `.gitignore`
+- **i testi lunghi** stanno in `hero-texts.generated.ts`, separati dal roster:
+  il roster viaggia fino al browser per i filtri, le descrizioni no
+- **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
+  `/abilita/`, anch'esse fuori dal versionamento
 
 Metterle in un repository su GitHub sarebbe ridistribuirle. `npm run eroi:import`
 le rimette a posto da una copia locale della pipeline di estrazione, indicata
@@ -428,8 +483,10 @@ La classifica lo dichiara in pagina.
    alla priorità automatica. È anche ciò che rende sensato il gruppo *Strumenti*
 2. Primo modulo deterministico su un gioco HoYo, per validare il contratto sul
    secondo paradigma
-3. Scheda del singolo eroe sotto `/[game]/eroi/<id>`, con abilità e splash art
-4. Card profilo condivisibile come OG image
-5. Incasso vero: `/premium` descrive il piano ma non lo vende, e non c'è nessun
+3. Descrizione della singola carta e delle passive: il client le contiene ma non
+   le lega all'eroe, quindi serve una fonte esterna — vanno marcate come tale
+4. Statistiche reali al posto dei segnaposto in `data.ts`
+5. Card profilo condivisibile come OG image
+6. Incasso vero: `/premium` descrive il piano ma non lo vende, e non c'è nessun
    pulsante che finga di farlo
-6. Gruppo *Endgame*, quando ci saranno i dati dei nemici per modalità
+7. Gruppo *Endgame*, quando ci saranno i dati dei nemici per modalità

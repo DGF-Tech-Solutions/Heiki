@@ -117,3 +117,18 @@ export function sortHeroes(heroes: readonly HeroEntry[], order: HeroOrder): Hero
 export function heroCardSrc(gameSlug: string, heroId: string, scale: 1 | 2 = 1): string {
   return scale === 2 ? `/eroi/${gameSlug}/2x/${heroId}.png` : `/eroi/${gameSlug}/${heroId}.png`;
 }
+
+/** Illustrazione a figura intera: `public/eroi/<gioco>/splash/<id>.png`. */
+export function heroSplashSrc(gameSlug: string, heroId: string): string {
+  return `/eroi/${gameSlug}/splash/${heroId}.png`;
+}
+
+/** Carta d'attacco n-esima: `public/eroi/<gioco>/carte/<id>/<n>.png`. */
+export function heroCardArtSrc(gameSlug: string, heroId: string, n: number): string {
+  return `/eroi/${gameSlug}/carte/${heroId}/${n}.png`;
+}
+
+/** Icona dell'abilita' esclusiva: `public/eroi/<gioco>/abilita/<id>.png`. */
+export function heroSkillIconSrc(gameSlug: string, heroId: string): string {
+  return `/eroi/${gameSlug}/abilita/${heroId}.png`;
+}

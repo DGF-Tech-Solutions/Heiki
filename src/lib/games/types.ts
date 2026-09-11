@@ -84,6 +84,59 @@ export interface HeroAffinity {
 }
 
 /**
+ * Testi che il gioco tiene per un eroe.
+ *
+ * Tutti opzionali: non e' un difetto del dataset ma una proprieta' della
+ * fonte. I personaggi usciti dopo l'ultima versione del client prendono i
+ * propri testi dal server, e nel client non esistono. Una scheda deve saperlo
+ * mostrare senza sembrare rotta.
+ *
+ * Il testo conserva il markup del gioco - 
+ per andare a capo, [b]...[/b] per
+ * il grassetto, [FFAE00]...[-] per il colore - perche' toglierlo qui vorrebbe
+ * dire decidere una volta per tutte come si presenta. Lo interpreta chi rende.
+ */
+export interface HeroText {
+  /** nome corto, com'e' scritto sulle animazioni */
+  name?: string;
+  /** nome completo, epiteto incluso: e' l'intestazione della scheda */
+  title?: string;
+  epithet?: string;
+  description?: string;
+  /** testo mostrato quando esce dall'evocazione */
+  summon?: string;
+  /** frase nella schermata di caricamento */
+  loading?: string;
+}
+
+/**
+ * Quali immagini esistono per un eroe, oltre alla card.
+ *
+ * Bandierine e non percorsi: il percorso lo costruisce chi rende, e tenerlo in
+ * un posto solo evita che una cartella rinominata vada corretta ovunque.
+ * Servono perche' le immagini non sono versionate - senza, una scheda
+ * mostrerebbe riquadri rotti a chi non ha lanciato l'importazione.
+ */
+export interface HeroAssets {
+  /** illustrazione a figura intera, 1024x1024 */
+  splash?: boolean;
+  /** icona dell'abilita' esclusiva */
+  skill?: boolean;
+  /** quante carte d'attacco, numerate da 1 */
+  cards?: number;
+  /**
+   * Le carte vengono da un accostamento piu' debole: stesso personaggio, ma
+   * sigla di rarita' diversa da quella dell'eroe. Vanno mostrate dicendolo.
+   */
+  cardsApprox?: boolean;
+  /**
+   * Colpi per carta, dal client: `skill_a_1_atk` e' l'abilita' A al rango 1.
+   * Questo e' certo - l'heroId e' nel nome del file da cui viene.
+   */
+  hits?: Readonly<Record<string, number>>;
+}
+
+/**
  * Roster sfogliabile di un gioco.
  *
  * Le sfaccettature sono dichiarate invece che dedotte dalle voci: l'ordine
@@ -141,6 +194,24 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * roster resta valido, semplicemente non ha la sezione Eroi.
    */
   readonly roster?: HeroRoster;
+
+  /**
+   * Testi lunghi degli eroi, per la scheda del singolo.
+   *
+   * Separati dal roster e non dentro di esso perche' hanno un destinatario
+   * diverso: il roster arriva fino al browser per far funzionare i filtri,
+   * questi no. Li legge solo una pagina renderizzata sul server, e mescolarli
+   * significherebbe spedire centinaia di descrizioni a chi sta solo
+   * sfogliando la griglia.
+   */
+  readonly heroTexts?: Readonly<Record<string, HeroText>>;
+
+  /**
+   * Immagini disponibili per eroe, oltre alla card.
+   *
+   * Come heroTexts: la legge solo la scheda, renderizzata sul server.
+   */
+  readonly heroAssets?: Readonly<Record<string, HeroAssets>>;
 
   /**
    * Converte una build salvata in un attore eseguibile dal motore.

@@ -19,3 +19,7 @@ next-env.d.ts
 # Card degli eroi: asset di gioco rielaborati, non ridistribuibili.
 # Si rigenerano dalla pipeline di estrazione con `npm run eroi:import`.
 /public/eroi/
+
+# Skill e hook degli agenti AI (Ponytail, Graphify, Agent Skills): installazione locale
+.claude/
+CLAUDE.md

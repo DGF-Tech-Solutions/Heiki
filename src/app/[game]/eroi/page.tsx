@@ -19,6 +19,7 @@ import { requireGameModule } from "@/lib/games/registry";
 
 interface Props {
   params: Promise<{ game: string }>;
+  searchParams: Promise<{ cerca?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -30,8 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function HeroesPage({ params }: Props) {
+export default async function HeroesPage({ params, searchParams }: Props) {
   const { game } = await params;
+  const { cerca } = await searchParams;
 
   const entry = findGame(game);
   if (!entry) notFound();
@@ -56,7 +58,7 @@ export default async function HeroesPage({ params }: Props) {
         </p>
       </header>
 
-      <RosterBrowser game={game} roster={roster} />
+      <RosterBrowser game={game} roster={roster} initialSearch={cerca ?? ""} />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
         Immagini e nomi appartengono a {entry.publisher} e sono qui a scopo di consultazione.

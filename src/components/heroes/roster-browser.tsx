@@ -13,6 +13,7 @@
  * volta, solo quando entrano nello schermo.
  */
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
 import {
@@ -30,8 +31,23 @@ const ORDERS: readonly { id: HeroOrder; label: string }[] = [
   { id: "group", label: "Personaggio" },
 ];
 
-export function RosterBrowser({ game, roster }: { game: string; roster: HeroRoster }) {
-  const [search, setSearch] = useState("");
+export function RosterBrowser({
+  game,
+  roster,
+  initialSearch = "",
+}: {
+  game: string;
+  roster: HeroRoster;
+  /**
+   * Ricerca gia' impostata all'arrivo.
+   *
+   * Serve ai collegamenti che portano qui da una scheda - "altre versioni di
+   * Meliodas" - e che devono atterrare su un elenco gia' ristretto. Da qui in
+   * poi lo stato e' del componente: e' una partenza, non un vincolo.
+   */
+  initialSearch?: string;
+}) {
+  const [search, setSearch] = useState(initialSearch);
   const [rarity, setRarity] = useState<string | null>(null);
   const [affinity, setAffinity] = useState<string | null>(null);
   const [obtainable, setObtainable] = useState<string | null>(null);
@@ -199,40 +215,52 @@ function HeroCard({
 }) {
   return (
     <li className="min-w-0">
-      <figure className="m-0">
-        {/*
+      {/*
+        Tutta la card e' il bersaglio del clic, immagine compresa: un bersaglio
+        di 128px si centra al primo colpo anche col pollice, il nome sotto no.
+      */}
+      <Link
+        href={`/${game}/eroi/${hero.id}`}
+        className="group block rounded-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        <figure className="m-0">
+          {/*
           Immagine nuda invece di next/image: le card sono grafica di interfaccia
           a 128px esatti, gia' pronte in due densita'. L'ottimizzatore le
           ricomprimerebbe senza guadagno, e con `unoptimized` next/image non
           emette srcSet, quindi la variante 2x andrebbe persa.
         */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={heroCardSrc(game, hero.id)}
-          srcSet={`${heroCardSrc(game, hero.id)} 1x, ${heroCardSrc(game, hero.id, 2)} 2x`}
-          // Il nome e' scritto qui sotto: ripeterlo nell'alt lo farebbe
-          // annunciare due volte a chi usa uno screen reader.
-          alt=""
-          width={128}
-          height={128}
-          loading="lazy"
-          decoding="async"
-          className="block w-full rounded-[3px] bg-paper-2"
-        />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={heroCardSrc(game, hero.id)}
+            srcSet={`${heroCardSrc(game, hero.id)} 1x, ${heroCardSrc(game, hero.id, 2)} 2x`}
+            // Il nome e' scritto qui sotto: ripeterlo nell'alt lo farebbe
+            // annunciare due volte a chi usa uno screen reader.
+            alt=""
+            width={128}
+            height={128}
+            loading="lazy"
+            decoding="async"
+            className="block w-full rounded-[3px] bg-paper-2 transition-transform group-hover:-translate-y-0.5"
+          />
 
-        <figcaption className="mt-1.5">
-          <p
-            className="m-0 truncate text-[11px] leading-tight text-ink-3"
-            title={hero.epithet}
-            style={affinity ? { color: affinity.color } : undefined}
-          >
-            {hero.epithet}
-          </p>
-          <p className="m-0 text-[12px] font-semibold leading-tight" title={hero.name}>
-            {hero.name}
-          </p>
-        </figcaption>
-      </figure>
+          <figcaption className="mt-1.5">
+            <p
+              className="m-0 truncate text-[11px] leading-tight text-ink-3"
+              title={hero.epithet}
+              style={affinity ? { color: affinity.color } : undefined}
+            >
+              {hero.epithet}
+            </p>
+            <p
+              className="m-0 text-[12px] font-semibold leading-tight group-hover:text-brand"
+              title={hero.name}
+            >
+              {hero.name}
+            </p>
+          </figcaption>
+        </figure>
+      </Link>
     </li>
   );
 }
