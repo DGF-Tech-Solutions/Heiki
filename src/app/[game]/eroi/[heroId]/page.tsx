@@ -173,24 +173,13 @@ export default async function HeroPage({ params }: Props) {
                 </>
               ) : null}
 
-              {assets.skill ? (
-                <div className="mt-6 flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={heroSkillIconSrc(game, hero.id)}
-                    alt=""
-                    width={64}
-                    height={64}
-                    className="h-14 w-14 rounded-card border border-rule bg-paper-2"
-                  />
-                  <div>
-                    <p className={cx(eyebrow, "m-0")}>Abilità esclusiva</p>
-                    <p className="m-0 mt-1 text-[13px] text-ink-3">
-                      L’icona è nel client; il nome e gli effetti arrivano dal server.
-                    </p>
-                  </div>
-                </div>
-              ) : null}
+              {/*
+                L'icona dell'abilita' esclusiva stava qui, con la didascalia
+                "il nome e gli effetti arrivano dal server". Ora nome ed effetti
+                ci sono, e stanno nella sezione Passiva: l'icona e' scesa li',
+                accanto a cio' che descrive. Un'icona senza il suo testo era
+                l'unica cosa che potevamo mostrare allora, non una scelta.
+              */}
             </div>
           </section>
         ) : text?.description ? (
@@ -254,6 +243,39 @@ export default async function HeroPage({ params }: Props) {
               ))}
             </ul>
 
+            {/*
+              Quando l'accostamento non si sa, le immagini restavano invisibili:
+              il testo aveva la sua riga e gli sprite non comparivano da nessuna
+              parte. Mostrarli qui sotto, staccati e dichiarati come non
+              attribuiti, li rende consultabili senza affermare il falso -
+              metterli accanto a un testo a caso sarebbe stata l'unica cosa
+              peggiore del non mostrarli.
+            */}
+            {cardCount > 0 && abilities.cards.every((card) => card.sprite === undefined) ? (
+              <div className="mt-3">
+                <p className="m-0 mb-2 text-[13px] text-ink-3">
+                  Le {cardCount} illustrazioni delle carte di quest’eroe. Quale appartenga a
+                  quale carta non si ricava dal client
+                  {assets?.cardsApprox ? " e la cartella è condivisa con altre versioni" : null}.
+                </p>
+                <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
+                  {Array.from({ length: cardCount }, (_, index) => (
+                    <li key={index}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={heroCardArtSrc(game, hero.id, index + 1)}
+                        alt=""
+                        width={128}
+                        height={256}
+                        loading="lazy"
+                        className="block w-[84px] rounded-[3px] bg-paper-2"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
             <Hits hits={assets?.hits} />
 
             <p className="mt-3 text-[13px] text-ink-3">
@@ -303,18 +325,50 @@ export default async function HeroPage({ params }: Props) {
           </section>
         ) : null}
 
-        {abilities?.passive?.text ? (
+        {abilities?.passive?.text || assets?.skill ? (
           <section className="mb-7">
             <h2 className={cx(eyebrow, "mb-2.5")}>Passiva</h2>
-            <div className="rounded-card border border-rule border-l-[3px] border-l-gold bg-paper-2 p-4">
-              {abilities.passive.name ? (
-                <p className="m-0 mb-1 font-semibold">{abilities.passive.name}</p>
+            {/*
+              L'icona e' l'unico pezzo di passiva che il client dia con certezza:
+              il file si chiama col proprio heroId (`icon_exclusive_skill_<id>`),
+              quindi non c'e' accostamento da indovinare. Il testo invece viene
+              da 7dshub. Se manca uno dei due si mostra l'altro: un'icona senza
+              testo resta un'informazione, e un testo senza icona pure.
+            */}
+            <div
+              className="grid items-start gap-4 rounded-card border border-rule border-l-[3px] border-l-gold bg-paper-2 p-4"
+              style={assets?.skill ? { gridTemplateColumns: "56px minmax(0, 1fr)" } : undefined}
+            >
+              {assets?.skill ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={heroSkillIconSrc(game, hero.id)}
+                  alt=""
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  className="block w-full rounded-card border border-rule bg-paper"
+                />
               ) : null}
-              <GameText
-                text={abilities.passive.text}
-                className="text-sm leading-relaxed text-ink-2"
-              />
-              <p className="m-0 mt-2 text-[12px] text-ink-3">Fonte: {abilities.source}</p>
+
+              <div className="min-w-0">
+                {abilities?.passive?.name ? (
+                  <p className="m-0 mb-1 font-semibold">{abilities.passive.name}</p>
+                ) : null}
+                {abilities?.passive?.text ? (
+                  <>
+                    <GameText
+                      text={abilities.passive.text}
+                      className="text-sm leading-relaxed text-ink-2"
+                    />
+                    <p className="m-0 mt-2 text-[12px] text-ink-3">Fonte: {abilities.source}</p>
+                  </>
+                ) : (
+                  <p className="m-0 text-sm text-ink-3">
+                    Di questa passiva abbiamo l’icona dal client, non ancora il testo.
+                  </p>
+                )}
+              </div>
             </div>
           </section>
         ) : null}
