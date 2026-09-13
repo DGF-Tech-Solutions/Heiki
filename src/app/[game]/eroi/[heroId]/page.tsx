@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { GameText } from "@/components/heroes/game-text";
+import { GameNotes, GameText } from "@/components/heroes/game-text";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { plainHeroText } from "@/lib/games/hero-markup";
@@ -359,8 +359,10 @@ export default async function HeroPage({ params }: Props) {
                   <>
                     <GameText
                       text={abilities.passive.text}
+                      omitNotes
                       className="text-sm leading-relaxed text-ink-2"
                     />
+                    <GameNotes texts={[abilities.passive.text]} className="mt-2.5" />
                     <p className="m-0 mt-2 text-[12px] text-ink-3">Fonte: {abilities.source}</p>
                   </>
                 ) : (
@@ -518,11 +520,19 @@ function CardRow({ game, heroId, card }: { game: string; heroId: string; card: H
                 R{rank.rank}
               </dt>
               <dd className="m-0 min-w-0 text-[13px] leading-snug">
-                <GameText text={rank.text} className="[&>p]:m-0" />
+                <GameText text={rank.text} omitNotes className="[&>p]:m-0" />
               </dd>
             </div>
           ))}
         </dl>
+
+        {/*
+          Le definizioni dei termini stanno in fondo, una volta per carta. Il
+          gioco le ripete in ogni rango identiche: lasciarle li' significava
+          stampare tre volte la stessa spiegazione sotto tre righe che
+          differiscono per una percentuale.
+        */}
+        <GameNotes texts={card.ranks.map((rank) => rank.text)} className="mt-2.5" />
       </div>
     </div>
   );

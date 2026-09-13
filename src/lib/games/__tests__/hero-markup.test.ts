@@ -8,7 +8,12 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { parseHeroText, plainHeroText } from "../hero-markup";
+import {
+  collectHeroNotes,
+  parseHeroText,
+  plainHeroText,
+  splitHeroNotes,
+} from "../hero-markup";
 
 const flat = (raw: string) => parseHeroText(raw).map((line) => line.map((s) => s.text));
 
@@ -96,5 +101,107 @@ describe("plainHeroText", () => {
 
   it("non altera le quadre che fanno parte del nome", () => {
     expect(plainHeroText("[Boar Hat] Tavern")).toBe("[Boar Hat] Tavern");
+  });
+});
+
+/* --- corsivo: 186 aperture in 76 eroi, e fino a ieri si vedevano in pagina - */
+
+describe("parseHeroText, corsivo", () => {
+  it("riconosce il corsivo", () => {
+    const [line] = parseHeroText("prima [i]nota[/i] dopo");
+    expect(line?.map((s) => [s.text, s.italic ?? false])).toEqual([
+      ["prima ", false],
+      ["nota", true],
+      [" dopo", false],
+    ]);
+  });
+
+  it("non lascia i tag di corsivo nel testo", () => {
+    expect(plainHeroText("[i]※Blade: +20%[/i]")).toBe("※Blade: +20%");
+  });
+
+  it("corsivo e colore convivono", () => {
+    const [line] = parseHeroText("[i][C0C0C0]nota[-][/i]");
+    expect(line?.[0]).toEqual({ text: "nota", italic: true, color: "#C0C0C0" });
+  });
+});
+
+describe("splitHeroNotes", () => {
+  const testo = "Infligge danni.\\n※Pierce: 3x Perforazione.";
+
+  it("tiene l'effetto e la nota separati", () => {
+    const { body, notes } = splitHeroNotes(testo);
+    expect(body.map((l) => l.map((s) => s.text).join(""))).toEqual(["Infligge danni."]);
+    expect(notes.map((l) => l.map((s) => s.text).join(""))).toEqual(["※Pierce: 3x Perforazione."]);
+  });
+
+  it("un testo senza note resta tutto corpo", () => {
+    const { body, notes } = splitHeroNotes("Infligge danni.");
+    expect(body).toHaveLength(1);
+    expect(notes).toHaveLength(0);
+  });
+
+  it("riconosce la nota anche dentro il corsivo che il gioco le mette intorno", () => {
+    const { body, notes } = splitHeroNotes("Colpisce.\\n[i][C0C0C0]※Blade: +20%[-][/i]");
+    expect(body).toHaveLength(1);
+    expect(notes).toHaveLength(1);
+  });
+
+  /*
+   * Il caso di Gawain, che vale il 23% dei blocchi: la nota prosegue sulla riga
+   * dopo senza ripetere la marca. Se il seguito finisce nel corpo si legge come
+   * una regola dell'abilita' invece che come parte della definizione.
+   */
+  it("tiene con la nota anche le righe che la proseguono", () => {
+    const { body, notes } = splitHeroNotes(
+      "Infligge danni.\\n\\n※Sunfire: 5x Perforazione.\\nDanni +100% contro chi e' Fulminato.",
+    );
+    expect(body.map((l) => l.map((s) => s.text).join(""))).toEqual(["Infligge danni."]);
+    expect(notes.map((l) => l.map((s) => s.text).join(""))).toEqual([
+      "※Sunfire: 5x Perforazione.",
+      "Danni +100% contro chi e' Fulminato.",
+    ]);
+  });
+
+  it("la riga vuota chiude la nota: quello che viene dopo torna effetto", () => {
+    const { body } = splitHeroNotes("Colpisce.\\n※Pierce: 3x.\\n\\nPoi guarisce.");
+    expect(body.map((l) => l.map((s) => s.text).join(""))).toEqual(["Colpisce.", "Poi guarisce."]);
+  });
+
+  it("il colore aperto prima della marca arriva fino al seguito della nota", () => {
+    const { notes } = splitHeroNotes("Colpisce.\\n[00D5FF]※Sunfire: 5x.\\nDanni +100%.[-]");
+    expect(notes[1]?.[0]?.color).toBe("#00D5FF");
+  });
+});
+
+describe("collectHeroNotes", () => {
+  // E' il caso vero: i tre ranghi di una carta ripetono la stessa definizione,
+  // e cambia solo la percentuale nell'effetto sopra.
+  const ranghi = [
+    "Danni pari al [FFAE00]200%[-].\\n※Pierce: 3x Perforazione.",
+    "Danni pari al [FFAE00]300%[-].\\n※Pierce: 3x Perforazione.",
+    "Danni pari al [FFAE00]500%[-].\\n※Pierce: 3x Perforazione.",
+  ];
+
+  it("mostra una nota ripetuta una volta sola", () => {
+    expect(collectHeroNotes(ranghi)).toHaveLength(1);
+  });
+
+  it("tiene note diverse, nell'ordine in cui compaiono", () => {
+    const notes = collectHeroNotes([...ranghi, "Colpisce.\\n※Spike: 2x Danno critico."]);
+    expect(notes.map((l) => l.map((s) => s.text).join(""))).toEqual([
+      "※Pierce: 3x Perforazione.",
+      "※Spike: 2x Danno critico.",
+    ]);
+  });
+
+  it("considera uguali due note che differiscono solo per un tag", () => {
+    expect(
+      collectHeroNotes(["※Pierce: 3x Perforazione.", "[i]※Pierce: 3x Perforazione.[/i]"]),
+    ).toHaveLength(1);
+  });
+
+  it("senza note non restituisce niente", () => {
+    expect(collectHeroNotes(["Infligge danni."])).toEqual([]);
   });
 });

@@ -1,16 +1,17 @@
 /**
  * Il markup con cui il gioco scrive i propri testi.
  *
- * Tre cose soltanto, e nessuna e' HTML:
+ * Quattro cose soltanto, e nessuna e' HTML:
  *
  *   \n              va a capo, scritto come due caratteri, non come newline
  *   [b]...[/b]      grassetto
+ *   [i]...[/i]      corsivo, che il gioco usa per le note esplicative
  *   [FFAE00]...[-]  colore, in esadecimale senza cancelletto
  *
  * Il punto delicato sono le parentesi quadre. Nel testo ce ne sono molte che
  * NON sono markup - "[Boar Hat] Tavern", "[The Seven Deadly Sins]", gli epiteti
  * per intero - e trattarle come tali mangerebbe mezzo nome a un eroe su tre.
- * Quindi si riconoscono solo le tre forme esatte qui sopra: tutto il resto
+ * Quindi si riconoscono solo le quattro forme esatte qui sopra: tutto il resto
  * resta testo, comprese le quadre.
  *
  * Il risultato e' una struttura, non una stringa: chi rende decide i tag, e
@@ -20,6 +21,7 @@
 export interface TextSegment {
   text: string;
   bold?: boolean;
+  italic?: boolean;
   /** colore in forma CSS, gia' col cancelletto */
   color?: string;
 }
@@ -30,24 +32,28 @@ export type TextLine = readonly TextSegment[];
 const COLOR = /^\[([0-9A-Fa-f]{6})\]/;
 const BOLD_OPEN = "[b]";
 const BOLD_CLOSE = "[/b]";
+const ITALIC_OPEN = "[i]";
+const ITALIC_CLOSE = "[/i]";
 const COLOR_CLOSE = "[-]";
 
 /**
  * Spezza il testo in righe di segmenti.
  *
- * Grassetto e colore si accumulano invece di escludersi: il gioco li annida, e
- * una chiusura riporta allo stato precedente senza toccare l'altro.
+ * Grassetto, corsivo e colore si accumulano invece di escludersi: il gioco li
+ * annida, e una chiusura riporta allo stato precedente senza toccare gli altri.
  */
-export function parseHeroText(raw: string): TextLine[] {
+function parseLines(raw: string): TextSegment[][] {
   const lines: TextSegment[][] = [[]];
   let buffer = "";
   let bold = false;
+  let italic = false;
   let color: string | undefined;
 
   const flush = () => {
     if (buffer === "") return;
     const segment: TextSegment = { text: buffer };
     if (bold) segment.bold = true;
+    if (italic) segment.italic = true;
     if (color) segment.color = color;
     lines[lines.length - 1]!.push(segment);
     buffer = "";
@@ -88,6 +94,18 @@ export function parseHeroText(raw: string): TextLine[] {
       i += BOLD_CLOSE.length;
       continue;
     }
+    if (rest.startsWith(ITALIC_OPEN)) {
+      flush();
+      italic = true;
+      i += ITALIC_OPEN.length;
+      continue;
+    }
+    if (rest.startsWith(ITALIC_CLOSE)) {
+      flush();
+      italic = false;
+      i += ITALIC_CLOSE.length;
+      continue;
+    }
     if (rest.startsWith(COLOR_CLOSE)) {
       flush();
       color = undefined;
@@ -108,7 +126,17 @@ export function parseHeroText(raw: string): TextLine[] {
   }
 
   flush();
-  return lines.filter((line) => line.length > 0);
+  return lines;
+}
+
+/**
+ * Le righe da rendere: quelle vuote non servono a chi disegna.
+ *
+ * La versione non filtrata resta privata perche' serve a una cosa sola -
+ * sapere dove finisce un capoverso - e l'unico a chiederlo e' splitHeroNotes.
+ */
+export function parseHeroText(raw: string): TextLine[] {
+  return parseLines(raw).filter((line) => line.length > 0);
 }
 
 /**
@@ -123,4 +151,88 @@ export function plainHeroText(raw: string): string {
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/** Il carattere con cui il gioco apre una nota che spiega un termine. */
+const NOTE_MARK = "※";
+
+export interface SplitHeroText {
+  /** l'effetto vero e proprio */
+  body: TextLine[];
+  /** le note che spiegano i termini usati sopra */
+  notes: TextLine[];
+}
+
+/**
+ * Separa l'effetto dalle note che lo spiegano.
+ *
+ * Il gioco chiude quasi ogni abilita' con una nota che definisce i termini
+ * usati - "※Flying Sword: 5x Pierce Rate Increase". E' informazione buona, ma
+ * e' ripetuta IDENTICA in ogni rango della stessa carta: tre volte per una
+ * carta, sei per un'ultimate. Letta di fila, la ripetizione e' piu' lunga degli
+ * effetti che dovrebbe spiegare.
+ *
+ * Separarle permette di mostrare i ranghi (dove cambia solo un numero) e le
+ * definizioni (dove non cambia niente) una volta ciascuno.
+ *
+ * UNA NOTA PUO' OCCUPARE PIU' RIGHE, e succede spesso: 770 righe su 3.322,
+ * quasi un blocco su quattro. Quella di Gawain apre con "※Sunfire: ..." e
+ * prosegue sulla riga dopo con "Damage dealt +100% against...". Fermarsi alla
+ * riga che porta la marca lascerebbe quel seguito in mezzo agli effetti, dove
+ * si legge come una regola che vale sempre invece che come parte della
+ * definizione. Il blocco quindi continua fino alla riga vuota, che nel testo
+ * del gioco e' il confine fra un capoverso e l'altro.
+ */
+export function splitHeroNotes(raw: string): SplitHeroText {
+  const body: TextLine[] = [];
+  const notes: TextLine[] = [];
+  let dentroLaNota = false;
+
+  for (const line of parseLines(raw)) {
+    const plain = line
+      .map((segment) => segment.text)
+      .join("")
+      .trim();
+
+    if (plain === "") {
+      dentroLaNota = false;
+      continue;
+    }
+    if (plain.startsWith(NOTE_MARK)) {
+      dentroLaNota = true;
+    } else if (!dentroLaNota) {
+      body.push(line);
+      continue;
+    }
+    notes.push(line);
+  }
+
+  return { body, notes };
+}
+
+/**
+ * Le note di piu' testi, ciascuna una volta sola.
+ *
+ * Si confronta il testo nudo e non la struttura: fra un rango e l'altro puo'
+ * cambiare un tag di colore senza che cambi una parola, e due note identiche a
+ * leggersi vanno mostrate una volta anche se differiscono di un tag.
+ */
+export function collectHeroNotes(texts: readonly string[]): TextLine[] {
+  const seen = new Set<string>();
+  const notes: TextLine[] = [];
+
+  for (const raw of texts) {
+    for (const line of splitHeroNotes(raw).notes) {
+      const key = line
+        .map((segment) => segment.text)
+        .join("")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (key === "" || seen.has(key)) continue;
+      seen.add(key);
+      notes.push(line);
+    }
+  }
+
+  return notes;
 }
