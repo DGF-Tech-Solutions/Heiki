@@ -310,6 +310,14 @@ export default async function HeroPage({ params }: Props) {
               {abilities.textsInEnglish ? (
                 <> I testi restano in inglese — il client ne ha solo i modelli, senza i valori.</>
               ) : null}
+              {abilities.spritesDeduced ? (
+                <>
+                  {" "}
+                  Le due illustrazioni sono sue di sicuro, ma <strong>quale sia di quale carta
+                  è dedotto</strong> dall’ordine dei file, non dichiarato da una fonte: la regola
+                  è esatta in cinque casi su sei.
+                </>
+              ) : null}
             </p>
           </section>
         ) : cardCount > 0 ? (

@@ -316,6 +316,40 @@ if (!existsSync(abilitiesJson)) {
   );
 }
 
+/**
+ * Gli eroi la cui coppia di sprite si DEDUCE invece di leggerla.
+ *
+ * Il wiki dichiara quale sprite e' quale carta per 162 eroi. Per altri 86 la
+ * cartella ne contiene esattamente DUE: sono per forza le sue due carte, e
+ * l'unica cosa da stabilire e' quale sia la A. La regola "indice piu' basso =
+ * carta A", verificata sui casi che il wiki conferma, e' esatta 27 volte su 32
+ * - l'84% - quindi su 86 eroi ne invertira' una quindicina.
+ *
+ * Si applica lo stesso, dichiarandolo: due immagini giuste accanto ai testi
+ * giusti sei volte su sette valgono piu' di due immagini in fondo alla pagina
+ * senza alcun accostamento. Quello che non si fa e' spacciarla per certa.
+ *
+ * La lista di asset_eroi.json e' gia' ordinata per indice crescente - 118 su
+ * 118 verificati - quindi il file rinumerato `1.png` e' il minore e `2.png` il
+ * maggiore: non serve riordinare niente.
+ */
+const dedotti = new Set<string>();
+const conSpriteDedotto = new Set<string>();
+{
+  const percorso = resolve(SOURCE, "eroi/asset_eroi.json");
+  if (existsSync(percorso)) {
+    const mappa = JSON.parse(readFileSync(percorso, "utf8")) as Record<
+      string,
+      { carte?: string[] }
+    >;
+    for (const hero of heroes) {
+      const hid = String(hero.heroId);
+      if (fromWiki.has(hid)) continue;
+      if ((mappa[hid]?.carte ?? []).length === 2) dedotti.add(hid);
+    }
+  }
+}
+
 /* ---------------------------------------------- abilita' e statistiche -- */
 
 /**
@@ -394,8 +428,15 @@ if (!existsSync(databaseJson)) {
     // Lo sprite si cerca col nome INGLESE: il wiki scrive in inglese, mentre
     // `name` qui e' gia' l'italiano quando il gioco l'ha tradotto. Cercare con
     // quello faceva combaciare 49 carte invece di 122.
-    const sprite = spriteByName.get(hid)?.get(cardKey(card.nome?.en ?? name));
-    if (sprite !== undefined) pairedSprites++;
+    let sprite = spriteByName.get(hid)?.get(cardKey(card.nome?.en ?? name));
+    if (sprite !== undefined) {
+      pairedSprites++;
+    } else if (dedotti.has(hid) && (card.tipo === "A" || card.tipo === "B")) {
+      // Due sprite soli nella cartella: sono i suoi, e l'ordine dice quale.
+      // La deduzione e' spiegata dove `dedotti` viene costruito.
+      sprite = card.tipo === "A" ? 1 : 2;
+      conSpriteDedotto.add(hid);
+    }
     if (card.nome?.it) italianNames++;
     return (
       `{ name: ${JSON.stringify(name)}, slot: ${JSON.stringify(card.tipo)}` +
@@ -436,6 +477,7 @@ if (!existsSync(databaseJson)) {
     }
     parts.push(`    source: "7dshub.com",`);
     parts.push(`    textsInEnglish: true,`);
+    if (conSpriteDedotto.has(hid)) parts.push(`    spritesDeduced: true,`);
     abilityRows.push(`  ${JSON.stringify(hid)}: {\n${parts.join("\n")}\n  },`);
 
     if (cards.length > 0) withCards++;

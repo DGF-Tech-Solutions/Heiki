@@ -189,6 +189,20 @@ export interface HeroAbilities {
    * l'ha tradotto, quindi le due cose vanno dichiarate separate.
    */
   textsInEnglish?: boolean;
+  /**
+   * Lo sprite accanto alle carte e' DEDOTTO, non dichiarato da una fonte.
+   *
+   * Vale per gli eroi la cui cartella contiene esattamente due illustrazioni:
+   * sono per forza le sue due carte, e l'unica cosa da indovinare e' quale sia
+   * la A. La regola "indice piu' basso = carta A", misurata sui casi che il
+   * wiki conferma, e' esatta 27 volte su 32 - l'84% - quindi circa un eroe su
+   * sei avra' le due immagini invertite.
+   *
+   * E' un campo a parte e non un dettaglio dello sprite perche' chi legge ha
+   * diritto di sapere che li' sta guardando una deduzione: un accostamento
+   * probabile dichiarato vale, uno spacciato per certo no.
+   */
+  spritesDeduced?: boolean;
 }
 
 /**
