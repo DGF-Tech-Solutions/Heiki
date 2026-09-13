@@ -250,13 +250,38 @@ export default async function HeroPage({ params }: Props) {
               attribuiti, li rende consultabili senza affermare il falso -
               metterli accanto a un testo a caso sarebbe stata l'unica cosa
               peggiore del non mostrarli.
+
+              MA NON SONO TUTTE SUE, e prima lo si diceva. Gli sprite stanno in
+              una cartella per PERSONAGGIO, che le versioni si spartiscono due a
+              due: nella cartella `ban_nunchaku` il wiki assegna 04 e 01 a un
+              Ban e 02 e 03 a un altro. Risultato: 170 eroi ne ricevono piu' di
+              quante carte abbiano - fino a 10 per 3 carte - e la frase «le N
+              illustrazioni di quest'eroe» era falsa per tutti loro.
+
+              Ridurle a due non si puo' senza indovinare: la regola posizionale
+              cade su Diane, Drole, Gil Thunder e Griamore, e la carta A ha
+              l'indice minore solo in 92 casi su 110. Anche l'eliminazione fra
+              fratelli non regge, perche' due versioni sconosciute nella stessa
+              cartella si contenderebbero gli stessi avanzi. L'unica fonte che
+              lo dichiari e' il wiki, e copre 114 eroi: allargare quello e' il
+              vero rimedio. Qui si dice come stanno le cose.
             */}
             {cardCount > 0 && abilities.cards.every((card) => card.sprite === undefined) ? (
               <div className="mt-3">
                 <p className="m-0 mb-2 text-[13px] text-ink-3">
-                  Le {cardCount} illustrazioni delle carte di quest’eroe. Quale appartenga a
-                  quale carta non si ricava dal client
-                  {assets?.cardsApprox ? " e la cartella è condivisa con altre versioni" : null}.
+                  {cardCount > abilities.cards.length ? (
+                    <>
+                      La cartella di questo personaggio contiene {cardCount} illustrazioni, ma
+                      l’eroe ha {abilities.cards.length} carte: le altre sono delle sue altre
+                      versioni. Quali siano le sue non si ricava dal client
+                    </>
+                  ) : (
+                    <>
+                      Le {cardCount} illustrazioni delle carte di quest’eroe. Quale appartenga a
+                      quale carta non si ricava dal client
+                    </>
+                  )}
+                  {assets?.cardsApprox ? ", e il grado di uscita non combacia" : null}.
                 </p>
                 <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
                   {Array.from({ length: cardCount }, (_, index) => (
