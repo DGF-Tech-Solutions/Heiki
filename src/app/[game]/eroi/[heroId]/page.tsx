@@ -9,6 +9,7 @@ import { plainHeroText } from "@/lib/games/hero-markup";
 import {
   gameIconSrc,
   heroCardArtSrc,
+  heroUltimateArtSrc,
   heroCardSrc,
   heroSkillIconSrc,
   heroSplashSrc,
@@ -340,6 +341,7 @@ export default async function HeroPage({ params }: Props) {
                     card={card}
                     context={card.slot ? context?.cards[card.slot] : undefined}
                     glossary={glossary}
+                    icons={icons}
                   />
                 </li>
               ))}
@@ -456,12 +458,20 @@ export default async function HeroPage({ params }: Props) {
         {abilities?.ultimate ? (
           <section className="mb-7">
             <h2 className={cx(eyebrow, "mb-2.5")}>Ultimate</h2>
+            {/*
+              La carta dell'ultimate accanto al testo, come per le carte
+              d'attacco. Un'ultimate per eroe, quindi niente accostamento per
+              nome: basta sapere che l'illustrazione e' sua, e `assets.ultimate`
+              c'e' solo quando lo si sa.
+            */}
             <CardRow
               game={game}
               heroId={hero.id}
               card={abilities.ultimate}
               context={context?.cards["ultimate"]}
               glossary={glossary}
+              icons={icons}
+              artSrc={assets?.ultimate ? heroUltimateArtSrc(game, hero.id) : undefined}
             />
           </section>
         ) : null}
@@ -818,6 +828,177 @@ function EffectTag({ effect, rank }: { effect: HeroEffect; rank?: string }) {
 }
 
 /**
+ * Le classi dei sei ranghi, scritte per esteso una per una.
+ *
+ * Sembra ripetizione ed e' invece l'unico modo che funziona: Tailwind legge il
+ * SORGENTE per sapere quali regole generare, quindi una classe costruita con
+ * un template - `peer/r${n}` - non finirebbe mai nel CSS e il selettore non
+ * cambierebbe niente, senza dare errore da nessuna parte. Sei perche' tanti
+ * sono i ranghi dell'ultimate; le carte A e B ne hanno tre.
+ */
+const RANK_CLASSES = [
+  {
+    hook: "rk1",
+    chip: "group-has-[.rk1:checked]:border-brand group-has-[.rk1:checked]:bg-brand-soft group-has-[.rk1:checked]:text-ink group-has-[.rk1:checked]:opacity-100",
+    show: "group-has-[.rk1:checked]:block",
+  },
+  {
+    hook: "rk2",
+    chip: "group-has-[.rk2:checked]:border-brand group-has-[.rk2:checked]:bg-brand-soft group-has-[.rk2:checked]:text-ink group-has-[.rk2:checked]:opacity-100",
+    show: "group-has-[.rk2:checked]:block",
+  },
+  {
+    hook: "rk3",
+    chip: "group-has-[.rk3:checked]:border-brand group-has-[.rk3:checked]:bg-brand-soft group-has-[.rk3:checked]:text-ink group-has-[.rk3:checked]:opacity-100",
+    show: "group-has-[.rk3:checked]:block",
+  },
+  {
+    hook: "rk4",
+    chip: "group-has-[.rk4:checked]:border-brand group-has-[.rk4:checked]:bg-brand-soft group-has-[.rk4:checked]:text-ink group-has-[.rk4:checked]:opacity-100",
+    show: "group-has-[.rk4:checked]:block",
+  },
+  {
+    hook: "rk5",
+    chip: "group-has-[.rk5:checked]:border-brand group-has-[.rk5:checked]:bg-brand-soft group-has-[.rk5:checked]:text-ink group-has-[.rk5:checked]:opacity-100",
+    show: "group-has-[.rk5:checked]:block",
+  },
+  {
+    hook: "rk6",
+    chip: "group-has-[.rk6:checked]:border-brand group-has-[.rk6:checked]:bg-brand-soft group-has-[.rk6:checked]:text-ink group-has-[.rk6:checked]:opacity-100",
+    show: "group-has-[.rk6:checked]:block",
+  },
+] as const;
+
+/**
+ * I pulsanti per scegliere il rango.
+ *
+ * I tre ranghi stavano uno sotto l'altro e differivano quasi solo nella
+ * percentuale: tre righe da leggere per trovare un numero diverso. Qui se ne
+ * legge una alla volta.
+ *
+ * SENZA JAVASCRIPT, ed e' una scelta. Radio nascosti e regole CSS fanno
+ * esattamente la stessa cosa di uno stato React, ma questa scheda pesa 186 byte
+ * di script proprio perche' e' tutta renderizzata sul server: un `useState` qui
+ * la trasformerebbe in un componente client e si porterebbe dietro nel bundle i
+ * testi di tutti i ranghi di tutte le carte. Funziona anche a JavaScript
+ * disattivato, e la tastiera lo tratta come il gruppo di radio che e'.
+ *
+ * I pulsanti stanno SOTTO l'illustrazione e il testo nell'altra colonna: il
+ * legame passa da `group-has-[]` sulla carta intera, non da `peer-checked`,
+ * che guarda solo i fratelli precedenti.
+ *
+ * Sulle carte A e B il pulsante porta le stelle del rango - una, due, tre -
+ * come le segna il gioco. L'ultimate ha sei ranghi e il gioco non le da'
+ * stelle, quindi resta a sigle R1-R6; e alle sigle si torna anche senza il PNG
+ * della stella, per chi clona senza gli asset.
+ *
+ * Parte dal rango PIU' ALTO: e' la carta com'e' quando conta, e chi vuole
+ * vedere da dove parte scende di uno.
+ */
+function RankButtons({
+  game,
+  group,
+  card,
+  stars,
+  fill,
+}: {
+  game: string;
+  group: string;
+  card: HeroCard;
+  stars: boolean;
+  /** sotto l'illustrazione: la riga e' larga quanto la carta, e i pulsanti crescono fino ai bordi */
+  fill: boolean;
+}) {
+  // Sotto la carta i tre pulsanti a stelle stanno in una riga. Le sei sigle
+  // dell'ultimate in 120px non ci stanno - 25px l'una piu' gli spazi fanno 170 -
+  // quindi vanno tre per riga.
+  const layout = !fill
+    ? "mt-2 flex flex-wrap gap-1.5"
+    : stars
+      ? "mt-1.5 flex gap-1"
+      : "mt-1.5 grid grid-cols-3 gap-1";
+
+  return (
+    <div className={layout}>
+      {card.ranks.map((rank, index) => (
+        <input
+          key={`radio-${rank.rank}`}
+          type="radio"
+          name={group}
+          id={`${group}-${rank.rank}`}
+          defaultChecked={index === card.ranks.length - 1}
+          className={cx("sr-only", RANK_CLASSES[index]?.hook)}
+        />
+      ))}
+
+      {card.ranks.map((rank, index) => (
+        <label
+          key={`label-${rank.rank}`}
+          htmlFor={`${group}-${rank.rank}`}
+          title={`Rango ${rank.rank}`}
+          className={cx(
+            numeric,
+            "flex cursor-pointer items-center justify-center rounded-[2px] border border-rule bg-paper-2",
+            "text-[10px] text-ink-3 transition hover:text-ink",
+            // Le stelle spente a meta' dicono quale rango NON e' scelto meglio
+            // del solo bordo: sono tutte dello stesso giallo.
+            stars ? "h-5 px-1 opacity-50 hover:opacity-100" : "px-1.5",
+            fill && "flex-auto",
+            RANK_CLASSES[index]?.chip,
+          )}
+        >
+          {stars ? (
+            <>
+              {Array.from({ length: rank.rank }, (_, star) => (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  key={star}
+                  src={gameIconSrc(game, "carta", "stella")}
+                  alt=""
+                  width={39}
+                  height={41}
+                  loading="lazy"
+                  className="h-auto w-[13px]"
+                />
+              ))}
+              {/* le stelle sono immagini decorative: il nome del radio sta qui */}
+              <span className="sr-only">Rango {rank.rank}</span>
+            </>
+          ) : (
+            `R${rank.rank}`
+          )}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** Il testo del rango scelto: uno solo alla volta, e lo decide il radio. */
+function RankPanels({ card }: { card: HeroCard }) {
+  const ranks = card.ranks;
+  if (ranks.length === 0) return null;
+
+  // Un rango solo: non c'e' niente da scegliere, e il testo si vede e basta.
+  if (ranks.length === 1) {
+    return (
+      <div className="mt-2 text-[13px] leading-snug">
+        <GameText text={ranks[0]!.text} omitNotes className="[&>p]:m-0" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 text-[13px] leading-snug">
+      {ranks.map((rank, index) => (
+        <div key={`panel-${rank.rank}`} className={cx("hidden", RANK_CLASSES[index]?.show)}>
+          <GameText text={rank.text} omitNotes className="[&>p]:m-0" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
  * Una carta con i suoi ranghi.
  *
  * Lo sprite compare solo se `card.sprite` dice quale: senza, la colonna
@@ -830,30 +1011,57 @@ function CardRow({
   card,
   context,
   glossary,
+  icons,
+  artSrc,
 }: {
   game: string;
   heroId: string;
   card: HeroCard;
   context?: HeroCardContext;
   glossary?: Readonly<Record<string, HeroEffect>>;
+  icons?: Readonly<Record<string, readonly string[]>>;
+  /** l'illustrazione quando non e' uno sprite numerato: l'ultimate ha la sua cartella */
+  artSrc?: string;
 }) {
-  const art = card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null;
+  const art =
+    artSrc ?? (card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null);
+
+  // Le stelle dei pulsanti valgono per le carte d'attacco, che hanno tre ranghi
+  // e cosi' li segna anche il gioco: l'ultimate ne ha sei, e stelle non ne porta.
+  const stars = (card.slot === "A" || card.slot === "B") && hasIcon(icons, "carta", "stella");
+  // Con un rango solo non c'e' niente da scegliere, quindi nessun pulsante.
+  const picker = card.ranks.length > 1;
+  const group = `${heroId}-${card.slot ?? "carta"}`;
+
+  // La colonna dell'immagine e' larga 120px, e non 84, per la riga dei tre
+  // pulsanti a stelle che le sta sotto: al minimo ne occupa 116 (23 + 36 + 49
+  // piu' gli spazi). A 84 le stelle scenderebbero a 9px, e non si leggerebbero.
+  const columns = art ? { gridTemplateColumns: "120px minmax(0, 1fr)" } : undefined;
 
   return (
+    // `group` serve a :has(): i pulsanti stanno nella colonna dell'immagine e
+    // il testo del rango nell'altra, quindi il legame passa dall'antenato
+    // comune.
     <div
-      className="grid items-start gap-4 rounded-card border border-rule bg-paper p-3"
-      style={art ? { gridTemplateColumns: "84px minmax(0, 1fr)" } : undefined}
+      className="group grid items-start gap-4 rounded-card border border-rule bg-paper p-3"
+      style={columns}
     >
       {art ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={art}
-          alt=""
-          width={128}
-          height={256}
-          loading="lazy"
-          className="block w-full rounded-[3px] bg-paper-2"
-        />
+        <div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={art}
+            alt=""
+            width={128}
+            height={256}
+            loading="lazy"
+            className="block w-full rounded-[3px] bg-paper-2"
+          />
+
+          {picker ? (
+            <RankButtons game={game} group={group} card={card} stars={stars} fill />
+          ) : null}
+        </div>
       ) : null}
 
       <div className="min-w-0">
@@ -864,23 +1072,12 @@ function CardRow({
           ) : null}
         </p>
 
-        <dl className="m-0 mt-2 grid gap-1.5">
-          {card.ranks.map((rank) => (
-            <div key={rank.rank} className="flex items-baseline gap-2.5">
-              <dt
-                className={cx(
-                  numeric,
-                  "shrink-0 rounded-[2px] bg-paper-3 px-1.5 text-[10px] text-ink-2",
-                )}
-              >
-                R{rank.rank}
-              </dt>
-              <dd className="m-0 min-w-0 text-[13px] leading-snug">
-                <GameText text={rank.text} omitNotes className="[&>p]:m-0" />
-              </dd>
-            </div>
-          ))}
-        </dl>
+        {/* Senza illustrazione non c'e' una carta sotto cui metterli: stanno sopra il testo. */}
+        {art === null && picker ? (
+          <RankButtons game={game} group={group} card={card} stars={stars} fill={false} />
+        ) : null}
+
+        <RankPanels card={card} />
 
         {/*
           Le definizioni dei termini stanno in fondo, una volta per carta. Il

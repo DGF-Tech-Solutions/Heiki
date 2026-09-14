@@ -10,10 +10,12 @@
  * La chiave e' il codice del gioco - 1-6 per la razza, 1-5 per l'attributo, la
  * sigla per la rarita' - perche' e' gia' il numero scritto nel nome del file
  * originale. Le fazioni non compaiono: il gioco non ha un'icona per loro.
+ * Sotto `carta` c'e' la stella dei ranghi, una sola: il rango la ripete.
  */
 
 export const GAME_ICONS: Readonly<Record<string, readonly string[]>> = {
   "razza": ["1","2","3","4","5","6"],
   "attributo": ["1","2","3","4","5"],
   "rarita": ["R","SR","SSR","UR","LR"],
+  "carta": ["stella"],
 };

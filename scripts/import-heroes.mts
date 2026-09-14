@@ -260,6 +260,8 @@ interface SourceAbility {
   carte: { nome: string; sprite: string; percorso?: string;
            ranghi: { rango: number; testo: string }[] }[];
   unica?: { nome?: string; testo?: string };
+  /** la carta dell'ultimate, quando la pagina ne cita una sola */
+  ultimate_sprite?: { sprite: string; percorso: string };
 }
 
 /**
@@ -276,6 +278,8 @@ const abilitiesJson = resolve(SOURCE, "eroi/abilita_eroi.json");
 const fromWiki = new Map<string, number>();
 /** eroe -> nome della carta -> quale sprite le corrisponde, numerato da 1 */
 const spriteByName = new Map<string, Map<string, number>>();
+/** eroe -> la carta dell'ultimate dichiarata dal wiki; si copia con gli altri asset */
+const ultimateFromWiki = new Map<string, string>();
 
 if (!existsSync(abilitiesJson)) {
   console.log(`  abilita_eroi.json non trovato: salto gli sprite delle carte.`);
@@ -289,6 +293,7 @@ if (!existsSync(abilitiesJson)) {
     const hid = String(hero.heroId);
     const voce = source[hid];
     if (!voce) continue;
+    if (voce.ultimate_sprite) ultimateFromWiki.set(hid, voce.ultimate_sprite.percorso);
 
     const perNome = new Map<string, number>();
     let n = 0;
@@ -733,6 +738,8 @@ interface SourceAssets {
   slug?: string;
   carte?: string[];
   carte_certezza?: string;
+  /** le carte dell'ultimate trovate per slug, stessa logica delle carte */
+  speciali?: string[];
   colpi?: string;
 }
 
@@ -771,11 +778,26 @@ if (!existsSync(assetsJson)) {
   const mappa = JSON.parse(readFileSync(assetsJson, "utf8")) as Record<string, SourceAssets>;
   const estratti = resolve(SOURCE, "7dsgc_estratti");
   const rows: string[] = [];
-  const copied: Record<string, number> = { splash: 0, abilita: 0, carte: 0 };
+  const copied: Record<string, number> = { splash: 0, abilita: 0, carte: 0, ultimate: 0 };
 
   for (const kind of ASSET_KINDS) {
     mkdirSync(resolve(DEST_IMAGES, kind.dir), { recursive: true });
   }
+  mkdirSync(resolve(DEST_IMAGES, "ultimate"), { recursive: true });
+
+  // Quanti eroi rivendicano per slug ciascuna carta d'ultimate. La cartella e'
+  // del PERSONAGGIO e le versioni se la spartiscono: una carta che due eroi
+  // rivendicano non si da' a nessuno dei due, come per le carte d'attacco.
+  const specialClaims = new Map<string, number>();
+  for (const hero of heroes) {
+    for (const rel of mappa[String(hero.heroId)]?.speciali ?? []) {
+      specialClaims.set(rel, (specialClaims.get(rel) ?? 0) + 1);
+    }
+  }
+  const ultimateFrom = { wiki: 0, slug: 0, agree: 0, disagree: 0 };
+  // Il wiki e l'indice scrivono lo stesso file con percorsi che possono
+  // differire: si confronta il nome.
+  const fileName = (rel: string) => rel.split(/[\\/]/).pop()!.toLowerCase();
 
   for (const hero of heroes) {
     const hid = String(hero.heroId);
@@ -817,6 +839,34 @@ if (!existsSync(assetsJson)) {
       }
     }
 
+    // La carta dell'ultimate. Prima il wiki, che la dichiara nella pagina
+    // dell'eroe; poi lo slug, ma solo dove non c'e' niente da scegliere: una
+    // sola candidata nella cartella, e nessun altro eroe che la rivendichi.
+    // Un'ultimate per eroe, quindi - a differenza delle carte A e B - non resta
+    // da indovinare quale testo le vada accanto.
+    const candidates = voce.speciali ?? [];
+    const bySlug =
+      candidates.length === 1 && specialClaims.get(candidates[0]!) === 1
+        ? candidates[0]
+        : undefined;
+    const declared = ultimateFromWiki.get(hid);
+    // Dove ci sono entrambi si confrontano: e' la prova che la regola dello
+    // slug regge anche sugli eroi che il wiki non copre.
+    if (declared && bySlug) {
+      if (fileName(declared) === fileName(bySlug)) ultimateFrom.agree++;
+      else ultimateFrom.disagree++;
+    }
+    const ultimate = declared ?? bySlug;
+    if (ultimate) {
+      const from = resolve(estratti, ultimate);
+      if (existsSync(from)) {
+        if (copyIfNewer(from, resolve(DEST_IMAGES, "ultimate", `${hid}.png`))) copied.ultimate!++;
+        flags.push(`ultimate: true`);
+        if (declared) ultimateFrom.wiki++;
+        else ultimateFrom.slug++;
+      }
+    }
+
     // Colpi per carta: questo e' certo, l'heroId e' nel nome del file.
     if (voce.colpi) {
       const from = resolve(estratti, voce.colpi);
@@ -853,6 +903,11 @@ ${rows.join("\n")}
       `${copied.carte} carte d'attacco copiate ` +
       `(${rows.length}/${heroes.length} eroi con almeno un asset)`,
   );
+  console.log(
+    `  carta dell'ultimate: ${ultimateFrom.wiki + ultimateFrom.slug}/${heroes.length} eroi ` +
+      `(${ultimateFrom.wiki} dal wiki, ${ultimateFrom.slug} dallo slug, ${copied.ultimate} copiate); ` +
+      `dove ci sono tutti e due: ${ultimateFrom.agree} uguali, ${ultimateFrom.disagree} diversi`,
+  );
 }
 
 /* --------------------------------------------------------------- icone -- */
@@ -877,7 +932,22 @@ ${rows.join("\n")}
  */
 const ICON_SOURCE = resolve(SOURCE, "7dsgc_estratti/m/Texture2D");
 
-const ICONS: readonly { family: string; key: string; file: string }[] = [
+/**
+ * La stella dei ranghi arriva da un'altra cartella, e c'e' un motivo.
+ *
+ * Non e' un file separato nel gioco: sta impacchettata dentro
+ * `atlas_skillcard`, una texture unica, accanto a cornici e sfondi delle carte.
+ * La ritaglia `python stella_carte.py`, per nome (`card_star`) e con la mappa
+ * NGUI dell'atlas. Il lavoro di immagini sta nella pipeline perche' in questo
+ * progetto lo fa Python: qui si copia e basta, come per le card.
+ *
+ * Prima qui arrivavano le cornici di bronzo, argento e oro, allungate per
+ * stare attorno all'illustrazione: scartate, le stelle dicono il rango senza
+ * ridisegnare la carta.
+ */
+const STAR_SOURCE = resolve(SOURCE, "stella_carte");
+
+const ICONS: readonly { family: string; key: string; file: string; dir?: string }[] = [
   ...[1, 2, 3, 4, 5, 6].map((n) => ({
     family: "razza",
     key: String(n),
@@ -893,6 +963,8 @@ const ICONS: readonly { family: string; key: string; file: string }[] = [
     key: grade,
     file: `icon_filter_grade_${grade}_60x60.png`,
   })),
+  // Una stella sola: il sito la ripete una, due o tre volte secondo il rango.
+  { family: "carta", key: "stella", file: "stella.png", dir: STAR_SOURCE },
 ];
 
 {
@@ -901,7 +973,7 @@ const ICONS: readonly { family: string; key: string; file: string }[] = [
   const missing: string[] = [];
 
   for (const icon of ICONS) {
-    const from = resolve(ICON_SOURCE, icon.file);
+    const from = resolve(icon.dir ?? ICON_SOURCE, icon.file);
     if (!existsSync(from)) {
       missing.push(icon.file);
       continue;
@@ -932,6 +1004,7 @@ const ICONS: readonly { family: string; key: string; file: string }[] = [
  * La chiave e' il codice del gioco - 1-6 per la razza, 1-5 per l'attributo, la
  * sigla per la rarita' - perche' e' gia' il numero scritto nel nome del file
  * originale. Le fazioni non compaiono: il gioco non ha un'icona per loro.
+ * Sotto \`carta\` c'e' la stella dei ranghi, una sola: il rango la ripete.
  */
 
 export const GAME_ICONS: Readonly<Record<string, readonly string[]>> = {

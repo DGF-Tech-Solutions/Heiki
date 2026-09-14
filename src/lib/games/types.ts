@@ -139,6 +139,13 @@ export interface HeroAssets {
    */
   cardsApprox?: boolean;
   /**
+   * C'e' la carta dell'ultimate: `icon_<slug>_special_01`, 128x256 come quelle
+   * d'attacco. Viene dal wiki, che la cita nella pagina dell'eroe, oppure dallo
+   * slug quando la cartella del personaggio ne contiene una sola e nessun altro
+   * eroe la condivide: li' non c'e' niente da scegliere.
+   */
+  ultimate?: boolean;
+  /**
    * Colpi per carta, dal client: `skill_a_1_atk` e' l'abilita' A al rango 1.
    * Questo e' certo - l'heroId e' nel nome del file da cui viene.
    */

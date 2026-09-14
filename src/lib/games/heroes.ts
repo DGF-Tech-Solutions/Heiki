@@ -128,13 +128,24 @@ export function heroCardArtSrc(gameSlug: string, heroId: string, n: number): str
   return `/eroi/${gameSlug}/carte/${heroId}/${n}.png`;
 }
 
+/**
+ * Carta dell'ultimate: `public/eroi/<gioco>/ultimate/<id>.png`.
+ *
+ * In una cartella a parte e non come `carte/<id>/ultimate.png`: la cartella
+ * delle carte si mostra anche per conteggio, «le N illustrazioni», e un file in
+ * piu' li' dentro rischierebbe di finire nel conto.
+ */
+export function heroUltimateArtSrc(gameSlug: string, heroId: string): string {
+  return `/eroi/${gameSlug}/ultimate/${heroId}.png`;
+}
+
 /** Icona dell'abilita' esclusiva: `public/eroi/<gioco>/abilita/<id>.png`. */
 export function heroSkillIconSrc(gameSlug: string, heroId: string): string {
   return `/eroi/${gameSlug}/abilita/${heroId}.png`;
 }
 
 /** Le famiglie di icone che il gioco usa per etichettare un eroe. */
-export type IconFamily = "razza" | "attributo" | "rarita";
+export type IconFamily = "razza" | "attributo" | "rarita" | "carta";
 
 /**
  * Icona del gioco per un valore: `public/eroi/<gioco>/icone/<famiglia>/<chiave>.png`.
