@@ -19,7 +19,7 @@
  * dataset e ricopia solo le card cambiate.
  */
 
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 /** Cartella della pipeline di estrazione. Fuori dal repo: e' materiale di lavoro. */
@@ -240,121 +240,83 @@ ${entries.join("\n")}
     (fallbacks > 0 ? ` (${fallbacks} descrizioni rimaste in inglese)` : ""));
 }
 
-/* ------------------------------------------------------------ abilita' -- */
+/* ------------------------------------------------------- carte agli eroi -- */
 
 /**
- * Carte e passive dal wiki di community.
+ * Quale carta e' di quale eroe: A, B e ultimate.
  *
- * Le produce `python scarica_wiki.py`. Non vengono dal client: il client ha le
- * descrizioni ma non la tabella che le lega a un eroe, e quella sta sul server.
+ * Lo decide `python accosta_carte.py` nella pipeline, che lo scrive in
+ * eroi/accostamenti_carte.json con la fonte di ogni scelta:
  *
- * Quando ci sono, le carte del wiki SOSTITUISCONO quelle dedotte dallo slug -
- * e non e' un ripiego, e' un miglioramento. Lo slug dice quali carte
- * appartengono al personaggio; il wiki dice quali appartengono a QUESTA
- * versione. Le sette carte di `meliodas_demon` sono divise fra il Meliodas
- * rosso, il blu e il verde, e per slug le davamo tutte e sette a ciascuno.
+ *   manuale            scelta a mano con rivedi_carte.py, guardando le carte
+ *   wiki               il wiki cita il nome del file accanto alla carta
+ *   cartella_propria   l'eroe e' l'unico della sua cartella: le prime due,
+ *                      ordinate per id d'abilita'                        53/53
+ *   ordine_uscita      le versioni per data d'uscita prendono le carte a
+ *                      coppie consecutive                                55/57
+ *   famiglia           l'ultimate con l'indice piu' basso della cartella 139/145
+ *
+ * Le misure sono contro gli accostamenti che il wiki dichiara. Qui non si
+ * decide piu' niente: si copia, e la fonte arriva fino in pagina. Prima questa
+ * sezione accostava da sola - per nome di carta dal wiki, e con "indice piu'
+ * basso = carta A" all'84% - e arrivava a 478 carte su 746.
  */
-interface SourceAbility {
-  pagina: string;
+interface SourceChoice {
+  file: string;
   fonte: string;
-  carte: { nome: string; sprite: string; percorso?: string;
-           ranghi: { rango: number; testo: string }[] }[];
-  unica?: { nome?: string; testo?: string };
-  /** la carta dell'ultimate, quando la pagina ne cita una sola */
-  ultimate_sprite?: { sprite: string; percorso: string };
 }
 
-/**
- * Forma confrontabile del nome di una carta.
- *
- * Le due fonti lo scrivono diverso: 7dshub mette le virgolette - `"Kill Shot"` -
- * e il wiki no. Senza toglierle l'accostamento riusciva 44 volte invece di 122.
- */
-function cardKey(name: string): string {
-  return name.trim().replace(/^["'“”]+|["'“”]+$/g, "").trim().toLowerCase();
+interface CardSprite {
+  n: number;
+  source: string;
 }
 
-const abilitiesJson = resolve(SOURCE, "eroi/abilita_eroi.json");
-const fromWiki = new Map<string, number>();
-/** eroe -> nome della carta -> quale sprite le corrisponde, numerato da 1 */
-const spriteByName = new Map<string, Map<string, number>>();
-/** eroe -> la carta dell'ultimate dichiarata dal wiki; si copia con gli altri asset */
-const ultimateFromWiki = new Map<string, string>();
+const choicesJson = resolve(SOURCE, "eroi/accostamenti_carte.json");
+/** eroe -> slot "A"/"B" -> numero del file in carte/<id>/, e fonte */
+const cardSprites = new Map<string, Map<string, CardSprite>>();
+/** eroe -> la carta dell'ultimate: si copia con gli altri asset */
+const ultimateChoice = new Map<string, SourceChoice>();
 
-if (!existsSync(abilitiesJson)) {
-  console.log(`  abilita_eroi.json non trovato: salto gli sprite delle carte.`);
-  console.log(`  (si genera con: python scarica_wiki.py, dentro _7dsgc)`);
+if (!existsSync(choicesJson)) {
+  console.log(`  accostamenti_carte.json non trovato: le carte restano senza illustrazione.`);
+  console.log(`  (si genera con: python accosta_carte.py, dentro _7dsgc)`);
 } else {
-  const source = JSON.parse(readFileSync(abilitiesJson, "utf8")) as Record<string, SourceAbility>;
+  const choices = JSON.parse(readFileSync(choicesJson, "utf8")) as Record<
+    string,
+    Partial<Record<"A" | "B" | "ultimate", SourceChoice>>
+  >;
   const estratti = resolve(SOURCE, "7dsgc_estratti");
   let copied = 0;
 
   for (const hero of heroes) {
     const hid = String(hero.heroId);
-    const voce = source[hid];
+    const voce = choices[hid];
     if (!voce) continue;
-    if (voce.ultimate_sprite) ultimateFromWiki.set(hid, voce.ultimate_sprite.percorso);
+    if (voce.ultimate) ultimateChoice.set(hid, voce.ultimate);
 
-    const perNome = new Map<string, number>();
-    let n = 0;
-    for (const carta of voce.carte) {
-      if (!carta.percorso) continue;
-      const from = resolve(estratti, carta.percorso);
+    // La cartella si svuota prima di copiare. Prima si copiava "se piu' nuovo"
+    // e non si puliva mai: i file estratti hanno date vecchie, quindi un `1.png`
+    // lasciato da un accostamento precedente restava li', con l'arte di
+    // un'altra carta.
+    const dir = resolve(DEST_IMAGES, "carte", hid);
+    rmSync(dir, { recursive: true, force: true });
+
+    const perSlot = new Map<string, CardSprite>();
+    for (const slot of ["A", "B"] as const) {
+      const choice = voce[slot];
+      if (!choice) continue;
+      const from = resolve(estratti, choice.file);
       if (!existsSync(from)) continue;
-      n++;
-
-      const dir = resolve(DEST_IMAGES, "carte", hid);
       mkdirSync(dir, { recursive: true });
-      if (copyIfNewer(from, resolve(dir, `${n}.png`))) copied++;
-
-      // Il wiki e' l'unica fonte che dichiari QUALE sprite e' QUALE carta:
-      // scrive il nome del file accanto al nome della carta. E' per questo che
-      // resta in uso anche adesso che i testi vengono da altrove.
-      if (carta.nome) perNome.set(cardKey(carta.nome), n);
+      const n = perSlot.size + 1;
+      copyFileSync(from, resolve(dir, `${n}.png`));
+      copied++;
+      perSlot.set(slot, { n, source: choice.fonte });
     }
-    if (n > 0) {
-      fromWiki.set(hid, n);
-      spriteByName.set(hid, perNome);
-    }
+    if (perSlot.size > 0) cardSprites.set(hid, perSlot);
   }
 
-  console.log(
-    `  sprite delle carte: ${copied} copiati, ${fromWiki.size} eroi con l'accostamento del wiki`,
-  );
-}
-
-/**
- * Gli eroi la cui coppia di sprite si DEDUCE invece di leggerla.
- *
- * Il wiki dichiara quale sprite e' quale carta per 162 eroi. Per altri 86 la
- * cartella ne contiene esattamente DUE: sono per forza le sue due carte, e
- * l'unica cosa da stabilire e' quale sia la A. La regola "indice piu' basso =
- * carta A", verificata sui casi che il wiki conferma, e' esatta 27 volte su 32
- * - l'84% - quindi su 86 eroi ne invertira' una quindicina.
- *
- * Si applica lo stesso, dichiarandolo: due immagini giuste accanto ai testi
- * giusti sei volte su sette valgono piu' di due immagini in fondo alla pagina
- * senza alcun accostamento. Quello che non si fa e' spacciarla per certa.
- *
- * La lista di asset_eroi.json e' gia' ordinata per indice crescente - 118 su
- * 118 verificati - quindi il file rinumerato `1.png` e' il minore e `2.png` il
- * maggiore: non serve riordinare niente.
- */
-const dedotti = new Set<string>();
-const conSpriteDedotto = new Set<string>();
-{
-  const percorso = resolve(SOURCE, "eroi/asset_eroi.json");
-  if (existsSync(percorso)) {
-    const mappa = JSON.parse(readFileSync(percorso, "utf8")) as Record<
-      string,
-      { carte?: string[] }
-    >;
-    for (const hero of heroes) {
-      const hid = String(hero.heroId);
-      if (fromWiki.has(hid)) continue;
-      if ((mappa[hid]?.carte ?? []).length === 2) dedotti.add(hid);
-    }
-  }
+  console.log(`  carte d'attacco: ${copied} copiate, per ${cardSprites.size} eroi`);
 }
 
 /* ---------------------------------------------- abilita' e statistiche -- */
@@ -420,6 +382,7 @@ if (!existsSync(databaseJson)) {
   let withStats = 0;
   let italianNames = 0;
   let pairedSprites = 0;
+  const bySource: Record<string, number> = {};
 
   const renderCard = (card: SourceDbCard, hid: string): string | null => {
     // `clean` toglie le virgolette con cui il gioco decora i nomi delle carte -
@@ -432,22 +395,20 @@ if (!existsSync(databaseJson)) {
       .map((r) => `{ rank: ${r.rango}, text: ${JSON.stringify(r.testo_en)} }`)
       .join(", ");
     if (!ranks) return null;
-    // Lo sprite si cerca col nome INGLESE: il wiki scrive in inglese, mentre
-    // `name` qui e' gia' l'italiano quando il gioco l'ha tradotto. Cercare con
-    // quello faceva combaciare 49 carte invece di 122.
-    let sprite = spriteByName.get(hid)?.get(cardKey(card.nome?.en ?? name));
-    if (sprite !== undefined) {
+    // L'illustrazione si prende per SLOT dagli accostamenti. L'ultimate porta
+    // solo la fonte: il suo file e' ultimate/<id>.png, e c'e' quando c'e'
+    // `HeroAssets.ultimate`.
+    const sprite = cardSprites.get(hid)?.get(card.tipo);
+    const source = card.tipo === "ultimate" ? ultimateChoice.get(hid)?.fonte : sprite?.source;
+    if (source) {
       pairedSprites++;
-    } else if (dedotti.has(hid) && (card.tipo === "A" || card.tipo === "B")) {
-      // Due sprite soli nella cartella: sono i suoi, e l'ordine dice quale.
-      // La deduzione e' spiegata dove `dedotti` viene costruito.
-      sprite = card.tipo === "A" ? 1 : 2;
-      conSpriteDedotto.add(hid);
+      bySource[source] = (bySource[source] ?? 0) + 1;
     }
     if (card.nome?.it) italianNames++;
     return (
       `{ name: ${JSON.stringify(name)}, slot: ${JSON.stringify(card.tipo)}` +
-      (sprite !== undefined ? `, sprite: ${sprite}` : "") +
+      (sprite ? `, sprite: ${sprite.n}` : "") +
+      (source ? `, spriteSource: ${JSON.stringify(source)}` : "") +
       `, ranks: [${ranks}] }`
     );
   };
@@ -484,7 +445,6 @@ if (!existsSync(databaseJson)) {
     }
     parts.push(`    source: "7dshub.com",`);
     parts.push(`    textsInEnglish: true,`);
-    if (conSpriteDedotto.has(hid)) parts.push(`    spritesDeduced: true,`);
     abilityRows.push(`  ${JSON.stringify(hid)}: {\n${parts.join("\n")}\n  },`);
 
     if (cards.length > 0) withCards++;
@@ -557,8 +517,8 @@ ${statRows.join("\n")}
       `${withPassive} con passiva`,
   );
   console.log(
-    `  ${italianNames} nomi di carta in italiano, ` +
-      `${pairedSprites} accostati al proprio sprite dal wiki`,
+    `  ${italianNames} nomi di carta in italiano; ${pairedSprites} carte con la propria illustrazione ` +
+      `(${Object.entries(bySource).map(([fonte, n]) => `${fonte} ${n}`).join(", ")})`,
   );
   console.log(`  statistiche: ${withStats}/${heroes.length} eroi`);
 }
@@ -736,10 +696,6 @@ interface SourceAssets {
   splash?: string;
   abilita?: string;
   slug?: string;
-  carte?: string[];
-  carte_certezza?: string;
-  /** le carte dell'ultimate trovate per slug, stessa logica delle carte */
-  speciali?: string[];
   colpi?: string;
 }
 
@@ -778,26 +734,12 @@ if (!existsSync(assetsJson)) {
   const mappa = JSON.parse(readFileSync(assetsJson, "utf8")) as Record<string, SourceAssets>;
   const estratti = resolve(SOURCE, "7dsgc_estratti");
   const rows: string[] = [];
-  const copied: Record<string, number> = { splash: 0, abilita: 0, carte: 0, ultimate: 0 };
+  const copied: Record<string, number> = { splash: 0, abilita: 0, ultimate: 0 };
 
   for (const kind of ASSET_KINDS) {
     mkdirSync(resolve(DEST_IMAGES, kind.dir), { recursive: true });
   }
   mkdirSync(resolve(DEST_IMAGES, "ultimate"), { recursive: true });
-
-  // Quanti eroi rivendicano per slug ciascuna carta d'ultimate. La cartella e'
-  // del PERSONAGGIO e le versioni se la spartiscono: una carta che due eroi
-  // rivendicano non si da' a nessuno dei due, come per le carte d'attacco.
-  const specialClaims = new Map<string, number>();
-  for (const hero of heroes) {
-    for (const rel of mappa[String(hero.heroId)]?.speciali ?? []) {
-      specialClaims.set(rel, (specialClaims.get(rel) ?? 0) + 1);
-    }
-  }
-  const ultimateFrom = { wiki: 0, slug: 0, agree: 0, disagree: 0 };
-  // Il wiki e l'indice scrivono lo stesso file con percorsi che possono
-  // differire: si confronta il nome.
-  const fileName = (rel: string) => rel.split(/[\\/]/).pop()!.toLowerCase();
 
   for (const hero of heroes) {
     const hid = String(hero.heroId);
@@ -814,56 +756,21 @@ if (!existsSync(assetsJson)) {
       flags.push(`${kind.key === "abilita" ? "skill" : "splash"}: true`);
     }
 
-    // Carte d'attacco: numerate da 1, nella cartella dell'eroe. Il numero nel
-    // nome del file di origine non e' contiguo - il gioco salta dei valori -
-    // quindi si rinumera, e l'ordine resta quello.
-    // Chi ha le carte dal wiki le ha gia' esatte e gia' copiate: rifarlo per
-    // slug le sostituirebbe con un elenco piu' largo e meno preciso.
-    if (fromWiki.has(hid)) {
-      flags.push(`cards: ${fromWiki.get(hid)}`);
-    } else if (voce.carte && voce.carte.length > 0) {
-      const dir = resolve(DEST_IMAGES, "carte", hid);
-      mkdirSync(dir, { recursive: true });
-      let n = 0;
-      for (const rel of voce.carte) {
-        const from = resolve(estratti, rel);
-        if (!existsSync(from)) continue;
-        n++;
-        if (copyIfNewer(from, resolve(dir, `${n}.png`))) copied.carte!++;
-      }
-      if (n > 0) {
-        flags.push(`cards: ${n}`);
-        // "solo slug" e' il ripiego: stesso personaggio, sigla di rarita'
-        // diversa. Vale la pena mostrarlo, ma dichiarandolo.
-        if (voce.carte_certezza === "solo slug") flags.push(`cardsApprox: true`);
-      }
-    }
+    // Le carte d'attacco le ha gia' copiate la sezione degli accostamenti: qui
+    // si dice solo quante ce ne sono in carte/<id>/.
+    const perSlot = cardSprites.get(hid);
+    if (perSlot) flags.push(`cards: ${perSlot.size}`);
 
-    // La carta dell'ultimate. Prima il wiki, che la dichiara nella pagina
-    // dell'eroe; poi lo slug, ma solo dove non c'e' niente da scegliere: una
-    // sola candidata nella cartella, e nessun altro eroe che la rivendichi.
-    // Un'ultimate per eroe, quindi - a differenza delle carte A e B - non resta
-    // da indovinare quale testo le vada accanto.
-    const candidates = voce.speciali ?? [];
-    const bySlug =
-      candidates.length === 1 && specialClaims.get(candidates[0]!) === 1
-        ? candidates[0]
-        : undefined;
-    const declared = ultimateFromWiki.get(hid);
-    // Dove ci sono entrambi si confrontano: e' la prova che la regola dello
-    // slug regge anche sugli eroi che il wiki non copre.
-    if (declared && bySlug) {
-      if (fileName(declared) === fileName(bySlug)) ultimateFrom.agree++;
-      else ultimateFrom.disagree++;
-    }
-    const ultimate = declared ?? bySlug;
+    // La carta dell'ultimate, dagli accostamenti. Si copia SEMPRE e non "se
+    // piu' nuova", per la stessa ragione delle carte: un'ultimate accostata
+    // diversamente al giro prima resterebbe al suo posto.
+    const ultimate = ultimateChoice.get(hid);
     if (ultimate) {
-      const from = resolve(estratti, ultimate);
+      const from = resolve(estratti, ultimate.file);
       if (existsSync(from)) {
-        if (copyIfNewer(from, resolve(DEST_IMAGES, "ultimate", `${hid}.png`))) copied.ultimate!++;
+        copyFileSync(from, resolve(DEST_IMAGES, "ultimate", `${hid}.png`));
+        copied.ultimate!++;
         flags.push(`ultimate: true`);
-        if (declared) ultimateFrom.wiki++;
-        else ultimateFrom.slug++;
       }
     }
 
@@ -900,13 +807,8 @@ ${rows.join("\n")}
   writeFileSync(DEST_ASSETS, generatedAssets, "utf8");
   console.log(
     `  ${copied.splash} illustrazioni, ${copied.abilita} icone abilita', ` +
-      `${copied.carte} carte d'attacco copiate ` +
+      `${copied.ultimate} carte dell'ultimate ` +
       `(${rows.length}/${heroes.length} eroi con almeno un asset)`,
-  );
-  console.log(
-    `  carta dell'ultimate: ${ultimateFrom.wiki + ultimateFrom.slug}/${heroes.length} eroi ` +
-      `(${ultimateFrom.wiki} dal wiki, ${ultimateFrom.slug} dallo slug, ${copied.ultimate} copiate); ` +
-      `dove ci sono tutti e due: ${ultimateFrom.agree} uguali, ${ultimateFrom.disagree} diversi`,
   );
 }
 

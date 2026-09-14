@@ -324,13 +324,10 @@ export default async function HeroPage({ params }: Props) {
             <h2 className={cx(eyebrow, "mb-2.5")}>Carte d’attacco · {abilities.cards.length}</h2>
 
             {/*
-              Una riga per carta, sprite a sinistra dove sappiamo qual e'.
-              L'accostamento fra un'immagine e il suo testo NON si ricava dai
-              nomi dei file: il numero nello sprite non ha relazione con l'id
-              dell'abilita' (1 caso su 232 controllati). Lo dichiara il wiki,
-              che scrive il nome del file accanto al nome della carta, e vale
-              per 232 carte. Per le altre si mostra il testo senza immagine:
-              meglio una colonna vuota di una carta accostata a caso.
+              Una riga per carta, con la sua illustrazione. L'accostamento non
+              si ricava dai nomi dei file: lo decide la pipeline
+              (accosta_carte.py) fra wiki, scelte a mano e regole misurate
+              contro il wiki, e ogni carta dice da quale delle tre viene.
             */}
             <ul className="m-0 grid list-none gap-3 p-0">
               {abilities.cards.map((card, index) => (
@@ -413,14 +410,6 @@ export default async function HeroPage({ params }: Props) {
               gioco.
               {abilities.textsInEnglish ? (
                 <> I testi restano in inglese — il client ne ha solo i modelli, senza i valori.</>
-              ) : null}
-              {abilities.spritesDeduced ? (
-                <>
-                  {" "}
-                  Le due illustrazioni sono sue di sicuro, ma <strong>quale sia di quale carta
-                  è dedotto</strong> dall’ordine dei file, non dichiarato da una fonte: la regola
-                  è esatta in cinque casi su sei.
-                </>
               ) : null}
             </p>
           </section>
@@ -828,6 +817,39 @@ function EffectTag({ effect, rank }: { effect: HeroEffect; rank?: string }) {
 }
 
 /**
+ * Come si sa che un'illustrazione e' di quella carta.
+ *
+ * In pagina la parola breve, al passaggio del puntatore la regola con la sua
+ * misura: le misure sono contro gli accostamenti che il wiki dichiara.
+ */
+const FONTE_SPRITE: Readonly<Record<string, { breve: string; spiega: string }>> = {
+  wiki: {
+    breve: "dal wiki",
+    spiega: "Il wiki di community cita il file dell'illustrazione accanto a questa carta.",
+  },
+  manuale: {
+    breve: "verificata a mano",
+    spiega:
+      "Scelta a mano confrontando le carte del gioco. Dove il wiki la dichiara anche, coincide 25 volte su 25.",
+  },
+  cartella_propria: {
+    breve: "dedotta",
+    spiega:
+      "L'eroe è l'unico della sua cartella di carte: le prime due, ordinate per id d'abilità. Esatta 53 volte su 53 sulle carte che il wiki dichiara.",
+  },
+  ordine_uscita: {
+    breve: "dedotta",
+    spiega:
+      "Le versioni del personaggio, in ordine di uscita, prendono le carte a coppie. Esatta 55 volte su 57 sulle carte che il wiki dichiara.",
+  },
+  famiglia: {
+    breve: "dedotta",
+    spiega:
+      "Le versioni di un personaggio condividono la carta dell'ultimate. Esatta 139 volte su 145 sulle ultimate che il wiki dichiara.",
+  },
+};
+
+/**
  * Le classi dei sei ranghi, scritte per esteso una per una.
  *
  * Sembra ripetizione ed e' invece l'unico modo che funziona: Tailwind legge il
@@ -1069,6 +1091,11 @@ function CardRow({
           {card.name}
           {card.slot === "A" || card.slot === "B" ? (
             <span className="ml-2 text-ink-3">carta {card.slot}</span>
+          ) : null}
+          {art && card.spriteSource ? (
+            <span className="ml-2 text-ink-3" title={FONTE_SPRITE[card.spriteSource]?.spiega}>
+              · illustrazione {FONTE_SPRITE[card.spriteSource]?.breve ?? card.spriteSource}
+            </span>
           ) : null}
         </p>
 

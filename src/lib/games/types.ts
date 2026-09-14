@@ -164,16 +164,24 @@ export interface HeroCard {
   /** quale carta e': "A", "B", "ultimate", "coop" */
   slot?: string;
   /**
-   * Quale sprite le corrisponde, numerato da 1.
+   * Quale sprite le corrisponde, numerato da 1: `carte/<id>/<n>.png`.
    *
-   * Opzionale perche' l'accostamento fra l'immagine di una carta e il suo testo
-   * non si ricava: il numero nel nome dello sprite non ha relazione con l'id
-   * dell'abilita' (1 caso su 232 misurati), e la regola "la carta A ha il
-   * numero piu' basso" regge 92 volte su 110. C'e' solo dove una fonte lo
-   * dichiara, e dove manca la carta si mostra senza immagine invece di
-   * accostarne una a caso.
+   * Il legame fra carta e immagine non sta nel client: lo decide la pipeline
+   * (accosta_carte.py) e `spriteSource` dice come. L'ultimate non ha il
+   * numero, il suo file e' `ultimate/<id>.png` e c'e' quando c'e'
+   * `HeroAssets.ultimate`.
    */
   sprite?: number;
+  /**
+   * Come si sa che l'illustrazione e' di questa carta.
+   *
+   * "wiki" la dichiara il wiki; "manuale" e' scelta a mano guardando le carte;
+   * le altre sono regole misurate contro il wiki: "cartella_propria" (53/53),
+   * "ordine_uscita" (55/57), "famiglia" per l'ultimate (139/145). Arriva fino
+   * in pagina perche' un accostamento dedotto e uno dichiarato non offrono la
+   * stessa garanzia.
+   */
+  spriteSource?: string;
   ranks: readonly { rank: number; text: string }[];
 }
 
@@ -205,20 +213,6 @@ export interface HeroAbilities {
    * l'ha tradotto, quindi le due cose vanno dichiarate separate.
    */
   textsInEnglish?: boolean;
-  /**
-   * Lo sprite accanto alle carte e' DEDOTTO, non dichiarato da una fonte.
-   *
-   * Vale per gli eroi la cui cartella contiene esattamente due illustrazioni:
-   * sono per forza le sue due carte, e l'unica cosa da indovinare e' quale sia
-   * la A. La regola "indice piu' basso = carta A", misurata sui casi che il
-   * wiki conferma, e' esatta 27 volte su 32 - l'84% - quindi circa un eroe su
-   * sei avra' le due immagini invertite.
-   *
-   * E' un campo a parte e non un dettaglio dello sprite perche' chi legge ha
-   * diritto di sapere che li' sta guardando una deduzione: un accostamento
-   * probabile dichiarato vale, uno spacciato per certo no.
-   */
-  spritesDeduced?: boolean;
 }
 
 /**
