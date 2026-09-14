@@ -70,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div id="contenuto">{children}</div>
 
         <footer className="border-t-2 border-ink bg-paper-2 pt-7 pb-10 text-xs text-ink-3">
-          <div className="mx-auto w-full max-w-[1200px] px-6">
+          <div className="mx-auto w-full max-w-shell px-6">
             <nav aria-label="Collegamenti del sito" className="mb-4 flex flex-wrap gap-4">
               {FOOTER_LINKS.map((link) => (
                 <Link key={link.href} href={link.href} className="font-medium hover:text-brand">

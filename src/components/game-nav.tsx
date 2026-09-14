@@ -18,7 +18,7 @@ export function GameSwitcher({ game }: { game: string }) {
     <div className="border-b border-rule bg-paper-2">
       <nav
         aria-label="Gioco"
-        className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-1 px-6 py-2"
+        className="mx-auto flex w-full max-w-shell flex-wrap items-center gap-1 px-6 py-2"
       >
         {games.map((entry) =>
           entry.available ? (

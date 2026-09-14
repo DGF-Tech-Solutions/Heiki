@@ -54,6 +54,19 @@
   --font-mono: var(--font-dm-mono), ui-monospace, "SFMono-Regular", monospace;
 
   --radius-card: 3px;
+
+  /*
+   * Larghezza del guscio: intestazione, barra dei giochi, banner, pie' di
+   * pagina e la sezione di un gioco stanno tutti dentro questa misura, e devono
+   * restare allineati fra loro. Era 1200px scritto a mano in cinque punti, con
+   * l'effetto che su uno schermo largo il sito viveva in una colonna centrale
+   * stretta e la barra laterale galleggiava lontano dal bordo.
+   *
+   * E' un numero solo: alzarlo o abbassarlo si fa qui. Le pagine di sola
+   * lettura - legale, ricerca, impostazioni - NON lo usano di proposito: li' la
+   * riga lunga si legge peggio, e la misura giusta e' un'altra.
+   */
+  --container-shell: 1560px;
 }
 
 @layer base {

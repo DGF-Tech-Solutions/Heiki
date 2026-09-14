@@ -27,7 +27,13 @@ export default async function GameLayout({
     <>
       <GameSwitcher game={game} />
 
-      <div className="mx-auto grid w-full max-w-[1200px] items-start gap-8 px-6 lg:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
+      {/*
+        La barra laterale sale da 180 a 210px e il guscio si allarga: dentro
+        1200px centrati, su un monitor largo, restavano due fasce vuote ai lati
+        e la barra sembrava staccata dal bordo. Lo spazio recuperato va tutto
+        al contenuto, che qui sono griglie di card e schede fitte di dati.
+      */}
+      <div className="mx-auto grid w-full max-w-shell items-start gap-9 px-6 lg:grid-cols-[minmax(0,210px)_minmax(0,1fr)]">
         <aside className="hidden pt-6 lg:sticky lg:top-[110px] lg:block">
           <GameSidebar game={game} groups={gameGroups(game)} />
         </aside>

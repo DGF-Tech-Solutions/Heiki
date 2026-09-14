@@ -16,7 +16,7 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b-2 border-ink bg-paper">
-      <div className="mx-auto flex h-[58px] w-full max-w-[1200px] items-center gap-6 px-6">
+      <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-6 px-6">
         <Link
           href="/"
           className="whitespace-nowrap font-display text-xl font-extrabold uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_78]"
