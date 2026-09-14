@@ -3,43 +3,51 @@
 /*
  * Sistema visivo GachaZone.
  *
- * Direzione: chiaro ed editoriale, densita' alta, un solo accento. E' il
- * linguaggio dei siti che in questa nicchia funzionano davvero: si legge su
- * qualsiasi schermo, sopporta molta informazione per schermata ed e' quello che
- * i motori di ricerca indicizzano meglio.
+ * Direzione: SCURO ed editoriale, densita' alta, un solo accento. Il fondo
+ * scuro non e' una moda: e' il fondo per cui il gioco ha scelto i propri
+ * colori, e questo sito ne mostra in continuazione - le tinte delle abilita',
+ * le icone dei filtri, le card, le illustrazioni, tutte ritagliate su nero.
+ * Su carta bianca andavano adattate una per una; qui tornano come sono.
  *
- * L'energia non arriva dal fondo scuro ma da tre cose:
+ * L'energia arriva da tre cose, e restano quelle:
  *  - blocchi di colore pieno invece di testo colorato
  *  - titoli pesanti, stretti e maiuscoli, da copertina sportiva
  *  - i numeri sempre in monospaziato, mai annegati nella prosa
  *
  * L'accento e' un viola elettrico: e' il colore della rarita' nei gacha, quindi
- * il pubblico lo riconosce, e non e' il blu da software gestionale.
+ * il pubblico lo riconosce, e non e' il blu da software gestionale. Sul fondo
+ * scuro e' schiarito, perche' il viola profondo su nero si spegne.
+ *
+ * I nomi dei token NON dicono il colore, dicono il RUOLO: `paper` e' il fondo,
+ * `ink` il testo, `rule` il bordo. E' per questo che ribaltare il tema si fa
+ * qui dentro e nient'altro va toccato - nessun componente sa di che colore sia
+ * la carta. L'unico posto che lo sapeva davvero e' game-color.ts, che adatta i
+ * colori del GIOCO, e ha dovuto ribaltare la propria regola insieme a questa.
  *
  * Qui dentro ci sono SOLO i token e le poche regole che le utility non possono
  * esprimere. Tutto il resto vive nei componenti, in classi Tailwind.
  */
 
 @theme {
-  --color-paper: #ffffff;
-  --color-paper-2: #f4f5f8;
-  --color-paper-3: #e9ebf1;
+  --color-paper: #0f1117;
+  --color-paper-2: #171a22;
+  --color-paper-3: #232733;
 
-  --color-ink: #14161c;
-  --color-ink-2: #474d5b;
-  --color-ink-3: #767d8e;
+  --color-ink: #f2f4f8;
+  --color-ink-2: #b4bbca;
+  --color-ink-3: #838b9c;
 
-  --color-rule: #dfe2e9;
-  --color-rule-2: #eef0f4;
+  --color-rule: #2b3140;
+  --color-rule-2: #1e222c;
 
-  --color-brand: #6425ff;
-  --color-brand-deep: #4a15cc;
-  --color-brand-soft: #f0eaff;
+  --color-brand: #8b5cff;
+  --color-brand-deep: #6425ff;
+  --color-brand-soft: #241a45;
 
-  --color-hot: #ff2d6f;
-  --color-hot-soft: #fff0f4;
-  --color-gold: #d08700;
-  --color-gold-soft: #fff7e3;
+  --color-hot: #ff5c8a;
+  --color-hot-soft: #3a1622;
+  --color-gold: #f0b429;
+  --color-gold-soft: #332608;
 
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-public), ui-sans-serif, system-ui, sans-serif;
@@ -50,7 +58,7 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
     /* Accento del profilo: sovrascritto per utente dai cosmetici scelti. */
     --accent: var(--color-brand);
   }
