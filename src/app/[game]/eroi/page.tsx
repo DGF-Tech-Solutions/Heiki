@@ -38,7 +38,7 @@ export default async function HeroesPage({ params, searchParams }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster } = requireGameModule(game);
+  const { roster, icons } = requireGameModule(game);
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -58,7 +58,7 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         </p>
       </header>
 
-      <RosterBrowser game={game} roster={roster} initialSearch={cerca ?? ""} />
+      <RosterBrowser game={game} roster={roster} icons={icons} initialSearch={cerca ?? ""} />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
         Immagini e nomi appartengono a {entry.publisher} e sono qui a scopo di consultazione.

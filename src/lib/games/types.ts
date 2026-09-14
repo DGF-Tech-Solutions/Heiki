@@ -81,6 +81,15 @@ export interface HeroAffinity {
   color: string;
   /** secondo colore, per i rari attributi doppi */
   colorAlt?: string;
+  /**
+   * Codice dell'icona del gioco, dove esiste.
+   *
+   * L'attributo doppio di Tristan non ce l'ha: il gioco non ha un
+   * `icon_filter_attribute_06`, e infatti non ha nemmeno una riga di testo che
+   * lo nomini. Per lui resta il quadrato a due colori, che il progetto disegna
+   * da se'.
+   */
+  iconKey?: string;
 }
 
 /**
@@ -225,6 +234,105 @@ export interface HeroStats {
 }
 
 /**
+ * Un'etichetta nelle due lingue del sito.
+ *
+ * Tutte e due sempre presenti come campo, anche quando una manca: la fonte e'
+ * il client, e la sua decifratura fallisce su righe diverse in lingue diverse -
+ * il nome italiano di una razza puo' esserci e mancare l'inglese, o viceversa.
+ * Scegliere qui quale mostrare butterebbe via l'altra, e il sito deve poter
+ * passare interamente in inglese senza rigenerare il dataset.
+ */
+export interface HeroLabel {
+  it: string | null;
+  en: string | null;
+}
+
+/**
+ * Un effetto del gioco, con la sua provenienza e quanto e' sicuro.
+ *
+ * `certainty` non e' un dettaglio interno ed e' per questo che arriva fino
+ * qui: "dichiarato" vuol dire che il gioco quella cosa la definisce da se' -
+ * nella nota dentro l'abilita', nel dizionario dei buff o nella tassonomia con
+ * cui filtra i propri effetti. "dedotto" vuol dire che il gioco NON la
+ * definisce da nessuna parte in chiaro e la corrispondenza e' stata stabilita
+ * dalla pipeline contro il vocabolario interno del client. Sono due garanzie
+ * diverse e chi legge ha diritto di distinguerle, come per gli sprite dedotti.
+ */
+export interface HeroEffect {
+  label: HeroLabel;
+  definition: HeroLabel;
+  /** da quale fonte del gioco viene, in chiaro */
+  source: string;
+  /** nota | buff | categoria | operazione | nota_per_eroe */
+  kind: string;
+  certainty: "dichiarato" | "dedotto";
+}
+
+/**
+ * Da dove parte un eroe e dove puo' arrivare.
+ *
+ * Sono due numeri diversi e vanno tenuti distinti: `obtainedAs` e' la rarita'
+ * con cui esce dal gacha, cioe' quanto costa ottenerlo; `max` e' il TETTO che
+ * puo' raggiungere. Un eroe che esce SSR e arriva a LR non e' un LR: lo
+ * diventa. Dirlo "LR" e basta - come faceva questa scheda - e' comodo e falso.
+ *
+ * Che `rating` sia il tetto e non la rarita' attuale lo dicono tre cose: l'enum
+ * RatingType del client (UR=6, LR=7), il campo DBHeroBaseRow.hero_lr_special
+ * che esiste come colonna, e le statistiche massime dei 32 eroi con rating=7,
+ * che sono quelle di un UR e non di un LR.
+ */
+export interface HeroRarityPath {
+  obtainedAs: string | null;
+  max: string | null;
+  canReachLr: boolean;
+}
+
+/** Cosa fa una carta, in effetti del gioco invece che in prosa inglese. */
+export interface HeroCardContext {
+  /** "A", "B", "ultimate", "passiva": la stessa sigla di HeroCard.slot */
+  slot: string;
+  /** chiavi del glossario valide per TUTTI i ranghi della carta */
+  effects: readonly string[];
+  /**
+   * Quello che compare solo a certi ranghi, col rango che lo introduce.
+   *
+   * Separato da `effects` perche' altrimenti la scheda direbbe che al rango 1
+   * la carta fa gia' quello che impara al rango 3.
+   */
+  onlyAtRanks?: Readonly<Record<string, readonly string[]>>;
+  /** razze e fazioni a cui l'effetto si applica, per codice */
+  appliesTo?: { races: readonly number[]; factions: readonly number[] };
+}
+
+/** Quello che si sa di un eroe oltre ai suoi testi. */
+export interface HeroContext {
+  rarity: HeroRarityPath;
+  attribute: number | null;
+  race: number | null;
+  factions: readonly number[];
+  cards: Readonly<Record<string, HeroCardContext>>;
+}
+
+/**
+ * Il contesto di tutti gli eroi, piu' i dizionari che serve per leggerlo.
+ *
+ * Una regola sola, applicata tre volte: cio' che vale per tutti si scrive una
+ * volta e gli eroi lo citano. Il glossario, i nomi dei codici e le fonti stanno
+ * qui; l'eroe porta chiavi e numeri. Ripetere {"it":"Demone","en":"Demon"}
+ * dentro 373 eroi costava 106 KB per dire sei cose.
+ */
+export interface HeroContextIndex {
+  readonly glossary: Readonly<Record<string, HeroEffect>>;
+  readonly codes: {
+    readonly race: Readonly<Record<string, HeroLabel>>;
+    readonly attribute: Readonly<Record<string, HeroLabel>>;
+    readonly faction: Readonly<Record<string, HeroLabel>>;
+  };
+  readonly sources: Readonly<Record<string, string>>;
+  readonly heroes: Readonly<Record<string, HeroContext>>;
+}
+
+/**
  * Roster sfogliabile di un gioco.
  *
  * Le sfaccettature sono dichiarate invece che dedotte dalle voci: l'ordine
@@ -316,6 +424,26 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * motore potra' usare per calibrarsi, mentre i testi no.
    */
   readonly heroStats?: Readonly<Record<string, HeroStats>>;
+
+  /**
+   * Cosa vuol dire quello che l'eroe fa: effetti spiegati con le parole del
+   * gioco, codici risolti, e fin dove puo' salire di rarita'.
+   *
+   * Separato dalle abilita' e non dentro di esse perche' ha una provenienza
+   * tutta sua - gli enum e i testi del CLIENT, non 7dshub - e perche' e' un
+   * indice: il glossario si legge una volta e vale per tutti gli eroi.
+   */
+  readonly heroContext?: HeroContextIndex;
+
+  /**
+   * Quali icone del gioco sono state estratte, per famiglia.
+   *
+   * Bandierine come heroAssets, e per lo stesso motivo: le immagini non sono
+   * versionate, quindi senza questo elenco chi clona il repo senza lanciare
+   * l'importazione vedrebbe un riquadro rotto su ogni scheda e su ogni filtro,
+   * invece di un'interfaccia che semplicemente mostra il testo.
+   */
+  readonly icons?: Readonly<Record<string, readonly string[]>>;
 
   /**
    * Converte una build salvata in un attore eseguibile dal motore.

@@ -19,9 +19,11 @@ import { cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
 import {
   countHeroes,
   filterHeroes,
+  gameIconSrc,
   heroCardSrc,
   sortHeroes,
   type HeroOrder,
+  type IconFamily,
 } from "@/lib/games/heroes";
 import type { HeroAffinity, HeroEntry, HeroRoster } from "@/lib/games/types";
 
@@ -34,10 +36,18 @@ const ORDERS: readonly { id: HeroOrder; label: string }[] = [
 export function RosterBrowser({
   game,
   roster,
+  icons,
   initialSearch = "",
 }: {
   game: string;
   roster: HeroRoster;
+  /**
+   * Quali icone del gioco esistono. Sono le stesse che il gioco usa nei propri
+   * filtri - si chiamano proprio `icon_filter_*` - quindi qui tornano al posto
+   * per cui erano nate. Se mancano (repo clonato senza asset) i pulsanti
+   * restano testuali invece di mostrare riquadri rotti.
+   */
+  icons?: Readonly<Record<string, readonly string[]>>;
   /**
    * Ricerca gia' impostata all'arrivo.
    *
@@ -83,6 +93,10 @@ export function RosterBrowser({
   );
 
   const filtered = rarity !== null || affinity !== null || obtainable !== null || search !== "";
+
+  /** L'icona del gioco per un valore, solo se e' stata estratta. */
+  const iconFor = (family: IconFamily, key: string | undefined) =>
+    key && icons?.[family]?.includes(key) ? gameIconSrc(game, family, key) : undefined;
 
   function reset() {
     setSearch("");
@@ -130,6 +144,7 @@ export function RosterBrowser({
               active={rarity === value}
               onClick={() => setRarity(rarity === value ? null : value)}
               label={value}
+              iconSrc={iconFor("rarita", value)}
               count={rarityCounts.get(value) ?? 0}
             />
           ))}
@@ -143,6 +158,7 @@ export function RosterBrowser({
               active={affinity === item.id}
               onClick={() => setAffinity(affinity === item.id ? null : item.id)}
               label={item.label}
+              iconSrc={iconFor("attributo", item.iconKey)}
               count={affinityCounts.get(item.id) ?? 0}
               swatch={item}
             />
@@ -157,6 +173,7 @@ export function RosterBrowser({
               active={obtainable === value}
               onClick={() => setObtainable(obtainable === value ? null : value)}
               label={value}
+              iconSrc={iconFor("rarita", value)}
               count={obtainableCounts.get(value) ?? 0}
             />
           ))}
@@ -282,13 +299,24 @@ function Chip({
   label,
   count,
   swatch,
+  iconSrc,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
   count?: number;
-  /** quadrato del colore dell'attributo: si riconosce prima del testo */
+  /** quadrato del colore dell'attributo: il ripiego dove il gioco non da' l'icona */
   swatch?: HeroAffinity;
+  /**
+   * L'icona del gioco. Quando c'e' prende il posto della scritta, non le si
+   * affianca: sono le stesse icone che il gioco mette sui propri filtri, e una
+   * fila di pulsanti si scorre a colpo d'occhio.
+   *
+   * La parola non sparisce davvero: resta nell'`alt`, nel `title` e
+   * nell'`aria-label` del pulsante, quindi il filtro si legge col mouse fermo
+   * e funziona con un lettore di schermo.
+   */
+  iconSrc?: string;
 }) {
   const empty = count === 0;
 
@@ -298,27 +326,40 @@ function Chip({
       onClick={onClick}
       disabled={empty}
       aria-pressed={active}
+      aria-label={iconSrc ? label : undefined}
+      title={iconSrc ? label : undefined}
       className={cx(
-        "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-card border px-2.5",
+        // h-9 e non h-7: i pulsanti dei filtri portano le icone del gioco, e a
+        // 22px in un pulsante da 28 non respiravano. L'altezza e' la stessa per
+        // tutti - anche per "Tutte" e per la riga Ordina, che di icona non ne
+        // hanno - perche' pulsanti di altezze diverse nella stessa fila si
+        // leggono come due gruppi diversi.
+        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-card border px-2.5",
         "text-[12px] transition-colors disabled:cursor-not-allowed disabled:opacity-35",
         active
           ? "border-brand bg-brand-soft font-semibold text-ink"
           : "border-rule bg-paper text-ink-2 hover:border-ink-3 hover:text-ink",
       )}
     >
-      {swatch ? (
-        <span
-          aria-hidden
-          className="h-2.5 w-2.5 shrink-0 rounded-[1px]"
-          style={{
-            background: swatch.colorAlt
-              ? `linear-gradient(135deg, ${swatch.color} 50%, ${swatch.colorAlt} 50%)`
-              : swatch.color,
-          }}
-        />
-      ) : null}
-
-      {label}
+      {iconSrc ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={iconSrc} alt={label} width={22} height={22} className="block h-[22px] w-auto" />
+      ) : (
+        <>
+          {swatch ? (
+            <span
+              aria-hidden
+              className="h-2.5 w-2.5 shrink-0 rounded-[1px]"
+              style={{
+                background: swatch.colorAlt
+                  ? `linear-gradient(135deg, ${swatch.color} 50%, ${swatch.colorAlt} 50%)`
+                  : swatch.color,
+              }}
+            />
+          ) : null}
+          {label}
+        </>
+      )}
 
       {count === undefined ? null : (
         <span className={cx(numeric, "text-[10px] text-ink-3")}>{count}</span>

@@ -33,6 +33,8 @@ const DEST_TEXTS = resolve(ROOT, "src/lib/games", GAME, "hero-texts.generated.ts
 const DEST_ASSETS = resolve(ROOT, "src/lib/games", GAME, "hero-assets.generated.ts");
 const DEST_ABILITIES = resolve(ROOT, "src/lib/games", GAME, "hero-abilities.generated.ts");
 const DEST_STATS = resolve(ROOT, "src/lib/games", GAME, "hero-stats.generated.ts");
+const DEST_CONTEXT = resolve(ROOT, "src/lib/games", GAME, "hero-context.generated.ts");
+const DEST_ICONS = resolve(ROOT, "src/lib/games", GAME, "game-icons.generated.ts");
 
 /** Forma delle voci in eroi.json, come le scrive la pipeline. */
 interface SourceHero {
@@ -556,6 +558,163 @@ ${statRows.join("\n")}
   console.log(`  statistiche: ${withStats}/${heroes.length} eroi`);
 }
 
+/* ------------------------------------------------------------ contesto -- */
+
+/**
+ * Cosa vuol dire quello che ogni eroe fa.
+ *
+ * Lo produce `python contesto_eroi.py`, che legge gli ENUM del client
+ * (TeamUnitData.Kind, .Attribute, .JobGroup, RatingType, SkillEffectEnum) e i
+ * testi con cui il gioco spiega i propri effetti: le note dentro le abilita',
+ * il dizionario dei buff, la tassonomia con cui filtra le abilita'.
+ *
+ * Il file di partenza e' gia' magro per costruzione: glossario, nomi dei codici
+ * e fonti stanno scritti una volta sola, e ogni eroe porta chiavi e numeri.
+ * Qui non si ricompatta niente, si traducono solo i nomi dei campi.
+ */
+interface SourceLabel {
+  it: string | null;
+  en: string | null;
+}
+
+interface SourceContext {
+  fonti: Record<string, string>;
+  codici: { razza: Record<string, SourceLabel>; attributo: Record<string, SourceLabel>;
+    fazione: Record<string, SourceLabel> };
+  glossario: Record<string, {
+    etichetta: SourceLabel; definizione: SourceLabel;
+    fonte: string; tipo: string; certezza: string;
+  }>;
+  eroi: Record<string, {
+    rarita: { ottenibile_come: string | null; massima: string | null;
+      puo_diventare_lr: boolean };
+    attributo: number | null;
+    razza: number | null;
+    fazioni: number[];
+    abilita: Record<string, {
+      tipo: string; effetti: string[];
+      solo_a_certi_ranghi?: Record<string, string[]>;
+      applicabile_a?: { razze: number[]; fazioni: number[] };
+    }>;
+  }>;
+}
+
+const contextJson = resolve(SOURCE, "eroi/contesto_sito.json");
+
+if (!existsSync(contextJson)) {
+  console.log(`  contesto_sito.json non trovato: salto il contesto degli effetti.`);
+  console.log(`  (si genera con: python contesto_eroi.py, dentro _7dsgc)`);
+} else {
+  const ctx = JSON.parse(readFileSync(contextJson, "utf8")) as SourceContext;
+
+  const glossaryRows = Object.entries(ctx.glossario).map(
+    ([key, v]) =>
+      `  ${JSON.stringify(key)}: ${JSON.stringify({
+        label: v.etichetta,
+        definition: v.definizione,
+        source: v.fonte,
+        kind: v.tipo,
+        certainty: v.certezza,
+      })},`,
+  );
+
+  let withLr = 0;
+  let withEffects = 0;
+  const heroRows: string[] = [];
+
+  for (const hero of heroes) {
+    const hid = String(hero.heroId);
+    const voce = ctx.eroi[hid];
+    if (!voce) continue;
+
+    const cards: Record<string, unknown> = {};
+    for (const [slot, carta] of Object.entries(voce.abilita)) {
+      const card: Record<string, unknown> = { slot, effects: carta.effetti };
+      if (carta.solo_a_certi_ranghi) card["onlyAtRanks"] = carta.solo_a_certi_ranghi;
+      if (carta.applicabile_a) {
+        card["appliesTo"] = {
+          races: carta.applicabile_a.razze,
+          factions: carta.applicabile_a.fazioni,
+        };
+      }
+      cards[slot] = card;
+    }
+
+    if (voce.rarita.puo_diventare_lr) withLr++;
+    if (Object.values(cards).length > 0) withEffects++;
+
+    heroRows.push(
+      `  ${JSON.stringify(hid)}: ${JSON.stringify({
+        rarity: {
+          obtainedAs: voce.rarita.ottenibile_come,
+          max: voce.rarita.massima,
+          canReachLr: voce.rarita.puo_diventare_lr,
+        },
+        attribute: voce.attributo,
+        race: voce.razza,
+        factions: voce.fazioni,
+        cards,
+      })},`,
+    );
+  }
+
+  const generatedContext = `/**
+ * Cosa vuol dire quello che ogni eroe fa.
+ *
+ * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
+ *
+ * FONTE: il CLIENT, non 7dshub. Gli enum del gioco (TeamUnitData.Kind,
+ * .Attribute, .JobGroup, RatingType) danno il significato dei codici; le note
+ * che il gioco si scrive dentro le abilita', il suo dizionario dei buff e la
+ * tassonomia con cui filtra gli effetti danno le definizioni. Nessuna tabella
+ * di traduzione scritta a mano: se il gioco aggiunge una fazione, compare.
+ *
+ * DUE GARANZIE DIVERSE, e la differenza resta visibile in pagina:
+ *   dichiarato   il gioco quell'effetto lo definisce da se'
+ *   dedotto      il gioco non lo definisce da nessuna parte in chiaro, e la
+ *                corrispondenza viene dal suo vocabolario interno
+ *                (SkillEffectEnum). Sono ${
+                   Object.values(ctx.glossario).filter((v) => v.certezza === "dedotto").length
+                 } voci su ${Object.keys(ctx.glossario).length}.
+ *
+ * Le etichette sono BILINGUI anche dove oggi il sito mostra solo l'italiano:
+ * la decifratura del client fallisce su righe diverse in lingue diverse, e
+ * scegliere qui butterebbe via l'unica versione buona di un'etichetta.
+ */
+
+import type { HeroContext, HeroContextIndex, HeroEffect, HeroLabel } from "../types";
+
+const GLOSSARY: Readonly<Record<string, HeroEffect>> = {
+${glossaryRows.join("\n")}
+};
+
+const RACE: Readonly<Record<string, HeroLabel>> = ${JSON.stringify(ctx.codici.razza)};
+const ATTRIBUTE: Readonly<Record<string, HeroLabel>> = ${JSON.stringify(ctx.codici.attributo)};
+const FACTION: Readonly<Record<string, HeroLabel>> = ${JSON.stringify(ctx.codici.fazione)};
+
+const HEROES: Readonly<Record<string, HeroContext>> = {
+${heroRows.join("\n")}
+};
+
+export const HERO_CONTEXT: HeroContextIndex = {
+  glossary: GLOSSARY,
+  codes: { race: RACE, attribute: ATTRIBUTE, faction: FACTION },
+  sources: ${JSON.stringify(ctx.fonti)},
+  heroes: HEROES,
+};
+`;
+
+  writeFileSync(DEST_CONTEXT, generatedContext, "utf8");
+  console.log(
+    `  contesto: ${heroRows.length}/${heroes.length} eroi, ${withEffects} con effetti, ` +
+      `${withLr} che possono arrivare a LR`,
+  );
+  console.log(
+    `  glossario: ${glossaryRows.length} voci, ` +
+      `${Object.values(ctx.glossario).filter((v) => v.etichetta.it).length} con etichetta italiana`,
+  );
+}
+
 /* --------------------------------------------------------------- asset -- */
 
 /**
@@ -693,6 +852,99 @@ ${rows.join("\n")}
     `  ${copied.splash} illustrazioni, ${copied.abilita} icone abilita', ` +
       `${copied.carte} carte d'attacco copiate ` +
       `(${rows.length}/${heroes.length} eroi con almeno un asset)`,
+  );
+}
+
+/* --------------------------------------------------------------- icone -- */
+
+/**
+ * Le icone con cui il GIOCO etichetta rarita', attributo e razza.
+ *
+ * Sono le stesse che usa nei propri filtri - si chiamano `icon_filter_grade_LR`,
+ * `icon_filter_attribute_01`, `icon_filter_kind_01` - quindi il numero nel nome
+ * e' gia' il codice che il dataset porta: nessun accostamento da indovinare.
+ *
+ * Le FAZIONI non ci sono, e non e' un buco dell'estrazione: cercate su ogni
+ * pista plausibile (la famiglia icon_filter_*, icon_job, icon_group,
+ * icon_category, hero_category, characteristic, emblem, e i nomi delle nove
+ * fazioni) danno zero. Il gioco non filtra per fazione, quindi non ha l'icona.
+ *
+ * Nemmeno i singoli EFFETTI ce l'hanno, e qui il numero e' netto: delle 533
+ * icone `icon_buff_*` solo 17 hanno lo stesso nome di una voce del glossario, e
+ * coprono 22 accostamenti su 1.690 - l'1%. Il legame vero e' la colonna
+ * `DBSkillCardBuffRow.icon`, che sta nelle tabelle cifrate: senza quella,
+ * mettere un'icona accanto a un effetto vorrebbe dire indovinarla.
+ */
+const ICON_SOURCE = resolve(SOURCE, "7dsgc_estratti/m/Texture2D");
+
+const ICONS: readonly { family: string; key: string; file: string }[] = [
+  ...[1, 2, 3, 4, 5, 6].map((n) => ({
+    family: "razza",
+    key: String(n),
+    file: `icon_filter_kind_0${n}_58x59.png`,
+  })),
+  ...[1, 2, 3, 4, 5].map((n) => ({
+    family: "attributo",
+    key: String(n),
+    file: `icon_filter_attribute_0${n}_50x50.png`,
+  })),
+  ...["R", "SR", "SSR", "UR", "LR"].map((grade) => ({
+    family: "rarita",
+    key: grade,
+    file: `icon_filter_grade_${grade}_60x60.png`,
+  })),
+];
+
+{
+  const found: Record<string, string[]> = {};
+  let copiedIcons = 0;
+  const missing: string[] = [];
+
+  for (const icon of ICONS) {
+    const from = resolve(ICON_SOURCE, icon.file);
+    if (!existsSync(from)) {
+      missing.push(icon.file);
+      continue;
+    }
+    const dir = resolve(DEST_IMAGES, "icone", icon.family);
+    mkdirSync(dir, { recursive: true });
+    if (copyIfNewer(from, resolve(dir, `${icon.key}.png`))) copiedIcons++;
+    const keys = found[icon.family];
+    if (keys === undefined) found[icon.family] = [icon.key];
+    else keys.push(icon.key);
+  }
+
+  const iconRows = Object.entries(found).map(
+    ([family, keys]) => `  ${JSON.stringify(family)}: ${JSON.stringify(keys)},`,
+  );
+
+  writeFileSync(
+    DEST_ICONS,
+    `/**
+ * Quali icone del gioco sono state estratte.
+ *
+ * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
+ *
+ * Le icone stesse stanno in public/eroi/${GAME}/icone/ e NON sono versionate:
+ * sono grafica di Netmarble, e si rimettono con \`npm run eroi:import\`. Questo
+ * elenco serve a non mostrare un riquadro rotto a chi clona senza gli asset.
+ *
+ * La chiave e' il codice del gioco - 1-6 per la razza, 1-5 per l'attributo, la
+ * sigla per la rarita' - perche' e' gia' il numero scritto nel nome del file
+ * originale. Le fazioni non compaiono: il gioco non ha un'icona per loro.
+ */
+
+export const GAME_ICONS: Readonly<Record<string, readonly string[]>> = {
+${iconRows.join("\n")}
+};
+`,
+    "utf8",
+  );
+
+  console.log(
+    `  icone del gioco: ${copiedIcons} copiate, ` +
+      `${ICONS.length - missing.length}/${ICONS.length} disponibili` +
+      (missing.length > 0 ? ` (mancano: ${missing.join(", ")})` : ""),
   );
 }
 

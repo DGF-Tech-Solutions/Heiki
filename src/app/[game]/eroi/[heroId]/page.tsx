@@ -7,13 +7,23 @@ import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { plainHeroText } from "@/lib/games/hero-markup";
 import {
+  gameIconSrc,
   heroCardArtSrc,
   heroCardSrc,
   heroSkillIconSrc,
   heroSplashSrc,
+  type IconFamily,
 } from "@/lib/games/heroes";
 import { requireGameModule } from "@/lib/games/registry";
-import type { HeroAffinity, HeroCard, HeroEntry, HeroStats } from "@/lib/games/types";
+import type {
+  HeroAffinity,
+  HeroCard,
+  HeroCardContext,
+  HeroEffect,
+  HeroEntry,
+  HeroLabel,
+  HeroStats,
+} from "@/lib/games/types";
 
 /**
  * Scheda del singolo eroe.
@@ -55,6 +65,12 @@ function lookup(game: string, heroId: string) {
     assets: gameModule.heroAssets?.[heroId],
     abilities: gameModule.heroAbilities?.[heroId],
     stats: gameModule.heroStats?.[heroId],
+    // Due cose e non una: il glossario vale per tutti gli eroi e si legge una
+    // volta, il contesto e' di questo eroe soltanto.
+    glossary: gameModule.heroContext?.glossary,
+    codes: gameModule.heroContext?.codes,
+    icons: gameModule.icons,
+    context: gameModule.heroContext?.heroes[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
   };
 }
@@ -81,7 +97,25 @@ export default async function HeroPage({ params }: Props) {
   const found = lookup(game, heroId);
   if (!found) notFound();
 
-  const { entry, roster, hero, text, assets, abilities, stats, affinity } = found;
+  const { entry, roster, hero, text, assets, abilities, stats, affinity, glossary, codes, context, icons } =
+    found;
+
+  /**
+   * Razza e fazioni, coi nomi che il gioco da' ai propri codici.
+   *
+   * Sono i due assi su cui il gioco costruisce le sinergie di squadra - una
+   * passiva che aiuta "gli alleati Umani" o "[Ragnarok]" parla di questi - e
+   * fino a ora la scheda non li mostrava affatto.
+   *
+   * Dove il client non consegna il nome in nessuna delle due lingue si TACE:
+   * "razza 5" non dice niente a nessuno, e inventare "Dea" perche' l'enum si
+   * chiama GODDESS sarebbe una traduzione nostra spacciata per dato del gioco.
+   */
+  const label = (value: HeroLabel | undefined) => value?.it ?? value?.en ?? null;
+  const raceLabel = context?.race != null ? label(codes?.race[String(context.race)]) : null;
+  const factionLabels = (context?.factions ?? [])
+    .map((code) => label(codes?.faction[String(code)]))
+    .filter((value): value is string => value !== null);
 
   // Quante carte mostrare quando NON c'e' il database delle abilita': e' il
   // ripiego per un modulo che abbia gli sprite e non ancora i testi. Con il
@@ -125,9 +159,71 @@ export default async function HeroPage({ params }: Props) {
             <h1 className={cx(display, "mt-2 text-[clamp(24px,3.4vw,34px)]")}>{hero.name}</h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Tag tone={hero.rarity === "LR" ? "gold" : "brand"}>{hero.rarity}</Tag>
-              <AffinityTag affinity={affinity} fallback={hero.affinity} />
-              <Tag>esce come {hero.obtainedAs}</Tag>
+              {/*
+                "LR" da solo era comodo e falso. Il numero da cui viene - il
+                `rating` del gioco - e' il TETTO che l'eroe puo' raggiungere,
+                non la rarita' che ha adesso: un eroe che esce SSR e arriva a LR
+                non e' un LR, lo diventa. Lo dicono l'enum RatingType del client
+                (UR=6, LR=7), la colonna hero_lr_special che esiste, e le
+                statistiche massime dei 32 eroi con rating 7, che sono quelle di
+                un UR. Qui si scrive quello che il dato dice davvero.
+              */}
+              {/*
+                L'attributo con l'icona del gioco al posto della pastiglia
+                colorata: chi gioca la riconosce prima di leggere. Tristan no -
+                il gioco non ha un'icona per l'attributo doppio - e per lui
+                resta il quadrato bicolore, che il progetto disegna da se'.
+              */}
+              {affinity?.iconKey && hasIcon(icons, "attributo", affinity.iconKey) ? (
+                <GameIcon
+                  game={game}
+                  family="attributo"
+                  iconKey={affinity.iconKey}
+                  label={affinity.label}
+                  size={34}
+                />
+              ) : (
+                <AffinityTag affinity={affinity} fallback={hero.affinity} />
+              )}
+
+              <RarityPath
+                game={game}
+                icons={icons}
+                from={hero.obtainedAs}
+                to={hero.rarity}
+                canReachLr={context?.rarity.canReachLr ?? false}
+              />
+
+              {/*
+                La razza tiene icona E testo: i sei simboli sono meno familiari
+                delle sigle di rarita', e da soli direbbero poco a chi arriva
+                da una ricerca senza conoscere il gioco.
+              */}
+              {raceLabel ? (
+                <Tag>
+                  {context?.race != null && hasIcon(icons, "razza", String(context.race)) ? (
+                    <GameIcon
+                      game={game}
+                      family="razza"
+                      iconKey={String(context.race)}
+                      label={raceLabel}
+                      size={20}
+                      className="mr-1.5 -ml-1 inline-block align-text-bottom"
+                    />
+                  ) : null}
+                  {raceLabel}
+                </Tag>
+              ) : null}
+
+              {/*
+                Le fazioni restano testo: il gioco non ha un'icona per loro.
+                Cercata su ogni pista - la famiglia icon_filter_*, icon_job,
+                icon_group, icon_category, hero_category, characteristic,
+                emblem e i nomi delle nove fazioni - zero risultati.
+              */}
+              {factionLabels.map((value) => (
+                <Tag key={value}>{value}</Tag>
+              ))}
               <Link
                 href={`/${game}/eroi?cerca=${encodeURIComponent(hero.group)}`}
                 className="text-[13px] text-ink-2 hover:text-brand"
@@ -238,7 +334,13 @@ export default async function HeroPage({ params }: Props) {
             <ul className="m-0 grid list-none gap-3 p-0">
               {abilities.cards.map((card, index) => (
                 <li key={index}>
-                  <CardRow game={game} heroId={hero.id} card={card} />
+                  <CardRow
+                    game={game}
+                    heroId={hero.id}
+                    card={card}
+                    context={card.slot ? context?.cards[card.slot] : undefined}
+                    glossary={glossary}
+                  />
                 </li>
               ))}
             </ul>
@@ -304,7 +406,7 @@ export default async function HeroPage({ params }: Props) {
             <Hits hits={assets?.hits} />
 
             <p className="mt-3 text-[13px] text-ink-3">
-              Quali carte ha l’eroe e cosa fanno a ogni rango viene da {abilities.source}: il
+              Quali carte ha l’eroe e cosa fanno a ogni rango vengono da una fonte esterna: il
               client tiene le descrizioni ma non il legame con l’eroe, che sta sul server del
               gioco.
               {abilities.textsInEnglish ? (
@@ -354,7 +456,13 @@ export default async function HeroPage({ params }: Props) {
         {abilities?.ultimate ? (
           <section className="mb-7">
             <h2 className={cx(eyebrow, "mb-2.5")}>Ultimate</h2>
-            <CardRow game={game} heroId={hero.id} card={abilities.ultimate} />
+            <CardRow
+              game={game}
+              heroId={hero.id}
+              card={abilities.ultimate}
+              context={context?.cards["ultimate"]}
+              glossary={glossary}
+            />
           </section>
         ) : null}
 
@@ -395,8 +503,8 @@ export default async function HeroPage({ params }: Props) {
                       omitNotes
                       className="text-sm leading-relaxed text-ink-2"
                     />
+                    <Effects context={context?.cards["passiva"]} glossary={glossary} />
                     <GameNotes texts={[abilities.passive.text]} className="mt-2.5" />
-                    <p className="m-0 mt-2 text-[12px] text-ink-3">Fonte: {abilities.source}</p>
                   </>
                 ) : (
                   <p className="m-0 text-sm text-ink-3">
@@ -439,6 +547,130 @@ export default async function HeroPage({ params }: Props) {
         Testi e immagini provengono dal client di {entry.name} e appartengono a {entry.publisher}.
       </p>
     </main>
+  );
+}
+
+/**
+ * Un'icona del gioco, se e' stata estratta.
+ *
+ * `icons` e' l'elenco di quelle disponibili, e senza questo controllo chi clona
+ * il repo senza lanciare `npm run eroi:import` vedrebbe un riquadro rotto su
+ * ogni scheda: le immagini sono asset di Netmarble e non sono versionate.
+ *
+ * L'`alt` porta il nome e non e' decorativo: qui l'icona SOSTITUISCE una
+ * parola, quindi senza di esso l'informazione sparirebbe per chi usa un lettore
+ * di schermo. Dove invece l'icona accompagna un testo gia' scritto - la razza -
+ * il chiamante passa la stessa parola e il `title` la ripete al passaggio del
+ * mouse.
+ */
+function hasIcon(
+  icons: Readonly<Record<string, readonly string[]>> | undefined,
+  family: IconFamily,
+  key: string,
+): boolean {
+  return icons?.[family]?.includes(key) ?? false;
+}
+
+function GameIcon({
+  game,
+  family,
+  iconKey,
+  label,
+  size,
+  className,
+}: {
+  game: string;
+  family: IconFamily;
+  iconKey: string;
+  label: string;
+  size: number;
+  className?: string;
+}) {
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={gameIconSrc(game, family, iconKey)}
+      alt={label}
+      title={label}
+      width={size}
+      height={size}
+      className={cx("inline-block", className)}
+      style={{ width: size, height: "auto" }}
+    />
+  );
+}
+
+/** La rarita': l'icona del gioco dove c'e', la sigla dove manca. */
+function Rarity({
+  game,
+  icons,
+  rarity,
+  size,
+}: {
+  game: string;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+  rarity: string;
+  size: number;
+}) {
+  if (!hasIcon(icons, "rarita", rarity)) {
+    return <Tag tone={rarity === "LR" ? "gold" : "brand"}>{rarity}</Tag>;
+  }
+  return <GameIcon game={game} family="rarita" iconKey={rarity} label={rarity} size={size} />;
+}
+
+/**
+ * Da dove parte l'eroe e dove puo' arrivare: due icone e una freccia.
+ *
+ * Le parole "esce come" e "arriva a" erano li' perche' due icone nude non
+ * dicono quale delle due sia la rarita' d'uscita e quale il tetto - ed e'
+ * esattamente l'affermazione che questa scheda prima sbagliava, dichiarando
+ * "LR" un eroe che LR puo' soltanto diventarlo. La freccia porta quella
+ * relazione meglio di quanto la portassero le parole, e in molto meno spazio.
+ *
+ * Il significato pero' non sparisce: resta nel `title`, che lo mostra col
+ * mouse fermo, e nell'`aria-label`, che lo detta a chi usa un lettore di
+ * schermo. Il `role="img"` fa leggere l'etichetta al posto del contenuto, cosi'
+ * le due sigle non vengono annunciate due volte.
+ *
+ * Quando partenza e tetto coincidono - 17 eroi escono UR e UR restano - la
+ * freccia sparisce insieme alla seconda icona: "UR -> UR" e' una relazione che
+ * non dice niente.
+ */
+function RarityPath({
+  game,
+  icons,
+  from,
+  to,
+  canReachLr,
+}: {
+  game: string;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+  from: string;
+  to: string;
+  canReachLr: boolean;
+}) {
+  const same = from === to;
+  const label = same
+    ? `rarità ${from}`
+    : `esce come ${from}, ${canReachLr ? "può arrivare a" : "arriva a"} ${to}`;
+
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className="inline-flex items-center gap-1.5"
+    >
+      <Rarity game={game} icons={icons} rarity={from} size={34} />
+      {same ? null : (
+        <>
+          <span aria-hidden className="text-[15px] leading-none text-ink-3">
+            →
+          </span>
+          <Rarity game={game} icons={icons} rarity={to} size={34} />
+        </>
+      )}
+    </span>
   );
 }
 
@@ -507,13 +739,104 @@ function Hits({ hits }: { hits: Readonly<Record<string, number>> | undefined }) 
 }
 
 /**
+ * Cosa fa una carta, detto con i termini del gioco.
+ *
+ * Il testo del rango e' inglese e pieno di meccaniche evidenziate che non si
+ * spiegano da sole. Qui ci sono le stesse meccaniche come termini, con la
+ * definizione che il GIOCO ne da': quelle che si scrive nelle note dentro
+ * l'abilita', il suo dizionario dei buff, la tassonomia con cui filtra gli
+ * effetti.
+ *
+ * Un termine DEDOTTO si vede che lo e'. Il gioco quelle operazioni - "Removes
+ * Buffs", "depletes" - non le definisce in nessun posto in chiaro, e
+ * l'accostamento viene dal vocabolario interno del client: e' una garanzia
+ * diversa da una definizione scritta, e chi legge ha diritto di distinguerle.
+ */
+function Effects({
+  context,
+  glossary,
+}: {
+  context: HeroCardContext | undefined;
+  glossary: Readonly<Record<string, HeroEffect>> | undefined;
+}) {
+  if (!context || !glossary) return null;
+
+  // Prima quelli di tutta la carta, poi quelli che compaiono salendo di rango.
+  // Tenerli separati evita di dire che al rango 1 la carta fa gia' quello che
+  // impara al 3.
+  const common = context.effects
+    .map((key) => glossary[key])
+    .filter((effect): effect is HeroEffect => effect !== undefined);
+
+  const later = Object.entries(context.onlyAtRanks ?? {}).flatMap(([rank, keys]) =>
+    keys
+      .map((key) => ({ rank, effect: glossary[key] }))
+      .filter((item): item is { rank: string; effect: HeroEffect } => item.effect !== undefined),
+  );
+
+  if (common.length === 0 && later.length === 0) return null;
+
+  return (
+    <ul className="m-0 mt-2.5 flex list-none flex-wrap gap-1.5 p-0">
+      {common.map((effect, index) => (
+        <EffectTag key={`c${index}`} effect={effect} />
+      ))}
+      {later.map((item, index) => (
+        <EffectTag key={`l${index}`} effect={item.effect} rank={item.rank} />
+      ))}
+    </ul>
+  );
+}
+
+function EffectTag({ effect, rank }: { effect: HeroEffect; rank?: string }) {
+  const label = effect.label.it ?? effect.label.en;
+  if (!label) return null;
+
+  const definition = effect.definition.it ?? effect.definition.en;
+  const dedotto = effect.certainty === "dedotto";
+
+  return (
+    <li
+      className={cx(
+        "inline-flex items-baseline gap-1 rounded-[2px] border px-1.5 py-0.5 text-[12px]",
+        dedotto ? "border-dashed border-rule-2 text-ink-3" : "border-rule text-ink-2",
+      )}
+      title={
+        // Il titolo porta la definizione del gioco e, quando serve, il fatto
+        // che l'accostamento sia dedotto. Non e' il posto ideale per una
+        // spiegazione, ma e' quello che non allunga la scheda di 30 righe.
+        [definition, dedotto ? "(accostamento dedotto dal vocabolario del client)" : null]
+          .filter(Boolean)
+          .join(" ") || undefined
+      }
+    >
+      {rank ? <span className={cx(numeric, "text-[10px] text-ink-3")}>R{rank}</span> : null}
+      <span>{label}</span>
+      {dedotto ? <span className="text-ink-3">?</span> : null}
+    </li>
+  );
+}
+
+/**
  * Una carta con i suoi ranghi.
  *
  * Lo sprite compare solo se `card.sprite` dice quale: senza, la colonna
  * dell'immagine sparisce e il testo si prende tutta la riga. Accostare uno
  * sprite qualsiasi riempirebbe meglio lo spazio e direbbe una cosa falsa.
  */
-function CardRow({ game, heroId, card }: { game: string; heroId: string; card: HeroCard }) {
+function CardRow({
+  game,
+  heroId,
+  card,
+  context,
+  glossary,
+}: {
+  game: string;
+  heroId: string;
+  card: HeroCard;
+  context?: HeroCardContext;
+  glossary?: Readonly<Record<string, HeroEffect>>;
+}) {
   const art = card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null;
 
   return (
@@ -565,6 +888,8 @@ function CardRow({ game, heroId, card }: { game: string; heroId: string; card: H
           stampare tre volte la stessa spiegazione sotto tre righe che
           differiscono per una percentuale.
         */}
+        <Effects context={context} glossary={glossary} />
+
         <GameNotes texts={card.ranks.map((rank) => rank.text)} className="mt-2.5" />
       </div>
     </div>
@@ -633,7 +958,7 @@ function Stats({ stats }: { stats: HeroStats | undefined }) {
       </div>
 
       <p className="mt-3 text-[13px] text-ink-3">
-        Da 7dshub.com: nel client non ci sono, le tiene il server del gioco.
+        Nel client non ci sono: le tiene il server del gioco.
       </p>
     </section>
   );

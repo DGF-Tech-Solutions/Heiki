@@ -19,12 +19,15 @@ import { HEROES } from "./heroes.generated";
  * I colori sono quelli con cui il gioco tinge le cornici, presi dagli asset.
  */
 export const AFFINITIES: readonly HeroAffinity[] = [
-  { id: "Forza", label: "Forza", color: "#E03B3B" },
-  { id: "PS", label: "PS", color: "#3FBF5F" },
-  { id: "Velocita", label: "Velocità", color: "#3B82E0" },
-  { id: "Luce", label: "Luce", color: "#E8C33A" },
-  { id: "Oscurita", label: "Oscurità", color: "#8B5CC7" },
-  // Un solo eroe lo possiede - Tristan - e ha due colori invece di uno.
+  // `iconKey` e' il codice di TeamUnitData.Attribute, che e' anche il numero
+  // nel nome dell'icona del gioco: RED=1 -> icon_filter_attribute_01.
+  { id: "Forza", label: "Forza", color: "#E03B3B", iconKey: "1" },
+  { id: "PS", label: "PS", color: "#3FBF5F", iconKey: "2" },
+  { id: "Velocita", label: "Velocità", color: "#3B82E0", iconKey: "3" },
+  { id: "Luce", label: "Luce", color: "#E8C33A", iconKey: "4" },
+  { id: "Oscurita", label: "Oscurità", color: "#8B5CC7", iconKey: "5" },
+  // Un solo eroe lo possiede - Tristan - e ha due colori invece di uno. Il
+  // gioco non gli da' un'icona: resta il quadrato bicolore.
   { id: "Luce/Oscurita", label: "Luce/Oscurità", color: "#C9A227", colorAlt: "#8B5CC7" },
 ];
 

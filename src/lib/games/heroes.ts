@@ -132,3 +132,23 @@ export function heroCardArtSrc(gameSlug: string, heroId: string, n: number): str
 export function heroSkillIconSrc(gameSlug: string, heroId: string): string {
   return `/eroi/${gameSlug}/abilita/${heroId}.png`;
 }
+
+/** Le famiglie di icone che il gioco usa per etichettare un eroe. */
+export type IconFamily = "razza" | "attributo" | "rarita";
+
+/**
+ * Icona del gioco per un valore: `public/eroi/<gioco>/icone/<famiglia>/<chiave>.png`.
+ *
+ * Sono le icone con cui il gioco stesso filtra il proprio roster - si chiamano
+ * `icon_filter_kind_01`, `icon_filter_attribute_01`, `icon_filter_grade_LR` -
+ * quindi la chiave e' il codice del gioco (1-6 per la razza, 1-5 per
+ * l'attributo) o la sigla (R, SR, SSR, UR, LR).
+ *
+ * Non tutte le famiglie ce l'hanno: le FAZIONI non hanno icona, cercata su ogni
+ * pista (icon_filter_*, icon_job, icon_group, icon_category, hero_category,
+ * characteristic, emblem e i nomi delle nove fazioni): zero risultati. Restano
+ * testo, e non e' una mancanza dell'estrazione.
+ */
+export function gameIconSrc(gameSlug: string, family: IconFamily, key: string | number): string {
+  return `/eroi/${gameSlug}/icone/${family}/${key}.png`;
+}

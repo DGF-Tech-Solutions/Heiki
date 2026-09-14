@@ -185,3 +185,94 @@ describe("roster di Grand Cross", () => {
     expect(roster?.heroes.filter((h) => decorated(h.epithet)).map((h) => h.epithet)).toEqual([]);
   });
 });
+
+/**
+ * Contesto degli effetti: controlli sul CONTRATTO, non sui numeri.
+ *
+ * Il dataset cambia a ogni patch del gioco, quindi qui non si verifica che
+ * Meliodas abbia tre effetti: si verifica che i due pezzi si tengano. Il
+ * contesto e' un indice - glossario e nomi dei codici scritti una volta, gli
+ * eroi che li citano - e un indice si rompe in silenzio: una chiave che non
+ * risolve piu' non da' errore, fa sparire una riga dalla scheda.
+ */
+describe("contesto di Grand Cross", () => {
+  const context = grandCrossModule.heroContext;
+  const abilities = grandCrossModule.heroAbilities;
+
+  it("il modulo lo espone", () => {
+    expect(context).toBeDefined();
+    expect(Object.keys(context?.heroes ?? {}).length).toBeGreaterThan(0);
+  });
+
+  function keysOf(hid: string): string[] {
+    const hero = context?.heroes[hid];
+    if (!hero) return [];
+    return Object.values(hero.cards).flatMap((card) => [
+      ...card.effects,
+      ...Object.values(card.onlyAtRanks ?? {}).flatMap((keys) => [...keys]),
+    ]);
+  }
+
+  it("ogni effetto citato da un eroe esiste nel glossario", () => {
+    const orphans: string[] = [];
+    for (const hid of Object.keys(context?.heroes ?? {})) {
+      for (const key of keysOf(hid)) {
+        if (!context?.glossary[key]) orphans.push(`${hid} -> ${key}`);
+      }
+    }
+    expect(orphans).toEqual([]);
+  });
+
+  it("ogni voce del glossario ha un'etichetta in almeno una lingua", () => {
+    const mute = Object.entries(context?.glossary ?? {})
+      .filter(([, effect]) => !effect.label.it && !effect.label.en)
+      .map(([key]) => key);
+    expect(mute).toEqual([]);
+  });
+
+  /**
+   * La distinzione fra dichiarato e dedotto e' il motivo per cui il campo
+   * esiste: se un terzo valore comparisse, la pagina lo renderebbe come se
+   * fosse dichiarato senza che nessuno se ne accorga.
+   */
+  it("la certezza e' solo dichiarata o dedotta", () => {
+    const strane = [
+      ...new Set(Object.values(context?.glossary ?? {}).map((effect) => effect.certainty)),
+    ].filter((value) => value !== "dichiarato" && value !== "dedotto");
+    expect(strane).toEqual([]);
+  });
+
+  /**
+   * `canReachLr` e' una lettura di `max`, non un dato a parte: se i due si
+   * separassero, la scheda direbbe "puo' arrivare a LR" a un eroe che arriva
+   * a UR. E' esattamente l'affermazione falsa che questo campo serve a evitare.
+   */
+  it("puo' arrivare a LR solo chi ha LR come tetto", () => {
+    const incoerenti = Object.entries(context?.heroes ?? {})
+      .filter(([, hero]) => hero.rarity.canReachLr !== (hero.rarity.max === "LR"))
+      .map(([hid]) => hid);
+    expect(incoerenti).toEqual([]);
+  });
+
+  /**
+   * Il contesto e le abilita' vengono da due fonti diverse - il client e
+   * 7dshub - e la pagina le accosta per `slot`. Se una delle due rinominasse
+   * le sigle, gli effetti smetterebbero di comparire senza rompere niente.
+   */
+  it("le sigle delle carte combaciano con quelle delle abilita'", () => {
+    const daAbilita = new Set<string>();
+    for (const voce of Object.values(abilities ?? {})) {
+      for (const card of voce.cards) if (card.slot) daAbilita.add(card.slot);
+      if (voce.ultimate?.slot) daAbilita.add(voce.ultimate.slot);
+    }
+    const daContesto = new Set<string>();
+    for (const hero of Object.values(context?.heroes ?? {})) {
+      for (const slot of Object.keys(hero.cards)) daContesto.add(slot);
+    }
+    // La passiva sta nel contesto ma non e' una carta: e' l'unica differenza
+    // ammessa fra i due insiemi.
+    const soloNelleAbilita = [...daAbilita].filter((slot) => !daContesto.has(slot));
+    expect(soloNelleAbilita).toEqual([]);
+    expect(daContesto.has("passiva")).toBe(true);
+  });
+});
