@@ -1,0 +1,1292 @@
+{
+ "_nota": "Scritto dalla pagina rivedi_letture.py della pipeline, e a mano se serve. Per ogni forma di forme_carte.json: esito (giusta, sbagliata, corretta), la lettura che le regole davano quando e' stata decisa (lettura_vista, senza i candidati), la lettura corretta, una nota, la data. Nessuno script lo sovrascrive: righe_carte.py lo legge a ogni giro.",
+ "conferme": {
+  "pea83f3d3": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 2
+     },
+     "bersaglio": 3,
+     "a_chi": "bersaglio",
+     "termine": 1
+    }
+   ]
+  },
+  "pf55c9f4b": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     },
+     "bersaglio": 2,
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
+  "p11e7273c": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.fixed_atk_per"
+     ],
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "p8f6f458f": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_per"
+     ],
+     "colonne": {
+      "valore": 1
+     },
+     "tassonomia": [
+      "126"
+     ]
+    }
+   ]
+  },
+  "p7ead9a56": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     }
+    }
+   ]
+  },
+  "p3c53ce4d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_atk_per"
+     ],
+     "colonne": {
+      "valore": 1
+     },
+     "tassonomia": [
+      "127"
+     ]
+    }
+   ]
+  },
+  "p52bbccdb": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "barra",
+     "verso": "riduzione",
+     "colonne": {
+      "valore": 1
+     },
+     "tassonomia": [
+      "021",
+      "088",
+      "089"
+     ]
+    }
+   ]
+  },
+  "pec839b19": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "against Debuffed enemies"
+    }
+   ],
+   "nota": "teniamo una lingua sola però - Danni inflitti in più contro nemici afflitti da debuff"
+  },
+  "pa1af8d82": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1,
+     "colonne": {
+      "buff_turn": 2
+     }
+    }
+   ]
+  },
+  "pef56ba06": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 2
+     },
+     "termine": 1
+    }
+   ]
+  },
+  "p6742908c": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "buff",
+      "stance"
+     ],
+     "a_chi": "bersaglio",
+     "bersaglio": 1,
+     "tassonomia": [
+      "027",
+      "029"
+     ]
+    }
+   ]
+  },
+  "p473e469f": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "for every percent of remaining HP on self"
+    }
+   ]
+  },
+  "p98bcf194": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "danno_nel_tempo",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "at the end of every turn"
+    }
+   ]
+  },
+  "pdcbae51f": {
+   "esito": "sbagliata",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "001"
+     ]
+    }
+   ]
+  },
+  "p1569b66a": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "stance"
+     ],
+     "a_chi": "bersaglio",
+     "bersaglio": 1,
+     "tassonomia": [
+      "029"
+     ]
+    }
+   ]
+  },
+  "peb1ba5df": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     }
+    },
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 2,
+     "colonne": {
+      "buff_turn": 3
+     }
+    }
+   ]
+  },
+  "p04d012e6": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "debuff"
+     ],
+     "a_chi": "bersaglio",
+     "bersaglio": 1,
+     "tassonomia": [
+      "071"
+     ]
+    }
+   ]
+  },
+  "pff144ab9": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "049"
+     ]
+    }
+   ]
+  },
+  "p92964f58": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "064"
+     ]
+    }
+   ]
+  },
+  "pb7cb95d4": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "buff"
+     ],
+     "a_chi": "bersaglio",
+     "bersaglio": 1,
+     "tassonomia": [
+      "027"
+     ]
+    }
+   ]
+  },
+  "p5a8f7937": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "against Buffed enemies"
+    }
+   ]
+  },
+  "p13a64974": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "per orb in the target's Ultimate Move Gauge"
+    }
+   ]
+  },
+  "pbe4b18ef": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "per active Buff on self"
+    }
+   ]
+  },
+  "pb9a2f064": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "gruppi.base"
+     ],
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "059"
+     ]
+    }
+   ]
+  },
+  "p76339312": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "disabilita",
+     "cosa": [
+      "attack"
+     ],
+     "colonne": {
+      "buff_turn": 1
+     },
+     "tassonomia": [
+      "040"
+     ]
+    }
+   ]
+  },
+  "p431ac2b8": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "gruppi.difesa"
+     ],
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "057"
+     ]
+    }
+   ]
+  },
+  "p3c27b83f": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     },
+     "bersaglio": 2,
+     "a_chi": "bersaglio"
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "termine",
+     "termine": 3,
+     "colonne": {
+      "valore": 4
+     }
+    }
+   ]
+  },
+  "pd7f88ec9": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "debuff"
+     ],
+     "tassonomia": [
+      "071"
+     ]
+    }
+   ]
+  },
+  "p6197f541": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "a_chi": "self",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "056"
+     ]
+    }
+   ]
+  },
+  "p42ac056d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "per hero skill"
+    }
+   ]
+  },
+  "p26a1921c": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 1
+     },
+     "cumulabile": true,
+     "tassonomia": [
+      "082"
+     ]
+    }
+   ],
+   "nota": "(può essere stackato)"
+  },
+  "p56039363": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "cura",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 2
+     },
+     "bersaglio": 1,
+     "a_chi": "bersaglio",
+     "tassonomia": [
+      "069"
+     ]
+    }
+   ]
+  },
+  "pf0d6d536": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "045"
+     ]
+    }
+   ]
+  },
+  "p2d4be7f2": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.fixed_atk_per"
+     ],
+     "colonne": {
+      "valore": 1
+     }
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_atk_per"
+     ],
+     "colonne": {
+      "valore": 2
+     },
+     "tassonomia": [
+      "127"
+     ]
+    }
+   ]
+  },
+  "p70911b12": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1,
+     "colonne": {
+      "buff_turn": 2
+     },
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
+  "pf6a23d6a": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "gruppi.difesa"
+     ],
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "046"
+     ]
+    }
+   ]
+  },
+  "p99bbb77b": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "stance"
+     ],
+     "a_chi": "bersaglio",
+     "bersaglio": 1,
+     "tassonomia": [
+      "029"
+     ]
+    }
+   ]
+  },
+  "p82b69e95": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     },
+     "bersaglio": 2,
+     "a_chi": "bersaglio"
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "barra",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 3
+     },
+     "tassonomia": [
+      "020"
+     ]
+    }
+   ]
+  },
+  "p31cacf40": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "statistiche": [
+      "statistiche.crit_per"
+     ],
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "p7fed7484": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_per"
+     ],
+     "colonne": {
+      "valore": 1
+     },
+     "tassonomia": [
+      "126"
+     ]
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_atk_per"
+     ],
+     "colonne": {
+      "valore": 2
+     },
+     "tassonomia": [
+      "127"
+     ]
+    }
+   ]
+  },
+  "pd670452d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1,
+     "colonne": {
+      "buff_turn": 2
+     }
+    }
+   ]
+  },
+  "pec844a88": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     },
+     "bersaglio": 2,
+     "a_chi": "bersaglio"
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "cura",
+     "a_chi": "global_ally",
+     "colonne": {
+      "valore": 3
+     },
+     "condizione": "in proporzione al danno inflitto"
+    }
+   ]
+  },
+  "pe5f6419d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "disabilita",
+     "cosa": [
+      "recovery"
+     ],
+     "colonne": {
+      "buff_turn": 1
+     },
+     "tassonomia": [
+      "043"
+     ]
+    }
+   ]
+  },
+  "pbaaacc3e": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "gruppi.difesa"
+     ],
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 3
+     },
+     "bersaglio": 1,
+     "tassonomia": [
+      "046"
+     ]
+    }
+   ]
+  },
+  "pe05319c8": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "gruppi.ps"
+     ],
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 3
+     },
+     "bersaglio": 1,
+     "tassonomia": [
+      "047"
+     ]
+    }
+   ]
+  },
+  "p8e661ee3": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "per Debuff on the target"
+    }
+   ]
+  },
+  "p0cccea01": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1,
+     "colonne": {
+      "buff_turn": 2
+     },
+     "a_chi": "global_ally"
+    }
+   ]
+  },
+  "pa395a1aa": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "disabilita",
+     "cosa": [
+      "ultimate move gauge"
+     ],
+     "colonne": {
+      "buff_turn": 1
+     },
+     "tassonomia": [
+      "035"
+     ]
+    }
+   ]
+  },
+  "pe812b722": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "stance"
+     ],
+     "a_chi": "bersaglio",
+     "bersaglio": 1,
+     "tassonomia": [
+      "029"
+     ]
+    }
+   ]
+  },
+  "p4221c4db": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1,
+     "statistiche": [
+      "statistiche.atk",
+      "statistiche.def"
+     ],
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 3
+     }
+    }
+   ]
+  },
+  "p540670d4": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.fixed_atk_per"
+     ],
+     "colonne": {
+      "valore": 1
+     }
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_per"
+     ],
+     "colonne": {
+      "valore": 2
+     },
+     "tassonomia": [
+      "126"
+     ]
+    }
+   ]
+  },
+  "p2e6cd29f": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "gruppi.ps"
+     ],
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "047"
+     ]
+    }
+   ]
+  },
+  "p00594cae": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "087"
+     ]
+    }
+   ]
+  },
+  "p0a31a460": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "per active Stance on self"
+    }
+   ]
+  },
+  "p74dd1bb3": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "a_chi": "global_ally",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "086"
+     ]
+    }
+   ]
+  },
+  "p01d73d13": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "for every <V> of the hero's remaining HP"
+    }
+   ]
+  },
+  "p29f8aa8d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "a_chi": "self",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "086"
+     ]
+    }
+   ]
+  },
+  "pcff91086": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "disabilita",
+     "cosa": [
+      "buff",
+      "debuff"
+     ],
+     "colonne": {
+      "buff_turn": 1
+     },
+     "tassonomia": [
+      "041",
+      "042"
+     ]
+    }
+   ]
+  },
+  "p35586134": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "disabilita",
+     "cosa": [
+      "stance"
+     ],
+     "colonne": {
+      "buff_turn": 1
+     },
+     "tassonomia": [
+      "044"
+     ]
+    }
+   ]
+  },
+  "p019050a1": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "cura",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 2
+     },
+     "bersaglio": 1,
+     "a_chi": "bersaglio",
+     "tassonomia": [
+      "069"
+     ]
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "barra",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 3
+     },
+     "tassonomia": [
+      "020"
+     ]
+    }
+   ]
+  },
+  "pc4e5b3fb": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 2
+     },
+     "bersaglio": 3,
+     "a_chi": "bersaglio",
+     "termine": 1
+    }
+   ]
+  },
+  "p1a8478cb": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "danno_nel_tempo",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "on all enemies at the start of the enemy's turn"
+    }
+   ]
+  },
+  "p95c20c20": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "for each orb in the hero's Ultimate Move Gauge"
+    }
+   ]
+  },
+  "pa5e4b41d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "danno_nel_tempo",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "after a certain number of turns"
+    }
+   ]
+  },
+  "paa6d5fd4": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 3
+     },
+     "bersaglio": 1,
+     "tassonomia": [
+      "056"
+     ]
+    }
+   ]
+  },
+  "pc6276ad9": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "barra",
+     "verso": "riduzione",
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 1
+     },
+     "tassonomia": [
+      "021",
+      "088",
+      "089"
+     ]
+    }
+   ]
+  },
+  "p4e52f560": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "buff",
+      "stance"
+     ],
+     "a_chi": "bersaglio",
+     "bersaglio": 1,
+     "tassonomia": [
+      "027",
+      "029"
+     ]
+    }
+   ]
+  },
+  "p2e8b24c8": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "disabilita",
+     "cosa": [
+      "ultimate move"
+     ],
+     "colonne": {
+      "buff_turn": 1
+     },
+     "tassonomia": [
+      "036"
+     ]
+    }
+   ]
+  },
+  "p8ac3fc5f": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "for every Buff, Debuff, and Stance on the target"
+    }
+   ]
+  }
+ }
+}

@@ -43,12 +43,20 @@ interface RigaBase {
   [campo: string]: unknown;
 }
 
+/** Una frase fra parentesi che precisa la frase prima, unita alla sua riga: «(Limit 3)». */
+interface Precisazione {
+  precisa: string;
+  forme: string[];
+  tassonomia?: string[];
+}
+
 interface Significato {
   effetto: string;
   forme: string[];
   a_chi?: string;
   statistiche?: string[];
   tassonomia?: string[];
+  precisazioni?: Precisazione[];
 }
 
 interface RigaCollegata {
@@ -318,6 +326,14 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
           // sul rango «bersaglio» e' gia' risolto nel bersaglio scritto nel testo
           if (voce.a_chi !== undefined) expect([...ENUM_BERSAGLI, "self"], id).toContain(voce.a_chi);
           riferimenti(id, voce);
+          // una precisazione fra parentesi viene anche lei da una forma letta come precisazione
+          for (const p of voce.precisazioni ?? []) {
+            expect(["limite", "cumulabile", "esclude", "include"], id).toContain(p.precisa);
+            for (const f of p.forme) {
+              expect(forme[f]?.lettura?.effetti.some((e) => e.effetto === "precisazione"), `${id} -> ${f}`).toBe(true);
+            }
+            riferimenti(id, p);
+          }
         }
       }
     }

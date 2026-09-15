@@ -136,9 +136,9 @@ Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
 | file | cosa c'è |
 |---|---|
 | `carte_base.json` | 4.044 ranghi (A 1.119, B 1.119, ultimate 1.674, coop 132): colonne, proposizioni, schema |
-| `carte_buff.json` | 1.704 righe di buff: 1.205 nominate dai modelli del client, 499 dette solo dalla lettura delle forme |
-| `carte_opzioni.json` | 2.578 righe di opzioni: 913 dai modelli del client, 1.665 dalla lettura delle forme |
-| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 436 con la loro lettura |
+| `carte_buff.json` | 1.927 righe di buff: 1.205 nominate dai modelli del client, 722 dette solo dalla lettura delle forme |
+| `carte_opzioni.json` | 2.680 righe di opzioni: 913 dai modelli del client, 1.767 dalla lettura delle forme |
+| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 448 con una lettura delle regole |
 | `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
 | `conferme_letture.json` | le decisioni dell'utente sulle letture, dalla pagina di revisione: compilato a mano, nessuno script lo sovrascrive; non c'è finché non si decide la prima frase |
 
@@ -306,12 +306,13 @@ Decisioni dell'utente (15/09):
 | `tabella` | `base`, `buff` o `opzione`; manca dove l'effetto non ha numeri e la frase non dice la tabella: una `definizione`, «Decreases skill ranks» |
 | `colonne` | colonna → numero del buco, contato come in `dal_modello` fra tutti i `<V>`, `<T>`, `<K>` |
 | `bersaglio`, `termine` | il buco che va nella colonna `target` della carta; il buco del termine spiegato in nota |
-| `effetto` | `danno`, `cura`, `statistiche`, `rimozione`, `disabilita`, `barra`, `termine`, `danni_inflitti`, `danno_nel_tempo`, `definizione`, `voce` (l'effetto è una voce della tassonomia detta per nome: «Grants Debuff Immunity» è Immunity) |
+| `effetto` | `danno`, `cura`, `statistiche`, `rimozione`, `disabilita`, `barra`, `termine`, `danni_inflitti`, `danno_nel_tempo`, `definizione`, `voce` (l'effetto è una voce della tassonomia detta per nome: «Grants Debuff Immunity» è Immunity), `precisazione` (una frase fra parentesi che precisa la frase prima: «(Limit 3)») |
 | `cosa`, `verso` | cosa si rimuove o si disabilita; `aumento` o `riduzione` |
 | `statistiche`, `in_base_a` | percorsi in `concetti/statistiche.json`: `statistiche.atk`, `gruppi.base` |
 | `a_chi` | un bersaglio di `concetti/carte.json` (`global_enemy`), `self`, o `bersaglio` per il bersaglio della carta |
 | `tassonomia` | le voci di `concetti/tassonomia.json` col nome giusto: «Attack-related Stats Increase» è la 056, «Buff Cancel» la 027 |
 | `condizione` | il pezzo di frase che dice quando («per Debuff on the target»), in inglese |
+| `precisa`, `numero` | in una `precisazione`: `limite`, `cumulabile`, `esclude` o `include`, e il buco del numero, che non va in una colonna («(Limit `<V>`)») |
 | `candidati` | i nomi dell'enum con la statistica subito seguita dal verso (`buff_atk_all_inc_add_per_gowther`); solo dove la statistica ha il suo pezzo di nome, o per le rimozioni di Buff e Debuff |
 
 Accanto a `effetti` stanno `regole`, `certezza` (sempre `dedotto`: la conferma, per
@@ -340,10 +341,11 @@ ognuna delle sue):
 | termine_contato («Applies `<V>` `<K>` effects for `<V>`») | 145 |
 | voce_applicata («Applies Mark of Craving on `<T>` for `<V>`») | 136 |
 | nota_danno_nel_tempo | 136 |
+| precisazione («(Limit `<V>`)», «(Excludes Stance and Recovery Skills)») | 103 |
 | le altre 26 | 769 |
 
-Forme lette: 436 su 739. Proposizioni lette: 9.339 su 10.799 (86%). Nel corpo sono
-6.095 su 6.890 (88%), nelle note 3.244 su 3.903 (83%).
+Forme lette: 448 su 739. Proposizioni lette: 9.442 su 10.799 (87%). Nel corpo sono
+6.163 su 6.890 (89%), nelle note 3.279 su 3.903 (84%).
 
 **Le regole del 15/09 notte.** Il primo giro leggeva 263 forme. Le regole aggiunte
 dopo stanno in coda alle altre, così una forma già letta si legge come prima: le 263
@@ -368,6 +370,15 @@ client lo usa una volta sola, per le attivazioni di una postura; e il valore di 
 barriera in base all'Attacco, che il modello marca `{buff_1_val}` in 9 ranghi e
 `{melee_val}` in 6.
 
+**Le precisazioni.** Una frase fra parentesi precisa la frase prima (scelta
+dell'utente, 15/09 notte): «(Limit `<V>`)», «(Limit once)», «(Stacks up to `<V>`)»,
+«(Can be stacked)», «(Excludes Stance and Recovery Skills)», «(Excludes Rupture)»,
+«(Includes Ultimate Moves)». La lettura dice come precisa (`precisa`) e quale buco è
+il numero (`numero`, che non va in una colonna perché i modelli lo scrivono sempre a
+mano). Nelle carte la parentesi sta sempre dopo il punto della frase che precisa, a
+capo o dopo uno spazio: quelle di cui non si sa dire cosa precisano («(Only the
+effects applied by the hero are counted)») restano senza lettura.
+
 **Le righe.** La lettura riempie solo quello che il modello non dice:
 - nella riga della carta, `atk_per` e `target` vengono solo dal corpo, e solo se le
   letture del rango dicono un valore solo: `atk_per` a 428 ranghi, 425 dei quali
@@ -380,15 +391,21 @@ barriera in base all'Attacco, che il modello marca `{buff_1_val}` in 9 ranghi e
   colonna e -20% nel testo
 - `significato` è una lista. La nota che spiega un termine si unisce alla voce del
   termine, ed è successo 157 volte: «Poisons ... for 3 turn(s)» e «※Poison: Additional damage
-  equal to 60% ...» sono lo stesso buff `110831.b1`. Le righe con due voci sono 30:
-  - 18 fanno due cose, perché il modello mette due frasi sullo stesso segnaposto:
-    `128041.b1` («Decreases Defense-related stats of {target_val} by {buff_1_val} and
-    Disables Attack Skills for {turn_1_val}»), `151031.b1` (provoca per {turn_1_val} e
-    cura il turno dopo di {buff_1_val}), le due note di Immolation su `1000791.o1`
-  - 12 hanno sulla stessa riga una voce e la sua nota: «Explodes after 2 turn(s)» e
-    «※Explosion: Additional damage equal to 100% ...» (`117071.b1`). Non si uniscono
-    come i termini, perché la regola che unisce guarda solo i termini `<K>`, e
-    «Explodes» nel testo non lo è
+  equal to 60% ...» sono lo stesso buff `110831.b1`. Una nota si unisce anche a una
+  voce del gioco nominata nel corpo, ma solo se la nota ne porta il nome: «Explodes
+  after 2 turn(s)» e «※Explosion: Additional damage equal to 100% ...» sono la voce
+  055 Explosion su `117071.b1` (scelta dell'utente, 15/09 notte; 12 righe). Le righe
+  che restano con due voci sono 18, e fanno davvero due cose, perché il modello mette
+  due frasi sullo stesso segnaposto: `128041.b1` («Decreases Defense-related stats of
+  {target_val} by {buff_1_val} and Disables Attack Skills for {turn_1_val}»),
+  `151031.b1` (provoca per {turn_1_val} e cura il turno dopo di {buff_1_val}), le due
+  note di Immolation su `1000791.o1`
+- una precisazione fra parentesi va sull'ultima voce che la frase prima ha scritto in
+  una riga, se fra le due ci sono solo punteggiatura e spazi: la voce prende
+  `precisazioni` (`precisa`, `cosa`, `tassonomia`, `condizione`, `testo`, `valore`,
+  `forme`). «(Limit 7 times)» sta su `1001711.o1`. Unite 39; 64 restano solo nella
+  lettura, perché la frase prima non ha una riga (un danno della carta, un effetto
+  senza numeri)
 - 29 effetti hanno i buchi su due righe diverse del modello, e non si scrivono
 
 Il primo giro si è fermato su 298 contraddizioni. Nessuna era una lettura
@@ -434,9 +451,10 @@ Una correzione passa gli stessi controlli delle regole (`Letture.controlla` in
 `letture_carte.py`). Se mette un turno su un termine, o in un buff un numero che il
 gioco marca `{melee_val}`, la pagina non la salva e `righe_carte.py` si ferma.
 
-Con le regole del 15/09 notte ci sono 436 frasi da rivedere, e 220 di queste non
-hanno nessun numero marcato dal gioco. Le 303 frasi senza lettura si possono
-scrivere a mano nella stessa pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
+Le regole del 15/09 notte leggono 448 frasi, e l'utente le sta rivedendo: quante ne
+usa la base dipende dalle sue decisioni, e le misure in `forme_carte.json` lo
+dicono a ogni giro. Le 291 frasi senza lettura si possono scrivere a mano nella
+stessa pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
 e «-100%» in un'altra («`<V>` Crit Chance»), e allora la frase da sola non dice il
 verso.
 
@@ -466,10 +484,11 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
 - i **valori dei ranghi senza modello** (447) o con letture in conflitto (24):
   la lettura delle forme dà `atk_per` a 425 di loro e almeno una riga di buff o
   opzione a 410, da confermare a mano; il resto aspetta le forme non lette
-- **303 forme senza lettura** (1.460 proposizioni): posture («Assumes a Stance
-  which `<K>` enemies»), frammenti fra parentesi («(Limit `<V>`)»), note col segno
-  dentro il numero («Attack-related stats `<V>`», che aspettano la revisione di
-  `nota_statistica`), frasi condizionali lunghe che nessuna regola prende per intero
+- **291 forme senza lettura** (1.357 proposizioni): posture («Assumes a Stance
+  which `<K>` enemies»), note col segno dentro il numero («Attack-related stats
+  `<V>`»), parentesi di cui non si sa dire cosa precisano («(Only the effects applied
+  by the hero are counted)»), frasi condizionali lunghe che nessuna regola prende per
+  intero
 - da quale colonna vengano `BUFF_N_VALUE` e `OPTION_N_VALUE`: due candidate
   ciascuno, nessun testo scioglie il dubbio
 - **17 chiavi del client che nessun rango usa** (Lancelot, Percival, Camila,
@@ -479,8 +498,8 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
 ## Le tappe successive
 
 - **B.** righe d'effetto con lo schema delle tabelle del gioco. **Carte: fatto lo
-  strato del testo** (`effetti/`) **e la lettura delle forme** (436 forme, 86%
-  delle proposizioni); restano 303 forme non lette. Poi reliquie e passive
+  strato del testo** (`effetti/`) **e la lettura delle forme** (448 forme, 87%
+  delle proposizioni, con le precisazioni fra parentesi); restano 291 forme non lette. Poi reliquie e passive
   (`DBSkillPassiveRow`), che vanno scomposte per pezzi
 - **C.** pagina di revisione delle letture, divisa per forma di frase, con le
   conferme in un file scritto a mano: **fatta** (`rivedi_letture.py`, sopra «La
