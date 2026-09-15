@@ -13,7 +13,8 @@ due test in `src/lib/games/__tests__/`: `concetti.test.ts` per i dizionari,
 ## Da dove viene
 
 I file in `concetti/` li scrive `concetti.py`, quelli in `effetti/` li scrive
-`righe_carte.py`, tutti e due nella pipeline `_7dsgc` (fuori dal repo), leggendo
+`righe_carte.py` con le regole di lettura di `letture_carte.py`, tutti nella
+pipeline `_7dsgc` (fuori dal repo), leggendo
 il client del gioco (enum e tabelle da `dump.cs`, testi decifrati) e 7dshub.
 **Non si modificano a mano**: si rigenerano.
 
@@ -135,9 +136,9 @@ Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
 | file | cosa c'è |
 |---|---|
 | `carte_base.json` | 4.044 ranghi (A 1.119, B 1.119, ultimate 1.674, coop 132): colonne, proposizioni, schema |
-| `carte_buff.json` | 1.205 righe di buff nominate dai modelli del client |
-| `carte_opzioni.json` | 913 righe di opzioni nominate dai modelli del client |
-| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta |
+| `carte_buff.json` | 1.704 righe di buff: 1.205 nominate dai modelli del client, 499 dette solo dalla lettura delle forme |
+| `carte_opzioni.json` | 2.578 righe di opzioni: 913 dai modelli del client, 1.665 dalla lettura delle forme |
+| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 263 con la loro lettura |
 | `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
 
 Le righe di tabella stanno una per riga di file: 4.044 ranghi con `indent=2`
@@ -152,12 +153,15 @@ cambiati.
 | `target` | il segnaposto `{target_val}` del modello del client | 3.387 |
 | `target` | l'unico span bianco del testo: **dedotto**, perché nei 3.573 ranghi col modello gli span bianchi del corpo sono tutti `{target_val}` e nessuno è scritto a mano | 429 |
 | `atk_per` | il segnaposto `{melee_val}` | 3.194 |
+| `atk_per` | la lettura della forma, dove il modello non c'è o scrive il valore a mano: **dedotto** | 421, di cui 418 dei 471 ranghi senza modello o in conflitto |
+| `target` | la lettura della forma, per un bersaglio scritto senza colore («on all enemies»): **dedotto** | 30 |
 | righe di buff e opzioni | `{buff_N_val}`, `{turn_N_val}`, `{opt_N_val}`, `{buff_data_turn}ID{/buff_data_turn}`… | dai 3.573 ranghi col modello |
+| righe di buff e opzioni | la lettura delle forme, per gli effetti con un numero: **dedotto** (sotto, «La lettura delle forme») | 499 buff e 1.665 opzioni nuove |
 
-Ogni riga ha `fonti`, che per ogni colonna dice da dove viene: `7dshub`, `testo`
-o `modello:<segnaposto>`. `testi` tiene il valore come lo scrive il gioco
-(«200%»), perché la scala intera delle colonne è ignota. 228 ranghi non hanno
-`target`: il corpo non nomina nessun bersaglio.
+Ogni riga ha `fonti`, che per ogni colonna dice da dove viene: `7dshub`, `testo`,
+`modello:<segnaposto>` o `lettura:<forma>`. `testi` tiene il valore come lo scrive
+il gioco («200%»), perché la scala intera delle colonne è ignota. 198 ranghi non
+hanno `target`: il corpo non nomina nessun bersaglio.
 
 **I modelli.** Il client ha 1.032 descrizioni di abilità coi segnaposto
 (`Inflicts damage equal to {melee_val} of Attack on {target_val}`), tutte
@@ -219,8 +223,9 @@ agli altri. Misurato e scartato, e ora non serve più:
 Il client scrive molti valori a mano dentro il testo di ogni rango, quindi
 letterale o segnaposto non è una proprietà stabile del valore: «Increases basic
 stats by <V> for <V>» ha il primo valore marcato `{buff_1_val}` in 11 ranghi e
-scritto a mano in 36. Le colonne dei 471 ranghi senza modello o in conflitto le
-riempirà la lettura delle forme, confermata a mano.
+scritto a mano in 36. Per questo i valori dei ranghi senza modello non si
+trasferiscono da un rango all'altro: li dice la lettura della forma, scritta una
+volta e da confermare a mano (sotto).
 
 ### Proposizioni e forme
 
@@ -265,7 +270,96 @@ col modello: il segnaposto o «letterale». In 23 forme lo stesso slot è a volt
 un segnaposto e a volte scritto a mano, o due segnaposto diversi: sono fra le
 `lacune`.
 
-`lettura`, il significato della forma, per ora è vuota.
+### La lettura delle forme
+
+Una forma dice dove sono i buchi; la **lettura** dice cosa vogliono dire. La scrive
+`letture_carte.py` nella pipeline, una volta per forma, e vale per tutti i ranghi
+che la usano. L'esempio con cui l'utente ha deciso com'è fatta è l'ultimate di
+Gloxinia del Riposo al rango 1 (166921):
+
+> Inflicts Ruin damage equal to 560% of Attack on one enemy, then decreases all
+> enemies' basic stats by 5% for 2 turns.
+> ※Ruin: Increases damage dealt by 30% per Debuff on the target and removes Debuffs.
+
+| frase coi buchi | dove va | numeri | cosa fa |
+|---|---|---|---|
+| Inflicts `<K>` damage equal to `<V>` of Attack on `<T>` | la riga della carta | `atk_per` 560, `target` un nemico | danno in base all'Attacco, col termine Ruin |
+| decreases all enemies' basic stats by `<V>` for `<V>` | un buff nuovo, `166921.p2` | valore 5, `buff_turn` 2 | riduzione delle statistiche di base, a tutti i nemici |
+| Increases damage dealt by `<V>` per Debuff on the target | l'opzione del modello, `166921.o1` | valore 30 | danni inflitti in più per ogni Debuff sul bersaglio |
+| removes Debuffs | nessuna riga | — | rimozione dei Debuff, solo nella lettura |
+
+Decisioni dell'utente (15/09):
+- la lettura porta i numeri nelle colonne **e** il significato: «cosa fa» e «a chi»
+- il nome dell'effetto nell'enum del client (`effect_keyword`) non si sceglie: si
+  elencano i `candidati`. 101 nomi di buff hanno varianti per singolo eroe, 312 in
+  tutto, e «Attack-related stats increase» da solo ne ha 29
+- un effetto senza numeri non crea una riga: il gioco può tenere due frasi in una
+  riga sola (per Ruin l'enum ha `skill_after_dispell_debuff_dmg_add_per`, danni per
+  Debuff e poi rimozione), e contare le righe dal testo sarebbe un'affermazione non
+  letta
+
+**Com'è fatta.** `lettura.effetti` ha una voce per ogni cosa detta:
+
+| campo | |
+|---|---|
+| `tabella` | `base`, `buff` o `opzione`; manca in una `definizione`, che non ha numeri |
+| `colonne` | colonna → numero del buco, contato come in `dal_modello` fra tutti i `<V>`, `<T>`, `<K>` |
+| `bersaglio`, `termine` | il buco che va nella colonna `target` della carta; il buco del termine spiegato in nota |
+| `effetto` | `danno`, `cura`, `statistiche`, `rimozione`, `disabilita`, `barra`, `termine`, `danni_inflitti`, `danno_nel_tempo`, `definizione` |
+| `cosa`, `verso` | cosa si rimuove o si disabilita; `aumento` o `riduzione` |
+| `statistiche`, `in_base_a` | percorsi in `concetti/statistiche.json`: `statistiche.atk`, `gruppi.base` |
+| `a_chi` | un bersaglio di `concetti/carte.json` (`global_enemy`), `self`, o `bersaglio` per il bersaglio della carta |
+| `tassonomia` | le voci di `concetti/tassonomia.json` col nome giusto: «Attack-related Stats Increase» è la 056, «Buff Cancel» la 027 |
+| `condizione` | il pezzo di frase che dice quando («per Debuff on the target»), in inglese |
+| `candidati` | i nomi dell'enum con la statistica subito seguita dal verso (`buff_atk_all_inc_add_per_gowther`); solo dove la statistica ha il suo pezzo di nome, o per le rimozioni di Buff e Debuff |
+
+Accanto a `effetti` stanno `regole`, `certezza` (sempre `dedotto`: la conferma, per
+forma, arriverà con la pagina di revisione) e `prove`, con le regole e come il
+modello marca i buchi che la lettura mette in colonna.
+
+**Le regole** sono poche e strette: una forma che nessuna sequenza di regole prende
+per intero resta senza lettura, invece di averne una approssimata. Una forma che
+dice più cose unite da «, then» o «and» si legge pezzo per pezzo, e ogni pezzo deve
+essere preso da una regola. Proposizioni per regola (una forma composta conta per
+ognuna delle sue):
+
+| regola | proposizioni |
+|---|---|
+| danno | 3.356 |
+| nota_statistica («5x Pierce Rate Increase») | 1.026 |
+| nota_danno («3x damage against Debuffed enemies») | 910 |
+| statistiche | 701 |
+| rimozione | 501 |
+| termine («Makes target(s) `<K>` for `<V>`») | 409 |
+| definizione (la frase è la descrizione di una voce della tassonomia) | 247 |
+| barra | 233 |
+| le altre otto | 528 |
+
+Forme lette: 263 su 739. Proposizioni lette: 7.649 su 10.799. Nel corpo sono
+5.267 su 6.890 (76%), nelle note 2.382 su 3.903 (61%).
+
+**Le righe.** La lettura riempie solo quello che il modello non dice:
+- nella riga della carta, `atk_per` e `target` vengono solo dal corpo, e solo se le
+  letture del rango dicono un valore solo: `atk_per` a 421 ranghi, 418 dei quali
+  senza modello o in conflitto; `target` a 30
+- un effetto con un numero va nella riga del modello se il modello marca uno dei
+  suoi buchi (`BUFF_N`, `TURN_N`, `OPTION_N`), come `166921.o1`. Altrimenti nasce
+  una riga `<rango>.p<proposizione>` (con `e<n>` se la proposizione ne dice più
+  d'una), perché il posto nella lista dei buff il testo non lo dice. Un buco
+  marcato dal modello non si riscrive: «-{opt_1_val}» (Wave, 199691) ha 20 nella
+  colonna e -20% nel testo
+- `significato` è una lista. La nota che spiega un termine si unisce alla voce del
+  termine, ed è successo 117 volte: «Poisons ... for 3 turn(s)» e «※Poison: Additional damage
+  equal to 60% ...» sono lo stesso buff `110831.b1`. Due voci vogliono dire una riga
+  che fa due cose, perché il modello mette due frasi sullo stesso segnaposto. Sono
+  10 righe, come `128041.b1`, che viene da «Decreases Defense-related stats of
+  {target_val} by {buff_1_val} and Disables Attack Skills for {turn_1_val}»
+- 16 effetti hanno i buchi su due righe diverse del modello, e non si scrivono
+
+Il primo giro si è fermato su 298 contraddizioni. Nessuna era una lettura
+sbagliata. Erano tre casi: i termini con la loro nota; i buff composti; e una regola
+che divideva «Disables Buff and Debuff Skills» in due buff con gli stessi turni,
+mentre il modello ne marca uno solo.
 
 ### Le prove che fermano lo script
 
@@ -276,6 +370,10 @@ un segnaposto e a volte scritto a mano, o due segnaposto diversi: sono fra le
   prova del `target` letto dal testo
 - lo stesso buff citato per id da più ranghi ha lo stesso valore in tutti
 - lo stesso rango ha lo stesso testo in ogni eroe che lo usa
+- un buco che una lettura mette in una colonna, nei ranghi col modello, è marcato
+  col segnaposto di quella colonna o scritto a mano; una riga di buff o opzione non
+  riceve due valori diversi. Le contraddizioni si raccolgono tutte in
+  `eroi/righe_carte_contraddizioni.txt` e fermano il giro alla fine
 
 ## Lacune dichiarate
 
@@ -287,7 +385,11 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
   cifrata
 - i nomi di gittate e bersagli: nessun testo del client li nomina come categoria
 - i **valori dei ranghi senza modello** (447) o con letture in conflitto (24):
-  li riempirà la lettura delle forme, confermata a mano
+  la lettura delle forme dà `atk_per` a 418 di loro e almeno una riga di buff o
+  opzione a 380, da confermare a mano; il resto aspetta le forme non lette
+- **476 forme senza lettura** (3.150 proposizioni): frammenti fra parentesi,
+  definizioni scritte con parole diverse da quelle della tassonomia, frasi che
+  nessuna regola prende per intero
 - da quale colonna vengano `BUFF_N_VALUE` e `OPTION_N_VALUE`: due candidate
   ciascuno, nessun testo scioglie il dubbio
 - **17 chiavi del client che nessun rango usa** (Lancelot, Percival, Camila,
@@ -297,8 +399,9 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
 ## Le tappe successive
 
 - **B.** righe d'effetto con lo schema delle tabelle del gioco. **Carte: fatto lo
-  strato del testo** (`effetti/`), manca la lettura delle forme. Poi reliquie e
-  passive (`DBSkillPassiveRow`), che vanno scomposte per pezzi
+  strato del testo** (`effetti/`) **e la prima lettura delle forme** (263 forme, 71%
+  delle proposizioni); restano le forme non lette. Poi reliquie e passive
+  (`DBSkillPassiveRow`), che vanno scomposte per pezzi
 - **C.** pagina di revisione delle letture ambigue, divisa per forma di frase,
   con le conferme in un file scritto a mano
 - **D.** un SQLite generato da questi JSON per interrogarli, e questo manuale

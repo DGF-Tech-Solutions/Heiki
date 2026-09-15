@@ -43,10 +43,20 @@ interface RigaBase {
   [campo: string]: unknown;
 }
 
+interface Significato {
+  effetto: string;
+  forme: string[];
+  a_chi?: string;
+  statistiche?: string[];
+  tassonomia?: string[];
+}
+
 interface RigaCollegata {
   carta?: string;
   carte?: string[];
   posizione?: number;
+  proposizione?: number;
+  significato?: Significato[];
   fonti: Record<string, string>;
   [campo: string]: unknown;
 }
@@ -57,10 +67,23 @@ interface Tabella<R> {
   righe: Record<string, R>;
 }
 
+interface Effetto {
+  tabella?: string;
+  effetto: string;
+  colonne?: Record<string, number>;
+  bersaglio?: number;
+  termine?: number;
+  statistiche?: string[];
+  in_base_a?: string;
+  a_chi?: string;
+  tassonomia?: string[];
+}
+
 interface Forma {
   forma: string;
   usi: number;
   parti: Record<string, number>;
+  lettura: { effetti: Effetto[]; regole: string[]; certezza: string; prove: string[] } | null;
 }
 
 interface Segnaposto {
@@ -79,6 +102,9 @@ const opzioni = carica<Tabella<RigaCollegata>>("effetti/carte_opzioni.json");
 const forme = carica<{ forme: Record<string, Forma> }>("effetti/forme_carte.json").forme;
 const segnaposto = carica<{ segnaposto: Record<string, Segnaposto> }>("effetti/segnaposto.json").segnaposto;
 const carte = carica<Record<string, Record<string, unknown>>>("concetti/carte.json");
+const tassonomia = carica<{ voci: Record<string, unknown> }>("concetti/tassonomia.json").voci;
+const statistiche = carica<Record<"statistiche" | "gruppi", Record<string, unknown>>>("concetti/statistiche.json");
+const ENUM_BERSAGLI = new Set(Object.values(carte["bersagli"] as Record<string, { enum: string }>).map((b) => b.enum));
 
 const TABELLE: Record<string, Tabella<unknown>> = {
   [base.tabella]: base,
@@ -147,8 +173,14 @@ describe("righe d'effetto delle carte: i file si citano senza buchi", () => {
     ] as const) {
       for (const [id, riga] of Object.entries(tabella.righe)) {
         if (riga.carta !== undefined) {
-          expect(id, id).toBe(`${riga.carta}.${suffisso}${riga.posizione}`);
           expect(base.righe[riga.carta], id).toBeDefined();
+          if (riga.proposizione === undefined) {
+            expect(id, id).toBe(`${riga.carta}.${suffisso}${riga.posizione}`);
+          } else {
+            // una riga che dice solo la lettura: il posto nella lista dei buff il testo non lo dice
+            expect(id, id).toMatch(new RegExp(`^${riga.carta}\\.p${riga.proposizione}(e\\d+)?$`));
+            expect(base.righe[riga.carta]!.proposizioni?.[riga.proposizione - 1], id).toBeDefined();
+          }
         } else {
           // una chiave di sole cifre e' l'id vero, scritto dentro un tag buff_data_*
           expect(id).toMatch(/^\d+$/);
@@ -172,6 +204,7 @@ describe("righe d'effetto delle carte: colonne, fonti e dizionari", () => {
         for (const [campo, fonte] of Object.entries(riga.fonti)) {
           expect(riga[campo], `${id}.${campo}`).toBeDefined();
           if (fonte.startsWith("modello:")) expect(segnati.has(fonte.slice(8)), `${id}: ${fonte}`).toBe(true);
+          else if (fonte.startsWith("lettura:")) expect(forme[fonte.slice(8)]?.lettura, `${id}: ${fonte}`).toBeTruthy();
           else expect(["7dshub", "testo"], `${id}: ${fonte}`).toContain(fonte);
         }
       }
@@ -210,5 +243,61 @@ describe("righe d'effetto delle carte: colonne, fonti e dizionari", () => {
   it("gli eroi delle righe sono esattamente quelli del sito", () => {
     const nelleRighe = new Set(righe.flatMap(([, riga]) => riga.eroi));
     expect([...nelleRighe].sort()).toEqual(Object.keys(HERO_CONTEXT.heroes).sort());
+  });
+});
+
+describe("righe d'effetto delle carte: le letture delle forme", () => {
+  // le colonne che una lettura puo' riempire, per tabella (segnaposto.json dice da dove vengono)
+  const COLONNE: Record<string, string[]> = {
+    base: ["atk_per"],
+    buff: ["valore", "buff_turn", "buff_number"],
+    opzione: ["valore"],
+  };
+  const percorso = (p: string) => {
+    const [dizionario, chiave] = p.split(".") as ["statistiche" | "gruppi", string];
+    return statistiche[dizionario]?.[chiave];
+  };
+  const riferimenti = (dove: string, x: { statistiche?: string[]; tassonomia?: string[] }) => {
+    for (const s of x.statistiche ?? []) expect(percorso(s), `${dove}: ${s}`).toBeDefined();
+    for (const t of x.tassonomia ?? []) expect(tassonomia[t], `${dove}: tassonomia ${t}`).toBeDefined();
+  };
+
+  it("ogni lettura e' dedotta, con le prove, e ogni buco che nomina e' del tipo giusto", () => {
+    for (const [id, forma] of Object.entries(forme)) {
+      if (forma.lettura === null) continue;
+      const { effetti, regole, certezza, prove } = forma.lettura;
+      expect(certezza, id).toBe("dedotto");
+      expect(prove.length, id).toBeGreaterThan(0);
+      expect(regole.length, id).toBeGreaterThan(0);
+      expect(effetti.length, id).toBeGreaterThan(0);
+      const buchi = [...forma.forma.matchAll(SLOT)].map((m) => m[1]);
+      for (const e of effetti) {
+        for (const [colonna, pos] of Object.entries(e.colonne ?? {})) {
+          expect(COLONNE[e.tabella ?? ""], `${id}: ${colonna} senza tabella`).toContain(colonna);
+          expect(buchi[pos - 1], `${id}: ${colonna} -> buco ${pos}`).toBe("V");
+        }
+        if (e.bersaglio !== undefined) expect(buchi[e.bersaglio - 1], `${id}: bersaglio`).toBe("T");
+        if (e.termine !== undefined) expect(buchi[e.termine - 1], `${id}: termine`).toBe("K");
+        if (e.in_base_a !== undefined) expect(percorso(e.in_base_a), `${id}: ${e.in_base_a}`).toBeDefined();
+        if (e.a_chi !== undefined) expect([...ENUM_BERSAGLI, "self", "bersaglio"], id).toContain(e.a_chi);
+        riferimenti(id, e);
+      }
+    }
+  });
+
+  it("il significato di buff e opzioni viene da forme lette, con riferimenti che esistono", () => {
+    for (const tabella of [buff, opzioni]) {
+      for (const [id, riga] of Object.entries(tabella.righe)) {
+        // una riga nata dalla lettura ha sempre il suo significato
+        if (riga.proposizione !== undefined) expect(riga.significato?.length, id).toBeGreaterThan(0);
+        for (const voce of riga.significato ?? []) {
+          expect(voce.forme.length, id).toBeGreaterThan(0);
+          for (const f of voce.forme) expect(forme[f]?.lettura, `${id} -> ${f}`).toBeTruthy();
+          // sul rango «bersaglio» e' gia' risolto nel bersaglio scritto nel testo
+          if (voce.a_chi !== undefined) expect([...ENUM_BERSAGLI, "self"], id).toContain(voce.a_chi);
+          riferimenti(id, voce);
+        }
+      }
+    }
   });
 });
