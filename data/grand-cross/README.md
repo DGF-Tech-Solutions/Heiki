@@ -140,6 +140,7 @@ Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
 | `carte_opzioni.json` | 2.578 righe di opzioni: 913 dai modelli del client, 1.665 dalla lettura delle forme |
 | `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 263 con la loro lettura |
 | `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
+| `conferme_letture.json` | le decisioni dell'utente sulle letture, dalla pagina di revisione: compilato a mano, nessuno script lo sovrascrive; non c'è finché non si decide la prima frase |
 
 Le righe di tabella stanno una per riga di file: 4.044 ranghi con `indent=2`
 sarebbero illeggibili, e così un diff dopo una patch mostra solo i ranghi
@@ -361,6 +362,50 @@ sbagliata. Erano tre casi: i termini con la loro nota; i buff composti; e una re
 che divideva «Disables Buff and Debuff Skills» in due buff con gli stessi turni,
 mentre il modello ne marca uno solo.
 
+### La revisione delle letture
+
+Le letture si decidono una forma alla volta nella pagina locale
+`rivedi_letture.py` della pipeline (http://127.0.0.1:8766), dalla più usata. Per
+ogni forma la pagina mostra:
+- la frase coi buchi numerati;
+- fino a tre carte diverse dove compare, col testo italiano del client e
+  l'inglese con la frase evidenziata;
+- come il modello del gioco marca ogni buco, e i valori che ogni buco prende in
+  tutte le carte;
+- cosa ne ricava la base, come righe dei fogli.
+
+Decisioni dell'utente (15/09):
+- su una frase si può dire «Giusta», «Sbagliata» con una nota, oppure correggerla
+  nella pagina: foglio, cosa fa, verso, a chi, statistiche, voci del gioco, e
+  quale buco è quanto, turni, danno o bersaglio
+- una frase sbagliata la base la **mette da parte**: niente lettura, e i suoi
+  numeri escono dai fogli
+- se dopo una decisione le regole dicono altro, la frase torna da rivedere
+
+Le decisioni stanno in `effetti/conferme_letture.json`. È un file compilato a
+mano: lo scrive la pagina, nessuno script lo sovrascrive, e `righe_carte.py` lo
+legge a ogni giro. Per ogni forma ci sono `esito`, `lettura_vista` (la lettura
+delle regole quando si è deciso, senza candidati), `lettura` se corretta, `nota`
+e `quando`.
+
+| esito | la base usa | certezza | stato in `revisione` |
+|---|---|---|---|
+| nessuno | la lettura delle regole | `dedotto` | — (da rivedere) |
+| giusta | la lettura delle regole | `verificato` | confermata |
+| sbagliata | niente: `lettura` è null, e quella delle regole resta in `lettura_delle_regole` | — | sbagliata |
+| corretta | la lettura scritta nella pagina, con `regole: ["a mano"]` | `verificato` | corretta |
+| qualunque, ma le regole ora dicono altro | le regole, o la correzione se c'è | `dedotto` o `verificato` | cambiata dopo la revisione |
+
+Una correzione passa gli stessi controlli delle regole (`Letture.controlla` in
+`letture_carte.py`). Se mette un turno su un termine, o in un buff un numero che il
+gioco marca `{melee_val}`, la pagina non la salva e `righe_carte.py` si ferma.
+
+Alla prima apertura ci sono 263 frasi da rivedere, e 131 di queste non hanno
+nessun numero marcato dal gioco. Le 476 frasi senza lettura si possono scrivere a
+mano nella stessa pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
+e «-100%» in un'altra («`<V>` Crit Chance»), e allora la frase da sola non dice il
+verso.
+
 ### Le prove che fermano lo script
 
 - forme e valori rifanno il testo senza colori di ogni rango, identico
@@ -402,7 +447,8 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
   strato del testo** (`effetti/`) **e la prima lettura delle forme** (263 forme, 71%
   delle proposizioni); restano le forme non lette. Poi reliquie e passive
   (`DBSkillPassiveRow`), che vanno scomposte per pezzi
-- **C.** pagina di revisione delle letture ambigue, divisa per forma di frase,
-  con le conferme in un file scritto a mano
+- **C.** pagina di revisione delle letture, divisa per forma di frase, con le
+  conferme in un file scritto a mano: **fatta** (`rivedi_letture.py`, sopra «La
+  revisione delle letture»); le decisioni spettano all'utente
 - **D.** un SQLite generato da questi JSON per interrogarli, e questo manuale
   completato

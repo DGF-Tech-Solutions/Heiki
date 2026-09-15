@@ -13,7 +13,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { HERO_CONTEXT } from "../grand-cross/hero-context.generated";
@@ -84,6 +84,7 @@ interface Forma {
   usi: number;
   parti: Record<string, number>;
   lettura: { effetti: Effetto[]; regole: string[]; certezza: string; prove: string[] } | null;
+  revisione?: { esito: string; stato: string };
 }
 
 interface Segnaposto {
@@ -262,11 +263,12 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
     for (const t of x.tassonomia ?? []) expect(tassonomia[t], `${dove}: tassonomia ${t}`).toBeDefined();
   };
 
-  it("ogni lettura e' dedotta, con le prove, e ogni buco che nomina e' del tipo giusto", () => {
+  it("ogni lettura e' dedotta o verificata, con le prove, e ogni buco che nomina e' del tipo giusto", () => {
     for (const [id, forma] of Object.entries(forme)) {
       if (forma.lettura === null) continue;
       const { effetti, regole, certezza, prove } = forma.lettura;
-      expect(certezza, id).toBe("dedotto");
+      // verificata: confermata o corretta dall'utente nella pagina di revisione
+      expect(["dedotto", "verificato"], id).toContain(certezza);
       expect(prove.length, id).toBeGreaterThan(0);
       expect(regole.length, id).toBeGreaterThan(0);
       expect(effetti.length, id).toBeGreaterThan(0);
@@ -282,6 +284,26 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
         if (e.a_chi !== undefined) expect([...ENUM_BERSAGLI, "self", "bersaglio"], id).toContain(e.a_chi);
         riferimenti(id, e);
       }
+    }
+  });
+
+  it("le decisioni della revisione hanno un esito noto, e la base le rispetta", () => {
+    const file = path.join(DATI, "effetti/conferme_letture.json");
+    const conferme: Record<string, { esito: string; lettura_vista: unknown; lettura?: unknown[] }> = existsSync(file)
+      ? JSON.parse(readFileSync(file, "utf8")).conferme
+      : {};
+    for (const [id, c] of Object.entries(conferme)) {
+      expect(["giusta", "sbagliata", "corretta"], id).toContain(c.esito);
+      expect(c.lettura_vista === null || Array.isArray(c.lettura_vista), id).toBe(true);
+      if (c.esito === "corretta") expect(c.lettura?.length, id).toBeGreaterThan(0);
+      const forma = forme[id];
+      if (forma === undefined) continue; // una patch ha cambiato la frase: la pipeline la elenca fra le lacune
+      expect(forma.revisione?.esito, id).toBe(c.esito);
+      if (forma.revisione?.stato === "sbagliata") expect(forma.lettura, id).toBeNull();
+      if (forma.revisione?.stato === "confermata" || c.esito === "corretta") expect(forma.lettura?.certezza, id).toBe("verificato");
+    }
+    for (const [id, forma] of Object.entries(forme)) {
+      if (forma.revisione) expect(conferme[id], `${id}: revisione senza decisione`).toBeDefined();
     }
   });
 

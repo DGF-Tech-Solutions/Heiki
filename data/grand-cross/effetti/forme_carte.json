@@ -103,7 +103,9 @@
         "note unite al termine che spiegano": 117,
         "righe con piu' voci di significato": 10,
         "target dalle letture": 30
-      }
+      },
+      "revisione": {},
+      "conferme_di_forme_che_non_esistono": 0
     }
   },
   "forme": {
@@ -853,6 +855,11 @@
       "stato": "nessuna regola di letture_carte.py le prende per intero: restano da leggere. Molte sono frasi senza un effetto proprio (i frammenti fra parentesi, «Then») o definizioni di termini che la tassonomia descrive con altre parole",
       "forme": 476,
       "proposizioni": 3150
+    },
+    {
+      "cosa": "conferme di forme che non esistono piu'",
+      "stato": "conferme_letture.json decide su una forma che i testi non producono piu' (una patch ha cambiato la frase, e con lei l'id): la decisione non vale per nessuna forma, e va rifatta sulla forma nuova",
+      "forme": []
     },
     {
       "cosa": "effect_keyword",
