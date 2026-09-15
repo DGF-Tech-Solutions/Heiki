@@ -217,6 +217,18 @@
     }
    ]
   },
+  "p49856d3e": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "002"
+     ]
+    }
+   ]
+  },
   "pdcbae51f": {
    "esito": "sbagliata",
    "quando": "2026-09-15",
@@ -299,6 +311,19 @@
     }
    ]
   },
+  "p4a027361": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "voce",
+     "verso": "riduzione",
+     "tassonomia": [
+      "022"
+     ]
+    }
+   ]
+  },
   "p92964f58": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -355,6 +380,22 @@
       "valore": 1
      },
      "condizione": "per orb in the target's Ultimate Move Gauge"
+    }
+   ]
+  },
+  "p8e037ce3": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "barra",
+     "verso": "riduzione",
+     "condizione": "by the number of skills that had ranks decreased",
+     "tassonomia": [
+      "021",
+      "088",
+      "089"
+     ]
     }
    ]
   },
@@ -638,6 +679,18 @@
     }
    ]
   },
+  "pa65d6b91": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1
+    }
+   ],
+   "nota": "Cosa fa: Provoca"
+  },
   "p99bbb77b": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -653,6 +706,22 @@
      "tassonomia": [
       "029"
      ]
+    }
+   ]
+  },
+  "p579982e6": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "in_base_a": "statistiche.crit_atk_per",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "(Crit Damage - <V>)"
     }
    ]
   },
@@ -788,6 +857,17 @@
      "tassonomia": [
       "043"
      ]
+    }
+   ]
+  },
+  "p0c0820f7": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "precisazione",
+     "precisa": "limite",
+     "numero": 1
     }
    ]
   },
@@ -993,6 +1073,49 @@
     }
    ]
   },
+  "p2a33d263": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "061"
+     ]
+    }
+   ],
+   "nota": "Immunità ai debuff"
+  },
+  "pb2790df1": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "cura",
+     "condizione": "of recovered HP at the start of every turn",
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "p84af6ba9": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "atteggiamento"
+    },
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1
+    }
+   ]
+  },
   "p0a31a460": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -1039,6 +1162,44 @@
       "valore": 1
      },
      "condizione": "for every <V> of the hero's remaining HP"
+    }
+   ]
+  },
+  "pa514521b": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_per"
+     ],
+     "a_chi": "self",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 3
+     },
+     "tassonomia": [
+      "126"
+     ]
+    },
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.crit_atk_per"
+     ],
+     "a_chi": "self",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 3
+     },
+     "tassonomia": [
+      "127"
+     ]
     }
    ]
   },
@@ -1191,6 +1352,46 @@
     }
    ]
   },
+  "p4accd1c9": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "062"
+     ],
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "buff_turn": 3
+     },
+     "bersaglio": 1,
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
+  "p826a39cb": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "barra",
+     "verso": "riduzione",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "condizione": "at the end of the enemy's turn",
+     "tassonomia": [
+      "021",
+      "088",
+      "089"
+     ]
+    }
+   ]
+  },
   "paa6d5fd4": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -1254,6 +1455,22 @@
     }
    ]
   },
+  "pdc2f5816": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
   "p2e8b24c8": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -1285,6 +1502,369 @@
       "valore": 1
      },
      "condizione": "for every Buff, Debuff, and Stance on the target"
+    }
+   ]
+  },
+  "p1ee483ea": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "condizione": "for each Blade on the hero",
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "pf03ba92d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "075"
+     ],
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "p3b313fe4": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     }
+    }
+   ]
+  },
+  "p26c5587e": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "termine": 1
+    }
+   ],
+   "nota": "Danno \"Death\""
+  },
+  "p46e6fbb3": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "cura",
+     "condizione": "diminished HP upon successful critical strike",
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "p057cd165": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "309"
+     ],
+     "colonne": {
+      "buff_turn": 2
+     },
+     "bersaglio": 1,
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
+  "p807c72be": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "ignora",
+     "statistiche": [
+      "gruppi.difesa"
+     ],
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "p43b4b402": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "rimozione",
+     "cosa": [
+      "buff"
+     ],
+     "a_chi": "bersaglio",
+     "tassonomia": [
+      "027"
+     ]
+    }
+   ],
+   "nota": "Penso serva specificare che rimuove un solo buff, per non confondersi con altre carte che invece li levano tutti"
+  },
+  "p8e5516df": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "danno_nel_tempo",
+     "termine": 1,
+     "in_base_a": "statistiche.hp",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 4
+     },
+     "bersaglio": 3,
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
+  "pcac47335": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "064"
+     ],
+     "colonne": {
+      "buff_turn": 1
+     }
+    }
+   ]
+  },
+  "p9dcd9e88": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1,
+     "condizione": "of damage taken",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 3
+     }
+    }
+   ]
+  },
+  "pa3b19c7f": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "nome": "Dragon Rage",
+     "a_chi": "self",
+     "colonne": {
+      "buff_turn": 1
+     }
+    }
+   ]
+  },
+  "pdff9c5b4": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "054"
+     ],
+     "statistiche": [
+      "statistiche.atk",
+      "statistiche.def"
+     ],
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 3
+     },
+     "bersaglio": 2,
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
+  "p3fd5c2af": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "statistiche.fixed_atk_per"
+     ],
+     "a_chi": "self",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     }
+    }
+   ]
+  },
+  "p1075f7d3": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "cura",
+     "a_chi": "global_ally",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "of damage dealt"
+    }
+   ]
+  },
+  "p604d0e4c": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "danno",
+     "termine": 1,
+     "in_base_a": "statistiche.atk",
+     "condizione": "via counter when attacked"
+    }
+   ]
+  },
+  "p6dc71128": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     },
+     "bersaglio": 2,
+     "a_chi": "bersaglio",
+     "tassonomia": [
+      "184"
+     ]
+    }
+   ]
+  },
+  "pbc166eab": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "danno_nel_tempo",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "of remaining HP at the end of the turn"
+    }
+   ]
+  },
+  "p152f2aa2": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "condizione": "when taking attacks",
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "p792afa7e": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 1,
+     "in_base_a": "statistiche.hp",
+     "bersaglio": 3,
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 4
+     }
+    }
+   ]
+  },
+  "pcc28124b": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "colonne": {
+      "atk_per": 2
+     },
+     "bersaglio": 3,
+     "a_chi": "bersaglio",
+     "termine": 1,
+     "tassonomia": [
+      "164"
+     ]
+    }
+   ]
+  },
+  "pb4616107": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "disabilita",
+     "cosa": [
+      "skill effects",
+      "ultimate move effects"
+     ],
+     "a_chi": "global_enemy",
+     "tassonomia": [
+      "038",
+      "077"
+     ]
     }
    ]
   }

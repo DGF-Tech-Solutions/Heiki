@@ -44,10 +44,20 @@ interface RigaBase {
 }
 
 /** Una frase fra parentesi che precisa la frase prima, unita alla sua riga: «(Limit 3)». */
+/** Un testo nelle due lingue: l'inglese della lettura, l'italiano del gioco (o null). */
+interface Bilingue {
+  it: string | null;
+  en: string;
+}
+
 interface Precisazione {
   precisa: string;
   forme: string[];
   tassonomia?: string[];
+  frase?: Bilingue;
+  frase_da?: string;
+  condizione?: Bilingue;
+  condizione_da?: string;
 }
 
 interface Significato {
@@ -56,7 +66,17 @@ interface Significato {
   a_chi?: string;
   statistiche?: string[];
   tassonomia?: string[];
+  condizione?: Bilingue;
+  condizione_da?: string;
   precisazioni?: Precisazione[];
+}
+
+/** Il nome italiano di una condizione o di una precisazione, e le varianti del gioco. */
+interface Glossario {
+  it: string | null;
+  varianti: Record<string, number>;
+  usi: number;
+  ritagliate: number;
 }
 
 interface RigaCollegata {
@@ -108,7 +128,12 @@ interface Segnaposto {
 const base = carica<Tabella<RigaBase>>("effetti/carte_base.json");
 const buff = carica<Tabella<RigaCollegata>>("effetti/carte_buff.json");
 const opzioni = carica<Tabella<RigaCollegata>>("effetti/carte_opzioni.json");
-const forme = carica<{ forme: Record<string, Forma> }>("effetti/forme_carte.json").forme;
+const fileForme = carica<{
+  forme: Record<string, Forma>;
+  condizioni: Record<string, Glossario>;
+  precisazioni: Record<string, Glossario>;
+}>("effetti/forme_carte.json");
+const forme = fileForme.forme;
 const segnaposto = carica<{ segnaposto: Record<string, Segnaposto> }>("effetti/segnaposto.json").segnaposto;
 const carte = carica<Record<string, Record<string, unknown>>>("concetti/carte.json");
 const tassonomia = carica<{ voci: Record<string, unknown> }>("concetti/tassonomia.json").voci;
@@ -356,6 +381,48 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
             riferimenti(id, p);
           }
         }
+      }
+    }
+  });
+
+  it("condizioni e precisazioni hanno l'italiano della loro carta o delle altre carte, e il glossario le nomina", () => {
+    // 1 se il testo ha l'italiano, 0 se no
+    const bilingue = (id: string, testo: Bilingue | undefined, da: string | undefined, glossario: Record<string, Glossario>) => {
+      if (testo === undefined) return 0;
+      expect(typeof testo.en, id).toBe("string");
+      const voce = glossario[testo.en];
+      expect(voce, `${id}: «${testo.en}» fuori dal glossario`).toBeDefined();
+      if (testo.it === null) {
+        expect(da, id).toBeUndefined();
+        return 0;
+      }
+      expect(["testo della carta", "altre carte"], id).toContain(da);
+      // dalle altre carte e' il nome della condizione; dal testo della carta, una delle varianti del gioco
+      if (da === "altre carte") expect(testo.it, id).toBe(voce!.it);
+      else expect(voce!.varianti[testo.it], `${id}: «${testo.it}» non e' fra le varianti`).toBeGreaterThan(0);
+      return 1;
+    };
+    let conItaliano = 0;
+    for (const tabella of [buff, opzioni]) {
+      for (const [id, riga] of Object.entries(tabella.righe)) {
+        for (const voce of riga.significato ?? []) {
+          conItaliano += bilingue(id, voce.condizione, voce.condizione_da, fileForme.condizioni);
+          for (const p of voce.precisazioni ?? []) {
+            conItaliano += bilingue(id, p.frase, p.frase_da, fileForme.precisazioni);
+            conItaliano += bilingue(id, p.condizione, p.condizione_da, fileForme.condizioni);
+          }
+        }
+      }
+    }
+    expect(conItaliano).toBeGreaterThan(0);
+    // il nome e' la variante piu' usata, e le varianti vengono dai ritagli
+    for (const glossario of [fileForme.condizioni, fileForme.precisazioni]) {
+      for (const [en, voce] of Object.entries(glossario)) {
+        const usi = Object.values(voce.varianti);
+        expect(usi.reduce((a, b) => a + b, 0), en).toBe(voce.ritagliate);
+        expect(voce.ritagliate, en).toBeLessThanOrEqual(voce.usi);
+        if (voce.it === null) expect(usi.length, en).toBe(0);
+        else expect(voce.varianti[voce.it], en).toBe(Math.max(...usi));
       }
     }
   });

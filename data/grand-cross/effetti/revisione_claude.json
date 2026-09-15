@@ -217,6 +217,32 @@
     }
    ]
   },
+  "pec844a88": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     },
+     "bersaglio": 2,
+     "a_chi": "bersaglio"
+    },
+    {
+     "tabella": "opzione",
+     "effetto": "cura",
+     "a_chi": "global_ally",
+     "colonne": {
+      "valore": 3
+     },
+     "condizione": "of damage dealt"
+    }
+   ],
+   "nota": "avevi segnato giusta questa lettura quando la condizione della cura era scritta in italiano («in proporzione al danno inflitto») in un campo inglese; ora è l'inglese della frase, «of damage dealt», con l'italiano del gioco accanto. Il resto della lettura è quello che hai approvato"
+  },
   "p2f4ebc40": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -3572,9 +3598,10 @@
      "colonne": {
       "valore": 1
      },
-     "condizione": "in proporzione al danno inflitto"
+     "condizione": "of damage dealt"
     }
-   ]
+   ],
+   "nota": "la condizione della cura ora è l'inglese della frase («of damage dealt»), con l'italiano del gioco accanto: prima era scritta in italiano, «in proporzione al danno inflitto», in un campo inglese. Il resto della lettura è quello rivisto prima"
   },
   "p243632b7": {
    "esito": "giusta",
@@ -3586,9 +3613,10 @@
      "colonne": {
       "valore": 1
      },
-     "condizione": "in proporzione al danno inflitto"
+     "condizione": "of the damage dealt"
     }
-   ]
+   ],
+   "nota": "la condizione della cura ora è l'inglese della frase («of damage dealt»), con l'italiano del gioco accanto: prima era scritta in italiano, «in proporzione al danno inflitto», in un campo inglese. Il resto della lettura è quello rivisto prima"
   },
   "p3d1932a7": {
    "esito": "giusta",
@@ -4379,9 +4407,10 @@
      "colonne": {
       "valore": 3
      },
-     "condizione": "in proporzione al danno inflitto"
+     "condizione": "of damage dealt"
     }
-   ]
+   ],
+   "nota": "la condizione della cura ora è l'inglese della frase («of damage dealt»), con l'italiano del gioco accanto: prima era scritta in italiano, «in proporzione al danno inflitto», in un campo inglese. Il resto della lettura è quello rivisto prima"
   },
   "p32aeca0d": {
    "esito": "giusta",
@@ -4635,9 +4664,10 @@
      "colonne": {
       "valore": 3
      },
-     "condizione": "in proporzione al danno inflitto"
+     "condizione": "of damage dealt"
     }
-   ]
+   ],
+   "nota": "la condizione della cura ora è l'inglese della frase («of damage dealt»), con l'italiano del gioco accanto: prima era scritta in italiano, «in proporzione al danno inflitto», in un campo inglese. Il resto della lettura è quello rivisto prima"
   },
   "p112fef1a": {
    "esito": "giusta",
@@ -7879,9 +7909,10 @@
      "colonne": {
       "valore": 4
      },
-     "condizione": "in proporzione al danno inflitto"
+     "condizione": "of damage dealt"
     }
-   ]
+   ],
+   "nota": "la condizione della cura ora è l'inglese della frase («of damage dealt»), con l'italiano del gioco accanto: prima era scritta in italiano, «in proporzione al danno inflitto», in un campo inglese. Il resto della lettura è quello rivisto prima"
   },
   "p99c260c9": {
    "esito": "giusta",
@@ -8495,9 +8526,10 @@
      "colonne": {
       "valore": 1
      },
-     "condizione": "in proporzione al danno inflitto"
+     "condizione": "of the damage dealt"
     }
-   ]
+   ],
+   "nota": "la condizione della cura ora è l'inglese della frase («of damage dealt»), con l'italiano del gioco accanto: prima era scritta in italiano, «in proporzione al danno inflitto», in un campo inglese. Il resto della lettura è quello rivisto prima"
   },
   "pdd3a2c9a": {
    "esito": "giusta",

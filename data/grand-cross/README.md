@@ -138,7 +138,7 @@ Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
 | `carte_base.json` | 4.044 ranghi (A 1.119, B 1.119, ultimate 1.674, coop 132): colonne, proposizioni, schema |
 | `carte_buff.json` | 2.189 righe di buff: 1.205 nominate dai modelli del client, 984 dette solo dalla lettura delle forme |
 | `carte_opzioni.json` | 2.929 righe di opzioni: 913 dai modelli del client, 2.016 dalla lettura delle forme |
-| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 597 con una lettura delle regole |
+| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 597 con una lettura delle regole; in coda il glossario italiano di condizioni e precisazioni |
 | `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
 | `conferme_letture.json` | le decisioni dell'utente sulle letture, dalla pagina di revisione: compilato a mano, nessuno script lo sovrascrive; non c'è finché non si decide la prima frase |
 | `revisione_claude.json` | le letture riviste da Claude coi criteri di quelle che l'utente ha approvato, a parte dalle sue decisioni: le scrive `revisione_claude.py` della pipeline, solo per le forme lette e nominate |
@@ -312,7 +312,7 @@ Decisioni dell'utente (15/09):
 | `statistiche`, `in_base_a` | percorsi in `concetti/statistiche.json`: `statistiche.atk`, `gruppi.base` |
 | `a_chi` | un bersaglio di `concetti/carte.json` (`global_enemy`), `self`, o `bersaglio` per il bersaglio della carta |
 | `tassonomia` | le voci di `concetti/tassonomia.json` col nome giusto: «Attack-related Stats Increase» è la 056, «Buff Cancel» la 027 |
-| `condizione` | il pezzo di frase che dice quando («per Debuff on the target»), in inglese |
+| `condizione` | il pezzo di frase che dice quando («per Debuff on the target»), in inglese; nelle righe di buff e opzioni diventa `{it, en}` (vedi «L'italiano delle condizioni e delle precisazioni») |
 | `nome` | il nome di un effetto scritto nel testo che la carta non spiega in nota e la tassonomia non ha: «Applies Dragon Rage on the hero» |
 | `precisa`, `numero` | in una `precisazione`: `limite`, `cumulabile`, `esclude` o `include`, e il buco del numero, che non va in una colonna («(Limit `<V>`)») |
 | `candidati` | i nomi dell'enum con la statistica subito seguita dal verso (`buff_atk_all_inc_add_per_gowther`); solo dove la statistica ha il suo pezzo di nome, o per le rimozioni di Buff e Debuff |
@@ -494,16 +494,64 @@ correzione non la scavalca niente. Se l'utente aveva deciso su una lettura che l
 regole non danno più, vale la revisione di Claude di quella nuova, e l'esito
 dell'utente resta in `decisione_superata`. Per togliere tutte le revisioni di
 Claude basta cancellare il file. La pagina le mostra coi filtri «Riviste da
-Claude» e «Dubbi di Claude», e l'utente può decidere anche lì.
+Claude» e «Dubbi di Claude», e l'utente può decidere anche lì. «Campione da controllare»
+mette in fila la frase più usata di ogni famiglia di regole di cui l'utente non ha
+approvato nessuna lettura.
 
-Al 15/09 notte le regole leggono 597 frasi: 67 le ha confermate l'utente, 530 le ha
-rivedute Claude, tutte giuste, 3 con una nota. 283 di queste stanno in 34 famiglie
-di regole di cui l'utente non ha approvato nessun esempio: lì i criteri valgono per
-analogia, e un controllo a campione dell'utente pesa di più. Le misure in
+Al 15/09 notte le regole leggono 597 frasi: 101 le ha confermate l'utente, 496 le ha
+rivedute Claude, tutte giuste, 10 con una nota. L'utente ha controllato il campione:
+la frase più usata di ognuna delle 34 famiglie di regole che non avevano un suo esempio
+approvato, tutte giuste. Quattro decisioni hanno una nota che chiede di dire meglio cosa
+fa la frase (quanti Buff rimuove, il nome italiano di un termine): sono da fare. Le misure in
 `forme_carte.json` lo dicono a ogni giro. Le 142 frasi senza lettura si possono
 scrivere a mano nella pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
 e «-100%» in un'altra («`<V>` Crit Chance»), e allora la frase da sola non dice il
 verso.
+
+### L'italiano delle condizioni e delle precisazioni
+
+Le letture sono in inglese, come le frasi da cui vengono. Condizioni e precisazioni hanno
+anche l'italiano del gioco (scelte dell'utente, 15/09 notte).
+
+**Da dove viene.** Dal testo italiano di ogni rango su 7dshub, che la pipeline scarica con
+`scarica_7dshub_it.py` (`?lang=it`). C'è per 4.041 ranghi su 4.044: gli altri 3 dicono
+«NONE_DB». Dove il client ha il modello italiano, è lo stesso testo coi valori al posto dei
+segnaposto in 3.511 ranghi su 3.567.
+
+**Come si ritaglia** (`italiano_carte.py`), carta per carta:
+- si prendono la frase inglese e la frase italiana nello stesso posto del testo (righe,
+  nome della nota, frasi): le due lingue devono avere gli stessi pezzi
+- la condizione italiana comincia dove comincia la traduzione della prima parola inglese
+  («against» → «contro», «ai»…)
+- finisce dove finisce la frase, oppure prima di «per 2 turni», di un numero finale, di una
+  «e» che in inglese è «and»
+- non si porta dietro un pezzo che in inglese sta prima della condizione
+- i numeri diventano `<V>`, come i buchi della forma inglese
+- quello che non torna resta vuoto
+
+**Una carta, il suo italiano.** Il gioco traduce la stessa condizione in modi diversi:
+«against Debuffed enemies» è «ai nemici con Debuff» in 115 ranghi e «contro nemici con
+Debuff» in 32. Per questo:
+- nelle righe di buff e opzioni `condizione` è `{it, en}` con l'italiano della **sua** carta,
+  e `condizione_da` vale «testo della carta». Se la carta non si ritaglia, l'italiano è il
+  nome della condizione, e `condizione_da` vale «altre carte»
+- in coda a `forme_carte.json`, `condizioni` è il glossario. Per ogni condizione inglese:
+  il nome italiano (la variante più usata), le varianti con i loro usi, gli usi e quanti si
+  sono ritagliati. `precisazioni` fa lo stesso per le frasi fra parentesi («(Limit `<V>`)» →
+  «(Limite: `<V>`)»)
+- una precisazione unita alla sua riga ha `frase` `{it, en}` e `frase_da`
+
+**I numeri.**
+
+| | usi | ritagliati | nelle righe: dalla carta | dalle altre carte | senza italiano |
+|---|---|---|---|---|---|
+| condizioni | 1.829 | 1.643 | 1.559 | 28 | 114 |
+| precisazioni | 103 | 100 | 48 | 0 | 0 |
+
+I motivi dei ritagli mancati sono in `misure.letture.italiano`. La cura «by `<V>` of damage
+dealt» era l'unica condizione scritta in italiano («in proporzione al danno inflitto») in un
+campo inglese. Ora è l'inglese della frase, «of damage dealt», e le 7 forme che la usano
+sono state rivedute.
 
 ### Le prove che fermano lo script
 
