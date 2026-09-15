@@ -6,17 +6,22 @@ carte, le condizioni delle passive, i contenuti, la tassonomia degli effetti.
 Ogni contenuto futuro — schede, sinergie, guide — parte da qui invece di
 reinventare i nomi.
 
-Il sito **ancora non la legge**. A tenerla allineata ai dati del sito c'è un
-test: `src/lib/games/__tests__/concetti.test.ts`.
+Il sito **ancora non la legge**. A tenerla allineata ai dati del sito ci sono
+due test in `src/lib/games/__tests__/`: `concetti.test.ts` per i dizionari,
+`effetti.test.ts` per le righe d'effetto.
 
 ## Da dove viene
 
-I file in `concetti/` li scrive `concetti.py`, nella pipeline `_7dsgc` (fuori dal
-repo), leggendo il client del gioco (enum e tabelle da `dump.cs`, testi
-decifrati) e 7dshub. **Non si modificano a mano**: si rigenerano.
+I file in `concetti/` li scrive `concetti.py`, quelli in `effetti/` li scrive
+`righe_carte.py`, tutti e due nella pipeline `_7dsgc` (fuori dal repo), leggendo
+il client del gioco (enum e tabelle da `dump.cs`, testi decifrati) e 7dshub.
+**Non si modificano a mano**: si rigenerano.
 
-    python concetti.py                 # dentro _7dsgc, dopo contesto_eroi.py
-    python concetti.py --rileggi-dump  # dopo una patch del client
+    python concetti.py                    # dentro _7dsgc, dopo contesto_eroi.py
+    python righe_carte.py                 # dopo concetti.py, di cui legge carte.json
+    python concetti.py --rileggi-dump     # dopo una patch del client
+    python righe_carte.py --rileggi-dump  # idem
+    python righe_carte.py --rapporto      # le misure per esteso
 
 Se una prova che si può misurare non torna — un gruppo di statistiche che non
 corrisponde più ai costumi, due elenchi della tassonomia che non concordano —
@@ -116,6 +121,159 @@ che le condizioni citano: PvP, Scontro finale, Battaglia Bestia demoniaca.
 descrizioni 234 in tutte e due le lingue. 15 voci rimandano a una voce degli
 altri dizionari (`rimanda_a`).
 
+## Le righe d'effetto delle carte (`effetti/`)
+
+Il gioco tiene le carte in tre tabelle, e la base le ricalca: una riga per rango
+in `DBSkillCardBaseRow`, e le righe dei buff e delle opzioni (gli effetti
+istantanei) in `DBSkillCardBuffRow` e `DBSkillCardOptionRow`, legate al rango con
+`carta` (scelta dell'utente, 15/09). Le tabelle vere stanno nei bundle cifrati:
+qui si riempiono dai testi, e **una colonna si riempie solo se un testo la dice**.
+Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
+
+| file | cosa c'è |
+|---|---|
+| `carte_base.json` | 4.044 ranghi (A 1.119, B 1.119, ultimate 1.674, coop 132): colonne, proposizioni, schema |
+| `carte_buff.json` | 1.205 righe di buff nominate dai modelli del client |
+| `carte_opzioni.json` | 913 righe di opzioni nominate dai modelli del client |
+| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta |
+| `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
+
+Le righe di tabella stanno una per riga di file: 4.044 ranghi con `indent=2`
+sarebbero illeggibili, e così un diff dopo una patch mostra solo i ranghi
+cambiati.
+
+### Da dove viene ogni colonna
+
+| colonna | fonte | ranghi |
+|---|---|---|
+| `range_type`, `attack_type` | 7dshub | 4.044 |
+| `target` | il segnaposto `{target_val}` del modello del client | 3.375 |
+| `target` | l'unico span bianco del testo: **dedotto**, perché nei 3.561 ranghi col modello gli span bianchi del corpo sono tutti `{target_val}` e nessuno è scritto a mano | 441 |
+| `atk_per` | il segnaposto `{melee_val}` | 3.194 |
+| righe di buff e opzioni | `{buff_N_val}`, `{turn_N_val}`, `{opt_N_val}`, `{buff_data_turn}ID{/buff_data_turn}`… | dai 3.561 ranghi col modello |
+
+Ogni riga ha `fonti`, che per ogni colonna dice da dove viene: `7dshub`, `testo`
+o `modello:<segnaposto>`. `testi` tiene il valore come lo scrive il gioco
+(«200%»), perché la scala intera delle colonne è ignota. 228 ranghi non hanno
+`target`: il corpo non nomina nessun bersaglio.
+
+**I modelli.** Il client ha 1.032 descrizioni di abilità coi segnaposto
+(`Inflicts damage equal to {melee_val} of Attack on {target_val}`), 1.023
+leggibili. **Le loro chiavi non sono gli id dei ranghi**: il client salva un
+testo per ogni testo diverso, e i ranghi che dicono la stessa cosa con numeri
+diversi ne usano uno solo. L'ultimate di Mael Angelo della disperazione usa la
+chiave …591 ai ranghi 1–2, la …592 ai 3–4, la …593 ai 5–6, e le chiavi …594–596
+non esistono. Quale chiave usi un rango lo dice una colonna cifrata
+(`skill_explain`); qui il modello di un rango è quello che, coi valori del rango,
+ridà il testo di 7dshub identico, colori compresi (`modelli_abilita.py` nella
+pipeline).
+
+| esito sui 4.044 ranghi | |
+|---|---|
+| la chiave ha l'id del rango | 368 |
+| una chiave della stessa carta | 425 |
+| la chiave di un'altra carta, con lo stesso testo | 2.768 |
+| più modelli che leggono i valori in modo diverso: nessuna scelta | 24 |
+| nessun modello | 459 |
+
+Fino al 15/09 pomeriggio si prendeva la chiave con l'id del rango: 370 modelli,
+e 35 ranghi il cui modello «non combaciava» sembravano versioni diverse del
+testo. Erano varianti usate da altri ranghi. Restano **17 chiavi con l'id di un
+rango che nessun rango usa**:
+
+- Lancelot giovane cavaliere (1005092–96): l'ultimate **più** i pezzi che
+  cambiano col suo rango. I numeri sono quelli che 7dshub mette nella passiva al
+  livello speciale di uno in meno (rango 2 → livello 1: 70%; rango 6 → livello 5:
+  20% e 100%). 7dshub separa ultimate e passiva, il gioco le scrive insieme, e la
+  regola «livello speciale k vale dal rango k+1» dell'import ha così una prova
+  scritta dal gioco stesso
+- Percival piccolo eroe (1004692–95): lo stesso, meno ordinato
+- Divinità Guardiana Camila (193902–06): un'altra versione dell'ultimate, senza
+  legame con la passiva
+- Estarossa furioso (1000001–03): la famiglia «debuff_atk», mentre i ranghi usano
+  la «atk»
+
+Il testo di riferimento resta quello di 7dshub; quale testo mostri il gioco per
+quelle chiavi si vede solo in gioco.
+
+**Quale colonna.** Da quale colonna venga il valore di un segnaposto lo dicono i
+nomi, quindi è sempre `dedotto`. Dove i nomi lasciano due colonne la colonna
+resta vuota e il valore va in `valore`, che **non è una colonna del gioco**:
+`BUFF_N_VALUE` può essere `buff_per` o `effect_value`, `OPTION_N_VALUE`
+`option_per` o `effect_value`.
+
+**Perché i ranghi senza modello non hanno valori.** Prima di trovare le varianti
+si era provato a trasferire la lettura dei segnaposto dai ranghi col modello
+agli altri. Misurato e scartato, e ora non serve più:
+
+| prova | esito |
+|---|---|
+| per frase intera | letture coerenti (270 forme su 271), ma copre il 32% dei valori |
+| per 2–3 parole attorno al valore, metà degli eroi insegna e l'altra metà si misura | sbaglia 23 decisioni su 284 con 2 parole, 12 su 268 con 3 |
+| «il numero cambia fra i ranghi, quindi è un segnaposto» | a caso: 397 / 229 / 387 / 287 |
+| «ha una durata, quindi è un buff» | 9 buff su 22 non hanno turni |
+
+Il client scrive molti valori a mano dentro il testo di ogni rango, quindi
+letterale o segnaposto non è una proprietà stabile del valore: «Increases basic
+stats by <V> for <V>» ha il primo valore marcato `{buff_1_val}` in 11 ranghi e
+scritto a mano in 36. Le colonne dei 483 ranghi senza modello o in conflitto le
+riempirà la lettura delle forme, confermata a mano.
+
+### Proposizioni e forme
+
+Ogni testo si spezza in **proposizioni**: prima in frasi, poi prima di un verbo
+d'azione preceduto da virgola, «and» o «then». I verbi non sono scritti a mano:
+sono le parole in -s che aprono almeno tre frasi, più le loro forme in -ing (34
+oggi, elencati in `forme_carte.json`). Si spezza per proposizione e non per frase
+perché la stessa proposizione sta dentro molte frasi composte, e la sua lettura
+andrebbe riscritta in ognuna (scelta dell'utente, 15/09).
+
+Una **forma** è la proposizione con tre tipi di slot:
+
+- `<V>` un valore, colorato o no, con la sua unità («30%», «2 turn(s)», «5x»)
+- `<T>` un bersaglio, lo span bianco
+- `<K>` un termine che la carta stessa definisce in una nota `※`. Gli altri
+  termini azzurri restano nella forma: sostituirli tutti fonderebbe «Removes
+  Buffs» con «Removes Debuffs»
+
+La carta B di Derieri al rango 2 («Increases basic stats by 30% for 2 turn(s) and
+gains Evasion for 1 turn(s).»):
+
+```json
+"171012": {"slot": "B", "rango": 2, "eroi": ["1575001"], "range_type": 2, "attack_type": 2,
+  "proposizioni": [{"forma": "pb9a2f064", "valori": ["30%", "2 turn(s)"]},
+                   {"forma": "p00c04ea2", "valori": ["1 turn(s)"], "termini": ["Evasion"], "minuscola": true},
+                   {"forma": "pae05dfc0", "parte": "nota"}],
+  "schema": "{1} and {2}.\n\n※Evasion: {3}.", "fonti": {"range_type": "7dshub", "attack_type": "7dshub"}}
+```
+
+| | |
+|---|---|
+| proposizioni | 10.799: 6.890 nel corpo, 3.903 nelle note, 6 nomi di nota con un valore dentro («Lv. 1 Blackout Effect») |
+| forme | 739; le prime 300 coprono l'85,3% delle proposizioni, 45 sono usate una volta |
+| forme del corpo | 471, e le prime 300 coprono il 94,5% |
+| forme delle note | 272, e le prime 200 coprono il 94,7% |
+| forme viste in almeno un rango col modello | 498, che coprono 8.577 proposizioni |
+
+L'id di una forma sono i primi 8 caratteri dello SHA-1 del suo testo: la stessa
+forma ha lo stesso id a ogni giro, così le conferme della revisione sopravvivono
+alle rigenerazioni. `dal_modello` dice, per ogni slot, cosa lo marca nei ranghi
+col modello: il segnaposto o «letterale». In 23 forme lo stesso slot è a volte
+un segnaposto e a volte scritto a mano, o due segnaposto diversi: sono fra le
+`lacune`.
+
+`lettura`, il significato della forma, per ora è vuota.
+
+### Le prove che fermano lo script
+
+- forme e valori rifanno il testo senza colori di ogni rango, identico
+- il modello di un rango, coi valori letti, rifà il testo del gioco, colori
+  compresi
+- nei modelli trovati nessuno span bianco del corpo è scritto a mano: è la
+  prova del `target` letto dal testo
+- lo stesso buff citato per id da più ranghi ha lo stesso valore in tutti
+- lo stesso rango ha lo stesso testo in ogni eroe che lo usa
+
 ## Lacune dichiarate
 
 Ogni file ha la sua lista `lacune`. Le più importanti:
@@ -125,12 +283,19 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
 - a quale gruppo di ricerca appartenga ogni voce della tassonomia: la tabella è
   cifrata
 - i nomi di gittate e bersagli: nessun testo del client li nomina come categoria
+- i **valori dei ranghi senza modello** (459) o con letture in conflitto (24):
+  li riempirà la lettura delle forme, confermata a mano
+- da quale colonna vengano `BUFF_N_VALUE` e `OPTION_N_VALUE`: due candidate
+  ciascuno, nessun testo scioglie il dubbio
+- **17 chiavi del client che nessun rango usa** (Lancelot, Percival, Camila,
+  Estarossa furioso), elencate in `carte_base.json`: quale testo mostri il gioco
+  si vede solo in gioco
 
 ## Le tappe successive
 
-- **B.** righe d'effetto con lo schema delle tabelle del gioco
-  (`DBSkillPassiveRow`, `DBSkillCardBuffRow`, `DBSkillCardOptionRow`), lette dai
-  testi, con un controllo che rigenera il testo dal modello
+- **B.** righe d'effetto con lo schema delle tabelle del gioco. **Carte: fatto lo
+  strato del testo** (`effetti/`), manca la lettura delle forme. Poi reliquie e
+  passive (`DBSkillPassiveRow`), che vanno scomposte per pezzi
 - **C.** pagina di revisione delle letture ambigue, divisa per forma di frase,
   con le conferme in un file scritto a mano
 - **D.** un SQLite generato da questi JSON per interrogarli, e questo manuale

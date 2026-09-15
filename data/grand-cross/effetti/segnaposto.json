@@ -1,0 +1,1114 @@
+{
+  "descrizione": "I segnaposto dei modelli di testo delle abilita' (TAG_SKILLEXPLAIN): come si scrivono nei testi e da quale colonna delle tabelle delle carte viene il loro valore.",
+  "generato_da": "righe_carte.py, nella pipeline _7dsgc",
+  "fonti": {
+    "UIIngameSkillExplainTagReplacer.TAG_SKILLEXPLAIN": "enum del client (dump.cs): nomi e codici",
+    "DB_activeskill_desc_* e DB_hero_skill_*_desc_*": "descrizioni delle abilita' nel client, coi tag"
+  },
+  "note": {
+    "certezza": "il codice e' dichiarato dall'enum; come si scrive nel testo e da quale colonna viene sono dedotti dai nomi, con le prove",
+    "colonna": "null dove i nomi lasciano due colonne possibili: sono in colonne_possibili"
+  },
+  "segnaposto": {
+    "MELEE_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 1,
+      "nel_testo": "melee_val",
+      "tabella": "DBSkillCardBaseRow",
+      "colonna": "atk_per",
+      "colonne_possibili": [
+        "atk_per",
+        "atk_per_add"
+      ],
+      "uso": {
+        "descrizioni_client": 725,
+        "ranghi_col_modello": 3194
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{melee_val}» e' il nome del tag in minuscolo: compare in 725 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 3.194",
+        "DBSkillCardBaseRow: il valore d'attacco della carta: atk_per_add ha il suffisso degli incrementi, come effect_value_add accanto a effect_value",
+        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.137 volte su 3.194"
+      ]
+    },
+    "TARGET_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 2,
+      "nel_testo": "target_val",
+      "tabella": "DBSkillCardBaseRow",
+      "colonna": "target",
+      "colonne_possibili": [
+        "target"
+      ],
+      "uso": {
+        "descrizioni_client": 847,
+        "ranghi_col_modello": 3381
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{target_val}» e' il nome del tag in minuscolo: compare in 847 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' bersaglio 3.381",
+        "DBSkillCardBaseRow: stesso nome della colonna"
+      ]
+    },
+    "OPTION_1_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 3,
+      "nel_testo": "opt_1_val",
+      "tabella": "DBSkillCardOptionRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "option_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 218,
+        "ranghi_col_modello": 814
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 218 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 586, intero 228",
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+      ]
+    },
+    "OPTION_2_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 4,
+      "nel_testo": "opt_2_val",
+      "tabella": "DBSkillCardOptionRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "option_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 45,
+        "ranghi_col_modello": 105
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{opt_2_val}» e' il nome del tag in minuscolo: compare in 45 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 67, intero 34, altro 4",
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+      ]
+    },
+    "OPTION_3_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 5,
+      "nel_testo": "opt_3_val",
+      "tabella": "DBSkillCardOptionRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "option_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 6,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{opt_3_val}» e' il nome del tag in minuscolo: compare in 6 descrizioni di abilita' del client",
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+      ]
+    },
+    "OPTION_4_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 6,
+      "nel_testo": null,
+      "tabella": "DBSkillCardOptionRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "option_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+      ]
+    },
+    "OPTION_5_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 7,
+      "nel_testo": null,
+      "tabella": "DBSkillCardOptionRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "option_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+      ]
+    },
+    "BUFF_1_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 8,
+      "nel_testo": "buff_1_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "buff_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 305,
+        "ranghi_col_modello": 634
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_1_val}» e' il nome del tag in minuscolo: compare in 305 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 607, intero 27",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+      ]
+    },
+    "BUFF_2_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 9,
+      "nel_testo": "buff_2_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "buff_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 65,
+        "ranghi_col_modello": 108
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_2_val}» e' il nome del tag in minuscolo: compare in 65 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 96, intero 12",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+      ]
+    },
+    "BUFF_3_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 10,
+      "nel_testo": "buff_3_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "buff_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 11,
+        "ranghi_col_modello": 12
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_3_val}» e' il nome del tag in minuscolo: compare in 11 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 12",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+      ]
+    },
+    "BUFF_4_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 11,
+      "nel_testo": "buff_4_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "buff_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 2,
+        "ranghi_col_modello": 2
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_4_val}» e' il nome del tag in minuscolo: compare in 2 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 2",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+      ]
+    },
+    "BUFF_5_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 12,
+      "nel_testo": "buff_5_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "buff_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 2,
+        "ranghi_col_modello": 7
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_5_val}» e' il nome del tag in minuscolo: compare in 2 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 7",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+      ]
+    },
+    "TURN_1_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 13,
+      "nel_testo": "turn_1_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_turn",
+      "colonne_possibili": [
+        "buff_turn"
+      ],
+      "uso": {
+        "descrizioni_client": 397,
+        "ranghi_col_modello": 1028
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{turn_1_val}» e' il nome del tag in minuscolo: compare in 397 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' turni 1.028",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+      ]
+    },
+    "TURN_2_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 14,
+      "nel_testo": "turn_2_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_turn",
+      "colonne_possibili": [
+        "buff_turn"
+      ],
+      "uso": {
+        "descrizioni_client": 10,
+        "ranghi_col_modello": 27
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{turn_2_val}» e' il nome del tag in minuscolo: compare in 10 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' turni 27",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+      ]
+    },
+    "TURN_3_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 15,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_turn",
+      "colonne_possibili": [
+        "buff_turn"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+      ]
+    },
+    "TURN_4_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 16,
+      "nel_testo": "turn_4_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_turn",
+      "colonne_possibili": [
+        "buff_turn"
+      ],
+      "uso": {
+        "descrizioni_client": 1,
+        "ranghi_col_modello": 6
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{turn_4_val}» e' il nome del tag in minuscolo: compare in 1 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' turni 6",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+      ]
+    },
+    "TURN_5_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 17,
+      "nel_testo": "turn_5_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_turn",
+      "colonne_possibili": [
+        "buff_turn"
+      ],
+      "uso": {
+        "descrizioni_client": 1,
+        "ranghi_col_modello": 6
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{turn_5_val}» e' il nome del tag in minuscolo: compare in 1 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' turni 6",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+      ]
+    },
+    "NUMBER_1_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 18,
+      "nel_testo": "number_1_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_number",
+      "colonne_possibili": [
+        "buff_number"
+      ],
+      "uso": {
+        "descrizioni_client": 3,
+        "ranghi_col_modello": 3
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{number_1_val}» e' il nome del tag in minuscolo: compare in 3 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' altro 3",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+      ]
+    },
+    "NUMBER_2_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 19,
+      "nel_testo": "number_2_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_number",
+      "colonne_possibili": [
+        "buff_number"
+      ],
+      "uso": {
+        "descrizioni_client": 4,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{number_2_val}» e' il nome del tag in minuscolo: compare in 4 descrizioni di abilita' del client",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+      ]
+    },
+    "NUMBER_3_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 20,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_number",
+      "colonne_possibili": [
+        "buff_number"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+      ]
+    },
+    "NUMBER_4_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 21,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_number",
+      "colonne_possibili": [
+        "buff_number"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+      ]
+    },
+    "NUMBER_5_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 22,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_number",
+      "colonne_possibili": [
+        "buff_number"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+      ]
+    },
+    "INGAME_BUFF_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 23,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "PASS_MAX_STACK_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 24,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "PASS_SUB_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 25,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "PASS_THIRD_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 26,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "BUFF_1_SUB_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 27,
+      "nel_testo": "buff_1_sub_val",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "sub_value",
+      "colonne_possibili": [
+        "sub_value"
+      ],
+      "uso": {
+        "descrizioni_client": 5,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_1_sub_val}» e' il nome del tag in minuscolo: compare in 5 descrizioni di abilita' del client",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+      ]
+    },
+    "BUFF_2_SUB_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 28,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "sub_value",
+      "colonne_possibili": [
+        "sub_value"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+      ]
+    },
+    "BUFF_3_SUB_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 29,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "sub_value",
+      "colonne_possibili": [
+        "sub_value"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+      ]
+    },
+    "BUFF_4_SUB_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 30,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "sub_value",
+      "colonne_possibili": [
+        "sub_value"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+      ]
+    },
+    "BUFF_5_SUB_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 31,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "sub_value",
+      "colonne_possibili": [
+        "sub_value"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+      ]
+    },
+    "BUFF_1_OFFSET": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 32,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "BUFF_2_OFFSET": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 33,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "BUFF_3_OFFSET": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 34,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "BUFF_4_OFFSET": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 35,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "BUFF_5_OFFSET": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 36,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "ACCURE_VALUE_MAX": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 37,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "ACCURE_CUR_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 38,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "PASSIVE_COUNT_VAL": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 39,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "SPECIAL_LEVEL_PASSIVE_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 40,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "BUFF_DATA_TURN": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 41,
+      "nel_testo": "buff_data_turn",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "buff_turn",
+      "colonne_possibili": [
+        "buff_turn"
+      ],
+      "uso": {
+        "descrizioni_client": 12,
+        "ranghi_col_modello": 20
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_data_turn}» e' il nome del tag in minuscolo: compare in 12 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' intero 20",
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag"
+      ]
+    },
+    "BUFF_DATA_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 42,
+      "nel_testo": "buff_data_value",
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": null,
+      "colonne_possibili": [
+        "buff_per",
+        "effect_value"
+      ],
+      "uso": {
+        "descrizioni_client": 5,
+        "ranghi_col_modello": 6
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "«{buff_data_value}» e' il nome del tag in minuscolo: compare in 5 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' intero 6",
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag; due colonne di valore possibili"
+      ]
+    },
+    "BUFF_DATA_SUB_VALUE": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 43,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "sub_value",
+      "colonne_possibili": [
+        "sub_value"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag"
+      ]
+    },
+    "BUFF_DATA_EFFECT_VALUE_ADD": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 44,
+      "nel_testo": null,
+      "tabella": "DBSkillCardBuffRow",
+      "colonna": "effect_value_add",
+      "colonne_possibili": [
+        "effect_value_add"
+      ],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag; stesso nome della colonna"
+      ]
+    },
+    "PASSIVE_LEVEL_VALUE_DATA": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 45,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "EFFECT_VALUE_DATA": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 46,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "SUB_VALUE_DATA": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 47,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "THIRD_VALUE_DATA": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 48,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "REMOVE_TEXT_SPECIAL_LEVEL": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 49,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "REMOVE_TEXT_SPECIAL_LEVEL_LAST_FILL": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 50,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "REMOVE_TEXT_SUMMARY": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "codice": 51,
+      "nel_testo": null,
+      "tabella": null,
+      "colonna": null,
+      "colonne_possibili": [],
+      "uso": {
+        "descrizioni_client": 0,
+        "ranghi_col_modello": 0
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    }
+  },
+  "lacune": [
+    {
+      "cosa": "tag nei testi senza un membro dell'enum",
+      "stato": "si scrivono nelle descrizioni ma nessun nome dell'enum, portato in minuscolo, li da': quante volte compaiono",
+      "tag": {
+        "effect_val": 3,
+        "level": 2
+      }
+    }
+  ]
+}
