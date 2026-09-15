@@ -68,15 +68,19 @@ interface Significato {
   tassonomia?: string[];
   condizione?: Bilingue;
   condizione_da?: string;
+  termine?: Bilingue;
+  termine_da?: string;
   precisazioni?: Precisazione[];
 }
 
-/** Il nome italiano di una condizione o di una precisazione, e le varianti del gioco. */
+/** Il nome italiano di una condizione, di una precisazione o di un termine, e le varianti del gioco. */
 interface Glossario {
   it: string | null;
   varianti: Record<string, number>;
   usi: number;
   ritagliate: number;
+  /** solo per i termini: i nomi italiani delle note che li spiegano */
+  nomi_delle_note?: Record<string, number>;
 }
 
 interface RigaCollegata {
@@ -132,6 +136,7 @@ const fileForme = carica<{
   forme: Record<string, Forma>;
   condizioni: Record<string, Glossario>;
   precisazioni: Record<string, Glossario>;
+  termini: Record<string, Glossario>;
 }>("effetti/forme_carte.json");
 const forme = fileForme.forme;
 const segnaposto = carica<{ segnaposto: Record<string, Segnaposto> }>("effetti/segnaposto.json").segnaposto;
@@ -385,7 +390,7 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
     }
   });
 
-  it("condizioni e precisazioni hanno l'italiano della loro carta o delle altre carte, e il glossario le nomina", () => {
+  it("condizioni, precisazioni e termini hanno l'italiano della loro carta o delle altre carte, e il glossario le nomina", () => {
     // 1 se il testo ha l'italiano, 0 se no
     const bilingue = (id: string, testo: Bilingue | undefined, da: string | undefined, glossario: Record<string, Glossario>) => {
       if (testo === undefined) return 0;
@@ -396,9 +401,11 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
         expect(da, id).toBeUndefined();
         return 0;
       }
-      expect(["testo della carta", "altre carte"], id).toContain(da);
-      // dalle altre carte e' il nome della condizione; dal testo della carta, una delle varianti del gioco
+      expect(["testo della carta", "altre carte", "nome della nota"], id).toContain(da);
+      // dalle altre carte e' il nome del glossario; dal nome della nota, uno dei nomi delle note del
+      // termine; dal testo della carta, una delle varianti del gioco
       if (da === "altre carte") expect(testo.it, id).toBe(voce!.it);
+      else if (da === "nome della nota") expect(voce!.nomi_delle_note?.[testo.it], id).toBeGreaterThan(0);
       else expect(voce!.varianti[testo.it], `${id}: «${testo.it}» non e' fra le varianti`).toBeGreaterThan(0);
       return 1;
     };
@@ -407,6 +414,7 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
       for (const [id, riga] of Object.entries(tabella.righe)) {
         for (const voce of riga.significato ?? []) {
           conItaliano += bilingue(id, voce.condizione, voce.condizione_da, fileForme.condizioni);
+          conItaliano += bilingue(id, voce.termine, voce.termine_da, fileForme.termini);
           for (const p of voce.precisazioni ?? []) {
             conItaliano += bilingue(id, p.frase, p.frase_da, fileForme.precisazioni);
             conItaliano += bilingue(id, p.condizione, p.condizione_da, fileForme.condizioni);
@@ -416,7 +424,7 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
     }
     expect(conItaliano).toBeGreaterThan(0);
     // il nome e' la variante piu' usata, e le varianti vengono dai ritagli
-    for (const glossario of [fileForme.condizioni, fileForme.precisazioni]) {
+    for (const glossario of [fileForme.condizioni, fileForme.precisazioni, fileForme.termini]) {
       for (const [en, voce] of Object.entries(glossario)) {
         const usi = Object.values(voce.varianti);
         expect(usi.reduce((a, b) => a + b, 0), en).toBe(voce.ritagliate);

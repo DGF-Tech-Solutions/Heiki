@@ -314,7 +314,7 @@ Decisioni dell'utente (15/09):
 | `tassonomia` | le voci di `concetti/tassonomia.json` col nome giusto: «Attack-related Stats Increase» è la 056, «Buff Cancel» la 027 |
 | `condizione` | il pezzo di frase che dice quando («per Debuff on the target»), in inglese; nelle righe di buff e opzioni diventa `{it, en}` (vedi «L'italiano delle condizioni e delle precisazioni») |
 | `nome` | il nome di un effetto scritto nel testo che la carta non spiega in nota e la tassonomia non ha: «Applies Dragon Rage on the hero» |
-| `precisa`, `numero` | in una `precisazione`: `limite`, `cumulabile`, `esclude` o `include`, e il buco del numero, che non va in una colonna («(Limit `<V>`)») |
+| `precisa`, `numero` | in una `precisazione`: `limite`, `cumulabile`, `esclude` o `include`, e il buco del numero, che non va in una colonna («(Limit `<V>`)»). `numero` sta anche in una `rimozione`, per dire quanti effetti toglie («Removes `<V>` Buff effect from the target»: nota dell'utente, 16/09) |
 | `candidati` | i nomi dell'enum con la statistica subito seguita dal verso (`buff_atk_all_inc_add_per_gowther`); solo dove la statistica ha il suo pezzo di nome, o per le rimozioni di Buff e Debuff |
 
 Accanto a `effetti` stanno `regole`, `certezza` e `prove`: le regole, come il
@@ -498,11 +498,15 @@ Claude» e «Dubbi di Claude», e l'utente può decidere anche lì. «Campione d
 mette in fila la frase più usata di ogni famiglia di regole di cui l'utente non ha
 approvato nessuna lettura.
 
-Al 15/09 notte le regole leggono 597 frasi: 101 le ha confermate l'utente, 496 le ha
-rivedute Claude, tutte giuste, 10 con una nota. L'utente ha controllato il campione:
-la frase più usata di ognuna delle 34 famiglie di regole che non avevano un suo esempio
-approvato, tutte giuste. Quattro decisioni hanno una nota che chiede di dire meglio cosa
-fa la frase (quanti Buff rimuove, il nome italiano di un termine): sono da fare. Le misure in
+Al 16/09 le regole leggono 597 frasi: 100 le ha confermate l'utente, 497 le ha rivedute
+Claude, tutte giuste, 11 con una nota. L'utente ha controllato il campione: la frase più
+usata di ognuna delle 34 famiglie di regole che non avevano un suo esempio approvato,
+tutte giuste. Quattro sue note chiedevano di dire meglio cosa fa la frase, e sono fatte:
+- «Removes 1 Buff effect from the target» dice quanti Buff rimuove (`numero`)
+- i termini sono in italiano come li dice la frase («Taunts» → «Provoca», «Death» →
+  «Morte»)
+- nella pagina il nome di una voce del gioco ha accanto cosa dice («Immunità (immune ai
+  Debuff)») Le misure in
 `forme_carte.json` lo dicono a ogni giro. Le 142 frasi senza lettura si possono
 scrivere a mano nella pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
 e «-100%» in un'altra («`<V>` Crit Chance»), e allora la frase da sola non dice il
@@ -540,6 +544,13 @@ Debuff» in 32. Per questo:
   sono ritagliati. `precisazioni` fa lo stesso per le frasi fra parentesi («(Limit `<V>`)» →
   «(Limite: `<V>`)»)
 - una precisazione unita alla sua riga ha `frase` `{it, en}` e `frase_da`
+- un termine spiegato in nota («Taunts», «Death») ha `termine` `{it, en}` e `termine_da`.
+  L'italiano è quello della frase, «Provoca i nemici» (scelta dell'utente, 16/09: il verbo,
+  non «Provocazione»). Si cerca vicino al nome italiano della nota che lo spiega, perché le
+  teste delle note si allineano (※Taunt ↔ ※Provocazione). Fra più parole possibili vince
+  quella nello stesso punto della frase. Se nessuna frase lo dice, l'italiano è il nome
+  della nota, con `termine_da` «nome della nota». Il glossario `termini` ha anche
+  `nomi_delle_note`
 
 **I numeri.**
 
@@ -547,6 +558,7 @@ Debuff» in 32. Per questo:
 |---|---|---|---|---|---|
 | condizioni | 1.829 | 1.643 | 1.559 | 28 | 114 |
 | precisazioni | 103 | 100 | 48 | 0 | 0 |
+| termini | 2.752 | 2.640 | 543 | 67, più 3 dal nome della nota | 12 |
 
 I motivi dei ritagli mancati sono in `misure.letture.italiano`. La cura «by `<V>` of damage
 dealt» era l'unica condizione scritta in italiano («in proporzione al danno inflitto») in un

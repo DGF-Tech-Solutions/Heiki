@@ -2110,7 +2110,7 @@
   },
   "p43b4b402": {
    "esito": "giusta",
-   "quando": "2026-09-15",
+   "quando": "2026-09-16",
    "lettura_vista": [
     {
      "tabella": "opzione",
@@ -2118,12 +2118,14 @@
      "cosa": [
       "buff"
      ],
+     "numero": 1,
      "a_chi": "bersaglio",
      "tassonomia": [
       "027"
      ]
     }
-   ]
+   ],
+   "nota": "come hai chiesto nella nota, la lettura ora dice quanti Buff rimuove («quanti: 1»), senza farne una colonna del gioco; il resto è la lettura che avevi approvato"
   },
   "pb7a5ff08": {
    "esito": "giusta",

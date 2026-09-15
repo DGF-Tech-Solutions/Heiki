@@ -46,7 +46,8 @@
     "lettura": "cosa dice la forma, scritto da letture_carte.py e da confermare con la revisione (tappa C). `effetti`: una voce per ogni cosa detta, con `tabella` (base, buff, opzione), `colonne` (colonna -> numero del buco, contato come in dal_modello), `bersaglio` (il buco che va nella colonna target della carta), `termine` (il buco del termine spiegato in nota), e il significato: `effetto`, `cosa`, `verso`, `statistiche` e `in_base_a` (percorsi in concetti/statistiche.json), `a_chi` (un bersaglio di concetti/carte.json, «self», o «bersaglio» per il bersaglio della carta), `condizione`, `tassonomia` (codici di concetti/tassonomia.json), `candidati` (i nomi dell'enum del client che potrebbero essere il suo effect_keyword). `regole`: le regole che la danno. null: nessuna regola la prende per intero",
     "revisione": "chi ha deciso su questa lettura. `esito` e `stato`; `da`: «claude» se l'ha rivista Claude coi criteri delle letture che l'utente ha approvato (revisione_claude.json), se no la decisione e' dell'utente (conferme_letture.json), che vale sempre di piu'; `decisione_superata`: l'esito che l'utente aveva dato a una lettura che le regole non danno piu'. La `certezza` della lettura: dedotto (le regole), rivisto (rivista da Claude), verificato (decisa dall'utente)",
     "condizioni": "il glossario delle condizioni delle letture: per ogni condizione inglese (coi buchi <V>) il nome italiano, cioe' la variante piu' usata fra quelle ritagliate dai testi italiani delle carte (7dshub, scarica_7dshub_it.py); le varianti coi loro usi; gli usi della condizione e quanti si sono ritagliati. Il gioco traduce la stessa condizione in modi diversi, e ogni riga di buff e opzioni tiene quello della sua carta (scelte dell'utente, 15/09 notte)",
-    "precisazioni": "lo stesso per le frasi fra parentesi, per forma: «(Limit <V>)» -> «(Limite: <V>)»"
+    "precisazioni": "lo stesso per le frasi fra parentesi, per forma: «(Limit <V>)» -> «(Limite: <V>)»",
+    "termini": "lo stesso per i termini spiegati in nota, come li dice la frase italiana: «Taunts» -> «Provoca» (scelta dell'utente, 15/09 notte). `nomi_delle_note`: i nomi italiani delle note che li spiegano («Provocazione»), usati dove nessuna frase dice il termine"
   },
   "misure": {
     "ranghi": 4044,
@@ -152,8 +153,8 @@
         "target dalle letture": 30
       },
       "revisione": {
-        "rivista da Claude": 496,
-        "confermata": 101
+        "rivista da Claude": 497,
+        "confermata": 100
       },
       "conferme_di_forme_che_non_esistono": 0,
       "revisioni_di_claude": {
@@ -184,11 +185,25 @@
             "la proposizione e' solo un pezzo della parentesi": 3
           }
         },
+        "termine": {
+          "usi": 2752,
+          "ritagliate": 2640,
+          "motivi": {
+            "pezzi diversi fra le lingue": 100,
+            "nessuna nota del termine": 6,
+            "parola italiana non trovata": 3,
+            "senza testo italiano": 3
+          }
+        },
         "nelle_righe": {
           "condizione: altre carte": 28,
           "condizione: senza italiano": 114,
           "condizione: testo della carta": 1559,
-          "frase: testo della carta": 48
+          "frase: testo della carta": 48,
+          "termine: altre carte": 67,
+          "termine: nome della nota": 3,
+          "termine: senza italiano": 12,
+          "termine: testo della carta": 543
         },
         "testi_di_7dshub": 4041,
         "testi_scartati": {
@@ -399,7 +414,7 @@
     "p20724247": {"forma": "Inflicts damage equal to <V> of Attack on <T> and Explodes after <V>", "usi": 9, "carte": 3, "parti": {"corpo": 9}, "esempi": ["117071", "117072", "117073"], "dal_modello": {"1": {"melee_val": 9}, "2": {"target_val": 9}, "3": {"turn_1_val": 9}}, "lettura": {"effetti": [{"tabella": "base", "effetto": "danno", "in_base_a": "statistiche.atk", "colonne": {"atk_per": 1}, "bersaglio": 2, "a_chi": "bersaglio"}, {"tabella": "buff", "effetto": "voce", "tassonomia": ["055"], "colonne": {"buff_turn": 3}}], "regole": ["danno", "esplosione"], "certezza": "rivisto", "prove": ["regola «danno»: «Inflicts damage equal to <V> of Attack|Defense|Max HP»: il valore e' il coefficiente della carta (atk_per, come {melee_val}), il bersaglio la sua colonna target", "regola «esplosione»: «Explodes after <V>»: la voce Explosion, un buff coi turni ({turn_1_val} nei modelli)", "rivista da Claude coi criteri delle letture che l'utente ha approvato (revisione_claude.json) il 2026-09-15", "nei ranghi col modello i buchi messi in colonna sono marcati cosi', e nessuno contraddice la lettura: buco 1: melee_val 9; buco 2: target_val 9; buco 3: turn_1_val 9"]}, "revisione": {"esito": "giusta", "da": "claude", "stato": "rivista da Claude", "quando": "2026-09-15"}},
     "p75de20f5": {"forma": "Inflicts damage equal to <V> of Defense on <T>", "usi": 9, "carte": 2, "parti": {"corpo": 9}, "esempi": ["1000491", "1000492", "1000493"], "dal_modello": {"1": {"melee_val": 3}, "2": {"target_val": 3}}, "lettura": {"effetti": [{"tabella": "base", "effetto": "danno", "in_base_a": "statistiche.def", "colonne": {"atk_per": 1}, "bersaglio": 2, "a_chi": "bersaglio", "tassonomia": ["090"]}], "regole": ["danno"], "certezza": "rivisto", "prove": ["regola «danno»: «Inflicts damage equal to <V> of Attack|Defense|Max HP»: il valore e' il coefficiente della carta (atk_per, come {melee_val}), il bersaglio la sua colonna target", "rivista da Claude coi criteri delle letture che l'utente ha approvato (revisione_claude.json) il 2026-09-15", "nei ranghi col modello i buchi messi in colonna sono marcati cosi', e nessuno contraddice la lettura: buco 1: melee_val 3; buco 2: target_val 3"]}, "revisione": {"esito": "giusta", "da": "claude", "stato": "rivista da Claude", "quando": "2026-09-15"}},
     "p0b629fb0": {"forma": "Inflicts damage equal to <V> of remaining HP upon removing it with a Skill, Unique, Commandment, or turns passing", "usi": 9, "carte": 4, "parti": {"corpo": 9}, "esempi": ["117092", "117093", "195822"], "dal_modello": {"1": {"buff_1_val": 7}}, "lettura": null},
-    "p43b4b402": {"forma": "Removes <V> Buff effect from the target", "usi": 9, "carte": 2, "parti": {"nota": 9}, "esempi": ["1009701", "1009702", "1009703"], "lettura": {"effetti": [{"tabella": "opzione", "effetto": "rimozione", "cosa": ["buff"], "a_chi": "bersaglio", "tassonomia": ["027"], "candidati": ["skill_all_dispell_buff_debuff_exist_dmg_per_ability", "skill_all_dispell_buff_exist_dmg_per_ability", "skill_ally_dispell_debuff_enemy_dispell_buff_use_buff_id", "skill_ally_dispell_debuff_enemy_dispell_buff_use_buff_id_before_skill", "skill_before_dispell_buff_dmg_add_per", "skill_before_dispell_buff_stamina_dec", "skill_dispell_buff", "skill_dispell_buff_ability", "skill_remain_hp_dmg_dispell_buff_debuff_dmg_add_per_ability"]}], "regole": ["rimozione_da"], "certezza": "verificato", "prove": ["regola «rimozione_da»: «Removes <V> Buff effect from the target», «Removes Debuffs from allies and Buffs from enemies»: la rimozione, con da chi; il numero non va in colonna, i modelli non lo marcano", "confermata dall'utente nella pagina di revisione il 2026-09-15"]}, "revisione": {"esito": "giusta", "stato": "confermata", "nota": "Penso serva specificare che rimuove un solo buff, per non confondersi con altre carte che invece li levano tutti", "quando": "2026-09-15"}},
+    "p43b4b402": {"forma": "Removes <V> Buff effect from the target", "usi": 9, "carte": 2, "parti": {"nota": 9}, "esempi": ["1009701", "1009702", "1009703"], "lettura": {"effetti": [{"tabella": "opzione", "effetto": "rimozione", "cosa": ["buff"], "numero": 1, "a_chi": "bersaglio", "tassonomia": ["027"], "candidati": ["skill_all_dispell_buff_debuff_exist_dmg_per_ability", "skill_all_dispell_buff_exist_dmg_per_ability", "skill_ally_dispell_debuff_enemy_dispell_buff_use_buff_id", "skill_ally_dispell_debuff_enemy_dispell_buff_use_buff_id_before_skill", "skill_before_dispell_buff_dmg_add_per", "skill_before_dispell_buff_stamina_dec", "skill_dispell_buff", "skill_dispell_buff_ability", "skill_remain_hp_dmg_dispell_buff_debuff_dmg_add_per_ability"]}], "regole": ["rimozione_da"], "certezza": "rivisto", "prove": ["regola «rimozione_da»: «Removes <V> Buff effect from the target», «Removes Debuffs from allies and Buffs from enemies»: la rimozione, con da chi; il numero non va in colonna, i modelli non lo marcano", "rivista da Claude coi criteri delle letture che l'utente ha approvato (revisione_claude.json) il 2026-09-16"]}, "revisione": {"esito": "giusta", "da": "claude", "stato": "rivista da Claude", "nota": "come hai chiesto nella nota, la lettura ora dice quanti Buff rimuove («quanti: 1»), senza farne una colonna del gioco; il resto è la lettura che avevi approvato", "quando": "2026-09-16", "decisione_superata": "giusta"}},
     "pb7a5ff08": {"forma": "Skill damage dealt <V> while Spirit's Contract is active", "usi": 9, "carte": 2, "parti": {"nota": 9}, "esempi": ["1008231", "1008232", "1008233"], "lettura": {"effetti": [{"tabella": "opzione", "effetto": "danni_inflitti", "condizione": "skill while Spirit's Contract is active", "colonne": {"valore": 1}}], "regole": ["nota_statistica_condizione"], "certezza": "rivisto", "prove": ["regola «nota_statistica_condizione»: «Attack <V> when using the skill», «<V> Crit Damage for each Hellbrand effect on the target» in una nota: una statistica in piu' a una condizione, un'opzione come i danni delle note che l'utente ha approvato ({opt_1_val} nei modelli)", "rivista da Claude coi criteri delle letture che l'utente ha approvato (revisione_claude.json) il 2026-09-15"]}, "revisione": {"esito": "giusta", "da": "claude", "stato": "rivista da Claude", "quando": "2026-09-15"}},
     "p4c8e2764": {"forma": "(Excluding Ultimate Moves)", "usi": 8, "carte": 2, "parti": {"nota": 8}, "esempi": ["1006902", "1006903", "1006991"], "lettura": {"effetti": [{"effetto": "definizione", "tassonomia": ["023"]}], "regole": ["definizione_nota"], "certezza": "rivisto", "prove": ["regola «definizione_nota»: una frase senza buchi che compare solo in note col nome di una voce della tassonomia («※Charge: Ignores Defense» e' la 005 Charge): quale termine spieghi lo dice il gioco, anche con parole diverse dalla descrizione", "rivista da Claude coi criteri delle letture che l'utente ha approvato (revisione_claude.json) il 2026-09-15"]}, "revisione": {"esito": "giusta", "da": "claude", "stato": "rivista da Claude", "quando": "2026-09-15"}},
     "p1878d08d": {"forma": "(Limit once)", "usi": 8, "carte": 2, "parti": {"corpo": 6, "nota": 2}, "esempi": ["1004291", "1004292", "1004293"], "lettura": {"effetti": [{"effetto": "precisazione", "precisa": "limite", "condizione": "once"}], "regole": ["precisazione"], "certezza": "rivisto", "prove": ["regola «precisazione»: «(Limit <V>)», «(Limit once)», «(Stacks [up to] <V>)», «(Can be stacked [up to <V>])», «(Excludes <tipo> Skills|Rupture|Ultimate Moves)», «(Includes Ultimate Moves)»: precisa la frase che la precede (scelta dell'utente, 15/09 notte); righe_carte.py la unisce alla riga di quella frase. Il numero non va in una colonna: i modelli lo scrivono sempre a mano", "rivista da Claude coi criteri delle letture che l'utente ha approvato (revisione_claude.json) il 2026-09-15"]}, "revisione": {"esito": "giusta", "da": "claude", "stato": "rivista da Claude", "quando": "2026-09-15"}},
@@ -2355,6 +2370,2096 @@
       "ritagliate": 0
     }
   },
+  "termini": {
+    "Pierce": {
+      "it": "Perforazione",
+      "varianti": {
+        "Perforazione": 177
+      },
+      "usi": 180,
+      "ritagliate": 177,
+      "nomi_delle_note": {
+        "Perforazione": 177
+      }
+    },
+    "Sever": {
+      "it": "Recisione",
+      "varianti": {
+        "Recisione": 172
+      },
+      "usi": 172,
+      "ritagliate": 172,
+      "nomi_delle_note": {
+        "Recisione": 172
+      }
+    },
+    "Spike": {
+      "it": "Lancia",
+      "varianti": {
+        "Lancia": 147
+      },
+      "usi": 147,
+      "ritagliate": 147,
+      "nomi_delle_note": {
+        "Lancia": 147
+      }
+    },
+    "Weak Point": {
+      "it": "Punto debole",
+      "varianti": {
+        "Punto debole": 123
+      },
+      "usi": 123,
+      "ritagliate": 123,
+      "nomi_delle_note": {
+        "Punto debole": 123
+      }
+    },
+    "Power Strike": {
+      "it": "Colpo di forza",
+      "varianti": {
+        "Colpo di forza": 96
+      },
+      "usi": 99,
+      "ritagliate": 96,
+      "nomi_delle_note": {
+        "Colpo di forza": 96
+      }
+    },
+    "Charge": {
+      "it": "Carica",
+      "varianti": {
+        "Carica": 96
+      },
+      "usi": 96,
+      "ritagliate": 96,
+      "nomi_delle_note": {
+        "Carica": 96
+      }
+    },
+    "Flood": {
+      "it": "Inondazione",
+      "varianti": {
+        "Inondazione": 93
+      },
+      "usi": 93,
+      "ritagliate": 93,
+      "nomi_delle_note": {
+        "Inondazione": 93
+      }
+    },
+    "Stuns": {
+      "it": "Stordimento",
+      "varianti": {
+        "Stordimento": 30
+      },
+      "usi": 90,
+      "ritagliate": 30,
+      "nomi_delle_note": {
+        "Stordimento": 30
+      }
+    },
+    "Shatter": {
+      "it": "Frantumazione",
+      "varianti": {
+        "Frantumazione": 87
+      },
+      "usi": 87,
+      "ritagliate": 87,
+      "nomi_delle_note": {
+        "Frantumazione": 87
+      }
+    },
+    "Taunts": {
+      "it": "Provoca",
+      "varianti": {
+        "Provoca": 64
+      },
+      "usi": 64,
+      "ritagliate": 64,
+      "nomi_delle_note": {
+        "Provocazione": 64
+      }
+    },
+    "Amplify": {
+      "it": "Amplificazione",
+      "varianti": {
+        "Amplificazione": 63
+      },
+      "usi": 63,
+      "ritagliate": 63,
+      "nomi_delle_note": {
+        "Amplificazione": 63
+      }
+    },
+    "Rupture": {
+      "it": "Rottura",
+      "varianti": {
+        "Rottura": 61
+      },
+      "usi": 61,
+      "ritagliate": 61,
+      "nomi_delle_note": {
+        "Rottura": 61
+      }
+    },
+    "Infects": {
+      "it": "Infezione",
+      "varianti": {
+        "Infezione": 60
+      },
+      "usi": 60,
+      "ritagliate": 60,
+      "nomi_delle_note": {
+        "Infezione": 60
+      }
+    },
+    "Lifesteals": {
+      "it": "Furto di vita",
+      "varianti": {
+        "Furto di vita": 60
+      },
+      "usi": 60,
+      "ritagliate": 60,
+      "nomi_delle_note": {
+        "Furto di vita": 60
+      }
+    },
+    "Detonate": {
+      "it": "Detonazione",
+      "varianti": {
+        "Detonazione": 57
+      },
+      "usi": 57,
+      "ritagliate": 57,
+      "nomi_delle_note": {
+        "Detonazione": 57
+      }
+    },
+    "Bleed": {
+      "it": "Sanguinamento",
+      "varianti": {
+        "Sanguinamento": 42
+      },
+      "usi": 42,
+      "ritagliate": 42,
+      "nomi_delle_note": {
+        "Sanguinamento": 42
+      }
+    },
+    "Secret Technique": {
+      "it": "Tecnica segreta",
+      "varianti": {
+        "Tecnica segreta": 39
+      },
+      "usi": 39,
+      "ritagliate": 39,
+      "nomi_delle_note": {
+        "Tecnica segreta": 39
+      }
+    },
+    "Ignite": {
+      "it": "Incendio",
+      "varianti": {
+        "Incendio": 28
+      },
+      "usi": 34,
+      "ritagliate": 28,
+      "nomi_delle_note": {
+        "Incendio": 28
+      }
+    },
+    "Poisons": {
+      "it": "Avvelena",
+      "varianti": {
+        "Avvelena": 33
+      },
+      "usi": 33,
+      "ritagliate": 33,
+      "nomi_delle_note": {
+        "Avvelenamento": 33
+      }
+    },
+    "Extorts": {
+      "it": "Estorce",
+      "varianti": {
+        "Estorce": 30
+      },
+      "usi": 30,
+      "ritagliate": 30,
+      "nomi_delle_note": {
+        "Estorsione": 30
+      }
+    },
+    "Quell": {
+      "it": "Domatura",
+      "varianti": {
+        "Domatura": 27
+      },
+      "usi": 27,
+      "ritagliate": 27,
+      "nomi_delle_note": {
+        "Domatura": 27
+      }
+    },
+    "Cleave": {
+      "it": "Fendente",
+      "varianti": {
+        "Fendente": 24
+      },
+      "usi": 24,
+      "ritagliate": 24,
+      "nomi_delle_note": {
+        "Fendente": 24
+      }
+    },
+    "Rejuvenates": {
+      "it": "Ringiovanisce",
+      "varianti": {
+        "Ringiovanisce": 18,
+        "ringiovanisce": 6
+      },
+      "usi": 24,
+      "ritagliate": 24,
+      "nomi_delle_note": {
+        "Ringiovanimento": 24
+      }
+    },
+    "Ruin": {
+      "it": "Rovina",
+      "varianti": {
+        "Rovina": 24
+      },
+      "usi": 24,
+      "ritagliate": 24,
+      "nomi_delle_note": {
+        "Rovina": 24
+      }
+    },
+    "Abyss": {
+      "it": "Abisso",
+      "varianti": {
+        "Abisso": 22
+      },
+      "usi": 22,
+      "ritagliate": 22,
+      "nomi_delle_note": {
+        "Abisso": 22
+      }
+    },
+    "Freezes": {
+      "it": "Congela",
+      "varianti": {
+        "Congela": 13,
+        "Congelamento": 9
+      },
+      "usi": 22,
+      "ritagliate": 22,
+      "nomi_delle_note": {
+        "Congelamento": 22
+      }
+    },
+    "Shocks": {
+      "it": "Shock",
+      "varianti": {
+        "Shock": 21
+      },
+      "usi": 21,
+      "ritagliate": 21,
+      "nomi_delle_note": {
+        "Shock": 21
+      }
+    },
+    "Deletes": {
+      "it": "Eliminazione",
+      "varianti": {
+        "Eliminazione": 8,
+        "Elimina": 6,
+        "Cancella": 4
+      },
+      "usi": 18,
+      "ritagliate": 18,
+      "nomi_delle_note": {
+        "Eliminazione": 14,
+        "Cancellazione": 4
+      }
+    },
+    "Releases": {
+      "it": "rilascia",
+      "varianti": {
+        "rilascia": 18
+      },
+      "usi": 18,
+      "ritagliate": 18,
+      "nomi_delle_note": {
+        "Rilascio": 18
+      }
+    },
+    "Consume": {
+      "it": "Distruzione",
+      "varianti": {
+        "Distruzione": 15
+      },
+      "usi": 15,
+      "ritagliate": 15,
+      "nomi_delle_note": {
+        "Distruzione": 15
+      }
+    },
+    "Corrosion": {
+      "it": "Corrosione",
+      "varianti": {
+        "Corrosione": 15
+      },
+      "usi": 15,
+      "ritagliate": 15,
+      "nomi_delle_note": {
+        "Corrosione": 15
+      }
+    },
+    "Pulverize": {
+      "it": "Polverizzazione",
+      "varianti": {
+        "Polverizzazione": 15
+      },
+      "usi": 15,
+      "ritagliate": 15,
+      "nomi_delle_note": {
+        "Polverizzazione": 15
+      }
+    },
+    "Infect": {
+      "it": "Infezione",
+      "varianti": {
+        "Infezione": 13
+      },
+      "usi": 13,
+      "ritagliate": 13,
+      "nomi_delle_note": {
+        "Infezione": 13
+      }
+    },
+    "Co-destruction": {
+      "it": "Co-distruzione",
+      "varianti": {
+        "Co-distruzione": 12
+      },
+      "usi": 12,
+      "ritagliate": 12,
+      "nomi_delle_note": {
+        "Co-distruzione": 12
+      }
+    },
+    "Death": {
+      "it": "Morte",
+      "varianti": {
+        "Morte": 12
+      },
+      "usi": 12,
+      "ritagliate": 12,
+      "nomi_delle_note": {
+        "Morte": 12
+      }
+    },
+    "Despair": {
+      "it": "Disperazione",
+      "varianti": {
+        "Disperazione": 12
+      },
+      "usi": 12,
+      "ritagliate": 12,
+      "nomi_delle_note": {
+        "Disperazione": 12
+      }
+    },
+    "Flying Sword": {
+      "it": "Spada volante",
+      "varianti": {
+        "Spada volante": 12
+      },
+      "usi": 12,
+      "ritagliate": 12,
+      "nomi_delle_note": {
+        "Spada volante": 12
+      }
+    },
+    "Preemptive Strike": {
+      "it": "Colpo preventivo",
+      "varianti": {
+        "Colpo preventivo": 12
+      },
+      "usi": 12,
+      "ritagliate": 12,
+      "nomi_delle_note": {
+        "Colpo preventivo": 12
+      }
+    },
+    "Reflects": {
+      "it": "Riflette",
+      "varianti": {
+        "Riflette": 9
+      },
+      "usi": 12,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Riflessione": 9
+      }
+    },
+    "Resonance": {
+      "it": "Riverbero",
+      "varianti": {
+        "Riverbero": 12
+      },
+      "usi": 12,
+      "ritagliate": 12,
+      "nomi_delle_note": {
+        "Riverbero": 12
+      }
+    },
+    "Solidify": {
+      "it": null,
+      "varianti": {},
+      "usi": 12,
+      "ritagliate": 0,
+      "nomi_delle_note": {}
+    },
+    "Ignites": {
+      "it": "Incendia",
+      "varianti": {
+        "Incendia": 10
+      },
+      "usi": 11,
+      "ritagliate": 10,
+      "nomi_delle_note": {
+        "Incendio": 10
+      }
+    },
+    "Ablation": {
+      "it": "Ablazione",
+      "varianti": {
+        "Ablazione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Ablazione": 9
+      }
+    },
+    "Alteration": {
+      "it": "Alterazione",
+      "varianti": {
+        "Alterazione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Alterazione": 9
+      }
+    },
+    "Binding Chain": {
+      "it": "Catena vincolante",
+      "varianti": {
+        "Catena vincolante": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Catena vincolante": 9
+      }
+    },
+    "Blast": {
+      "it": "Bombardamento",
+      "varianti": {
+        "Bombardamento": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Bombardamento": 9
+      }
+    },
+    "Blood Clot": {
+      "it": "Coagulo",
+      "varianti": {
+        "Coagulo": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Coagulo": 9
+      }
+    },
+    "Break": {
+      "it": "Squarcio",
+      "varianti": {
+        "Squarcio": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Squarcio": 9
+      }
+    },
+    "Capture": {
+      "it": "Cattura",
+      "varianti": {
+        "Cattura": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Cattura": 9
+      }
+    },
+    "Cold": {
+      "it": "Freddo",
+      "varianti": {
+        "Freddo": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Freddo": 9
+      }
+    },
+    "Craving": {
+      "it": "Desiderio irrefrenabile",
+      "varianti": {
+        "Desiderio irrefrenabile": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Desiderio irrefrenabile": 9
+      }
+    },
+    "Dark Assault": {
+      "it": "Assalto oscuro",
+      "varianti": {
+        "Assalto oscuro": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Assalto oscuro": 9
+      }
+    },
+    "Dawn": {
+      "it": "Alba",
+      "varianti": {
+        "Alba": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Alba": 9
+      }
+    },
+    "Doom": {
+      "it": "Condanna",
+      "varianti": {
+        "Condanna": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Condanna": 9
+      }
+    },
+    "Firestorm": {
+      "it": "Tempesta di fuoco",
+      "varianti": {
+        "Tempesta di fuoco": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Tempesta di fuoco": 9
+      }
+    },
+    "Flash Cut": {
+      "it": "Taglio lampo",
+      "varianti": {
+        "Taglio lampo": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Taglio lampo": 9
+      }
+    },
+    "Frost Wave": {
+      "it": null,
+      "varianti": {},
+      "usi": 9,
+      "ritagliate": 0,
+      "nomi_delle_note": {}
+    },
+    "Frozen Slash": {
+      "it": "Squarcio congelato",
+      "varianti": {
+        "Squarcio congelato": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Squarcio congelato": 9
+      }
+    },
+    "Illumination": {
+      "it": "Illuminazione",
+      "varianti": {
+        "Illuminazione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Illuminazione": 9
+      }
+    },
+    "Impact": {
+      "it": "Impatto",
+      "varianti": {
+        "Impatto": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Impatto": 9
+      }
+    },
+    "Infernal": {
+      "it": "Infernale",
+      "varianti": {
+        "Infernale": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Infernale": 9
+      }
+    },
+    "Insight": {
+      "it": "Visione",
+      "varianti": {
+        "Visione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Visione": 9
+      }
+    },
+    "Lightpoint": {
+      "it": "Punto luce",
+      "varianti": {
+        "Punto luce": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Punto luce": 9
+      }
+    },
+    "Lightspeed": {
+      "it": "Velocità della luce",
+      "varianti": {
+        "Velocità della luce": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Velocità della luce": 9
+      }
+    },
+    "Mutilate": {
+      "it": "Mutilazione",
+      "varianti": {
+        "Mutilazione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Mutilazione": 9
+      }
+    },
+    "Pitch Black": {
+      "it": "Buio pesto",
+      "varianti": {
+        "Buio pesto": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Buio pesto": 9
+      }
+    },
+    "Pyroclash": {
+      "it": "Scontro pirotecnico",
+      "varianti": {
+        "Scontro pirotecnico": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Scontro pirotecnico": 9
+      }
+    },
+    "Radiant Heat": {
+      "it": "Calore radiante",
+      "varianti": {
+        "Calore radiante": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Calore radiante": 9
+      }
+    },
+    "Raging Gale": {
+      "it": "Furia burrascosa",
+      "varianti": {
+        "Furia burrascosa": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Furia burrascosa": 9
+      }
+    },
+    "Reforge": {
+      "it": "Riforgiatura",
+      "varianti": {
+        "Riforgiatura": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Riforgiatura": 9
+      }
+    },
+    "Revenant Strike": {
+      "it": "Colpo fantasma",
+      "varianti": {
+        "Colpo fantasma": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Colpo fantasma": 9
+      }
+    },
+    "Scorching Strike": {
+      "it": "Colpo ardente",
+      "varianti": {
+        "Colpo ardente": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Colpo ardente": 9
+      }
+    },
+    "Severance": {
+      "it": "Separazione",
+      "varianti": {
+        "Separazione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Separazione": 9
+      }
+    },
+    "Shadowrend": {
+      "it": "Lacerazione d'ombra",
+      "varianti": {
+        "Lacerazione d'ombra": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Lacerazione d'ombra": 9
+      }
+    },
+    "Smite": {
+      "it": "Distruzione",
+      "varianti": {
+        "Distruzione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Distruzione": 9
+      }
+    },
+    "Soul": {
+      "it": "Anima",
+      "varianti": {
+        "Anima": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Anima": 9
+      }
+    },
+    "Sunfire": {
+      "it": "Fuoco solare",
+      "varianti": {
+        "Fuoco solare": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Fuoco solare": 9
+      }
+    },
+    "Suppression": {
+      "it": "Soppressione",
+      "varianti": {
+        "Soppressione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Soppressione": 9
+      }
+    },
+    "Sword Slash": {
+      "it": "Squarcio con spada",
+      "varianti": {
+        "Squarcio con spada": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Squarcio con spada": 9
+      }
+    },
+    "Transgression": {
+      "it": "Trasgressione",
+      "varianti": {
+        "Trasgressione": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Trasgressione": 9
+      }
+    },
+    "Verdict": {
+      "it": "Verdetto",
+      "varianti": {
+        "Verdetto": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Verdetto": 9
+      }
+    },
+    "Wave": {
+      "it": "Onda",
+      "varianti": {
+        "Onda": 9
+      },
+      "usi": 9,
+      "ritagliate": 9,
+      "nomi_delle_note": {
+        "Onda": 9
+      }
+    },
+    "Blade of Judgment": {
+      "it": "Lama del giudizio",
+      "varianti": {
+        "Lama del giudizio": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Lama del giudizio": 6
+      }
+    },
+    "Bloodlust": {
+      "it": "Sete di sangue",
+      "varianti": {
+        "Sete di sangue": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Sete di sangue": 6
+      }
+    },
+    "Erosion": {
+      "it": "Erosione",
+      "varianti": {
+        "Erosione": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Erosione": 6
+      }
+    },
+    "Evasion": {
+      "it": "Evasione",
+      "varianti": {
+        "Evasione": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Evasione": 6
+      }
+    },
+    "Extraordinary Luck": {
+      "it": "Fortuna straordinaria",
+      "varianti": {
+        "Fortuna straordinaria": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Fortuna straordinaria": 6
+      }
+    },
+    "Final Flame": {
+      "it": "Fiamma Definitiva",
+      "varianti": {
+        "Fiamma Definitiva": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Fiamma Definitiva": 6
+      }
+    },
+    "Hellbrand": {
+      "it": "Marchio infernale",
+      "varianti": {
+        "Marchio infernale": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Marchio infernale": 6
+      }
+    },
+    "Hellfire": {
+      "it": "Fiamme dell'inferno",
+      "varianti": {
+        "Fiamme dell'inferno": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Fiamme dell'inferno": 6
+      }
+    },
+    "Immolation": {
+      "it": "Immolazione",
+      "varianti": {
+        "Immolazione": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Immolazione": 6
+      }
+    },
+    "Immortality": {
+      "it": "Immortalità",
+      "varianti": {
+        "Immortalità": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Immortalità": 6
+      }
+    },
+    "Magic Burst": {
+      "it": "Esplosione magica",
+      "varianti": {
+        "Esplosione magica": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Esplosione magica": 6
+      }
+    },
+    "Mark of Retribution": {
+      "it": "Marchio vendicativo",
+      "varianti": {
+        "Marchio vendicativo": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Marchio vendicativo": 6
+      }
+    },
+    "Peaceful Protection": {
+      "it": "Protezione pacifica",
+      "varianti": {
+        "Protezione pacifica": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Protezione pacifica": 6
+      }
+    },
+    "Petrifies": {
+      "it": null,
+      "varianti": {},
+      "usi": 6,
+      "ritagliate": 0,
+      "nomi_delle_note": {}
+    },
+    "Power of Chaos": {
+      "it": "Potere del Caos",
+      "varianti": {
+        "Potere del Caos": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Potere del Caos": 6
+      }
+    },
+    "Resurrection": {
+      "it": null,
+      "varianti": {},
+      "usi": 6,
+      "ritagliate": 0,
+      "nomi_delle_note": {}
+    },
+    "Retrogression": {
+      "it": "Regressione",
+      "varianti": {
+        "Regressione": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Regressione": 6
+      }
+    },
+    "Shadow": {
+      "it": "Ombra",
+      "varianti": {
+        "Ombra": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Ombra": 6
+      }
+    },
+    "Shinsu Barrier": {
+      "it": "Velo di shinsu",
+      "varianti": {
+        "Velo di shinsu": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Velo di shinsu": 6
+      }
+    },
+    "Sunspot Explosion": {
+      "it": "Esplosione Punto del Sole",
+      "varianti": {
+        "Esplosione Punto del Sole": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Esplosione Punto del Sole": 6
+      }
+    },
+    "Suppress Damage Taken": {
+      "it": "Sopprimi Danni subiti",
+      "varianti": {
+        "Sopprimi Danni subiti": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Sopprimi Danni subiti": 6
+      }
+    },
+    "The Queen's Protection": {
+      "it": "La protezione della Regina",
+      "varianti": {
+        "La protezione della Regina": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "La protezione della Regina": 6
+      }
+    },
+    "Wrath": {
+      "it": "Ira",
+      "varianti": {
+        "Ira": 6
+      },
+      "usi": 6,
+      "ritagliate": 6,
+      "nomi_delle_note": {
+        "Ira": 6
+      }
+    },
+    "Conflagration": {
+      "it": "Conflagrazione",
+      "varianti": {
+        "Conflagrazione": 5
+      },
+      "usi": 5,
+      "ritagliate": 5,
+      "nomi_delle_note": {
+        "Conflagrazione": 5
+      }
+    },
+    "Ardent Support": {
+      "it": "Sostegno ardente",
+      "varianti": {
+        "Sostegno ardente": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Sostegno ardente": 3
+      }
+    },
+    "Bane": {
+      "it": "Tormento",
+      "varianti": {
+        "Tormento": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Tormento": 3
+      }
+    },
+    "Barnacle": {
+      "it": "Cirripede",
+      "varianti": {
+        "Cirripede": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Cirripede": 3
+      }
+    },
+    "Black Fire": {
+      "it": "Fuoco nero",
+      "varianti": {
+        "Fuoco nero": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Fuoco nero": 3
+      }
+    },
+    "Blaze": {
+      "it": "Fiamme nere",
+      "varianti": {
+        "Fiamme nere": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Fiamme nere": 3
+      }
+    },
+    "Bloodstain": {
+      "it": "Macchia di sangue",
+      "varianti": {
+        "Macchia di sangue": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Macchia di sangue": 3
+      }
+    },
+    "Breakthrough": {
+      "it": "Svolta",
+      "varianti": {
+        "Svolta": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Svolta": 3
+      }
+    },
+    "Brilliance": {
+      "it": "Lucentezza",
+      "varianti": {
+        "Lucentezza": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Lucentezza": 3
+      }
+    },
+    "Burn": {
+      "it": "Fuoco",
+      "varianti": {
+        "Fuoco": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Fuoco": 3
+      }
+    },
+    "Burst": {
+      "it": "Scoppio",
+      "varianti": {
+        "Scoppio": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Scoppio": 3
+      }
+    },
+    "Cataclysm": {
+      "it": "Cataclisma",
+      "varianti": {
+        "Cataclisma": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Cataclisma": 3
+      }
+    },
+    "Chain": {
+      "it": "Catena",
+      "varianti": {
+        "Catena": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Catena": 3
+      }
+    },
+    "Clear Stream": {
+      "it": "Flusso libero",
+      "varianti": {
+        "Flusso libero": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Flusso libero": 3
+      }
+    },
+    "Colossal Mountain": {
+      "it": "Montagna colossale",
+      "varianti": {
+        "Montagna colossale": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Montagna colossale": 3
+      }
+    },
+    "Combustion": {
+      "it": "Combustione",
+      "varianti": {
+        "Combustione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Combustione": 3
+      }
+    },
+    "Corruption": {
+      "it": "Corruzione",
+      "varianti": {
+        "Corruzione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Corruzione": 3
+      }
+    },
+    "Covert Action": {
+      "it": "Azione sotto copertura",
+      "varianti": {
+        "Azione sotto copertura": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Azione sotto copertura": 3
+      }
+    },
+    "Crush": {
+      "it": "Frantumazione",
+      "varianti": {
+        "Frantumazione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Frantumazione": 3
+      }
+    },
+    "Curse": {
+      "it": "Maledizione",
+      "varianti": {
+        "Maledizione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Maledizione": 3
+      }
+    },
+    "Dark Brand": {
+      "it": "Marchio oscuro",
+      "varianti": {
+        "Marchio oscuro": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Marchio oscuro": 3
+      }
+    },
+    "Dark Destruction": {
+      "it": "Distruzione oscura",
+      "varianti": {
+        "Distruzione oscura": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Distruzione oscura": 3
+      }
+    },
+    "Dark Moon": {
+      "it": "Luna oscura",
+      "varianti": {
+        "Luna oscura": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Luna oscura": 3
+      }
+    },
+    "Degeneration": {
+      "it": "Degenerazione",
+      "varianti": {
+        "Degenerazione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Degenerazione": 3
+      }
+    },
+    "Delusion": {
+      "it": "Illusione",
+      "varianti": {
+        "Illusione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Illusione": 3
+      }
+    },
+    "Dispersion": {
+      "it": "Dispersione",
+      "varianti": {
+        "Dispersione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Dispersione": 3
+      }
+    },
+    "Dusk": {
+      "it": "Tramonto",
+      "varianti": {
+        "Tramonto": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Tramonto": 3
+      }
+    },
+    "Electric Blast": {
+      "it": "Esplosione elettrica",
+      "varianti": {
+        "Esplosione elettrica": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Esplosione elettrica": 3
+      }
+    },
+    "Elemental Explosion": {
+      "it": "Esplosione Elementale",
+      "varianti": {
+        "Esplosione Elementale": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Esplosione Elementale": 3
+      }
+    },
+    "Eradication": {
+      "it": "Sradicamento",
+      "varianti": {
+        "Sradicamento": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Sradicamento": 3
+      }
+    },
+    "Ethereal": {
+      "it": "Etere",
+      "varianti": {
+        "Etere": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Etere": 3
+      }
+    },
+    "Exploit": {
+      "it": "Sfruttamento",
+      "varianti": {
+        "Sfruttamento": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Sfruttamento": 3
+      }
+    },
+    "Extermination": {
+      "it": "Sterminio",
+      "varianti": {
+        "Sterminio": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Sterminio": 3
+      }
+    },
+    "Extinction": {
+      "it": "Estinzione",
+      "varianti": {
+        "Estinzione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Estinzione": 3
+      }
+    },
+    "Flare": {
+      "it": "Bagliore",
+      "varianti": {
+        "Bagliore": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Bagliore": 3
+      }
+    },
+    "Flash": {
+      "it": "Lampo",
+      "varianti": {
+        "Lampo": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Lampo": 3
+      }
+    },
+    "Foresight": {
+      "it": null,
+      "varianti": {},
+      "usi": 3,
+      "ritagliate": 0,
+      "nomi_delle_note": {
+        "Preveggenza": 3
+      }
+    },
+    "Frenzy": {
+      "it": "Frenesia",
+      "varianti": {
+        "Frenesia": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Frenesia": 3
+      }
+    },
+    "Frost Current": {
+      "it": "Corrente gelida",
+      "varianti": {
+        "Corrente gelida": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Corrente gelida": 3
+      }
+    },
+    "Fury": {
+      "it": "Furia",
+      "varianti": {
+        "Furia": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Furia": 3
+      }
+    },
+    "Gale": {
+      "it": "Burrasca",
+      "varianti": {
+        "Burrasca": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Burrasca": 3
+      }
+    },
+    "Gloom": {
+      "it": "Tenebre",
+      "varianti": {
+        "Tenebre": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Tenebre": 3
+      }
+    },
+    "Heat Strike": {
+      "it": "Colpo di calore",
+      "varianti": {
+        "Colpo di calore": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Colpo di calore": 3
+      }
+    },
+    "Ice Explosion": {
+      "it": "Esplosione di ghiaccio",
+      "varianti": {
+        "Esplosione di ghiaccio": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Esplosione di ghiaccio": 3
+      }
+    },
+    "Ignition": {
+      "it": "Avviamento",
+      "varianti": {
+        "Avviamento": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Avviamento": 3
+      }
+    },
+    "Illusion": {
+      "it": "Illusione",
+      "varianti": {
+        "Illusione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Illusione": 3
+      }
+    },
+    "Inferno": {
+      "it": "Inferno",
+      "varianti": {
+        "Inferno": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Inferno": 3
+      }
+    },
+    "Inhales": {
+      "it": "Inspira",
+      "varianti": {
+        "Inspira": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Inspirazione": 3
+      }
+    },
+    "Light Spear": {
+      "it": "Lancia luminosa",
+      "varianti": {
+        "Lancia luminosa": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Lancia luminosa": 3
+      }
+    },
+    "Lightning Strike": {
+      "it": "Colpo del tuono",
+      "varianti": {
+        "Colpo del tuono": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Colpo del tuono": 3
+      }
+    },
+    "Mark of Concentration": {
+      "it": "Marchio della Concentrazione",
+      "varianti": {
+        "Marchio della Concentrazione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Marchio della Concentrazione": 3
+      }
+    },
+    "Mark of Death": {
+      "it": "Marchio della morte",
+      "varianti": {
+        "Marchio della morte": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Marchio della morte": 3
+      }
+    },
+    "Nightmare": {
+      "it": "Incubo",
+      "varianti": {
+        "Incubo": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Incubo": 3
+      }
+    },
+    "Obliteration": {
+      "it": "Obliterazione",
+      "varianti": {
+        "Obliterazione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Obliterazione": 3
+      }
+    },
+    "Overpower": {
+      "it": "Dominazione",
+      "varianti": {
+        "Dominazione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Dominazione": 3
+      }
+    },
+    "Oxidize": {
+      "it": "Ossidazione",
+      "varianti": {
+        "Ossidazione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Ossidazione": 3
+      }
+    },
+    "Pain": {
+      "it": "Dolore",
+      "varianti": {
+        "Dolore": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Dolore": 3
+      }
+    },
+    "Penetration": {
+      "it": "Penetrazione",
+      "varianti": {
+        "Penetrazione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Penetrazione": 3
+      }
+    },
+    "Prevision": {
+      "it": "Previsione",
+      "varianti": {
+        "Previsione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Previsione": 3
+      }
+    },
+    "Punishment": {
+      "it": "Punizione",
+      "varianti": {
+        "Punizione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Punizione": 3
+      }
+    },
+    "Raging Fire": {
+      "it": "Fuoco furente",
+      "varianti": {
+        "Fuoco furente": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Fuoco furente": 3
+      }
+    },
+    "Raid": {
+      "it": "Incursione",
+      "varianti": {
+        "Incursione": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Incursione": 3
+      }
+    },
+    "Rampage": {
+      "it": "Furia",
+      "varianti": {
+        "Furia": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Furia": 3
+      }
+    },
+    "Rend": {
+      "it": "Strappo",
+      "varianti": {
+        "Strappo": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Strappo": 3
+      }
+    },
+    "Retribution": {
+      "it": "Castigo",
+      "varianti": {
+        "Castigo": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Castigo": 3
+      }
+    },
+    "Ripple": {
+      "it": "Increspatura",
+      "varianti": {
+        "Increspatura": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Increspatura": 3
+      }
+    },
+    "Rush": {
+      "it": "Lampo",
+      "varianti": {
+        "Lampo": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Lampo": 3
+      }
+    },
+    "Scorch": {
+      "it": "Bruciatura",
+      "varianti": {
+        "Bruciatura": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Bruciatura": 3
+      }
+    },
+    "Seal of Darkness": {
+      "it": "Sigillo dell'oscurità",
+      "varianti": {
+        "Sigillo dell'oscurità": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Sigillo dell'oscurità": 3
+      }
+    },
+    "Shadowflare": {
+      "it": "Bagliore d'ombra",
+      "varianti": {
+        "Bagliore d'ombra": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Bagliore d'ombra": 3
+      }
+    },
+    "Shadowgleam": {
+      "it": "Bagliore d'ombra",
+      "varianti": {
+        "Bagliore d'ombra": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Bagliore d'ombra": 3
+      }
+    },
+    "Shock": {
+      "it": "Shock",
+      "varianti": {
+        "Shock": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Shock": 3
+      }
+    },
+    "Skybreak": {
+      "it": "Squarcio nel cielo",
+      "varianti": {
+        "Squarcio nel cielo": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Squarcio nel cielo": 3
+      }
+    },
+    "Slash": {
+      "it": "Squarcio",
+      "varianti": {
+        "Squarcio": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Squarcio": 3
+      }
+    },
+    "Snipe": {
+      "it": "Cecchino",
+      "varianti": {
+        "Cecchino": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Cecchino": 3
+      }
+    },
+    "Snow Blast": {
+      "it": "Bombardamento innevato",
+      "varianti": {
+        "Bombardamento innevato": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Bombardamento innevato": 3
+      }
+    },
+    "Soulsteal": {
+      "it": "Furto dell'anima",
+      "varianti": {
+        "Furto dell'anima": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Furto dell'anima": 3
+      }
+    },
+    "Spark": {
+      "it": "Scintilla",
+      "varianti": {
+        "Scintilla": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Scintilla": 3
+      }
+    },
+    "Spirit Strike": {
+      "it": "Colpo dello spirito",
+      "varianti": {
+        "Colpo dello spirito": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Colpo dello spirito": 3
+      }
+    },
+    "Spray": {
+      "it": "Spruzzo",
+      "varianti": {
+        "Spruzzo": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Spruzzo": 3
+      }
+    },
+    "Sunspot": {
+      "it": "Punto del Sole",
+      "varianti": {
+        "Punto del Sole": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Punto del Sole": 3
+      }
+    },
+    "Sure Kill": {
+      "it": "Uccisione assicurata",
+      "varianti": {
+        "Uccisione assicurata": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Uccisione assicurata": 3
+      }
+    },
+    "Taunt": {
+      "it": "Provoca",
+      "varianti": {
+        "Provoca": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Provocazione": 3
+      }
+    },
+    "Thunderbolt": {
+      "it": "Tuono",
+      "varianti": {
+        "Tuono": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Tuono": 3
+      }
+    },
+    "Voracity": {
+      "it": "Voracità",
+      "varianti": {
+        "Voracità": 3
+      },
+      "usi": 3,
+      "ritagliate": 3,
+      "nomi_delle_note": {
+        "Voracità": 3
+      }
+    },
+    "Ripple of Light": {
+      "it": "Increspatura luminosa",
+      "varianti": {
+        "Increspatura luminosa": 2
+      },
+      "usi": 2,
+      "ritagliate": 2,
+      "nomi_delle_note": {
+        "Increspatura luminosa": 2
+      }
+    }
+  },
   "lacune": [
     {
       "cosa": "forme senza lettura",
@@ -2373,7 +4478,7 @@
     },
     {
       "cosa": "forme in italiano",
-      "stato": "le forme vengono dal testo inglese; il testo italiano di ogni rango c'e' su 7dshub (scarica_7dshub_it.py), e da li' si ritagliano solo condizioni e precisazioni: il resto della lettura resta in inglese"
+      "stato": "le forme vengono dal testo inglese; il testo italiano di ogni rango c'e' su 7dshub (scarica_7dshub_it.py), e da li' si ritagliano solo condizioni, precisazioni e termini: il resto della lettura resta in inglese"
     },
     {
       "cosa": "condizioni e precisazioni senza italiano",
