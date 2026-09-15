@@ -8,13 +8,13 @@
   },
   "note": {
     "certezza": "nome e descrizione sono testi del client con il loro codice: dichiarati. Dove un testo non si legge vale null",
-    "leggibili": "nomi leggibili: it 175, en 158 su 238"
+    "leggibili": "nomi leggibili: it 237, en 230 su 238"
   },
   "voci": {
     "001": {
       "nome": {
         "it": "Frantumazione",
-        "en": null
+        "en": "Shatter"
       },
       "descrizione": {
         "it": "Ignora Resistenza.",
@@ -35,19 +35,19 @@
     },
     "003": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Perforazione",
+        "en": "Pierce"
       },
       "descrizione": {
-        "it": null,
+        "it": "Aumenta Perforazione",
         "en": "Increases Pierce Rate"
       },
       "rimanda_a": null
     },
     "005": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Carica",
+        "en": "Charge"
       },
       "descrizione": {
         "it": "Ignora Difesa.",
@@ -79,7 +79,7 @@
     },
     "008": {
       "nome": {
-        "it": null,
+        "it": "Rovina",
         "en": "Ruin"
       },
       "descrizione": {
@@ -90,7 +90,7 @@
     },
     "009": {
       "nome": {
-        "it": null,
+        "it": "Recisione",
         "en": "Sever"
       },
       "descrizione": {
@@ -101,7 +101,7 @@
     },
     "010": {
       "nome": {
-        "it": null,
+        "it": "Lancia",
         "en": "Spike"
       },
       "descrizione": {
@@ -112,7 +112,7 @@
     },
     "011": {
       "nome": {
-        "it": null,
+        "it": "Detonazione",
         "en": "Detonate"
       },
       "descrizione": {
@@ -156,7 +156,7 @@
     },
     "015": {
       "nome": {
-        "it": null,
+        "it": "Inondazione",
         "en": "Flood"
       },
       "descrizione": {
@@ -167,8 +167,8 @@
     },
     "016": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Rilascio",
+        "en": "Release"
       },
       "descrizione": {
         "it": "Danni aggiuntivi pari a quelli rimasti dei Debuff Shock, Avvelenamento e Sanguinamento.",
@@ -178,7 +178,7 @@
     },
     "017": {
       "nome": {
-        "it": null,
+        "it": "Squarcio",
         "en": "Break"
       },
       "descrizione": {
@@ -189,8 +189,8 @@
     },
     "018": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Amplificazione",
+        "en": "Amplify"
       },
       "descrizione": {
         "it": "Riduce i danni inflitti per ogni Buff sull'eroe.",
@@ -233,18 +233,18 @@
     },
     "022": {
       "nome": {
-        "it": null,
+        "it": "Riduzione Rango",
         "en": "Rank Decrease"
       },
       "descrizione": {
-        "it": null,
+        "it": "Riduce il rango abilità.",
         "en": "Decreases Skill Rank."
       },
       "rimanda_a": null
     },
     "023": {
       "nome": {
-        "it": null,
+        "it": "Eliminazione",
         "en": "Delete"
       },
       "descrizione": {
@@ -255,8 +255,8 @@
     },
     "024": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Inspirazione",
+        "en": "Inhale"
       },
       "descrizione": {
         "it": "Riduce i PS massimi del nemico e recupera i propri PS della stessa quantità.",
@@ -266,7 +266,7 @@
     },
     "025": {
       "nome": {
-        "it": null,
+        "it": "Disperazione",
         "en": "Despair"
       },
       "descrizione": {
@@ -289,7 +289,7 @@
     "027": {
       "nome": {
         "it": "Annulla Buff",
-        "en": null
+        "en": "Buff Cancel"
       },
       "descrizione": {
         "it": "Rimuove i Buff dal nemico.",
@@ -321,8 +321,8 @@
     },
     "030": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Shock",
+        "en": "Shock"
       },
       "descrizione": {
         "it": "Danni aggiuntivi in proporzione ai danni inflitti alla fine di ogni turno.",
@@ -344,7 +344,7 @@
     "032": {
       "nome": {
         "it": "Avvelenamento",
-        "en": null
+        "en": "Poison"
       },
       "descrizione": {
         "it": "Danni aggiuntivi in proporzione ai danni inflitti alla fine di ogni turno.",
@@ -355,7 +355,7 @@
     "033": {
       "nome": {
         "it": "Sanguinamento",
-        "en": null
+        "en": "Bleed"
       },
       "descrizione": {
         "it": "Danni aggiuntivi in proporzione ai danni inflitti alla fine di ogni turno.",
@@ -365,7 +365,7 @@
     },
     "034": {
       "nome": {
-        "it": null,
+        "it": "Corrosione",
         "en": "Corrosion"
       },
       "descrizione": {
@@ -421,7 +421,7 @@
     "039": {
       "nome": {
         "it": "Limitazione Rango",
-        "en": null
+        "en": "Rank Restriction"
       },
       "descrizione": {
         "it": "Permette solo l'uso delle abilità di Rango 1.",
@@ -447,7 +447,7 @@
       },
       "descrizione": {
         "it": "Disabilita le Abilità Buff.",
-        "en": null
+        "en": "Disables Buff Skills."
       },
       "rimanda_a": "carte.tipi_attacco.2"
     },
@@ -480,7 +480,7 @@
       },
       "descrizione": {
         "it": "Disabilita le Abilità Atteggiamento.",
-        "en": null
+        "en": "Disables Stance Skills."
       },
       "rimanda_a": null
     },
@@ -520,7 +520,7 @@
     "048": {
       "nome": {
         "it": "Incendio",
-        "en": null
+        "en": "Ignite"
       },
       "descrizione": {
         "it": "Aumenta i danni subiti dal nemico Incendiato.",
@@ -530,8 +530,8 @@
     },
     "049": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Infezione",
+        "en": "Infect"
       },
       "descrizione": {
         "it": "Limita le statistiche relative al Recupero.",
@@ -542,7 +542,7 @@
     "050": {
       "nome": {
         "it": "Stordimento",
-        "en": null
+        "en": "Stun"
       },
       "descrizione": {
         "it": "Immobilizza il nemico.",
@@ -552,8 +552,8 @@
     },
     "051": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Pietrificazione",
+        "en": "Petrify"
       },
       "descrizione": {
         "it": "Immobilizza il nemico. L'effetto viene rimosso quando il bersaglio viene attaccato.",
@@ -564,7 +564,7 @@
     "052": {
       "nome": {
         "it": "Congelamento",
-        "en": null
+        "en": "Freeze"
       },
       "descrizione": {
         "it": "Immobilizza il nemico. L'effetto viene rimosso quando il bersaglio viene attaccato.",
@@ -586,7 +586,7 @@
     "054": {
       "nome": {
         "it": "Estorsione",
-        "en": null
+        "en": "Extort"
       },
       "descrizione": {
         "it": "Riduce le statistiche del nemico e aumenta le proprie per una parte delle statistiche ridotte.",
@@ -651,8 +651,8 @@
     },
     "060": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Evasione",
+        "en": "Evade"
       },
       "descrizione": {
         "it": "Evade le Abilità Attacco e le Abilità Attacco Debuff.",
@@ -662,7 +662,7 @@
     },
     "061": {
       "nome": {
-        "it": null,
+        "it": "Immunità",
         "en": "Immunity"
       },
       "descrizione": {
@@ -673,7 +673,7 @@
     },
     "062": {
       "nome": {
-        "it": null,
+        "it": "Barriera",
         "en": "Barrier"
       },
       "descrizione": {
@@ -707,7 +707,7 @@
     "065": {
       "nome": {
         "it": "Riflessione",
-        "en": null
+        "en": "Reflect"
       },
       "descrizione": {
         "it": "Restituisce una parte dei danni subiti a chi attacca.",
@@ -717,7 +717,7 @@
     },
     "066": {
       "nome": {
-        "it": null,
+        "it": "Solidificazione",
         "en": "Solidify"
       },
       "descrizione": {
@@ -751,11 +751,11 @@
     "069": {
       "nome": {
         "it": "Recupero",
-        "en": null
+        "en": "Recovery"
       },
       "descrizione": {
         "it": "Cura i PS.",
-        "en": null
+        "en": "Heals HP."
       },
       "rimanda_a": null
     },
@@ -773,7 +773,7 @@
     "071": {
       "nome": {
         "it": "Annulla Debuff",
-        "en": null
+        "en": "Debuff Cancel"
       },
       "descrizione": {
         "it": "Rimuove tutti i Debuff.",
@@ -794,8 +794,8 @@
     },
     "073": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Fendente",
+        "en": "Cleave"
       },
       "descrizione": {
         "it": "Danni aggiuntivi pari a una parte di (Danno critico - 100%).",
@@ -864,7 +864,7 @@
         "en": "Defense Decrease"
       },
       "descrizione": {
-        "it": null,
+        "it": "Riduce la Difesa.",
         "en": "Decreases Defense."
       },
       "rimanda_a": null
@@ -876,7 +876,7 @@
       },
       "descrizione": {
         "it": "Riduce i PS.",
-        "en": null
+        "en": "Decreases HP."
       },
       "rimanda_a": null
     },
@@ -919,7 +919,7 @@
         "en": "Defense Increase"
       },
       "descrizione": {
-        "it": null,
+        "it": "Aumenta la Difesa.",
         "en": "Increases Defense."
       },
       "rimanda_a": null
@@ -992,8 +992,8 @@
     },
     "091": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Ossidazione",
+        "en": "Oxidize"
       },
       "descrizione": {
         "it": "Riduce i ranghi abilità e infligge danni in proporzione ai PS massimi alla fine del turno del nemico.",
@@ -1015,7 +1015,7 @@
     "093": {
       "nome": {
         "it": "Rango ridotto",
-        "en": null
+        "en": "Rank Down"
       },
       "descrizione": {
         "it": "Riduce i ranghi abilità alla fine del turno del nemico.",
@@ -1025,7 +1025,7 @@
     },
     "094": {
       "nome": {
-        "it": null,
+        "it": "Domatura",
         "en": "Quell"
       },
       "descrizione": {
@@ -1047,7 +1047,7 @@
     },
     "097": {
       "nome": {
-        "it": null,
+        "it": "Resurrezione",
         "en": "Resurrection"
       },
       "descrizione": {
@@ -1059,7 +1059,7 @@
     "098": {
       "nome": {
         "it": "Oscurità",
-        "en": null
+        "en": "Darkness"
       },
       "descrizione": {
         "it": "Aumenta i danni subiti dai nemici colpiti da Oscurità.",
@@ -1092,7 +1092,7 @@
     "101": {
       "nome": {
         "it": "Sconfinamento",
-        "en": null
+        "en": "Encroach"
       },
       "descrizione": {
         "it": "Riduce tutte le statistiche del nemico",
@@ -1179,7 +1179,7 @@
     },
     "109": {
       "nome": {
-        "it": null,
+        "it": "Fuoco",
         "en": null
       },
       "descrizione": {
@@ -1257,7 +1257,7 @@
     "120": {
       "nome": {
         "it": "Scoppio magico",
-        "en": null
+        "en": "Magic Burst"
       },
       "descrizione": {
         "it": "Ignora la Resistenza critico e la Difesa critico del nemico.",
@@ -1278,7 +1278,7 @@
     },
     "122": {
       "nome": {
-        "it": null,
+        "it": "Magia vera",
         "en": "True Magic"
       },
       "descrizione": {
@@ -1289,7 +1289,7 @@
     },
     "123": {
       "nome": {
-        "it": null,
+        "it": "Frenesia",
         "en": null
       },
       "descrizione": {
@@ -1300,8 +1300,8 @@
     },
     "124": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Squarcio",
+        "en": "Slash"
       },
       "descrizione": {
         "it": "Danni aggiuntivi pari alla metà della Perforazione dell'eroe.",
@@ -1344,8 +1344,8 @@
     },
     "128": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Bagliore",
+        "en": "Flare"
       },
       "descrizione": {
         "it": "Aumenta i danni inflitti per ogni Lucentezza del Sole.",
@@ -1367,7 +1367,7 @@
     "130": {
       "nome": {
         "it": "Macchia solare",
-        "en": null
+        "en": "Sunspot"
       },
       "descrizione": {
         "it": "Riduce i danni inflitti.",
@@ -1400,7 +1400,7 @@
     "135": {
       "nome": {
         "it": "Sterminio",
-        "en": null
+        "en": "Extermination"
       },
       "descrizione": {
         "it": "Ignora il 50% della Resistenza critico, x2 aumento Danno critico.",
@@ -1410,8 +1410,8 @@
     },
     "136": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Bombardamento",
+        "en": "Blast"
       },
       "descrizione": {
         "it": "Aumenta i danni inflitti per ogni Fiamma Eterna e Fuoco.",
@@ -1509,8 +1509,8 @@
     },
     "150": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Punizione",
+        "en": "Punishment"
       },
       "descrizione": {
         "it": "x3 Perforazione e aumento dei danni inflitti per ogni effetto Ira della Dea sull'eroe.",
@@ -1521,7 +1521,7 @@
     "151": {
       "nome": {
         "it": "Protezione della Dea",
-        "en": null
+        "en": "Goddess's Protection"
       },
       "descrizione": {
         "it": "Torna in vita con i PS che aveva prima di morire.",
@@ -1531,7 +1531,7 @@
     },
     "152": {
       "nome": {
-        "it": null,
+        "it": "Furia",
         "en": "Fury"
       },
       "descrizione": {
@@ -1564,7 +1564,7 @@
     },
     "155": {
       "nome": {
-        "it": null,
+        "it": "Condanna",
         "en": "Doom"
       },
       "descrizione": {
@@ -1587,7 +1587,7 @@
     "160": {
       "nome": {
         "it": "Lampo",
-        "en": null
+        "en": "Flash"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico, x2 danni inflitti sui nemici con Debuff.",
@@ -1675,7 +1675,7 @@
     "174": {
       "nome": {
         "it": "Fiamme dell'inferno",
-        "en": null
+        "en": "Hellfire"
       },
       "descrizione": {
         "it": "Ignora le statistiche relative alla Difesa del nemico.",
@@ -1729,8 +1729,8 @@
     },
     "179": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Illusione",
+        "en": "Delusion"
       },
       "descrizione": {
         "it": "x3 aumento Possibilità critico e x3 aumento Danno critico.",
@@ -1752,7 +1752,7 @@
     "181": {
       "nome": {
         "it": "Invasione mentale",
-        "en": null
+        "en": "Mind Break"
       },
       "descrizione": {
         "it": "Riduce le statistiche relative all'Attacco. Disabilita gli attacchi a bersaglio singolo o contro tutti quando viene rimosso.",
@@ -1774,7 +1774,7 @@
     "183": {
       "nome": {
         "it": "Colpo del tuono",
-        "en": null
+        "en": "Lightning Strike"
       },
       "descrizione": {
         "it": "x2 Aumento Possibilità critico. Ignora la Difesa critico del nemico utilizzando un'abilità.",
@@ -1784,8 +1784,8 @@
     },
     "184": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Tuono",
+        "en": "Thunderbolt"
       },
       "descrizione": {
         "it": "x2 aumento Danno critico. Ignora la Resistenza critico del nemico utilizzando un'abilità mentre Giudizio della Dea del Tuono è attivo.",
@@ -1796,7 +1796,7 @@
     "185": {
       "nome": {
         "it": "Giudizio della Dea del Tuono",
-        "en": null
+        "en": "Thundergod's Judgment"
       },
       "descrizione": {
         "it": "Aumenta le statistiche relative all'Attacco. Infligge danni aggiuntivi su tutti i nemici quando l'eroe usa un attacco a bersaglio singolo.",
@@ -1818,7 +1818,7 @@
     "192": {
       "nome": {
         "it": "Sostegno ardente",
-        "en": null
+        "en": "Ardent Support"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico. Ignora la Difesa e la Resistenza del nemico.",
@@ -1840,7 +1840,7 @@
     "194": {
       "nome": {
         "it": "Tenebre",
-        "en": null
+        "en": "Gloom"
       },
       "descrizione": {
         "it": "x2 aumento Danno critico. Aumenta i danni inflitti per ogni Furia dell'Oscurità sui nemici.",
@@ -1850,7 +1850,7 @@
     },
     "199": {
       "nome": {
-        "it": null,
+        "it": "Corruzione",
         "en": "Corruption"
       },
       "descrizione": {
@@ -1862,7 +1862,7 @@
     "200": {
       "nome": {
         "it": "Impatto",
-        "en": null
+        "en": "Impact"
       },
       "descrizione": {
         "it": "x3 Aumento Perforazione. Ignora Resistenza.",
@@ -1872,7 +1872,7 @@
     },
     "201": {
       "nome": {
-        "it": null,
+        "it": "Penetrazione",
         "en": "Penetration"
       },
       "descrizione": {
@@ -1894,7 +1894,7 @@
     },
     "203": {
       "nome": {
-        "it": null,
+        "it": "Illuminazione",
         "en": "Illumination"
       },
       "descrizione": {
@@ -1928,7 +1928,7 @@
     "210": {
       "nome": {
         "it": "Distruzione",
-        "en": null
+        "en": "Smite"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico, x2 aumento Danno critico Danni aumentati ai nemici colpiti da Marchio vendicativo.",
@@ -1939,7 +1939,7 @@
     "211": {
       "nome": {
         "it": "Increspatura",
-        "en": null
+        "en": "Ripple"
       },
       "descrizione": {
         "it": "x3 Aumento Perforazione. Ignora la Difesa del nemico, aumenta l'Attacco quando usa un'abilità e aumenta i danni inflitti per ogni Ondata punitiva sul nemico.",
@@ -1971,8 +1971,8 @@
     },
     "214": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Degenerazione",
+        "en": "Degeneration"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico. Aumenta i danni inflitti contro i nemici colpiti da Pugnalata.",
@@ -1982,7 +1982,7 @@
     },
     "215": {
       "nome": {
-        "it": null,
+        "it": "Anima",
         "en": "Soul"
       },
       "descrizione": {
@@ -2004,7 +2004,7 @@
     },
     "217": {
       "nome": {
-        "it": null,
+        "it": "Furia",
         "en": "Rampage"
       },
       "descrizione": {
@@ -2038,7 +2038,7 @@
     "226": {
       "nome": {
         "it": "Punto luce",
-        "en": null
+        "en": "Lightpoint"
       },
       "descrizione": {
         "it": "Aumento Attacco, x2 aumento Possibilità critico e x2 aumento Danno critico utilizzando le abilità. Aumenta i danni inflitti in base al valore accumulato di Ira della Terra del bersaglio.",
@@ -2060,7 +2060,7 @@
     "228": {
       "nome": {
         "it": "Scontro pirotecnico",
-        "en": null
+        "en": "Pyroclash"
       },
       "descrizione": {
         "it": "Aumenta la Possibilità critico. Aumenta il Danno critico per ogni effetto Marchio infernale sul bersaglio.",
@@ -2071,7 +2071,7 @@
     "229": {
       "nome": {
         "it": "Marchio infernale",
-        "en": null
+        "en": "Hellbrand"
       },
       "descrizione": {
         "it": "Aumenta i danni subiti, riduce i danni inflitti. Danni aggiuntivi in proporzione ai PS massimi del bersaglio quando viene rimosso.",
@@ -2081,8 +2081,8 @@
     },
     "236": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Buio pesto",
+        "en": "Pitch Black"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico, x2 danni inflitti sui nemici con Debuff, danni inflitti aumentano contro i nemici colpiti da Maledizione nera.",
@@ -2092,8 +2092,8 @@
     },
     "237": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Erosione",
+        "en": "Erosion"
       },
       "descrizione": {
         "it": "Ignora la Difesa e la Resistenza del nemico, i danni inflitti aumentano in proporzione alla Perforazione.",
@@ -2104,7 +2104,7 @@
     "238": {
       "nome": {
         "it": "Spada nera",
-        "en": null
+        "en": "Pitch Black Sword"
       },
       "descrizione": {
         "it": "Aumento statistiche relative all'Attacco, aumento Danno critico",
@@ -2114,7 +2114,7 @@
     },
     "239": {
       "nome": {
-        "it": null,
+        "it": "Incubo",
         "en": "Nightmare"
       },
       "descrizione": {
@@ -2125,7 +2125,7 @@
     },
     "240": {
       "nome": {
-        "it": null,
+        "it": "Coagulo",
         "en": "Blood Clot"
       },
       "descrizione": {
@@ -2147,7 +2147,7 @@
     },
     "242": {
       "nome": {
-        "it": null,
+        "it": "Strappo",
         "en": null
       },
       "descrizione": {
@@ -2158,8 +2158,8 @@
     },
     "243": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Visione",
+        "en": "Insight"
       },
       "descrizione": {
         "it": "x3 aumento Perforazione, danni aggiuntivi proporzionali ai PS rimanenti del bersaglio, Disabilita Attacco contro tutti al bersaglio quando infligge danni mentre è attivo Fili della preveggenza.",
@@ -2192,7 +2192,7 @@
     "246": {
       "nome": {
         "it": "Atteggiamento di preveggenza",
-        "en": null
+        "en": "Foresight Stance"
       },
       "descrizione": {
         "it": "Contrattacca prima di un attacco del nemico, tranne le Mosse Finali.",
@@ -2202,7 +2202,7 @@
     },
     "247": {
       "nome": {
-        "it": null,
+        "it": "Illusione",
         "en": "Illusion"
       },
       "descrizione": {
@@ -2213,8 +2213,8 @@
     },
     "248": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Etere",
+        "en": "Ethereal"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico, x2 aumento Danno critico Danni inflitti +100% quando Re, Regina o Jack sono attivi.",
@@ -2236,7 +2236,7 @@
     "255": {
       "nome": {
         "it": "Alba",
-        "en": null
+        "en": "Dawn"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico. Danni aggiuntivi pari al 30% dei PS massimi dell'eroe. Aumenta i danni inflitti con abilità mentre Patto del crepuscolo è attivo.",
@@ -2246,7 +2246,7 @@
     },
     "256": {
       "nome": {
-        "it": null,
+        "it": "Tramonto",
         "en": null
       },
       "descrizione": {
@@ -2268,8 +2268,8 @@
     },
     "258": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Freddo",
+        "en": "Cold"
       },
       "descrizione": {
         "it": "x2 aumento Possibilità critico. Aumenta i danni inflitti per ogni Buff sul campo di battaglia.",
@@ -2280,7 +2280,7 @@
     "259": {
       "nome": {
         "it": "Scudo gelido",
-        "en": null
+        "en": "Frost Shield"
       },
       "descrizione": {
         "it": "Riduzione Danni subiti, Aumento PS massimi, Immunità al Congelamento, riduce i danni inflitti dai nemici che hanno subito danni da quest'abilità",
@@ -2291,7 +2291,7 @@
     "260": {
       "nome": {
         "it": "Esplosione di ghiaccio",
-        "en": null
+        "en": "Ice Explosion"
       },
       "descrizione": {
         "it": "x5 aumento Perforazione. x2 danni inflitti contro bersagli con Atteggiamento. Danni aggiuntivi in proporzione all'Attacco iniziale. Danni aggiuntivi pari al 70% dei danni finali. (Danni casuali alla morte)",
@@ -2301,7 +2301,7 @@
     },
     "261": {
       "nome": {
-        "it": null,
+        "it": "Calore radiante",
         "en": "Radiant Heat"
       },
       "descrizione": {
@@ -2334,7 +2334,7 @@
     },
     "264": {
       "nome": {
-        "it": null,
+        "it": "Ablazione",
         "en": "Ablation"
       },
       "descrizione": {
@@ -2345,8 +2345,8 @@
     },
     "265": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Ossidazione II",
+        "en": "Oxidize II"
       },
       "descrizione": {
         "it": "Riduce i ranghi abilità all'inizio del turno, infligge danni in proporzione ai PS massimi, poi riduce la Barra Mossa finale.",
@@ -2356,7 +2356,7 @@
     },
     "275": {
       "nome": {
-        "it": null,
+        "it": "Catena",
         "en": "Chain"
       },
       "descrizione": {
@@ -2379,7 +2379,7 @@
     "277": {
       "nome": {
         "it": "Catene maledette",
-        "en": null
+        "en": "Cursed Chains"
       },
       "descrizione": {
         "it": "Riduzione statistiche relative all'Attacco",
@@ -2412,7 +2412,7 @@
     "290": {
       "nome": {
         "it": "Distruzione oscura",
-        "en": null
+        "en": "Dark Destruction"
       },
       "descrizione": {
         "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Aumento danni inflitti ai nemici colpiti da \"Fiamme infernali\".",
@@ -2444,7 +2444,7 @@
     },
     "293": {
       "nome": {
-        "it": null,
+        "it": "Fuoco",
         "en": null
       },
       "descrizione": {
@@ -2456,7 +2456,7 @@
     "294": {
       "nome": {
         "it": "Sprofondamento nell'ombra",
-        "en": null
+        "en": "Shadow Engulfment"
       },
       "descrizione": {
         "it": "Riduce tutte le statistiche del 50%.",
@@ -2467,7 +2467,7 @@
     "295": {
       "nome": {
         "it": "Limitazione Rango",
-        "en": null
+        "en": "Rank Restriction"
       },
       "descrizione": {
         "it": "Permette solo l'uso delle abilità Rango 2.",
@@ -2477,8 +2477,8 @@
     },
     "305": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Trasgressione",
+        "en": "Transgression"
       },
       "descrizione": {
         "it": "x5 aumento Perforazione. Ignora il 100% della Difesa critico del nemico. x2 danni contro nemici con Debuff.",
@@ -2489,7 +2489,7 @@
     "306": {
       "nome": {
         "it": "Marchio oscuro",
-        "en": null
+        "en": "Dark Brand"
       },
       "descrizione": {
         "it": "Danni aggiuntivi in proporzione ai PS rimanenti del bersaglio.",
@@ -2500,7 +2500,7 @@
     "307": {
       "nome": {
         "it": "Desiderio irrefrenabile",
-        "en": null
+        "en": "Craving"
       },
       "descrizione": {
         "it": "x3 aumento Perforazione. Danni inflitti aumentati ai nemici con Marchio del desiderio irrefrenabile.",
@@ -2510,8 +2510,8 @@
     },
     "308": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Voracità",
+        "en": "Voracity"
       },
       "descrizione": {
         "it": "x3 aumento Perforazione. Danni aggiuntivi pari al 120% di (Danno critico -100%).",
@@ -2532,8 +2532,8 @@
     },
     "310": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Spruzzo",
+        "en": "Spray"
       },
       "descrizione": {
         "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Rimuove 2 sfere dalle Barre Mossa finale di tutti i nemici quando viene usato su un nemico congelato.",
@@ -2566,7 +2566,7 @@
     "313": {
       "nome": {
         "it": "Fuoco solare",
-        "en": null
+        "en": "Sunfire"
       },
       "descrizione": {
         "it": "x5 aumento Perforazione e x2 aumento Danno critico. Danni inflitti aumentati ai nemici colpiti da Folgorazione.",
@@ -2587,8 +2587,8 @@
     },
     "315": {
       "nome": {
-        "it": null,
-        "en": null
+        "it": "Luce del giudizio",
+        "en": "Light of Judgment"
       },
       "descrizione": {
         "it": "Aumenta tutte le statistiche e i danni inflitti.",
@@ -2634,28 +2634,28 @@
     "01": {
       "etichetta": {
         "it": "Effetti Attacco",
-        "en": null
+        "en": "Attack Effects"
       },
       "etichetta_da": "DB_skill_search_group_01"
     },
     "02": {
       "etichetta": {
         "it": "Effetti Debuff",
-        "en": null
+        "en": "Debuff Effects"
       },
       "etichetta_da": "DB_skill_search_group_02"
     },
     "03": {
       "etichetta": {
         "it": "Effetti Buff",
-        "en": null
+        "en": "Buff Effects"
       },
       "etichetta_da": "DB_skill_search_group_03"
     },
     "04": {
       "etichetta": {
         "it": "Altri effetti",
-        "en": null
+        "en": "Other Effects"
       },
       "etichetta_da": "DB_skill_search_group_04"
     },

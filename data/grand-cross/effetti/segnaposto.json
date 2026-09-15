@@ -50,13 +50,13 @@
         "target"
       ],
       "uso": {
-        "descrizioni_client": 847,
-        "ranghi_col_modello": 3381
+        "descrizioni_client": 854,
+        "ranghi_col_modello": 3393
       },
       "certezza": "dedotto",
       "prove": [
-        "«{target_val}» e' il nome del tag in minuscolo: compare in 847 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' bersaglio 3.381",
+        "«{target_val}» e' il nome del tag in minuscolo: compare in 854 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' bersaglio 3.393",
         "DBSkillCardBaseRow: stesso nome della colonna"
       ]
     },

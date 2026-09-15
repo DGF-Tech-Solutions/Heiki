@@ -55,31 +55,31 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "2002501": {
     name: "Ripulitore Rudo",
     title: "[Team Akuta] Ripulitore Rudo",
-    epithet: "\tGuqucL|OsuA",
+    epithet: "[Team Akuta]",
     description: "Un ragazzo bandito dal Mondo celeste. È diventato un Ripulitore per trovare un modo di tornare al Mondo celeste.",
   },
   "2003501": {
     name: "Ripulitore Enjin",
     title: "[Team Akuta] Ripulitore Enjin",
-    epithet: "\tGuqucL|OsuA",
+    epithet: "[Team Akuta]",
     description: "Un membro dei Ripulitori, un'organizzazione sulla Terra che si occupa delle Bestie Immonde, e il leader del Team Akuta. È colui che ha reclutato Rudo dopo che è stato bandito dal Mondo celeste.",
   },
   "2004501": {
     name: "Ripulitore Zanka",
     title: "[Team Akuta] Ripulitore Zanka",
-    epithet: "\tGuqucL|OsuA",
+    epithet: "[Team Akuta]",
     description: "Ripulitore del Team Akuta insieme a Enjin e Riyo, Zanka funge da mentore per Rudo. Usa un lungo bastone come strumento vitale.",
   },
   "2005501": {
     name: "Ripulitrice Riyo",
-    title: "K_gx2%whitGy [i3iKidykz:%djeo",
-    epithet: "\tGuqucL|OsuA",
+    title: "[Team Akuta] Ripulitrice Riyo",
+    epithet: "[Team Akuta]",
     description: "Una Ripulitrice del Team Akuta. Usa un paio di forbici come strumento vitale e ha una personalità vivace e positiva.",
   },
   "1893503": {
-    name: "kyof7UaBEcw\"C",
+    name: "Mago Chandler",
     title: "[Arciprete della disperazione] Mago Chandler",
-    epithet: "YDnGiWy:wC)xuuZa 'iquyVa]b0mCT",
+    epithet: "[Arciprete della disperazione]",
     description: "Il Demone di rango più elevato ed ex maestro di Meliodas. Attende il momento in cui Meliodas diventerà il Re Demone, tramando costantemente per eliminare il più grande ostacolo sul suo cammino: Elizabeth.",
   },
   "2008501": {
@@ -103,19 +103,19 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1997501": {
     name: "Subaru e Beatrice",
     title: "[Re:ZERO] Subaru e Beatrice",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "Un ragazzo che affronta ripetutamente la disperazione attraverso il [Ritorno dalla Morte] per proteggere le persone a lui care, e una ragazza spirito artificiale che lui ha salvato da secoli di solitudine e con la quale ha stipulato un contratto.",
   },
   "1998501": {
     name: "Emilia Strega congelante",
     title: "[Re:ZERO] Emilia Strega congelante",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "Emilia ha affrontato il suo passato ed è cresciuta come persona. Combatte usando le Arti del marchio di ghiaccio, creando continuamente armi di ghiaccio grazie al suo mana inesauribile.",
   },
   "1999501": {
     name: "Priscilla Principessa del sole",
     title: "[Re:ZERO] Priscilla Principessa del sole",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "Una delle candidate al trono di Lugunica. Nota per il suo atteggiamento arrogante e le azioni audaci, vive con un forte senso di indipendenza egocentrica.",
   },
   "1055004": {
@@ -145,7 +145,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1976502": {
     name: "Anghalhad ragazza coraggiosa",
     title: "[Dolce tentazione] Anghalhad ragazza coraggiosa",
-    epithet: "PuhejCtr~Mcya~(EsU",
+    epithet: "[Dolce tentazione]",
     description: "Anghalhad con doni di San Valentino che ha preparato per le persone a cui tiene.",
   },
   "1991501": {
@@ -169,13 +169,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1685503": {
     name: "Mono del Ferro e Sangue",
     title: "[Lama scatenata] Mono del Ferro e Sangue",
-    epithet: "ovqsl7cn}yvYu73u",
+    epithet: "[Lama scatenata]",
     description: "Durante un incarico in un villaggio, Mono si è ritrovata a indossare un abito creato da Valenti. Grazie alla qualità eccezionale della sua lavorazione, le sue capacità di combattimento sono aumentate notevolmente.",
   },
   "1933502": {
-    name: "\\Jo\ngv}boCyuyf'Q",
+    name: "Ban trascendente",
     title: "[Mani d'aiuto] Ban trascendente",
-    epithet: "^iF1O<}'\"kitd^",
+    epithet: "[Mani d'aiuto]",
     description: "Dopo la fine della Guerra Santa, Ban visitava spesso i villaggi di tutta Britannia per aiutare la gente. A volte, veniva ricordato più per i suoi abiti che per le sue imprese.",
   },
   "1995501": {
@@ -211,7 +211,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1545003": {
     name: "Drole della [b]Pazienza[/b]",
     title: "[Grande guerriero] Drole della [b]Pazienza[/b]",
-    epithet: "GAmetE/+TFn8SsamiA",
+    epithet: "[Grande guerriero]",
     description: "Dopo aver completato un addestramento rigoroso, Drole torna sul campo di battaglia ancora una volta, come un vero guerriero.",
   },
   "1985501": {
@@ -229,13 +229,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1986501": {
     name: "Cavaliere Darkness",
     title: "[Crociato] Cavaliere Darkness",
-    epithet: "OC:i vdVu[",
+    epithet: "[Crociato]",
     description: "Una paladina nobile e orgogliosa che si unisce al gruppo di Kazuma. In realtà, è la figlia della nobile Casa Dustiness.",
   },
   "1989501": {
     name: "Loki Dio dell'Inganno",
     title: "[Caos in esilio] Loki Dio dell'Inganno",
-    epithet: "AFuzQ vthluo{n,~",
+    epithet: "[Caos in esilio]",
     description: "Il padre di Fenrir, Hel e Jormungand. Un dio di Asgard tristemente noto per i suoi scherzi crudeli. A Midgard, viene considerato un dio malvagio.",
   },
   "1988501": {
@@ -253,7 +253,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1987501": {
     name: "Gelda affidabile",
     title: "[Estate di passioni] Gelda affidabile",
-    epithet: "P\\vwaPlcCy\"/WoUioriV",
+    epithet: "[Estate di passioni]",
     description: "Gelda si ripromette di non abbandonare mai più Zeldris, se mai dovesse rincontrarlo. Ora è decisa a mantenere questa promessa.",
   },
   "1906503": {
@@ -301,7 +301,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1966502": {
     name: "Varghese Cavaliere congedato",
     title: "[Guerriero veterano] Varghese Cavaliere congedato",
-    epithet: "SQ^\"eiqrQt&\"C}luPeoU",
+    epithet: "[Guerriero veterano]",
     description: "Un guerriero esperto che ha servito Arthur per molti anni.\\nResta calmo e composto in qualsiasi situazione.",
   },
   "1982501": {
@@ -313,7 +313,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1977501": {
     name: "King & Diane",
     title: "[Sovrani di una nuova era] King & Diane",
-    epithet: "tW~XeteV/Uy$bmf+:1oYe1KetV",
+    epithet: "[Sovrani di una nuova era]",
     description: "King e Diane hanno risvegliato i loro veri poteri.\\nIn qualità di Re delle Fate e Regina dei Giganti, il loro compito è guidare tutti in un'era di pace.",
   },
   "1934502": {
@@ -331,19 +331,19 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1973501": {
     name: "Alpha la prima",
     title: "[Shadow Garden] Alpha la prima",
-    epithet: "GOviuD$,FUTNuyN",
+    epithet: "[Shadow Garden]",
     description: "La numero 1 dell'organizzazione segreta Shadow Garden. Fa le veci di Shadow come comandante della Shadow Garden.",
   },
   "1974501": {
     name: "Beta la seconda",
     title: "[Shadow Garden] Beta la seconda",
-    epithet: "GOviuD$,FUTNuyN",
+    epithet: "[Shadow Garden]",
     description: "La numero 2 dell'organizzazione segreta Shadow Garden. Per i cittadini, è una famosa scrittrice.",
   },
   "1935502": {
     name: "Dio della guerra Tyr",
     title: "[Giovane ardente] Dio della guerra Tyr",
-    epithet: "GOBcBKy.$}lu6oRuN",
+    epithet: "[Giovane ardente]",
     description: "Quando Tyr si unì a Loki per impedire uno scontro con Jotunheimr, il suo aspetto venne trasformato dal dio imbroglione allo scopo di farlo diventare più appariscente.",
   },
   "1978501": {
@@ -361,13 +361,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1975501": {
     name: "Mael Angelo della disperazione",
     title: "[Ali nere] Mael Angelo della disperazione",
-    epithet: "\\AAs@oT~hV",
+    epithet: "[Ali nere]",
     description: "Mael ha recuperato la memoria e ha assorbito i Comandamenti. Ora è immensamente e incredibilmente potente... ma fortemente instabile.",
   },
   "1907502": {
     name: "Jormungand il Serpente del mondo",
     title: "[Dolce tentazione] Jormungand il Serpente del mondo",
-    epithet: "PuhejCtr~Mcya~(EsU",
+    epithet: "[Dolce tentazione]",
     description: "Jormungand sta provando un nuovo look",
   },
   "1969501": {
@@ -377,7 +377,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Un Irregolare che è entrato nella Torre dall'esterno, uno dei quattro migliori ranker della Torre. Gira liberamente per la torre, libero dalle regole imposte dagli Amministratori e dal Re della Torre.",
   },
   "1970501": {
-    name: "IrsYrASezr",
+    name: "Yeon Yihwa",
     title: "[Principessa delle fiamme rosse] Yeon Yihwa",
     epithet: "[Principessa delle fiamme rosse]",
     description: "Una creatrice di fiamme della Famiglia Yeon, una delle Dieci grandi Famiglie della Torre. È un po' snob e fissata sulla reputazione.",
@@ -409,13 +409,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1966501": {
     name: "Varghese Cavaliere congedato",
     title: "[Eremita] Varghese Cavaliere congedato",
-    epithet: "oYTyGwdiJ",
+    epithet: "[Eremita]",
     description: "Un vecchio signore che vive sul Dito di Dio con suo nipote, Percival. Nei suoi giorni di gloria, era un cavaliere esperto.",
   },
   "1967501": {
     name: "Lancelot giovane cavaliere",
     title: "[Dinastia dell'eroe] Lancelot giovane cavaliere",
-    epithet: "LUGaU}jaB,x+\tq'uabeJ",
+    epithet: "[Dinastia dell'eroe]",
     description: "Un giovane cavaliere che nasconde le sue incredibili abilità. Vaga per Britannia per motivi sconosciuti.",
   },
   "1895502": {
@@ -445,17 +445,17 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1965501": {
     name: "Percival piccolo eroe",
     title: "[Potere sconosciuto] Percival piccolo eroe",
-    epithet: "PIjweVlcTsm1YoEiuhoV",
+    epithet: "[Potere sconosciuto]",
     description: "Ricordando le parole di nonno Varghese, Percival parte per un viaggio. Le avventure del nostro piccolo eroe stanno per cominciare.",
   },
   "1715003": {
     name: "Divinità Guardiana Camila",
     title: "[Istinto ibrido] Divinità Guardiana Camila",
-    epithet: "Ebr^zjh~,Oucul<i",
+    epithet: "[Istinto ibrido]",
     description: "Camila ha imparato a usare i suoi nuovi poteri con il metodo di Eastin di manipolare la magia. Gli istinti selvaggi e la divinità degli dei coesistono in lei.",
   },
   "1959501": {
-    name: "XemOiD8g",
+    name: "Demiurge",
     title: "[Creatore dell'Inferno ardente] Demiurge",
     epithet: "[Creatore dell'Inferno ardente]",
     description: "Guardiano del 7° piano della Grande Tomba di Nazarick. Assiste Ainz Ooal Gown come persona a carico della difesa di Nazarick.",
@@ -463,7 +463,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1960501": {
     name: "Narberal Gamma",
     title: "[Pleiadi] Narberal Gamma",
-    epithet: "sDauwUc*N",
+    epithet: "[Pleiadi]",
     description: "Un membro delle Sei Stelle Pleiadi, una squadra di fanciulle battagliere della Grande Tomba di Nazarick. È fedele ad Ainz e farebbe qualsiasi cosa per lui.",
   },
   "1485002": {
@@ -481,7 +481,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1961501": {
     name: "Thor, Dea del tuono",
     title: "[Martello della giustizia] Thor Dea del tuono",
-    epithet: "EPpQdjpaaEsmlBm3S'umixYynA",
+    epithet: "[Martello della giustizia]",
     description: "Dea del tuono e della giustizia È una dei figli di Odino e la più grande guerriera di Asgard. Si è travestita da un umano di nome Thonar, ma ora ha rivelato la sua vera identità per salvare tutti gli abitanti di Utgard.",
   },
   "1135502": {
@@ -497,7 +497,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Un nuovo nemico nato dalle esperienze traumatiche delle [Sette Catastrofi]. La sua forma sembra derivare dall'esperienza traumatica in mare di qualcuno.",
   },
   "1893502": {
-    name: "kyof7UaBEcw\"C",
+    name: "Mago Chandler",
     title: "[Demone antico] Mago Chandler",
     epithet: "[Demone antico]",
     description: "L'insegnante di Meliodas e il Demone di rango più alto. Uno dei più pericolosi esseri mai esistiti.",
@@ -527,21 +527,21 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Skadi, con indosso abiti da caccia. I suoi vestiti sono realizzati con pelli animali per celare il suo odore e disegnati per consentire una completa libertà di movimento.",
   },
   "1952501": {
-    name: "Kd&[ezI",
+    name: "Fitoria",
     title: "[Regina Filoliale] Fitoria",
-    epithet: "GReAuX>\"VN/fHibi|V",
+    epithet: "[Regina Filoliale]",
     description: "Regina dei Filoliali del mondo. Cresciuta da un eroe tanto tempo fa, ora punta a mantenere la promessa fattagli e proteggere il mondo.",
   },
   "1953501": {
-    name: "PkvUe",
+    name: "Glass",
     title: "[Portatrice feudataria] Glass",
-    epithet: "Hv<lpv@Yuru!wy>Nm|aaO2C",
+    epithet: "[Portatrice feudataria]",
     description: "Una guerriera proveniente da un altro mondo e amica di Kizuna Kazayama. Brandisce il Ventaglio feudatario ed è un'alleata affidabile di Naofumi.",
   },
   "1886503": {
     name: "Valenti dell'Ossessione",
     title: "[Ingegnere d'acciaio] Valenti dell'Ossessione",
-    epithet: "BJJ$u8renn%d.FaUOaiv^",
+    epithet: "[Ingegnere d'acciaio]",
     description: "Valenti indossa degli abiti nuovi che l'aiuteranno a mantenere la massima efficienza durante l'ingrandimento del nascondiglio. Afferma di poter sollevare facilmente macigni più grandi di lei.",
   },
   "1956501": {
@@ -553,7 +553,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1951501": {
     name: "Vampira Gelda",
     title: "[Amore Eterno] Vampira Gelda",
-    epithet: "Ju~sYCkY'OcpcM",
+    epithet: "[Amore Eterno]",
     description: "L’ultima vampira e il vero amore di Zeldris. Dopo 3.000 lunghi anni, finalmente si riunisce a lui.",
   },
   "1950501": {
@@ -563,7 +563,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Arthur ha accettato il Caos con l'aiuto di Merlin. È instabile perché non ha il pieno controllo dei suoi poteri.",
   },
   "1057502": {
-    name: "\regykGcO_Erg",
+    name: "Regina Diane",
     title: "[Messaggera di amore] Regina Diane",
     epithet: "[Messaggera di amore]",
     description: "Diane è pronta a dire a King quanto lo ama.",
@@ -595,13 +595,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1866502": {
     name: "Harlequin Re delle Fate",
     title: "[Simbolo di unità] Harlequin Re delle Fate",
-    epithet: "GOwesD?c!PO\neyz?ñY",
+    epithet: "[Simbolo di unità]",
     description: "King si è rifatto il look dopo essere tornato nella Foresta del Re delle Fate. Con il suo matrimonio con Diane, desidera realizzare una vera unione tra Fate e Giganti.",
   },
   "1945501": {
     name: "Meliodas Re Demone",
     title: "[Fine di un'era] Meliodas Re Demone",
-    epithet: "jiyja1sG#bi2ny5b",
+    epithet: "[Fine di un'era]",
     description: "Meliodas ha risvegliato completamente i suoi poteri dopo essere sfuggito dal Purgatorio. I suoi poteri ora superano quelli del Re Demone.",
   },
   "1931502": {
@@ -619,7 +619,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1725003": {
     name: "Ellatte Celeste",
     title: "[Giustizia pura] Ellatte Celeste",
-    epithet: "jhyqwe~Tjv'e~y5b",
+    epithet: "[Giustizia pura]",
     description: "Un completo infuso con il desiderio di Solada di rendere il Tempio del Cielo un posto migliore. La lotta dei Celesti per il futuro dell'isola galleggiante.",
   },
   "1876503": {
@@ -637,7 +637,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1940501": {
     name: "Albedo",
     title: "[Diavolo bianco] Albedo",
-    epithet: "jkyer~{A#unteh;b",
+    epithet: "[Diavolo bianco]",
     description: "La comandante in seconda che serve Ainz Ooal Gown con fedeltà incondizionata, e capa del Regno dello Stregone. È il demone di rango più alto, a cui è affidata la supervisione di tutti i guardiani della Grande Tomba di Nazarick. ",
   },
   "1941501": {
@@ -647,9 +647,9 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Una dei guardiani della Grande Tomba di Nazarick. È una creatura situata al vertice dei vampiri. Adora e serve Ainz Ooal Gown.",
   },
   "1942501": {
-    name: "aIYqHZS",
+    name: "Cocytus",
     title: "[Guardiano del Ghiacciaio] Cocytus",
-    epithet: "VJ'UewA[~X'thx8Yt*ann;U~|u",
+    epithet: "[Guardiano del Ghiacciaio]",
     description: "Come guardiano del quinto piano, Cocytus emette costantemente un'energia gelida che raffredda tutto ciò che lo circonda. Grazie alle sue quattro mani, può brandire abilmente decine di armi.",
   },
   "1136503": {
@@ -665,7 +665,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Regina dell’oltretomba di Helheim, un luogo dove risiedono i morti. È figlia di Loki, proprio come Fenrir e Jormungand.",
   },
   "1878503": {
-    name: "YdJeZO7*hu>u<sGdv",
+    name: "Elaine ali dorate",
     title: "[Promessa mantenuta] Elaine ali dorate",
     epithet: "[Promessa mantenuta]",
     description: "Elaine indossa un vestito che simboleggia il suo desiderio di restare per sempre con la persona da lei amata. Il potere dell'amore la rende più forte.",
@@ -691,7 +691,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1897502": {
     name: "Ludociel Congrega della luce",
     title: "[Miraggio estivo] Ludociel Congrega della luce",
-    epithet: "oQOnKywax1vX?:gcY",
+    epithet: "[Miraggio estivo]",
     description: "Ludociel si è cambiato per andare in spiaggia e adesso indossa un costume da bagno. Vuole esaudire il desiderio del suo contenitore, Margaret.",
   },
   "1936501": {
@@ -703,7 +703,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1929502": {
     name: "Freyja Dea della Bellezza",
     title: "[Miraggio estivo] Freyja Dea della Bellezza",
-    epithet: "oQOnKywax1vX?:gcY",
+    epithet: "[Miraggio estivo]",
     description: "Freyja si rilassa prendendo il sole in un'epoca in cui Vanaheimr era ancora nel suo splendore. Tuttavia, prova uno strano senso d'inquietudine.",
   },
   "1935501": {
@@ -725,7 +725,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Il figlio di Meliodas ed Elizabeth. Sogna un futuro radioso per Liones.",
   },
   "1933501": {
-    name: "\\Jo\ngv}boCyuyf'Q",
+    name: "Ban trascendente",
     title: "I [Seven Deadly Sins] Ban trascendente",
     epithet: "I [Seven Deadly Sins]",
     description: "Il Tesoro sacro Courechouse è di nuovo in possesso di Ban. Trascendendo di gran lunga i normali limiti umani, Ban usa i suoi poteri per i suoi amici.",
@@ -751,7 +751,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1926501": {
     name: "Eris Boreas Greyrat",
     title: "[I Quattro Arcangeli] Mael della [b]Luce del Sole[/b]",
-    epithet: "o_GrO>yfqtaD(:ecY",
+    epithet: "[Cane inferocito]",
     description: "Una nobile della regione Fittoa. Nonostante il suo aspetto grazioso, è violenta e impulsiva, ma vuole un bene dell'anima a Rudeus.",
   },
   "1927501": {
@@ -829,7 +829,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1881503": {
     name: "Cavaliere di Danafor Liz",
     title: "[Dono della felicità] Cavaliere di Danafor Liz",
-    epithet: "GclrYcae3ex dAgOsitüz",
+    epithet: "[Dono della felicità]",
     description: "Liz si è cambiata e indossa il suo vestito per i banchetti, ed è pronta a creare nuovi ricordi felici con Meliodas.",
   },
   "1886502": {
@@ -847,7 +847,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1919501": {
     name: "Escanor \"Supremo\"",
     title: "[Fuoco della vita] Escanor \"Supremo\"",
-    epithet: "PwrfjItb~O{y;a._wU",
+    epithet: "[Fuoco della vita]",
     description: "Escanor esaurisce la sua forza vitale mentre \"L'Unico\" è attiva. Avendo raggiunto la sua forma \"Suprema\", Escanor ora è abbastanza potente da poter affrontare il Re Demone.",
   },
   "1912501": {
@@ -901,13 +901,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1909501": {
     name: "Echidna Strega dell'Avidità",
     title: "[Re:ZERO] Echidna Strega dell'Avidità",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "La Strega dell'Avidità non interrompe mai la sua ricerca di conoscenza.",
   },
   "1910501": {
     name: "Reinhard Maestro spadaccino",
     title: "[Re:ZERO] Reinhard Maestro spadaccino",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "Un discendente della Casata Astrea della stirpe dei Maestri spadaccini. È il Maestro spadaccino più potente di tutti i tempi.",
   },
   "1896502": {
@@ -979,13 +979,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1467501": {
     name: "Shuna",
     title: "[Oni] Shuna",
-    epithet: "LHyOK",
+    epithet: "[Oni]",
     description: "La sorella minore di Benimaru e membro della Federazione Jura Tempest. Si occupa della cucina e dell'abbigliamento della federazione.",
   },
   "1908501": {
     name: "Congrega della luce Tarmiel",
     title: "[Avvento dell'[b]Oceano[/b]] Congrega della luce Tarmiel",
-    epithet: "iLfet=o{+ii]mGAO]HcWyixB{hJV",
+    epithet: "[Tarmiel dell'[b]Oceano[/b]]",
     description: "Uno de [I Quattro Arcangeli] della razza della Dea, a cui è stata conferita la Grazia dell'[b]Oceano[/b] dalla Dea Suprema. Si è impossessato di un contenitore Umano e ora combatte nella Guerra Santa.",
   },
   "1907501": {
@@ -995,19 +995,19 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "La figlia adottiva di Loki e sorella di Fenrir. Viaggia per tutta Midgard per calmare il Serpente del mondo.",
   },
   "1065003": {
-    name: "R\"T<IjgytwUo yjoh",
+    name: "Ban attaccabrighe",
     title: "[Ragnarok] Ban attaccabrighe",
     epithet: "[Ragnarok]",
     description: "Ban sta andando a Midgard con I [Seven Deadly Sins].",
   },
   "1878502": {
-    name: "YdJeZO7*hu>u<sGdv",
-    title: "BSV,v*qo<ol yUk[GvekbycU3}irn%aeN\"RIramf",
+    name: "Elaine ali dorate",
+    title: "[Profumo di primavera] Elaine ali dorate",
     epithet: "[Profumo di primavera]",
     description: "Elaine, armata di erba fresca e fiori bellissimi. Si dice che avvicinandosi a lei, si possa sentire il profumo della primavera.",
   },
   "1057501": {
-    name: "\regykGcO_Erg",
+    name: "Regina Diane",
     title: "[Onde della Terra] Regina Diane",
     epithet: "[Onde della Terra]",
     description: "Diane è la nuova regina dei Giganti, e succede a Drole. È decisa a proteggere il futuro della sua razza.",
@@ -1039,7 +1039,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1010501": {
     name: "Meliodas traditore",
     title: "[Guerriero sacro] Meliodas traditore",
-    epithet: "o[SyXlyme~3X*0ccY",
+    epithet: "[Guerriero sacro]",
     description: "Meliodas, che un tempo era il capo dei [Dieci Comandamenti], si unisce a [Stigma] insieme a Elizabeth e cerca di mettere fine alla Guerra Santa.",
   },
   "1881502": {
@@ -1075,13 +1075,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1902501": {
     name: "Terry Bogard",
     title: "[KOF '98] Terry Bogard",
-    epithet: "xFGU>778i",
+    epithet: "[KOF '98]",
     description: "Un personaggio del The King of Fighters '98 arrivato accidentalmente su Britannia. Desidera tornare nel suo mondo il prima possibile per partecipare al torneo King of Fighters.",
   },
   "1904501": {
-    name: "UAog3zv)nmw",
-    title: "AGEA'G4lE Hdk[\rhvpawe",
-    epithet: "xFGU>778i",
+    name: "Iori Yagami",
+    title: "[KOF '98] Iori Yagami",
+    epithet: "[KOF '98]",
     description: "Un personaggio del The King of Fighters '98 arrivato accidentalmente su Britannia. Desidera tornare nel suo mondo il prima possibile per partecipare al torneo King of Fighters.",
   },
   "1045501": {
@@ -1121,7 +1121,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Gowther si riunisce al gruppo dopo aver risvegliato la propria magia e le proprie emozioni.",
   },
   "1685003": {
-    name: "kmgj<]bIx CJaea",
+    name: "Mono Arma umana",
     title: "[Lama nell'oscurità] Mono Arma umana",
     epithet: "[Lama nell'oscurità]",
     description: "Mono è tornata in Britannia vestita da assassina. Il lavoro deve essere portato a termine a qualsiasi costo.",
@@ -1171,7 +1171,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1695002": {
     name: "Roxy Regina delle Esplosioni",
     title: "[Sole estivo] Roxy Regina delle Esplosioni",
-    epithet: "yZ,ve&Fvkoa{G",
+    epithet: "[Sole estivo]",
     description: "Roxy è prontissima per l'estate! In questa stagione è ancora più prorompente.",
   },
   "1395002": {
@@ -1189,7 +1189,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1896501": {
     name: "Thonar vagabonda",
     title: "[Guerriera della giustizia] Thonar vagabonda",
-    epithet: "LvrJgbbayetuZ{(O/dibBsFoyjY",
+    epithet: "[Guerriera della giustizia]",
     description: "Una guerriera che vaga per le terre di Midgard, in aiuto di chi ha bisogno. È un personaggio misterioso di cui non si conosce la vera identità.",
   },
   "1876502": {
@@ -1217,7 +1217,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Il fratello minore di Meliodas e terzo figlio del Re Demone. Il suo compito è giustiziare coloro i quali tradiscono il Re Demone.",
   },
   "1893501": {
-    name: "kyof7UaBEcw\"C",
+    name: "Mago Chandler",
     title: "[Demonio rappacificatore] Mago Chandler",
     epithet: "[Demonio rappacificatore]",
     description: "Uno dei Demoni di rango più alto, rinchiuso dal sigillo delle Dee. È inoltre colui che ha insegnato a Meliodas come combattere nel ruolo di suo maestro.",
@@ -1225,55 +1225,55 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1888501": {
     name: "Emilia Candidata Reale",
     title: "[Re:ZERO] Emilia Candidata Reale",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "Una mezz'elfa dai capelli argento candidata al trono di Lugnica.",
   },
   "1889501": {
     name: "Rem Cameriera gemella",
     title: "[Re:ZERO] Rem Cameriera gemella",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "Una cameriera della tenuta Rosewaal che rispetta la sua sorella maggiore e gemella, Ram, e che ama Subaru Natsuki.",
   },
   "1890501": {
     name: "Ram Cameriera gemella",
     title: "[Re:ZERO] Ram Cameriera gemella",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "Una cameriera della tenuta Rosewaal che ama incondizionatamente la sua sorella minore e gemella, Rem, e possiede i poteri della magia del vento.",
   },
   "1891501": {
     name: "Beatrice della Biblioteca proibita",
     title: "[Re:ZERO] Beatrice della Biblioteca proibita",
-    epithet: "ohu$WRBBA",
+    epithet: "[Re:ZERO]",
     description: "La custode della Biblioteca Proibita nella tenuta Rosewaal.",
   },
   "1882501": {
-    name: "R:oXyn",
-    title: "[ed{begypcTquH8Ty%UnRyjj",
-    epithet: "G[_~UDp.v<Jy:oAcN",
+    name: "Undici",
+    title: "[Stranger Things] Undici",
+    epithet: "[Stranger Things]",
     description: "Una ragazzina dotata di poteri psichici che è stata cresciuta per essere un'arma umana durante la Guerra Fredda. Il suo nome deriva dal numero tatuato sul suo avambraccio.",
   },
   "1883501": {
     name: "Jim Hopper",
     title: "[Stranger Things] Jim Hopper",
-    epithet: "G[_~UDp.v<Jy:oAcN",
+    epithet: "[Stranger Things]",
     description: "Il capo della polizia della città di Hawkins. In seguito a una strana serie di eventi, decide di prendersi cura di Undici come se fosse sua figlia dopo averla trovata nascosta nei boschi.",
   },
   "1884501": {
     name: "Mike Wheeler",
     title: "[Stranger Things] Mike Wheeler",
-    epithet: "G[_~UDp.v<Jy:oAcN",
+    epithet: "[Stranger Things]",
     description: "Un membro del Club Audiovisivo della scuola media di Hawkins. Gli piacciono i giochi da tavola fantasy, dove assume il ruolo di un paladino. È innamorato di Undici.",
   },
   "1885501": {
     name: "Will Byers",
     title: "[Stranger Things] Will Byers",
-    epithet: "G[_~UDp.v<Jy:oAcN",
+    epithet: "[Stranger Things]",
     description: "Un membro del Club Audiovisivo della scuola media di Hawkins. In passato, era stato rapito da un Demogorgone. Per questo, è stato successivamente posseduto dal Mind Flayer.",
   },
   "1887501": {
     name: "Merlin figlia di Belialuin",
     title: "[Protezione divina] Merlin figlia di Belialuin",
-    epithet: "pjQ@HIXBgUEHiO]URV]",
+    epithet: "[Protezione divina]",
     description: "Una maga di Belialuin, la Capitale degli Stregoni. È l'unica ad aver ricevuto benedizioni sia dalla Dea Suprema che dal Re Demone.",
   },
   "1625001": {
@@ -1303,7 +1303,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1575003": {
     name: "Derrierie della [b]Purezza[/b]",
     title: "[Dolce tentazione] Derrierie della [b]Purezza[/b]",
-    epithet: "PuhejCtr~Mcya~(EsU",
+    epithet: "[Dolce tentazione]",
     description: "Un Demone dei [Dieci Comandamenti], un gruppo sotto il controllo diretto del Re Demone. Dalla sua espressione si capisce che odia il suo abito.",
   },
   "1665003": {
@@ -1319,7 +1319,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Eastin in un vestito leggero ed elegante per le vacanze. Sembra più entusiasta del solito.",
   },
   "1685002": {
-    name: "kmgj<]bIx CJaea",
+    name: "Mono Arma umana",
     title: "[Avvento della distruzione] Mono Arma umana",
     epithet: "[Avvento della distruzione]",
     description: "Prima Mono era solo in grado di portare a termine gli ordini, ma ora che è in viaggio con Lillia sta lentamente imparando a pensare con la sua testa e ad esprimere le sue idee.",
@@ -1363,7 +1363,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1185003": {
     name: "Jericho guardiana",
     title: "[Cavaliere del gelo] Jericho guardiana",
-    epithet: "R_xQaokyVS+'Ci0ge3oT",
+    epithet: "[Cavaliere del gelo]",
     description: "Jericho si è addestrata in solitudine per distrarsi dal dolore della perdita di Gustav. Riesce a ottenere il suo potere, \"Zanna di ghiaccio\".",
   },
   "1695003": {
@@ -1385,7 +1385,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Un membro dei [Seven Deadly Sins]. Indossa degli abiti unici per partecipare al festival di Camelot.",
   },
   "1878501": {
-    name: "YdJeZO7*hu>u<sGdv",
+    name: "Elaine ali dorate",
     title: "[Fata delle benedizioni] Elaine ali dorate",
     epithet: "[Fata delle benedizioni]",
     description: "Dopo essere tornata in vita grazie all'incantesimo di Melascula, la vita di Elaine è completamente diversa da quella di un tempo. Viene risvegliata dal suo desiderio di salvare Ban dal pericolo e ottiene poteri incredibili.",
@@ -1409,9 +1409,9 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "King è tornato, dopo aver vissuto la Guerra Santa di 3.000 anni prima. Superata la prova, sulla sua schiena è spuntato un piccolo paio d'ali.",
   },
   "1871501": {
-    name: "UQ~sECkT6Duleso{ny",
+    name: "Demone Hendrickson",
     title: "[Desiderio cinereo] Demone Hendrickson",
-    epithet: "w,ROIXJIUL(HSECYGb]",
+    epithet: "[Desiderio cinereo]",
     description: "A Hendrickson è stato iniettato il sangue di un Demone grigio, ancor più potente dei Demoni rossi. Si è trasformato in un essere sovrannaturale, con a disposizione un potere assoluto.",
   },
   "1870501": {
@@ -1423,7 +1423,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1195003": {
     name: "Helbram fata",
     title: "[Reale] Helbram fata",
-    epithet: "YWyElBV",
+    epithet: "[Reale]",
     description: "Helbram ha ricevuto un abito in dono come ringraziamento per aver difeso una nobile donna in pericolo.",
   },
   "1815001": {
@@ -1463,7 +1463,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Un Demone dei [Dieci Comandamenti], un gruppo sotto il controllo diretto del Re Demone. Dopo lo scioglimento dei [Dieci Comandamenti], organizza il Torneo di lotta di Vaizel assieme a Gloxinia del [b]Riposo[/b].",
   },
   "1045003": {
-    name: "~FME^HE]AJOUGzE-X]cH@",
+    name: "Diane cavaliere sacro",
     title: "[Promessa eterna] Diane Cavaliere sacro",
     epithet: "[Promessa eterna]",
     description: "Un gigante che fa parte dei [Seven Deadly Sins]. Indossa un abito donatole da King per un occasione speciale.",
@@ -1501,7 +1501,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1805001": {
     name: "Dea Elizabeth",
     title: "[Guerriera sacra] Dea Elizabeth",
-    epithet: "o[SyXlymep3X*0cmY",
+    epithet: "[Guerriera sacra]",
     description: "Una Dea che si è innamorata di Meliodas, nonostante la loro natura diversa. Essendo la figlia di una Divinità Suprema, possiede un potere che nemmeno [I Quattro Arcangeli] possono eguagliare.",
   },
   "1415001": {
@@ -1519,25 +1519,25 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1872501": {
     name: "Mai Shiranui",
     title: "[KOF '98] Mai Shiranui",
-    epithet: "xFGU>778i",
+    epithet: "[KOF '98]",
     description: "Un personaggio del The King of Fighters '98 arrivato accidentalmente su Britannia. Desidera tornare nel suo mondo il prima possibile per partecipare al torneo King of Fighters.",
   },
   "1873501": {
-    name: "]SkyX\"%A,hti{E",
+    name: "Athena Asamiya",
     title: "[KOF '98] Athena Asamiya",
-    epithet: "xFGU>778i",
+    epithet: "[KOF '98]",
     description: "Un personaggio del The King of Fighters '98 arrivato accidentalmente su Britannia. Desidera tornare nel suo mondo il prima possibile per partecipare al torneo King of Fighters.",
   },
   "1874501": {
     name: "Omega Rugal",
     title: "[KOF '98] Omega Rugal",
-    epithet: "xFGU>778i",
+    epithet: "[KOF '98]",
     description: "Un personaggio del The King of Fighters '98 arrivato accidentalmente su Britannia. Organizza il torneo King of Fighters a Britannia per assorbire la magia.",
   },
   "1875501": {
     name: "Kyo Kusanagi",
     title: "[KOF '98] Kyo Kusanagi",
-    epithet: "xFGU>778i",
+    epithet: "[KOF '98]",
     description: "Un personaggio del The King of Fighters '98 arrivato accidentalmente su Britannia. Desidera tornare nel suo mondo il prima possibile per partecipare al torneo King of Fighters.",
   },
   "1695001": {
@@ -1559,13 +1559,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Meliodas mentre partecipa ad un festival tenuto per degli spiriti.\\nSi è vestito da conte spaventoso per la parata.",
   },
   "1155003": {
-    name: "aw`i}<wQxrRNaea",
+    name: "Guila guardiana",
     title: "[Halloween] Guila guardiana",
     epithet: "[Halloween]",
     description: "Guila partecipa ad un festival tenuto per gli spiriti.\\nSi è messa un costume per evitare problemi durante la sua missione.",
   },
   "1385003": {
-    name: "U\tmwar3ziiFuda B",
+    name: "Elaine guardiana",
     title: "[Halloween] Elaine guardiana",
     epithet: "[Halloween]",
     description: "Elaine partecipa ad un festival tenuto per gli spiriti.\\nIl suo vestito per la parata è adorabile.",
@@ -1597,41 +1597,41 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1015003": {
     name: "Demone Meliodas",
     title: "[Nuova Leggenda] Demone Meliodas",
-    epithet: "Lymbef>AMw{7Ti\"i",
+    epithet: "[Nuova Leggenda]",
     description: "Meliodas nel suo speciale abito per il festival.",
   },
   "1035003": {
     name: "Principessa Elizabeth",
     title: "[Nuova Leggenda] Principessa Elizabeth",
-    epithet: "Lymbef>AMw{7Ti\"i",
+    epithet: "[Nuova Leggenda]",
     description: "Elizabeth nel suo speciale abito per il festival.",
   },
   "1185002": {
     name: "Jericho guardiana",
     title: "[Nuova Leggenda] Jericho guardiana",
-    epithet: "Lymbef>AMw{7Ti\"i",
+    epithet: "[Nuova Leggenda]",
     description: "Jericho nel suo speciale abito per il festival.",
   },
   "1385002": {
-    name: "U\tmwar3ziiFuda B",
-    title: "K!crlr3iyf@pwi!Mks U\tmwar3ziiFuda B",
-    epithet: "PuhejCtr~Mcya~(EsU",
+    name: "Elaine guardiana",
+    title: "[Dolce tentazione] Elaine guardiana",
+    epithet: "[Dolce tentazione]",
     description: "Elaine, la Sacra guardiana che protegge la Fonte della giovinezza. Indossa degli abiti carini che la fanno sembrare una bomboniera.",
   },
   "1485001": {
     name: "Druido Jenna",
     title: "[Dolce tentazione] Druido Jenna",
-    epithet: "PuhejCtr~Mcya~(EsU",
+    epithet: "[Dolce tentazione]",
     description: "Jenna, una dei leader dei Druidi. Nonostante cerchi di mantenere sempre un'aura imponente, oggi vuole divertirsi indossando degli abiti che la fanno sembrare un cioccolatino.",
   },
   "1495001": {
     name: "Druido Zaneri",
     title: "[Dolce tentazione] Druido Zaneri",
-    epithet: "PuhejCtr~Mcya~(EsU",
+    epithet: "[Dolce tentazione]",
     description: "Zaneri, una dei leader dei Druidi. Protegge la terra sacra dei Druidi, Istal, insieme a sua sorella Jenna. È segretamente infatuata di Meliodas.",
   },
   "1685001": {
-    name: "kmgj<]bIx CJaea",
+    name: "Mono Arma umana",
     title: "[Pastore della morte] Mono Arma umana",
     epithet: "[Pastore della morte]",
     description: "Un essere progettato per diventare un'arma con le gambe in un laboratorio di ricerca. Decide di unirsi a Lillia perché non sopporta di non avere degli ordini da seguire.",
@@ -1705,7 +1705,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1765001": {
     name: "Eren Jaeger",
     title: "[Gigante] Eren Jaeger",
-    epithet: "xL~VyiolJ",
+    epithet: "[Gigante]",
     description: "Eren divenne un soldato a causa del suo profondo odio per i Giganti. Rinunciò alla sua vita serena e si unì al Reggimento Scout.",
   },
   "1775001": {
@@ -1721,7 +1721,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Mikasa si è unita al Reggimento Scout per tenere Eren al sicuro. Possiede l’abilità migliore tra tutti gli Scout.",
   },
   "1045002": {
-    name: "~FME^HE]AJOUGzE-X]cH@",
+    name: "Diane cavaliere sacro",
     title: "I [Seven Deadly Sins] Diane cavaliere sacro",
     epithet: "I [Seven Deadly Sins]",
     description: "Diane si nascose nel Bosco del Biancosogno quando divenne una criminale ricercata.\\nAssieme a Meliodas, giunto per trovarla,\\nDiane intraprende un viaggio per ritrovare i suoi compagni dispersi.",
@@ -1759,19 +1759,19 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1455002": {
     name: "Lillia Maga",
     title: "[Mente superiore] Lillia Maga",
-    epithet: "]IDeG/:lilzh#\\yDY",
+    epithet: "[Mente superiore]",
     description: "Lillia ha rivelato la sua parte oscura. Il fatto che voglia distruggere questo mondo suggerisce un piccolo problema nella sua natura.",
   },
   "1055003": {
     name: "Diane combattente",
     title: "[Creazione] Diane combattente",
-    epithet: ")\\hDgIu%jah",
+    epithet: "\"Creazione\"",
     description: "Diane possiede il dono della \"Creazione\". Può scatenare un'immensa potenza coi suoi pugni, anche quando non usa il tuo Tesoro sacro, Gideon.",
   },
   "1135003": {
     name: "Potente maga Merlin",
     title: "\"Infinità\" Potente maga Merlin",
-    epithet: "%Yew-mXaäv",
+    epithet: "\"Infinità\"",
     description: "La maga più potente di Liones.\\nÈ in grado di far durare per sempre la magia\\ngrazie al suo potere, \"Infinità\".",
   },
   "1665001": {
@@ -1783,7 +1783,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1015002": {
     name: "Demone Meliodas",
     title: "[Cavaliere dell'Ira] Demone Meliodas",
-    epithet: "SUJ1vwqrQ~&0Cee xyaU",
+    epithet: "[Cavaliere dell'Ira]",
     description: "Dice di essere la causa della caduta del Regno di Danafor\\nperché non riuscì a controllare la sua ira. Quali sono i poteri che l'hanno reso in grado di distruggere un intero regno?",
   },
   "1455001": {
@@ -1795,7 +1795,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1464001": {
     name: "Rimuru Tempest",
     title: "[Slime] Rimuru Tempest",
-    epithet: "EN}J}jA",
+    epithet: "[Slime]",
     description: "Uno slime molto speciale. È stato portato a Britannia poiché la magia di Lillia ha reagito con Veldora, la cui coscienza si trovava all'interno di Rimuru.",
   },
   "1465001": {
@@ -1811,9 +1811,9 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Ha l'aspetto di una ragazza adorabile, ma in realtà è un potente Signore dei demoni e riveste il titolo di \"Tiranna della Distruzione\". Considera Rimuru il suo \"migliore amico\".",
   },
   "1445001": {
-    name: "iYRdWZEW",
+    name: "Benimaru",
     title: "[Kijin] Benimaru",
-    epithet: "RQooozJ",
+    epithet: "[Kijin]",
     description: "Un subalterno leale di Rimuru. È il Generale Samurai della Federazione Jura Tempest.",
   },
   "1035002": {
@@ -1891,7 +1891,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1135001": {
     name: "Potente maga Merlin",
     title: "[Collezionista] Potente maga Merlin",
-    epithet: "pcMO[CAEURd{HJa",
+    epithet: "[Collezionista]",
     description: "Merlin brama tutta la conoscenza del mondo.\\nPer perseguire il suo scopo,\\nfa incetta di soggetti di ricerca.",
   },
   "1004001": {
@@ -1915,7 +1915,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1024002": {
     name: "Hawk & Elizabeth",
     title: "[Taverna mobile] Hawk & Elizabeth",
-    epithet: "LefYpbee+i;sV{!s",
+    epithet: "[Taverna mobile]",
     description: "Elizabeth e Hawk hanno unito le proprie forze!",
   },
   "1034001": {
@@ -1927,17 +1927,17 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1035001": {
     name: "Principessa Elizabeth",
     title: "[Liones] Principessa Elizabeth",
-    epithet: "VxzUYugC",
+    epithet: "[Liones]",
     description: "La terza principessa del Regno di Liones.\\nMalgrado non abbiano lo stesso sangue, ha un forte legame\\ncol padre e le sorelle.",
   },
   "1044001": {
-    name: "WO2pa7YNnruopn\"K",
+    name: "Diane mercenaria",
     title: "[Cuore della terra] Diane mercenaria",
     epithet: "[Cuore della terra]",
     description: "Diane assorbe la sua immensa forza dalla terra grazie al suo legame con la natura.\\nI testimoni della sua abilità col potere della terra le hanno dato l'appellativo di Cuore della terra.",
   },
   "1045001": {
-    name: "~FME^HE]AJOUGzE-X]cH@",
+    name: "Diane cavaliere sacro",
     title: "[b]Il Peccato d'Invidia col simbolo della Serpe[/b] Diane cavaliere sacro",
     epithet: "[b]Il Peccato d'Invidia col simbolo della Serpe[/b]",
     description: "Un Gigante membro dei [Seven Deadly Sins]. Venne marchiata col nome [b]Il Peccato d'Invidia col simbolo della Serpe[/b] quando la sua gelosia causò la morte di una sua amica.",
@@ -1945,7 +1945,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1055001": {
     name: "Diane combattente",
     title: "[Matrona] Diane combattente",
-    epithet: "oAac|s~pC",
+    epithet: "[Matrona]",
     description: "Una misteriosa guerriera apparsa improvvisamente a Vaizel.\\nSi scoprì che si trattava di Diane rimpicciolita.",
   },
   "1055002": {
@@ -1955,19 +1955,19 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Diane non ha problemi ad apprendere nuove arti marziali, grazie alla sua incredibile forza atletica.",
   },
   "1064001": {
-    name: "dcg%lnyCpoXNeyo",
+    name: "Ban prigioniero",
     title: "[Non-Morto] Ban prigioniero",
-    epithet: "GVbi=ex y,C",
+    epithet: "[Non-Morto]",
     description: "L'uomo che si rifiutava di morire nonostante gli infiniti tentativi di esecuzione.\\nSi meritò l'appellativo di Ban non-morto.",
   },
   "1065001": {
-    name: "R\"T<IjgytwUo yjoh",
+    name: "Ban attaccabrighe",
     title: "[Fuorilegge] Ban attaccabrighe",
     epithet: "[Fuorilegge]",
     description: "Ban è cresciuto in un ambiente difficile.\\nPoteva contare solo sui suoi pugni, ma questo\\nnon lo rendeva certo un avversario semplice.",
   },
   "1065002": {
-    name: "R\"T<IjgytwUo yjoh",
+    name: "Ban attaccabrighe",
     title: "[Furto] Ban attaccabrighe",
     epithet: "\"Furto\"",
     description: "Un membro dei [Seven Deadly Sins]\\nche fa fuori gli avversari con\\nmovimenti veloci e colpi ancora più veloci.",
@@ -2011,7 +2011,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1115003": {
     name: "Gowther cavaliere sacro",
     title: "[Eroe di Liones] Gowther cavaliere sacro",
-    epithet: "A@fzG {shEoiyb0~",
+    epithet: "[Eroe di Liones]",
     description: "Un tempo era un criminale e ora è\\ncelebrato come l'eroe di Liones, ma nulla di tutto questo ha\\nimportanza per Gowther.",
   },
   "1144001": {
@@ -2029,25 +2029,25 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1145001": {
     name: "Gilthunder guardiano",
     title: "\"Tuono\" Gilthunder guardiano",
-    epithet: "\rPdAyz)",
+    epithet: "\"Tuono\"",
     description: "Gilthunder venne chiamato l'Imperatore del tuono per via del suo potere magico detto \"Tuono\".\\nÈ una presenza terrificante per i nemici e un fidato guardiano\\ndei suoi alleati.",
   },
   "1154002": {
-    name: "AW~eucy{aasopQ-%t~ctM",
+    name: "Guila cavaliere sacro",
     title: "[Fioretto] Guila Cavaliere Sacro",
-    epithet: "CAA=1qCgbA",
+    epithet: "[Fioretto]",
     description: "Divenne Cavaliere sacro per proteggere il suo fratellino,\\nZeal, e per ritrovare il padre, il Cavaliere sacro Dale.",
   },
   "1155001": {
-    name: "aw`i}<wQxrRNaea",
+    name: "Guila guardiana",
     title: "\"Esplosione\" Guila guardiana",
-    epithet: "h_uCskxuNOy)",
+    epithet: "\"Esplosione\"",
     description: "Guila ha sempre un sorriso stampato sul volto.\\nIl nome del suo potere, \"Esplosione”, dice tutto.",
   },
   "1164001": {
     name: "Howzer custode",
     title: "[Reale di Liones] Howzer custode",
-    epithet: "AqGvil?{*5Js'yetI",
+    epithet: "[Reale di Liones]",
     description: "Howzer rimase leale anche quando molti Cavalieri sacri disertarono. Tutti conoscono la sua affidabilità.",
   },
   "1164002": {
@@ -2065,7 +2065,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1174001": {
     name: "Griamore custode",
     title: "[Campione] Griamore custode",
-    epithet: "\\ezu7a^gcJ",
+    epithet: "[Campione]",
     description: "Griamore ha giurato lealtà alla Principessa Veronica anziché alla famiglia reale.",
   },
   "1174002": {
@@ -2082,7 +2082,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   },
   "1184001": {
     name: "Jericho cavaliere sacro",
-    title: "[^SdRc ~l1ew\"LulIy] ZCyMahv)<as\"ZufUy sqEyK",
+    title: "[Nuova generazione] Jericho cavaliere sacro",
     epithet: "[Nuova generazione]",
     description: "Il suo complesso di inferiorità è riconducibile al fratello che l'ha portata a prendere la decisione sbagliata. Jericho bevve il sangue di un Demone e ottenne il potere che aveva sempre voluto.",
   },
@@ -2155,7 +2155,7 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
   "1284001": {
     name: "Gustav cavaliere sacro",
     title: "[Cavaliere del ghiaccio] Gustav cavaliere sacro",
-    epithet: "oOaaopytl+3Jm\t-hKtaWoixS",
+    epithet: "[Cavaliere del ghiaccio]",
     description: "Un Cavaliere sacro di Liones che usa il potere \"Zanna di ghiaccio\".\\nÈ il fratello del Cavaliere della Nuova generazione, Jericho.",
   },
   "1294001": {
@@ -2225,13 +2225,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     description: "Dreyfus è un gran lavoratore vecchia scuola, ma alle volte anche lui\\ndeve abbandonare il castello e prendersi una pausa.",
   },
   "1373001": {
-    name: "ecduus~A9TWNzdo",
+    name: "Campione Taizoo",
     title: "[Torneo di lotta di Vaizel] Campione Taizoo",
     epithet: "[Torneo di lotta di Vaizel]",
     description: "Il tre volte campione in carica del Torneo di lotta di Vaizel.\\nPartecipa all'evento con grande orgoglio.",
   },
   "1385001": {
-    name: "U\tmwar3ziiFuda B",
+    name: "Elaine guardiana",
     title: "[Foresta del Re delle Fate] Elaine guardiano",
     epithet: "[Foresta del Re delle Fate]",
     description: "Protegge la Foresta del Re delle Fate al posto del fratello che è andato via 700 anni fa. È la sacra guardiana che protegge la Fonte della giovinezza.",

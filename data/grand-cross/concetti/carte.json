@@ -150,7 +150,7 @@
       },
       "etichetta_da": {
         "it": "UI_battle_tutorial_title_23",
-        "en": "DB_skill_search_name_040"
+        "en": "UI_battle_tutorial_title_23"
       },
       "enum": "atk",
       "uso": {
@@ -161,7 +161,7 @@
       },
       "certezza": "dedotto",
       "prove": [
-        "UI_battle_tutorial_title_23: «Abilità Attacco»",
+        "UI_battle_tutorial_title_23: «Attack Skills» / «Abilità Attacco»",
         "DB_skill_search_name_040: «Attack Disable» / «Attacco disabilitato»"
       ]
     },
@@ -172,7 +172,7 @@
       },
       "etichetta_da": {
         "it": "UI_battle_tutorial_title_24",
-        "en": "DB_skill_search_name_041"
+        "en": "UI_battle_tutorial_title_24"
       },
       "enum": "buff",
       "uso": {
@@ -182,7 +182,7 @@
       },
       "certezza": "dedotto",
       "prove": [
-        "UI_battle_tutorial_title_24: «Abilità Buff»",
+        "UI_battle_tutorial_title_24: «Buff Skills» / «Abilità Buff»",
         "DB_skill_search_name_041: «Buff Disable» / «Non può usare le abilità Buff»"
       ]
     },
@@ -193,7 +193,7 @@
       },
       "etichetta_da": {
         "it": "UI_battle_tutorial_title_26",
-        "en": "DB_skill_search_name_042"
+        "en": "UI_battle_tutorial_title_26"
       },
       "enum": "debuff",
       "uso": {
@@ -203,7 +203,7 @@
       },
       "certezza": "dedotto",
       "prove": [
-        "UI_battle_tutorial_title_26: «Abilità Debuff»",
+        "UI_battle_tutorial_title_26: «Debuff Skills» / «Abilità Debuff»",
         "DB_skill_search_name_042: «Debuff Disable» / «Non può usare le abilità Debuff»"
       ]
     },
@@ -235,7 +235,7 @@
       },
       "etichetta_da": {
         "it": "UI_battle_tutorial_title_28",
-        "en": "DB_skill_search_name_043"
+        "en": "UI_battle_tutorial_title_28"
       },
       "enum": "heal",
       "uso": {
@@ -245,7 +245,7 @@
       },
       "certezza": "dedotto",
       "prove": [
-        "UI_battle_tutorial_title_28: «Abilità Recupero»",
+        "UI_battle_tutorial_title_28: «Recovery Skills» / «Abilità Recupero»",
         "DB_skill_search_name_043: «Recovery Disable» / «Disabilita Recupero»"
       ]
     },

@@ -65,8 +65,8 @@
     },
     "3": {
       "etichetta": {
-        "it": null,
-        "en": null
+        "it": "PvP",
+        "en": "PVP"
       },
       "etichetta_da": "DB_passive_condition_filter_name_03",
       "icona": "pvp_only",
@@ -91,7 +91,7 @@
     },
     "4": {
       "etichetta": {
-        "it": null,
+        "it": "Esclude PvP",
         "en": "Excludes PVP"
       },
       "etichetta_da": "DB_passive_condition_filter_name_04",
@@ -118,7 +118,7 @@
     "5": {
       "etichetta": {
         "it": "Scontro finale",
-        "en": null
+        "en": "Death Match"
       },
       "etichetta_da": "DB_passive_condition_filter_name_05",
       "icona": "destroy_only",
@@ -170,7 +170,7 @@
     "7": {
       "etichetta": {
         "it": "Tutti i contenuti",
-        "en": null
+        "en": "All Content"
       },
       "etichetta_da": "DB_passive_condition_filter_name_07",
       "icona": "all_contents",

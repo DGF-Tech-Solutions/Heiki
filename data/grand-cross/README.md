@@ -117,8 +117,10 @@ non è il numero di bersagli**: le carte `melee` colpiscono un nemico solo nel
 è dedotto, con le prove dai testi delle passive. I contenuti per ora sono i tre
 che le condizioni citano: PvP, Scontro finale, Battaglia Bestia demoniaca.
 
-**Tassonomia.** 238 voci: nomi leggibili 175 in italiano e 158 in inglese,
-descrizioni 234 in tutte e due le lingue. 15 voci rimandano a una voce degli
+**Tassonomia.** 238 voci: nomi leggibili 237 in italiano e 230 in inglese,
+descrizioni 238 in tutte e due le lingue. Erano 175, 158 e 234 prima che la
+decifratura dei testi (`estrai_testi.py`, 15/09 sera) scegliesse fra le 19
+letture possibili anche con la forma del testo e le parole note del client. 15 voci rimandano a una voce degli
 altri dizionari (`rimanda_a`).
 
 ## Le righe d'effetto delle carte (`effetti/`)
@@ -147,10 +149,10 @@ cambiati.
 | colonna | fonte | ranghi |
 |---|---|---|
 | `range_type`, `attack_type` | 7dshub | 4.044 |
-| `target` | il segnaposto `{target_val}` del modello del client | 3.375 |
-| `target` | l'unico span bianco del testo: **dedotto**, perché nei 3.561 ranghi col modello gli span bianchi del corpo sono tutti `{target_val}` e nessuno è scritto a mano | 441 |
+| `target` | il segnaposto `{target_val}` del modello del client | 3.387 |
+| `target` | l'unico span bianco del testo: **dedotto**, perché nei 3.573 ranghi col modello gli span bianchi del corpo sono tutti `{target_val}` e nessuno è scritto a mano | 429 |
 | `atk_per` | il segnaposto `{melee_val}` | 3.194 |
-| righe di buff e opzioni | `{buff_N_val}`, `{turn_N_val}`, `{opt_N_val}`, `{buff_data_turn}ID{/buff_data_turn}`… | dai 3.561 ranghi col modello |
+| righe di buff e opzioni | `{buff_N_val}`, `{turn_N_val}`, `{opt_N_val}`, `{buff_data_turn}ID{/buff_data_turn}`… | dai 3.573 ranghi col modello |
 
 Ogni riga ha `fonti`, che per ogni colonna dice da dove viene: `7dshub`, `testo`
 o `modello:<segnaposto>`. `testi` tiene il valore come lo scrive il gioco
@@ -158,8 +160,9 @@ o `modello:<segnaposto>`. `testi` tiene il valore come lo scrive il gioco
 `target`: il corpo non nomina nessun bersaglio.
 
 **I modelli.** Il client ha 1.032 descrizioni di abilità coi segnaposto
-(`Inflicts damage equal to {melee_val} of Attack on {target_val}`), 1.023
-leggibili. **Le loro chiavi non sono gli id dei ranghi**: il client salva un
+(`Inflicts damage equal to {melee_val} of Attack on {target_val}`), tutte
+leggibili da quando la decifratura sceglie fra le 19 letture possibili anche con
+la forma del testo (15/09 sera; prima 9 uscivano illeggibili). **Le loro chiavi non sono gli id dei ranghi**: il client salva un
 testo per ogni testo diverso, e i ranghi che dicono la stessa cosa con numeri
 diversi ne usano uno solo. L'ultimate di Mael Angelo della disperazione usa la
 chiave …591 ai ranghi 1–2, la …592 ai 3–4, la …593 ai 5–6, e le chiavi …594–596
@@ -170,11 +173,11 @@ pipeline).
 
 | esito sui 4.044 ranghi | |
 |---|---|
-| la chiave ha l'id del rango | 368 |
+| la chiave ha l'id del rango | 369 |
 | una chiave della stessa carta | 425 |
-| la chiave di un'altra carta, con lo stesso testo | 2.768 |
+| la chiave di un'altra carta, con lo stesso testo | 2.779 |
 | più modelli che leggono i valori in modo diverso: nessuna scelta | 24 |
-| nessun modello | 459 |
+| nessun modello | 447 |
 
 Fino al 15/09 pomeriggio si prendeva la chiave con l'id del rango: 370 modelli,
 e 35 ranghi il cui modello «non combaciava» sembravano versioni diverse del
@@ -216,7 +219,7 @@ agli altri. Misurato e scartato, e ora non serve più:
 Il client scrive molti valori a mano dentro il testo di ogni rango, quindi
 letterale o segnaposto non è una proprietà stabile del valore: «Increases basic
 stats by <V> for <V>» ha il primo valore marcato `{buff_1_val}` in 11 ranghi e
-scritto a mano in 36. Le colonne dei 483 ranghi senza modello o in conflitto le
+scritto a mano in 36. Le colonne dei 471 ranghi senza modello o in conflitto le
 riempirà la lettura delle forme, confermata a mano.
 
 ### Proposizioni e forme
@@ -283,7 +286,7 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
 - a quale gruppo di ricerca appartenga ogni voce della tassonomia: la tabella è
   cifrata
 - i nomi di gittate e bersagli: nessun testo del client li nomina come categoria
-- i **valori dei ranghi senza modello** (459) o con letture in conflitto (24):
+- i **valori dei ranghi senza modello** (447) o con letture in conflitto (24):
   li riempirà la lettura delle forme, confermata a mano
 - da quale colonna vengano `BUFF_N_VALUE` e `OPTION_N_VALUE`: due candidate
   ciascuno, nessun testo scioglie il dubbio

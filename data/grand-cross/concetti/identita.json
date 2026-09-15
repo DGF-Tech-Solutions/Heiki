@@ -401,7 +401,9 @@
       },
       "enum": null,
       "eroi": 2,
-      "forme_nel_testo_en": [],
+      "forme_nel_testo_en": [
+        "cross: if"
+      ],
       "certezza": "dedotto",
       "prove": [
         "il codice e' nei dati (2 eroi) ma non in TeamUnitData.JobGroup, che si ferma a 9"

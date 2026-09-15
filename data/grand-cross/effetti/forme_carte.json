@@ -79,7 +79,7 @@
     "pf3048638": {"forma": "Prohibits all actions", "usi": 90, "carte": 26, "parti": {"nota": 90}, "esempi": ["101001", "101002", "101003"], "lettura": null},
     "p1569b66a": {"forma": "Cancels Stances on <T>", "usi": 88, "carte": 35, "parti": {"corpo": 88}, "esempi": ["111901", "111902", "111903"], "dal_modello": {"1": {"target_val": 85}}, "lettura": null},
     "peb1ba5df": {"forma": "Inflicts damage equal to <V> of Attack, then <K> for <V>", "usi": 86, "carte": 24, "parti": {"corpo": 86}, "esempi": ["101001", "101002", "101003"], "dal_modello": {"1": {"melee_val": 86}, "3": {"turn_1_val": 86}}, "lettura": null},
-    "p04d012e6": {"forma": "Removes Debuffs from <T>", "usi": 82, "carte": 31, "parti": {"corpo": 82}, "esempi": ["122071", "123051", "137041"], "dal_modello": {"1": {"target_val": 46}}, "lettura": null},
+    "p04d012e6": {"forma": "Removes Debuffs from <T>", "usi": 82, "carte": 31, "parti": {"corpo": 82}, "esempi": ["122071", "123051", "137041"], "dal_modello": {"1": {"target_val": 58}}, "lettura": null},
     "pff144ab9": {"forma": "Restricts Recovery-related stats", "usi": 79, "carte": 26, "parti": {"nota": 79}, "esempi": ["101211", "101212", "101213"], "lettura": null},
     "p4a027361": {"forma": "Decreases skill ranks", "usi": 72, "carte": 17, "parti": {"corpo": 69, "nota": 3}, "esempi": ["101181", "101182", "101183"], "lettura": null},
     "p92964f58": {"forma": "Directs all attacks to self", "usi": 69, "carte": 20, "parti": {"nota": 69}, "esempi": ["101191", "101192", "101193"], "lettura": null},
