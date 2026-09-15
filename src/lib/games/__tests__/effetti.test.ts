@@ -92,7 +92,7 @@ interface Forma {
   usi: number;
   parti: Record<string, number>;
   lettura: { effetti: Effetto[]; regole: string[]; certezza: string; prove: string[] } | null;
-  revisione?: { esito: string; stato: string };
+  revisione?: { esito: string; stato: string; da?: string; decisione_superata?: string };
 }
 
 interface Segnaposto {
@@ -271,12 +271,13 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
     for (const t of x.tassonomia ?? []) expect(tassonomia[t], `${dove}: tassonomia ${t}`).toBeDefined();
   };
 
-  it("ogni lettura e' dedotta o verificata, con le prove, e ogni buco che nomina e' del tipo giusto", () => {
+  it("ogni lettura e' dedotta, rivista o verificata, con le prove, e ogni buco che nomina e' del tipo giusto", () => {
     for (const [id, forma] of Object.entries(forme)) {
       if (forma.lettura === null) continue;
       const { effetti, regole, certezza, prove } = forma.lettura;
-      // verificata: confermata o corretta dall'utente nella pagina di revisione
-      expect(["dedotto", "verificato"], id).toContain(certezza);
+      // verificata: confermata o corretta dall'utente nella pagina di revisione;
+      // rivista: da Claude, coi criteri delle letture che l'utente ha approvato
+      expect(["dedotto", "rivisto", "verificato"], id).toContain(certezza);
       expect(prove.length, id).toBeGreaterThan(0);
       expect(regole.length, id).toBeGreaterThan(0);
       expect(effetti.length, id).toBeGreaterThan(0);
@@ -295,23 +296,43 @@ describe("righe d'effetto delle carte: le letture delle forme", () => {
     }
   });
 
-  it("le decisioni della revisione hanno un esito noto, e la base le rispetta", () => {
-    const file = path.join(DATI, "effetti/conferme_letture.json");
-    const conferme: Record<string, { esito: string; lettura_vista: unknown; lettura?: unknown[] }> = existsSync(file)
-      ? JSON.parse(readFileSync(file, "utf8")).conferme
-      : {};
+  it("le decisioni della revisione, dell'utente e di Claude, hanno un esito noto, e la base le rispetta", () => {
+    type Decisione = { esito: string; lettura_vista: unknown; lettura?: unknown[] };
+    const leggi = (nome: string, chiave: string): Record<string, Decisione> => {
+      const file = path.join(DATI, "effetti", nome);
+      return existsSync(file) ? JSON.parse(readFileSync(file, "utf8"))[chiave] : {};
+    };
+    const conferme = leggi("conferme_letture.json", "conferme");
+    const riviste = leggi("revisione_claude.json", "riviste");
     for (const [id, c] of Object.entries(conferme)) {
       expect(["giusta", "sbagliata", "corretta"], id).toContain(c.esito);
       expect(c.lettura_vista === null || Array.isArray(c.lettura_vista), id).toBe(true);
       if (c.esito === "corretta") expect(c.lettura?.length, id).toBeGreaterThan(0);
       const forma = forme[id];
       if (forma === undefined) continue; // una patch ha cambiato la frase: la pipeline la elenca fra le lacune
+      if (forma.revisione?.da === "claude") {
+        // l'utente aveva deciso su una lettura che le regole non danno piu', e Claude ha rivisto quella nuova
+        expect(forma.revisione.decisione_superata, id).toBe(c.esito);
+        expect(c.esito, `${id}: una correzione dell'utente vale sempre`).not.toBe("corretta");
+        continue;
+      }
       expect(forma.revisione?.esito, id).toBe(c.esito);
       if (forma.revisione?.stato === "sbagliata") expect(forma.lettura, id).toBeNull();
       if (forma.revisione?.stato === "confermata" || c.esito === "corretta") expect(forma.lettura?.certezza, id).toBe("verificato");
     }
+    for (const [id, r] of Object.entries(riviste)) {
+      // Claude dice giusta o dubbia: una lettura sbagliata si toglie cambiando le regole
+      expect(["giusta", "dubbia"], id).toContain(r.esito);
+      expect(Array.isArray(r.lettura_vista), id).toBe(true);
+      const forma = forme[id];
+      if (forma?.revisione?.da !== "claude") continue;
+      expect(forma.revisione.esito, id).toBe(r.esito);
+      expect(forma.lettura?.certezza, id).toBe(r.esito === "giusta" ? "rivisto" : "dedotto");
+    }
     for (const [id, forma] of Object.entries(forme)) {
-      if (forma.revisione) expect(conferme[id], `${id}: revisione senza decisione`).toBeDefined();
+      if (forma.revisione?.da === "claude") expect(riviste[id], `${id}: revisione di Claude senza voce`).toBeDefined();
+      else if (forma.revisione) expect(conferme[id], `${id}: revisione senza decisione`).toBeDefined();
+      if (forma.lettura?.certezza === "rivisto") expect(forma.revisione?.stato, id).toBe("rivista da Claude");
     }
   });
 

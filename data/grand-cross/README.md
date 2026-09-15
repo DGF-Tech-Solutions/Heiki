@@ -141,6 +141,7 @@ Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
 | `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 597 con una lettura delle regole |
 | `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
 | `conferme_letture.json` | le decisioni dell'utente sulle letture, dalla pagina di revisione: compilato a mano, nessuno script lo sovrascrive; non c'è finché non si decide la prima frase |
+| `revisione_claude.json` | le letture riviste da Claude coi criteri di quelle che l'utente ha approvato, a parte dalle sue decisioni: le scrive `revisione_claude.py` della pipeline, solo per le forme lette e nominate |
 
 Le righe di tabella stanno una per riga di file: 4.044 ranghi con `indent=2`
 sarebbero illeggibili, e così un diff dopo una patch mostra solo i ranghi
@@ -316,9 +317,11 @@ Decisioni dell'utente (15/09):
 | `precisa`, `numero` | in una `precisazione`: `limite`, `cumulabile`, `esclude` o `include`, e il buco del numero, che non va in una colonna («(Limit `<V>`)») |
 | `candidati` | i nomi dell'enum con la statistica subito seguita dal verso (`buff_atk_all_inc_add_per_gowther`); solo dove la statistica ha il suo pezzo di nome, o per le rimozioni di Buff e Debuff |
 
-Accanto a `effetti` stanno `regole`, `certezza` (sempre `dedotto`: la conferma, per
-forma, arriverà con la pagina di revisione) e `prove`, con le regole e come il
-modello marca i buchi che la lettura mette in colonna.
+Accanto a `effetti` stanno `regole`, `certezza` e `prove`: le regole, come il
+modello marca i buchi che la lettura mette in colonna, e chi l'ha rivista. La
+`certezza` è `dedotto` per la lettura delle regole, `rivisto` se l'ha rivista
+Claude coi criteri dell'utente, `verificato` se l'ha decisa l'utente (vedi «La
+revisione delle letture»).
 
 **Le regole** sono poche e strette: una forma che nessuna sequenza di regole prende
 per intero resta senza lettura, invece di averne una approssimata. Una forma che
@@ -471,10 +474,34 @@ Una correzione passa gli stessi controlli delle regole (`Letture.controlla` in
 `letture_carte.py`). Se mette un turno su un termine, o in un buff un numero che il
 gioco marca `{melee_val}`, la pagina non la salva e `righe_carte.py` si ferma.
 
-Le regole del 15/09 notte leggono 597 frasi, e l'utente le sta rivedendo: quante ne
-usa la base dipende dalle sue decisioni, e le misure in `forme_carte.json` lo
-dicono a ogni giro. Le 142 frasi senza lettura si possono scrivere a mano nella
-stessa pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
+**Le revisioni di Claude** (15/09 notte). Con 67 letture approvate e 528 da
+rivedere, l'utente ha chiesto a Claude di rivedere le altre coi criteri di quelle
+approvate. Le revisioni stanno a parte, in `effetti/revisione_claude.json`: in
+testa i criteri usati, e per ogni forma `esito` (`giusta` o `dubbia`),
+`lettura_vista`, `nota` e `quando`. Le scrive `revisione_claude.py` della
+pipeline, solo per le forme nominate: prima la rassegna delle schede, poi gli id
+letti. Claude non dice «sbagliata»: una lettura sbagliata si toglie cambiando le
+regole.
+
+| revisione di Claude | la base usa | certezza | stato in `revisione` |
+|---|---|---|---|
+| giusta | la lettura delle regole | `rivisto` | rivista da Claude, con `da: "claude"` |
+| dubbia | la lettura delle regole | `dedotto` | dubbia per Claude, col dubbio in `nota` |
+| qualunque, ma le regole ora dicono altro | le regole | `dedotto` | — (da rivedere) |
+
+Una decisione dell'utente sulla lettura di oggi vale sempre di più, e una sua
+correzione non la scavalca niente. Se l'utente aveva deciso su una lettura che le
+regole non danno più, vale la revisione di Claude di quella nuova, e l'esito
+dell'utente resta in `decisione_superata`. Per togliere tutte le revisioni di
+Claude basta cancellare il file. La pagina le mostra coi filtri «Riviste da
+Claude» e «Dubbi di Claude», e l'utente può decidere anche lì.
+
+Al 15/09 notte le regole leggono 597 frasi: 67 le ha confermate l'utente, 530 le ha
+rivedute Claude, tutte giuste, 3 con una nota. 283 di queste stanno in 34 famiglie
+di regole di cui l'utente non ha approvato nessun esempio: lì i criteri valgono per
+analogia, e un controllo a campione dell'utente pesa di più. Le misure in
+`forme_carte.json` lo dicono a ogni giro. Le 142 frasi senza lettura si possono
+scrivere a mano nella pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
 e «-100%» in un'altra («`<V>` Crit Chance»), e allora la frase da sola non dice il
 verso.
 
