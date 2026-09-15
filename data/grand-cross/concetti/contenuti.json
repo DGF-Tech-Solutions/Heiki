@@ -1,0 +1,88 @@
+{
+  "descrizione": "I contenuti del gioco che i dati degli eroi nominano. Per ora solo quelli citati dalle condizioni delle passive.",
+  "generato_da": "concetti.py, nella pipeline _7dsgc",
+  "fonti": {
+    "DB_passive_condition_*": "testi del client: la frase accanto all'icona e il nome del filtro",
+    "icon_passive_condition_*": "le icone del client, col suffisso che fa da nome",
+    "7dshub": "i codici delle condizioni di ogni passiva (passiveConditions)",
+    "ConstValues.ContentsOpenType": "enum del client (dump.cs): come il client apre i contenuti"
+  },
+  "contenuti": {
+    "creaturenest": {
+      "etichetta": {
+        "it": "Battaglia Bestia demoniaca",
+        "en": "Demonic Beast Battle"
+      },
+      "etichetta_da": {
+        "it": "UI_CreatureNest_Open_Title",
+        "en": "UI_CreatureNest_Open_Title"
+      },
+      "condizioni": [
+        8,
+        9
+      ],
+      "aperture_per_nome": [
+        "CreatureNest_Open"
+      ],
+      "certezza": "dedotto",
+      "prove": [
+        "il nome del contenuto e' il prefisso delle icone e delle frasi delle condizioni (<nome>_only, <nome>_except)",
+        "aperture_per_nome: membri di ConstValues.ContentsOpenType che cominciano con lo stesso nome. Somiglianza di nome, non prova che siano lo stesso contenuto (Pvp_Smash_Open e' una modalita' PvP precisa)"
+      ]
+    },
+    "destroy": {
+      "etichetta": {
+        "it": "Scontro finale",
+        "en": "Death Match"
+      },
+      "etichetta_da": {
+        "it": "DB_global_stage_destroy_01",
+        "en": "DB_passive_condition_filter_name_06, senza «Excludes»"
+      },
+      "condizioni": [
+        5,
+        6
+      ],
+      "aperture_per_nome": [
+        "Destroy_Open",
+        "Destroy_Boss_Open",
+        "Destroy_Difficulty_Open",
+        "Destroy_Chaos_Open"
+      ],
+      "certezza": "dedotto",
+      "prove": [
+        "il nome del contenuto e' il prefisso delle icone e delle frasi delle condizioni (<nome>_only, <nome>_except)",
+        "aperture_per_nome: membri di ConstValues.ContentsOpenType che cominciano con lo stesso nome. Somiglianza di nome, non prova che siano lo stesso contenuto (Pvp_Smash_Open e' una modalita' PvP precisa)"
+      ]
+    },
+    "pvp": {
+      "etichetta": {
+        "it": "PvP",
+        "en": "PVP"
+      },
+      "etichetta_da": {
+        "it": "DB_passive_condition_pvp_only, la sigla nella frase",
+        "en": "DB_passive_condition_filter_name_04, senza «Excludes»"
+      },
+      "condizioni": [
+        3,
+        4
+      ],
+      "aperture_per_nome": [
+        "PVP_Network_Town_Open",
+        "Pvp_Smash_Open"
+      ],
+      "certezza": "dedotto",
+      "prove": [
+        "il nome del contenuto e' il prefisso delle icone e delle frasi delle condizioni (<nome>_only, <nome>_except)",
+        "aperture_per_nome: membri di ConstValues.ContentsOpenType che cominciano con lo stesso nome. Somiglianza di nome, non prova che siano lo stesso contenuto (Pvp_Smash_Open e' una modalita' PvP precisa)"
+      ]
+    }
+  },
+  "lacune": [
+    {
+      "cosa": "gli altri contenuti (boss, guerra di gilda, torre, lega degli eroi...)",
+      "stato": "compaiono nei nomi di SkillEffectEnum (pvp, boss, guildwar) e in ContentsOpenType, ma nessun dato di eroe li cita ancora come codice"
+    }
+  ]
+}

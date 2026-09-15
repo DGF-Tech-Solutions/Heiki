@@ -1,0 +1,255 @@
+{
+  "descrizione": "Dove si attiva una passiva: i codici 1-9 di 7dshub, con icona, frase e filtro del client.",
+  "generato_da": "concetti.py, nella pipeline _7dsgc",
+  "fonti": {
+    "DB_passive_condition_*": "testi del client: la frase accanto all'icona e il nome del filtro",
+    "icon_passive_condition_*": "le icone del client, col suffisso che fa da nome",
+    "7dshub": "i codici delle condizioni di ogni passiva (passiveConditions)",
+    "ConstValues.ContentsOpenType": "enum del client (dump.cs): come il client apre i contenuti"
+  },
+  "note": {
+    "ruolo": "quando o dove vale: ingresso in battaglia, slot secondario, solo in un contenuto, escluso da un contenuto, tutti i contenuti"
+  },
+  "condizioni": {
+    "1": {
+      "etichetta": {
+        "it": "Partecipazione battaglia",
+        "en": "Battle Participation"
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_01",
+      "icona": "start_combat",
+      "frase": {
+        "it": "Si attiva solo all'ingresso nella battaglia",
+        "en": "Active when entering battle"
+      },
+      "frase_da": "DB_passive_condition_start_combat",
+      "ruolo": "ingresso in battaglia",
+      "contenuto": null,
+      "uso": {
+        "eroi": 275,
+        "abilita_speciali": 33
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "2": {
+      "etichetta": {
+        "it": "Attivazione secondaria",
+        "en": "Sub Activation"
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_02",
+      "icona": "sub",
+      "frase": {
+        "it": "Si attiva anche in uno slot secondario",
+        "en": "Active even in Sub slot"
+      },
+      "frase_da": "DB_passive_condition_sub",
+      "ruolo": "slot secondario",
+      "contenuto": null,
+      "uso": {
+        "eroi": 94,
+        "abilita_speciali": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "3": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_03",
+      "icona": "pvp_only",
+      "frase": {
+        "it": "Si attiva solo in PvP",
+        "en": "Active only in PVP"
+      },
+      "frase_da": "DB_passive_condition_pvp_only",
+      "ruolo": "solo",
+      "contenuto": "pvp",
+      "uso": {
+        "eroi": 20,
+        "abilita_speciali": 8
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "4": {
+      "etichetta": {
+        "it": null,
+        "en": "Excludes PVP"
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_04",
+      "icona": "pvp_except",
+      "frase": {
+        "it": "Si attiva al di fuori del PvP",
+        "en": "Active outside of PVP"
+      },
+      "frase_da": "DB_passive_condition_pvp_except",
+      "ruolo": "escluso",
+      "contenuto": "pvp",
+      "uso": {
+        "eroi": 16,
+        "abilita_speciali": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "5": {
+      "etichetta": {
+        "it": "Scontro finale",
+        "en": null
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_05",
+      "icona": "destroy_only",
+      "frase": {
+        "it": "Si attiva solo nello Scontro finale",
+        "en": "Active only in Death Match"
+      },
+      "frase_da": "DB_passive_condition_destroy_only",
+      "ruolo": "solo",
+      "contenuto": "destroy",
+      "uso": {
+        "eroi": 10,
+        "abilita_speciali": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "6": {
+      "etichetta": {
+        "it": "Escluso lo Scontro finale",
+        "en": "Excludes Death Match"
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_06",
+      "icona": "destroy_except",
+      "frase": {
+        "it": "Si attiva al di fuori dello Scontro finale",
+        "en": "Active outside of Death Match"
+      },
+      "frase_da": "DB_passive_condition_destroy_except",
+      "ruolo": "escluso",
+      "contenuto": "destroy",
+      "uso": {
+        "eroi": 31,
+        "abilita_speciali": 14
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "7": {
+      "etichetta": {
+        "it": "Tutti i contenuti",
+        "en": null
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_07",
+      "icona": "all_contents",
+      "frase": {
+        "it": "Si attiva per tutti i contenuti",
+        "en": "Active for all content"
+      },
+      "frase_da": "DB_passive_condition_all_contents",
+      "ruolo": "tutti i contenuti",
+      "contenuto": null,
+      "uso": {
+        "eroi": 294,
+        "abilita_speciali": 11
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "8": {
+      "etichetta": {
+        "it": "Battaglia Bestia demoniaca",
+        "en": "Demonic Beast Battle"
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_08",
+      "icona": "creaturenest",
+      "frase": {
+        "it": "Si attiva solo nella Battaglia Bestia demoniaca",
+        "en": "Active only in Demonic Beast Battle"
+      },
+      "frase_da": "DB_passive_condition_creaturenest",
+      "ruolo": "solo",
+      "contenuto": "creaturenest",
+      "uso": {
+        "eroi": 9,
+        "abilita_speciali": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    },
+    "9": {
+      "etichetta": {
+        "it": "Esclude Battaglia Bestia demoniaca",
+        "en": "Excludes Demonic Beast Battle"
+      },
+      "etichetta_da": "DB_passive_condition_filter_name_09",
+      "icona": "creaturenest_except",
+      "frase": {
+        "it": "Esclude Battaglia Bestia demoniaca",
+        "en": "Excludes Demonic Beast Battle"
+      },
+      "frase_da": "DB_passive_condition_creaturenest_except",
+      "ruolo": "escluso",
+      "contenuto": "creaturenest",
+      "uso": {
+        "eroi": 5,
+        "abilita_speciali": 0
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
+        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
+        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
+        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+      ]
+    }
+  },
+  "lacune": [
+    {
+      "cosa": "tabella codice -> icona",
+      "stato": "in DBSkillPassiveConditionIconRow, cifrata: il legame e' dedotto"
+    }
+  ]
+}

@@ -1,0 +1,2676 @@
+{
+  "descrizione": "La tassonomia con cui il client filtra gli effetti delle abilita': 238 voci con nome e descrizione, e i gruppi della ricerca.",
+  "generato_da": "concetti.py, nella pipeline _7dsgc",
+  "fonti": {
+    "DB_skill_search_name/desc_*": "testi del client",
+    "DB_skill_search_group_*": "testi del client: i gruppi della ricerca",
+    "DBSkillSearchInfoRow": "la tabella che la usa (dump.cs), con search_skill_group: cifrata"
+  },
+  "note": {
+    "certezza": "nome e descrizione sono testi del client con il loro codice: dichiarati. Dove un testo non si legge vale null",
+    "leggibili": "nomi leggibili: it 175, en 158 su 238"
+  },
+  "voci": {
+    "001": {
+      "nome": {
+        "it": "Frantumazione",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Ignora Resistenza.",
+        "en": "Ignores Resistance."
+      },
+      "rimanda_a": null
+    },
+    "002": {
+      "nome": {
+        "it": "Colpo di forza",
+        "en": "Power Strike"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti della Resistenza del nemico.",
+        "en": "Increases damage dealt by enemy's Resistance."
+      },
+      "rimanda_a": null
+    },
+    "003": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": null,
+        "en": "Increases Pierce Rate"
+      },
+      "rimanda_a": null
+    },
+    "005": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Ignora Difesa.",
+        "en": "Ignore Defense."
+      },
+      "rimanda_a": null
+    },
+    "006": {
+      "nome": {
+        "it": "Punto debole",
+        "en": "Weak Point"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti quando si attaccano i nemici affetti da Debuff.",
+        "en": "Increases damage dealt when attacking Debuffed enemies."
+      },
+      "rimanda_a": null
+    },
+    "007": {
+      "nome": {
+        "it": "Rottura",
+        "en": "Rupture"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti quando si attaccano i nemici con Buff.",
+        "en": "Increases damage dealt when attacking Buffed enemies."
+      },
+      "rimanda_a": null
+    },
+    "008": {
+      "nome": {
+        "it": null,
+        "en": "Ruin"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni Debuff sul nemico.",
+        "en": "Increases damage dealt for every Debuff on the enemy."
+      },
+      "rimanda_a": null
+    },
+    "009": {
+      "nome": {
+        "it": null,
+        "en": "Sever"
+      },
+      "descrizione": {
+        "it": "Possibilità critico x3.",
+        "en": "3x Crit Chance."
+      },
+      "rimanda_a": null
+    },
+    "010": {
+      "nome": {
+        "it": null,
+        "en": "Spike"
+      },
+      "descrizione": {
+        "it": "Danno critico x2.",
+        "en": "2x Crit Damage."
+      },
+      "rimanda_a": null
+    },
+    "011": {
+      "nome": {
+        "it": null,
+        "en": "Detonate"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni sfera nella Barra Mossa finale del nemico.",
+        "en": "Increases damage dealt for each orb in the enemy's Ultimate Move Gauge."
+      },
+      "rimanda_a": null
+    },
+    "012": {
+      "nome": {
+        "it": "Tecnica segreta",
+        "en": "Secret Technique"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni abilità eroe.",
+        "en": "Increases damage dealt per hero skill."
+      },
+      "rimanda_a": null
+    },
+    "013": {
+      "nome": {
+        "it": "Fiamme nere",
+        "en": "Blaze"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi per ogni effetto Incendio sul nemico.",
+        "en": "Additional damage for each Ignite effect on the enemy."
+      },
+      "rimanda_a": null
+    },
+    "014": {
+      "nome": {
+        "it": "Onda",
+        "en": "Wave"
+      },
+      "descrizione": {
+        "it": "Riduce i danni inflitti per ogni nemico sul campo di battaglia.",
+        "en": "Decreases damage dealt for each enemy on the battlefield."
+      },
+      "rimanda_a": null
+    },
+    "015": {
+      "nome": {
+        "it": null,
+        "en": "Flood"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in proporzione ai PS rimanenti dell'eroe.",
+        "en": "Increases damage dealt proportional to the hero's remaining HP."
+      },
+      "rimanda_a": null
+    },
+    "016": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi pari a quelli rimasti dei Debuff Shock, Avvelenamento e Sanguinamento.",
+        "en": "Additional damage equal to the remaining damage of Shock, Poison, and Bleed Debuffs."
+      },
+      "rimanda_a": null
+    },
+    "017": {
+      "nome": {
+        "it": null,
+        "en": "Break"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti ai nemici con Atteggiamento.",
+        "en": "Increases damage dealt to enemies assuming Stances."
+      },
+      "rimanda_a": null
+    },
+    "018": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce i danni inflitti per ogni Buff sull'eroe.",
+        "en": "Increases damage dealt for each Buff on the hero."
+      },
+      "rimanda_a": null
+    },
+    "019": {
+      "nome": {
+        "it": "Co-distruzione",
+        "en": "Co-destruction"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni Debuff sul nemico.",
+        "en": "Increases damage dealt for each Debuff on the enemy."
+      },
+      "rimanda_a": null
+    },
+    "020": {
+      "nome": {
+        "it": "Aumento Barra Mossa finale",
+        "en": "Ultimate Move Gauge Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta la Barra Mossa finale.",
+        "en": "Increases Ultimate Move Gauge."
+      },
+      "rimanda_a": null
+    },
+    "021": {
+      "nome": {
+        "it": "Riduzione Barra Mossa finale",
+        "en": "Ultimate Move Gauge Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce la Barra Mossa finale.",
+        "en": "Decreases Ultimate Move Gauge."
+      },
+      "rimanda_a": null
+    },
+    "022": {
+      "nome": {
+        "it": null,
+        "en": "Rank Decrease"
+      },
+      "descrizione": {
+        "it": null,
+        "en": "Decreases Skill Rank."
+      },
+      "rimanda_a": null
+    },
+    "023": {
+      "nome": {
+        "it": null,
+        "en": "Delete"
+      },
+      "descrizione": {
+        "it": "Elimina un'abilità del nemico casuale.",
+        "en": "Deletes a random enemy skill."
+      },
+      "rimanda_a": null
+    },
+    "024": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce i PS massimi del nemico e recupera i propri PS della stessa quantità.",
+        "en": "Decreases the enemy's max HP and recovers own HP by the same amount."
+      },
+      "rimanda_a": null
+    },
+    "025": {
+      "nome": {
+        "it": null,
+        "en": "Despair"
+      },
+      "descrizione": {
+        "it": "Recupera i PS ridotti quando provoca un colpo critico.",
+        "en": "Recovers diminished HP upon critical strike."
+      },
+      "rimanda_a": null
+    },
+    "026": {
+      "nome": {
+        "it": "Furto di vita",
+        "en": "Lifesteal"
+      },
+      "descrizione": {
+        "it": "Recupera i PS per una parte dei danni inflitti.",
+        "en": "Recovers HP by a portion of damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "027": {
+      "nome": {
+        "it": "Annulla Buff",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Rimuove i Buff dal nemico.",
+        "en": "Removes Buffs from the enemy."
+      },
+      "rimanda_a": null
+    },
+    "028": {
+      "nome": {
+        "it": "Danni Attributo Vantaggio",
+        "en": "Advantageous Attribute Damage"
+      },
+      "descrizione": {
+        "it": "Infligge danni con un vantaggio attributo indifferentemente dall'attributo del nemico.",
+        "en": "Inflicts damage with an attribute advantage regardless of enemy attribute."
+      },
+      "rimanda_a": null
+    },
+    "029": {
+      "nome": {
+        "it": "Annulla Atteggiamento",
+        "en": "Stance Cancel"
+      },
+      "descrizione": {
+        "it": "Annulla l'Atteggiamento del nemico.",
+        "en": "Cancels the enemy's Stance."
+      },
+      "rimanda_a": null
+    },
+    "030": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai danni inflitti alla fine di ogni turno.",
+        "en": "Additional damage proportional to damage dealt at the end of every turn."
+      },
+      "rimanda_a": null
+    },
+    "031": {
+      "nome": {
+        "it": "Abisso",
+        "en": "Abyss"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione al totale dei danni all'inizio del turno nemico.",
+        "en": "Additional damage proportional to total damage at the start of the enemy's turn."
+      },
+      "rimanda_a": null
+    },
+    "032": {
+      "nome": {
+        "it": "Avvelenamento",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai danni inflitti alla fine di ogni turno.",
+        "en": "Additional damage proportional to damage dealt at the end of every turn."
+      },
+      "rimanda_a": null
+    },
+    "033": {
+      "nome": {
+        "it": "Sanguinamento",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai danni inflitti alla fine di ogni turno.",
+        "en": "Additional damage proportional to damage dealt at the end of every turn."
+      },
+      "rimanda_a": null
+    },
+    "034": {
+      "nome": {
+        "it": null,
+        "en": "Corrosion"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai PS alla fine di ogni turno.",
+        "en": "Additional damage proportional to HP at the end of every turn."
+      },
+      "rimanda_a": null
+    },
+    "035": {
+      "nome": {
+        "it": "Sigillo",
+        "en": "Seal"
+      },
+      "descrizione": {
+        "it": "Impedisce alla Barra Mossa finale di riempirsi.",
+        "en": "Prevents Ultimate Move Gauge from filling up."
+      },
+      "rimanda_a": null
+    },
+    "036": {
+      "nome": {
+        "it": "Disabilita Mossa finale",
+        "en": "Ultimate Move Disable"
+      },
+      "descrizione": {
+        "it": "Disabilita le Mosse finali.",
+        "en": "Disables Ultimate Moves."
+      },
+      "rimanda_a": null
+    },
+    "037": {
+      "nome": {
+        "it": "Riduzione danni Mossa finale",
+        "en": "Ultimate Move Damage Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce i danni subiti dalle Mosse finali.",
+        "en": "Decreases damage taken from Ultimate Moves."
+      },
+      "rimanda_a": null
+    },
+    "038": {
+      "nome": {
+        "it": "Blocca effetto Mossa finale",
+        "en": "Block Ultimate Move Effect"
+      },
+      "descrizione": {
+        "it": "Blocca gli effetti delle Mosse finali.",
+        "en": "Blocks Ultimate Move effects."
+      },
+      "rimanda_a": null
+    },
+    "039": {
+      "nome": {
+        "it": "Limitazione Rango",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Permette solo l'uso delle abilità di Rango 1.",
+        "en": "Allows use of only Rank 1 skills."
+      },
+      "rimanda_a": null
+    },
+    "040": {
+      "nome": {
+        "it": "Attacco disabilitato",
+        "en": "Attack Disable"
+      },
+      "descrizione": {
+        "it": "Disabilita le Abilità Attacco.",
+        "en": "Disables Attack Skills."
+      },
+      "rimanda_a": "carte.tipi_attacco.1"
+    },
+    "041": {
+      "nome": {
+        "it": "Non può usare le abilità Buff",
+        "en": "Buff Disable"
+      },
+      "descrizione": {
+        "it": "Disabilita le Abilità Buff.",
+        "en": null
+      },
+      "rimanda_a": "carte.tipi_attacco.2"
+    },
+    "042": {
+      "nome": {
+        "it": "Non può usare le abilità Debuff",
+        "en": "Debuff Disable"
+      },
+      "descrizione": {
+        "it": "Disabilita le Abilità Debuff.",
+        "en": "Disables Debuff Skills."
+      },
+      "rimanda_a": "carte.tipi_attacco.3"
+    },
+    "043": {
+      "nome": {
+        "it": "Disabilita Recupero",
+        "en": "Recovery Disable"
+      },
+      "descrizione": {
+        "it": "Disabilita le Abilità Recupero.",
+        "en": "Disables Recovery Skills."
+      },
+      "rimanda_a": "carte.tipi_attacco.5"
+    },
+    "044": {
+      "nome": {
+        "it": "Non può usare le abilità Atteggiamento",
+        "en": "Stance Disable"
+      },
+      "descrizione": {
+        "it": "Disabilita le Abilità Atteggiamento.",
+        "en": null
+      },
+      "rimanda_a": null
+    },
+    "045": {
+      "nome": {
+        "it": "Riduzione statistiche relative all'Attacco",
+        "en": "Attack-related Stats Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce l'Attacco, la Perforazione, la Possibilità critico e il Danno critico.",
+        "en": "Decreases Attack, Pierce Rate, Crit Chance, and Crit Damage."
+      },
+      "rimanda_a": "statistiche.gruppi.attacco"
+    },
+    "046": {
+      "nome": {
+        "it": "Riduzione statistiche relative alla Difesa",
+        "en": "Defense-related Stats Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce la Difesa, la Resistenza, la Resistenza critico e la Difesa critico.",
+        "en": "Decreases Defense, Resistance, Crit Resistance, and Crit Defense."
+      },
+      "rimanda_a": "statistiche.gruppi.difesa"
+    },
+    "047": {
+      "nome": {
+        "it": "Riduzione statistiche relative ai PS",
+        "en": "HP-related Stats Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce i PS, la Velocità di rigenerazione, la Velocità di recupero e il Furto di vita.",
+        "en": "Decreases HP, Regeneration Rate, Recovery Rate, and Lifesteal."
+      },
+      "rimanda_a": "statistiche.gruppi.ps"
+    },
+    "048": {
+      "nome": {
+        "it": "Incendio",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta i danni subiti dal nemico Incendiato.",
+        "en": "Increases Ignited enemy's damage taken."
+      },
+      "rimanda_a": null
+    },
+    "049": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Limita le statistiche relative al Recupero.",
+        "en": "Restricts Recovery-related stats."
+      },
+      "rimanda_a": null
+    },
+    "050": {
+      "nome": {
+        "it": "Stordimento",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Immobilizza il nemico.",
+        "en": "Incapacitates the enemy."
+      },
+      "rimanda_a": null
+    },
+    "051": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Immobilizza il nemico. L'effetto viene rimosso quando il bersaglio viene attaccato.",
+        "en": "Incapacitates the enemy. Effect is removed when target is attacked."
+      },
+      "rimanda_a": null
+    },
+    "052": {
+      "nome": {
+        "it": "Congelamento",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Immobilizza il nemico. L'effetto viene rimosso quando il bersaglio viene attaccato.",
+        "en": "Incapacitates the enemy. Effect is removed when target is attacked."
+      },
+      "rimanda_a": null
+    },
+    "053": {
+      "nome": {
+        "it": "Espulsione",
+        "en": "Expel"
+      },
+      "descrizione": {
+        "it": "Espelle il nemico dalla battaglia, riducendo il numero di utilizzi delle abilità di 1.",
+        "en": "Expels the enemy from battle, decreasing the number of skill uses by 1."
+      },
+      "rimanda_a": null
+    },
+    "054": {
+      "nome": {
+        "it": "Estorsione",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce le statistiche del nemico e aumenta le proprie per una parte delle statistiche ridotte.",
+        "en": "Decreases enemy stats and increases own by a portion of the decreased stats."
+      },
+      "rimanda_a": null
+    },
+    "055": {
+      "nome": {
+        "it": "Esplosione",
+        "en": "Explosion"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai danni inflitti dopo un numero di turni prestabilito.",
+        "en": "Additional damage proportional to damage dealt after a set number of turns."
+      },
+      "rimanda_a": null
+    },
+    "056": {
+      "nome": {
+        "it": "Aumento statistiche relative all'Attacco",
+        "en": "Attack-related Stats Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco, la Perforazione, la Possibilità critico e il Danno critico.",
+        "en": "Increases Attack, Pierce Rate, Crit Chance, and Crit Damage."
+      },
+      "rimanda_a": "statistiche.gruppi.attacco"
+    },
+    "057": {
+      "nome": {
+        "it": "Aumento statistiche relative alla Difesa",
+        "en": "Defense-related Stats Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta la Difesa, la Resistenza, la Resistenza critico e la Difesa critico.",
+        "en": "Increases Defense, Resistance, Crit Resistance, and Crit Defense."
+      },
+      "rimanda_a": "statistiche.gruppi.difesa"
+    },
+    "058": {
+      "nome": {
+        "it": "Aumento statistiche relative ai PS",
+        "en": "HP-related Stats Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta i PS, la Velocità di rigenerazione, la Velocità di recupero e il Furto di vita.",
+        "en": "Increases HP, Regeneration Rate, Recovery Rate, and Lifesteal."
+      },
+      "rimanda_a": "statistiche.gruppi.ps"
+    },
+    "059": {
+      "nome": {
+        "it": "Aumento statistiche di base",
+        "en": "Basic Stats Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco, la Difesa e i PS.",
+        "en": "Increases Attack, Defense, and HP."
+      },
+      "rimanda_a": "statistiche.gruppi.base"
+    },
+    "060": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Evade le Abilità Attacco e le Abilità Attacco Debuff.",
+        "en": "Evades Attack and Debuff Atk Skills."
+      },
+      "rimanda_a": null
+    },
+    "061": {
+      "nome": {
+        "it": null,
+        "en": "Immunity"
+      },
+      "descrizione": {
+        "it": "Immune ai Debuff.",
+        "en": "Immune to Debuffs."
+      },
+      "rimanda_a": null
+    },
+    "062": {
+      "nome": {
+        "it": null,
+        "en": "Barrier"
+      },
+      "descrizione": {
+        "it": "Assorbe i danni subiti quando subisce un attacco.",
+        "en": "Absorbs damage taken when attacked."
+      },
+      "rimanda_a": null
+    },
+    "063": {
+      "nome": {
+        "it": "Aumento Rango",
+        "en": "Rank Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta il rango abilità.",
+        "en": "Increases Skill Rank."
+      },
+      "rimanda_a": null
+    },
+    "064": {
+      "nome": {
+        "it": "Provocazione",
+        "en": "Taunt"
+      },
+      "descrizione": {
+        "it": "Indirizza tutti gli attacchi a sé stesso.",
+        "en": "Directs all attacks to self."
+      },
+      "rimanda_a": null
+    },
+    "065": {
+      "nome": {
+        "it": "Riflessione",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Restituisce una parte dei danni subiti a chi attacca.",
+        "en": "Reflects a portion of damage taken back to the attacker."
+      },
+      "rimanda_a": null
+    },
+    "066": {
+      "nome": {
+        "it": null,
+        "en": "Solidify"
+      },
+      "descrizione": {
+        "it": "Rimuove i Debuff e aumenta la Resistenza in base al numero di Debuff rimossi.",
+        "en": "Removes Debuffs and increases Resistance by the number of Debuffs removed."
+      },
+      "rimanda_a": null
+    },
+    "067": {
+      "nome": {
+        "it": "Atteggiamento Contrattacco",
+        "en": "Counter Stance"
+      },
+      "descrizione": {
+        "it": "Contrattacca quando subisce un attacco.",
+        "en": "Counters when attacked."
+      },
+      "rimanda_a": "carte.tipi_attacco.7"
+    },
+    "068": {
+      "nome": {
+        "it": "Atteggiamento Difesa",
+        "en": "Defense Stance"
+      },
+      "descrizione": {
+        "it": "Riduce i danni subiti mentre assume un Atteggiamento.",
+        "en": "Decreases damage taken while assuming a stance."
+      },
+      "rimanda_a": "carte.tipi_attacco.6"
+    },
+    "069": {
+      "nome": {
+        "it": "Recupero",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Cura i PS.",
+        "en": null
+      },
+      "rimanda_a": null
+    },
+    "070": {
+      "nome": {
+        "it": "Ringiovanimento",
+        "en": "Rejuvenate"
+      },
+      "descrizione": {
+        "it": "Cura all'inizio di ogni turno.",
+        "en": "Heals at the start of every turn."
+      },
+      "rimanda_a": null
+    },
+    "071": {
+      "nome": {
+        "it": "Annulla Debuff",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Rimuove tutti i Debuff.",
+        "en": "Removes all Debuffs."
+      },
+      "rimanda_a": null
+    },
+    "072": {
+      "nome": {
+        "it": "Morte",
+        "en": "Death"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai danni finali.",
+        "en": "Additional damage proportional to final damage."
+      },
+      "rimanda_a": null
+    },
+    "073": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi pari a una parte di (Danno critico - 100%).",
+        "en": "Additional damage equal to a portion of (Crit Damage - 100%)."
+      },
+      "rimanda_a": null
+    },
+    "074": {
+      "nome": {
+        "it": "Danni basati sui PS",
+        "en": "Damage based on HP"
+      },
+      "descrizione": {
+        "it": "Danni in proporzione ai PS massimi dell'eroe.",
+        "en": "Damage proportional to the hero's Max HP."
+      },
+      "rimanda_a": null
+    },
+    "075": {
+      "nome": {
+        "it": "Immortalità",
+        "en": "Immortality"
+      },
+      "descrizione": {
+        "it": "I PS non scendono sotto 1.",
+        "en": "HP does not fall below 1"
+      },
+      "rimanda_a": null
+    },
+    "076": {
+      "nome": {
+        "it": "Riduzione danni finali",
+        "en": "Final Damage Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce i danni finali subiti dagli alleati quando vengono attaccati.",
+        "en": "Decreases allies' final damage taken when they are attacked."
+      },
+      "rimanda_a": null
+    },
+    "077": {
+      "nome": {
+        "it": "Blocca effetto Abilità",
+        "en": "Block Skill Effect"
+      },
+      "descrizione": {
+        "it": "Disabilita gli effetti delle Abilità Attacco, Attacco Debuff, Debuff, e Buff.",
+        "en": "Disables Attack, Debuff Atk, Debuff, and Buff skill effects."
+      },
+      "rimanda_a": null
+    },
+    "078": {
+      "nome": {
+        "it": "Riduzione Attacco",
+        "en": "Attack Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce l'Attacco.",
+        "en": "Decreases Attack."
+      },
+      "rimanda_a": null
+    },
+    "079": {
+      "nome": {
+        "it": "Riduzione Difesa",
+        "en": "Defense Decrease"
+      },
+      "descrizione": {
+        "it": null,
+        "en": "Decreases Defense."
+      },
+      "rimanda_a": null
+    },
+    "080": {
+      "nome": {
+        "it": "Riduzione PS",
+        "en": "HP Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce i PS.",
+        "en": null
+      },
+      "rimanda_a": null
+    },
+    "081": {
+      "nome": {
+        "it": "Riduzione danni inflitti",
+        "en": "Damage Dealt Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce i danni inflitti.",
+        "en": "Decreases damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "082": {
+      "nome": {
+        "it": "Aumento danni subiti",
+        "en": "Damage Taken Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni subiti.",
+        "en": "Increases damage taken."
+      },
+      "rimanda_a": null
+    },
+    "083": {
+      "nome": {
+        "it": "Aumento Attacco",
+        "en": "Attack Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco.",
+        "en": "Increases Attack."
+      },
+      "rimanda_a": null
+    },
+    "084": {
+      "nome": {
+        "it": "Aumento Difesa",
+        "en": "Defense Increase"
+      },
+      "descrizione": {
+        "it": null,
+        "en": "Increases Defense."
+      },
+      "rimanda_a": null
+    },
+    "085": {
+      "nome": {
+        "it": "Aumento PS",
+        "en": "HP Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta i PS.",
+        "en": "Increases HP."
+      },
+      "rimanda_a": null
+    },
+    "086": {
+      "nome": {
+        "it": "Aumento danni inflitti",
+        "en": "Damage Dealt Increase"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti.",
+        "en": "Increases damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "087": {
+      "nome": {
+        "it": "Riduzione danni subiti",
+        "en": "Damage Taken Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce i danni subiti.",
+        "en": "Decreases damage taken."
+      },
+      "rimanda_a": null
+    },
+    "088": {
+      "nome": {
+        "it": "Riduzione Barra Mossa finale",
+        "en": "Ultimate Move Gauge Decrease"
+      },
+      "descrizione": {
+        "it": "Riduce la barra Mossa finale alla fine del turno nemico.",
+        "en": "Decreases Ultimate Move Gauge at the end of the enemy's turn."
+      },
+      "rimanda_a": null
+    },
+    "089": {
+      "nome": {
+        "it": "Riduzione Barra Mossa finale",
+        "en": "Ultimate Move Gauge Decrease"
+      },
+      "descrizione": {
+        "it": "Quando subisce un attacco, riduce la Barra Mossa finale del nemico che ha usato l'abilità.",
+        "en": "When attacked, decreases the Ultimate Move Gauge of the enemy that used the skill."
+      },
+      "rimanda_a": null
+    },
+    "090": {
+      "nome": {
+        "it": "Danni basati sulla Difesa",
+        "en": "Damage based on Defense"
+      },
+      "descrizione": {
+        "it": "Infligge danni in proporzione alla Difesa dell'eroe.",
+        "en": "Deals damage proportional to the hero's Defense."
+      },
+      "rimanda_a": null
+    },
+    "091": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce i ranghi abilità e infligge danni in proporzione ai PS massimi alla fine del turno del nemico.",
+        "en": "Decreases Skill Ranks and inflicts damage proportional to Max HP at the end of the enemy's turn."
+      },
+      "rimanda_a": null
+    },
+    "092": {
+      "nome": {
+        "it": "Polverizzazione",
+        "en": "Pulverize"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni sfera nella Barra Mossa finale dell'eroe.",
+        "en": "Increases damage dealt for each orb in the hero's Ultimate Move Gauge."
+      },
+      "rimanda_a": null
+    },
+    "093": {
+      "nome": {
+        "it": "Rango ridotto",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce i ranghi abilità alla fine del turno del nemico.",
+        "en": "Decreases Skill Ranks at the end of the enemy's turn."
+      },
+      "rimanda_a": null
+    },
+    "094": {
+      "nome": {
+        "it": null,
+        "en": "Quell"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ciascun Atteggiamento sull'eroe.",
+        "en": "Increases damage dealt for each Stance on the hero."
+      },
+      "rimanda_a": null
+    },
+    "096": {
+      "nome": {
+        "it": "Danni aggiuntivi",
+        "en": "Additional Damage"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione alle statistiche di base dell'eroe per ogni sfera della Barra Mossa finale.",
+        "en": "Additional damage proportional to the hero's basic stats per Ultimate Move Gauge orb."
+      },
+      "rimanda_a": null
+    },
+    "097": {
+      "nome": {
+        "it": null,
+        "en": "Resurrection"
+      },
+      "descrizione": {
+        "it": "L'eroe torna in vita mentre sta morendo.",
+        "en": "Hero revives when dying."
+      },
+      "rimanda_a": null
+    },
+    "098": {
+      "nome": {
+        "it": "Oscurità",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta i danni subiti dai nemici colpiti da Oscurità.",
+        "en": "Increases the damage taken by enemies affected by Darkness."
+      },
+      "rimanda_a": null
+    },
+    "099": {
+      "nome": {
+        "it": "Azione sotto copertura",
+        "en": "Covert Action"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi per ogni effetto Oscurità sul nemico.",
+        "en": "Additional damage for each Darkness effect on the enemy."
+      },
+      "rimanda_a": null
+    },
+    "100": {
+      "nome": {
+        "it": "Riverbero",
+        "en": "Resonance"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi per ogni Buff, Debuff o effetto Atteggiamento sul nemico.",
+        "en": "Additional damage for each Buff, Debuff, or Stance effect on the enemy."
+      },
+      "rimanda_a": null
+    },
+    "101": {
+      "nome": {
+        "it": "Sconfinamento",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce tutte le statistiche del nemico",
+        "en": "Decreases all enemy stats"
+      },
+      "rimanda_a": null
+    },
+    "102": {
+      "nome": {
+        "it": "Aumento di tutte le statistiche",
+        "en": "All Stats Increase"
+      },
+      "descrizione": {
+        "it": "Statistiche relative all'Attacco, Statistiche relative alla Difesa, Statistiche relative ai PS",
+        "en": "Attack-related Stats, Defense-related Stats, HP-related Stats Increase"
+      },
+      "rimanda_a": "statistiche.gruppi.tutte"
+    },
+    "103": {
+      "nome": {
+        "it": "Riduzione di tutte le Statistiche",
+        "en": "All Stats Decrease"
+      },
+      "descrizione": {
+        "it": "Statistiche relative all'Attacco, Statistiche relative alla Difesa, Riduzione statistiche relative ai PS",
+        "en": "Attack-related Stats, Defense-related Stats, HP-related Stats Decrease"
+      },
+      "rimanda_a": "statistiche.gruppi.tutte"
+    },
+    "104": {
+      "nome": {
+        "it": "Elemento Frana",
+        "en": "Rockslide Element"
+      },
+      "descrizione": {
+        "it": "Applica Stordimento con 4 accumuli",
+        "en": "Applies Stun at 4 stacks"
+      },
+      "rimanda_a": null
+    },
+    "105": {
+      "nome": {
+        "it": "Elemento Combustione",
+        "en": "Combustion Element"
+      },
+      "descrizione": {
+        "it": "Applica un effetto danni aggiuntivi sui PS massimi",
+        "en": "Applies additional damage effect based on Max HP"
+      },
+      "rimanda_a": null
+    },
+    "106": {
+      "nome": {
+        "it": "Elemento Diffusione",
+        "en": "Diffusion Element"
+      },
+      "descrizione": {
+        "it": "Applica Disabilita Attacco con 4 accumuli",
+        "en": "Applies Attack Disable at 4 stacks"
+      },
+      "rimanda_a": null
+    },
+    "107": {
+      "nome": {
+        "it": "Elemento Raffica",
+        "en": "Gust Element"
+      },
+      "descrizione": {
+        "it": "Applica Diminuzione Possibilità critico con 4 accumuli",
+        "en": "Applies Crit Chance Decrease at 4 stacks"
+      },
+      "rimanda_a": null
+    },
+    "108": {
+      "nome": {
+        "it": "Esplosione Elementale",
+        "en": "Elemental Explosion"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi per ogni Elemento Frana, Elemento Combustione, Elemento Diffusione o Elemento Raffica sul nemico.",
+        "en": "Additional damage for each Rockslide Element, Combustion Element, Diffusion Element, or Gust Element on the enemy."
+      },
+      "rimanda_a": null
+    },
+    "109": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai PS alla fine di ogni turno.",
+        "en": "Additional damage proportional to HP at the end of every turn."
+      },
+      "rimanda_a": null
+    },
+    "110": {
+      "nome": {
+        "it": "Diminuzione Possibilità critico",
+        "en": "Crit Chance Decrease"
+      },
+      "descrizione": {
+        "it": "Diminuzione Possibilità critico",
+        "en": "Crit Chance Decrease"
+      },
+      "rimanda_a": null
+    },
+    "115": {
+      "nome": {
+        "it": "Bruciatura",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in proporzione ai PS rimanenti dell'eroe.\nDanni aggiuntivi in proporzione ai danni inflitti dall'eroe.",
+        "en": "Increases damage dealt proportional to the hero's remaining HP.\nAdditional damage proportional to the hero's damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "116": {
+      "nome": {
+        "it": "Superpotere",
+        "en": "Overpower"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in proporzione ai PS ridotti dell'eroe.\nDanni aggiuntivi pari al 35% del (Danno critico - 100%).",
+        "en": "Increases damage dealt proportional to the hero's diminished HP.\nAdditional damage equal to 35% of (Crit Damage - 100%)."
+      },
+      "rimanda_a": null
+    },
+    "117": {
+      "nome": {
+        "it": "Sacrificio",
+        "en": "Immolation"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in proporzione ai PS rimanenti dell'eroe.\nAumenta i danni inflitti in proporzione ai PS ridotti dell'eroe.",
+        "en": "Increases damage dealt proportional to the hero's remaining HP.\nIncreases damage dealt proportional to the hero's diminished HP."
+      },
+      "rimanda_a": null
+    },
+    "118": {
+      "nome": {
+        "it": "Fiamma Sacra",
+        "en": "Holy Flame"
+      },
+      "descrizione": {
+        "it": "Aumento di tutte le statistiche",
+        "en": "All Stats Increase"
+      },
+      "rimanda_a": null
+    },
+    "119": {
+      "nome": {
+        "it": "Fiamma Definitiva",
+        "en": "Final Flame"
+      },
+      "descrizione": {
+        "it": "Fissa i PS a 1, diventando immune a tutti gli effetti",
+        "en": "Fixes HP at 1, becomes immune to all effects"
+      },
+      "rimanda_a": null
+    },
+    "120": {
+      "nome": {
+        "it": "Scoppio magico",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Ignora la Resistenza critico e la Difesa critico del nemico.",
+        "en": "Ignores enemy Crit Resistance and Crit Defense."
+      },
+      "rimanda_a": null
+    },
+    "121": {
+      "nome": {
+        "it": "Catene del Purgatorio",
+        "en": "Shackles of Purgatory"
+      },
+      "descrizione": {
+        "it": "Riduce i danni subiti dagli alleati Demoni.",
+        "en": "Decreases Demon allies' damage taken."
+      },
+      "rimanda_a": null
+    },
+    "122": {
+      "nome": {
+        "it": null,
+        "en": "True Magic"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco, la Perforazione, la Possibilità critico e il Danno critico.",
+        "en": "Increases Attack, Pierce Rate, Crit Chance, and Crit Damage."
+      },
+      "rimanda_a": null
+    },
+    "123": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in proporzione ai PS rimanenti del nemico a ogni colpo, Aumento della Perforazione x2.",
+        "en": "Increases damage dealt proportional to the enemy's remaining HP every hit, 2x Pierce Rate Increase."
+      },
+      "rimanda_a": null
+    },
+    "124": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi pari alla metà della Perforazione dell'eroe.",
+        "en": "Additional damage equal to half of the hero's Pierce Rate."
+      },
+      "rimanda_a": null
+    },
+    "125": {
+      "nome": {
+        "it": "Sopprimi Danni subiti",
+        "en": "Suppress Damage Taken"
+      },
+      "descrizione": {
+        "it": "I danni subiti non superano una determinata percentuale dei PS massimi.",
+        "en": "Damage taken does not exceed a certain percentage of Max HP."
+      },
+      "rimanda_a": null
+    },
+    "126": {
+      "nome": {
+        "it": "Aumento Possibilità critico",
+        "en": "Crit Chance Increase"
+      },
+      "descrizione": {
+        "it": "Aumento Possibilità critico",
+        "en": "Crit Chance Increase"
+      },
+      "rimanda_a": null
+    },
+    "127": {
+      "nome": {
+        "it": "Aumento Danno critico",
+        "en": "Crit Damage Increase"
+      },
+      "descrizione": {
+        "it": "Aumento Danno critico",
+        "en": "Crit Damage Increase"
+      },
+      "rimanda_a": null
+    },
+    "128": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni Lucentezza del Sole.",
+        "en": "Increases damage dealt for every Brilliance of the Sun."
+      },
+      "rimanda_a": null
+    },
+    "129": {
+      "nome": {
+        "it": "Esplosione Macchia solare",
+        "en": "Sunspot Explosion"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni Macchia solare",
+        "en": "Increases damage dealt for every Sunspot."
+      },
+      "rimanda_a": null
+    },
+    "130": {
+      "nome": {
+        "it": "Macchia solare",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce i danni inflitti.",
+        "en": "Decreases damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "133": {
+      "nome": {
+        "it": "Marchio della Concentrazione",
+        "en": "Mark of Concentration"
+      },
+      "descrizione": {
+        "it": "Riduce la possibilità critico del bersaglio.",
+        "en": "Decreases target's Crit Chance."
+      },
+      "rimanda_a": null
+    },
+    "134": {
+      "nome": {
+        "it": "Cecchino",
+        "en": "Snipe"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti e i Danni critici per ogni Debuff.",
+        "en": "Increases damage dealt and Crit Damage for every Debuff."
+      },
+      "rimanda_a": null
+    },
+    "135": {
+      "nome": {
+        "it": "Sterminio",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Ignora il 50% della Resistenza critico, x2 aumento Danno critico.",
+        "en": "Ignores 50% of Crit Resistance, 2x Crit Damage Increase."
+      },
+      "rimanda_a": null
+    },
+    "136": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti per ogni Fiamma Eterna e Fuoco.",
+        "en": "Increases damage dealt for every Eternal Flame and Burn."
+      },
+      "rimanda_a": null
+    },
+    "137": {
+      "nome": {
+        "it": "Sradicamento",
+        "en": "Eradication"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco e Possibilità critico x2 quando usa un'abilità.",
+        "en": "Increases Attack and 2x Crit Chance when using a skill."
+      },
+      "rimanda_a": null
+    },
+    "138": {
+      "nome": {
+        "it": "Marchio della morte",
+        "en": "Mark of Death"
+      },
+      "descrizione": {
+        "it": "Riduce Resistenza critico e Difesa critico, limita le statistiche relative al Recupero.",
+        "en": "Decreases Crit Resistance and Crit Defense, restricts Recovery-related stats."
+      },
+      "rimanda_a": null
+    },
+    "139": {
+      "nome": {
+        "it": "Svenimento",
+        "en": "Blackout"
+      },
+      "descrizione": {
+        "it": "Disabilita certi tipi di abilità a seconda del livello.",
+        "en": "Disables certain skill types based on level."
+      },
+      "rimanda_a": null
+    },
+    "143": {
+      "nome": {
+        "it": "Dolore",
+        "en": "Pain"
+      },
+      "descrizione": {
+        "it": "Aumenta le statistiche relative all'attacco del 12% per ogni effetto Fonte di dolore sul bersaglio.",
+        "en": "Increases Attack-related stats by 12% for every Source of Pain effect on the target."
+      },
+      "rimanda_a": null
+    },
+    "144": {
+      "nome": {
+        "it": "Riduzione Danno critico",
+        "en": "Crit Damage Decrease"
+      },
+      "descrizione": {
+        "it": "Riduzione Danno critico",
+        "en": "Crit Damage Decrease"
+      },
+      "rimanda_a": null
+    },
+    "145": {
+      "nome": {
+        "it": "Pastore immortale",
+        "en": "Undying Shepherd"
+      },
+      "descrizione": {
+        "it": "Torna in vita con 1 PS quando muore, consumando tutte le sfere nella Barra Mossa finale.",
+        "en": "Revives with 1 HP when dying by consuming all orbs in the Ultimate Move Gauge."
+      },
+      "rimanda_a": null
+    },
+    "146": {
+      "nome": {
+        "it": "Impone Abilità a bersaglio singolo",
+        "en": "Force Single Target Skills"
+      },
+      "descrizione": {
+        "it": "Permette che vengano usate solo abilità a bersaglio singolo. (Include le Mosse finali)",
+        "en": "Allows only single target skills to be used. (Includes Ultimate Moves)"
+      },
+      "rimanda_a": null
+    },
+    "149": {
+      "nome": {
+        "it": "Riduzione Resistenza critico",
+        "en": "Crit Resistance Decrease"
+      },
+      "descrizione": {
+        "it": "Riduzione Resistenza critico",
+        "en": "Crit Resistance Decrease"
+      },
+      "rimanda_a": null
+    },
+    "150": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 Perforazione e aumento dei danni inflitti per ogni effetto Ira della Dea sull'eroe.",
+        "en": "3x Pierce Rate, and increases damage dealt for each Goddess's Wrath effect on the hero."
+      },
+      "rimanda_a": null
+    },
+    "151": {
+      "nome": {
+        "it": "Protezione della Dea",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Torna in vita con i PS che aveva prima di morire.",
+        "en": "Revives with the same amount of HP before dying."
+      },
+      "rimanda_a": null
+    },
+    "152": {
+      "nome": {
+        "it": null,
+        "en": "Fury"
+      },
+      "descrizione": {
+        "it": "1% di danni aggiuntivi per ogni percentuale di PS rimanenti su di sé e i danni inflitti aumentano quando l'Ira della Dea ha raggiunto il numero di accumuli massimi.",
+        "en": "1% additional damage for every percent of remaining HP on self, and damage dealt is increased when Goddess's Wrath is at max stacks."
+      },
+      "rimanda_a": null
+    },
+    "153": {
+      "nome": {
+        "it": "Intervento della Luce",
+        "en": "Intervention of Light"
+      },
+      "descrizione": {
+        "it": "Riduce le statistiche relative all'Attacco e la Barra Mossa finale del bersaglio.",
+        "en": "Decreases Attack-related stats and target's Ultimate Move Gauge."
+      },
+      "rimanda_a": null
+    },
+    "154": {
+      "nome": {
+        "it": "Estinzione",
+        "en": "Extinction"
+      },
+      "descrizione": {
+        "it": "x2 Aumento Danno critico. x2 Possibilità critico quando Tutto il creato è attivo.",
+        "en": "2x Crit Damage Increase. 2x Crit Chance when All Creation is active."
+      },
+      "rimanda_a": null
+    },
+    "155": {
+      "nome": {
+        "it": null,
+        "en": "Doom"
+      },
+      "descrizione": {
+        "it": "x2 Aumento Possibilità critico. Aumenta i danni inflitti per ogni Seme della fine sui nemici.",
+        "en": "2x Crit Chance Increase. Increases damage dealt for each Seed of the End on enemies."
+      },
+      "rimanda_a": null
+    },
+    "156": {
+      "nome": {
+        "it": "Seme della fine",
+        "en": "Seed of the End"
+      },
+      "descrizione": {
+        "it": "Riduzione statistiche relative alla Difesa",
+        "en": "Defense-related Stats Decrease"
+      },
+      "rimanda_a": null
+    },
+    "160": {
+      "nome": {
+        "it": "Lampo",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico, x2 danni inflitti sui nemici con Debuff.",
+        "en": "2x Crit Chance Increase, 2x damage dealt to Debuffed enemies."
+      },
+      "rimanda_a": null
+    },
+    "161": {
+      "nome": {
+        "it": "Sigillo dell'oscurità",
+        "en": "Seal of Darkness"
+      },
+      "descrizione": {
+        "it": "Limita le statistiche relative a Recupero, riduce i danni inflitti con abilità che colpiscono tutti i bersagli.",
+        "en": "Restricts Recovery-related stats, decreases damage dealt with all-target attacks."
+      },
+      "rimanda_a": null
+    },
+    "162": {
+      "nome": {
+        "it": "Potere del Caos",
+        "en": "Power of Chaos"
+      },
+      "descrizione": {
+        "it": "Aumenta tutte le statistiche, riduce i danni inflitti da Mosse finali.",
+        "en": "Increases all stats, decreases damage taken from Ultimate Moves."
+      },
+      "rimanda_a": null
+    },
+    "163": {
+      "nome": {
+        "it": "Evocazione del Caos",
+        "en": "Call of Chaos"
+      },
+      "descrizione": {
+        "it": "Aumenta la Difesa critico e i PS massimi.",
+        "en": "Increases Crit Defense and Max HP."
+      },
+      "rimanda_a": null
+    },
+    "164": {
+      "nome": {
+        "it": "Danni basati sui PS rimanenti",
+        "en": "Damage based on remaining HP"
+      },
+      "descrizione": {
+        "it": "Infligge danni in proporzione ai PS rimanenti dell'eroe.",
+        "en": "Deals damage proportional to the hero's remaining HP."
+      },
+      "rimanda_a": null
+    },
+    "165": {
+      "nome": {
+        "it": "Protezione pacifica",
+        "en": "Peaceful Protection"
+      },
+      "descrizione": {
+        "it": "Aumenta le statistiche di base e aumenta i ranghi abilità dell'eroe quando viene rimossa.",
+        "en": "Increases basic stats, increases the hero's skill ranks when removed."
+      },
+      "rimanda_a": null
+    },
+    "172": {
+      "nome": {
+        "it": "Castigo",
+        "en": "Retribution"
+      },
+      "descrizione": {
+        "it": "x2 Aumento Possibilità critico. I danni inflitti aumentano in base ai PS ridotti e PS rimanenti dell'eroe. Danni aggiuntivi pari al 50% dei danni finali (danni casuali quando provocano la morte).",
+        "en": "2x Crit Chance Increase. Damage dealt increase based on hero's remaining HP and diminished HP. Additional damage equal to 50% of final damage (random damage when resulting in death)."
+      },
+      "rimanda_a": null
+    },
+    "173": {
+      "nome": {
+        "it": "Fuoco furente",
+        "en": "Raging Fire"
+      },
+      "descrizione": {
+        "it": "Ignora la Difesa e la Resistenza del nemico. x2 aumento Perforazione.",
+        "en": "Ignores enemy Defense and Resistance. 2x Pierce Rate Increase."
+      },
+      "rimanda_a": null
+    },
+    "174": {
+      "nome": {
+        "it": "Fiamme dell'inferno",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Ignora le statistiche relative alla Difesa del nemico.",
+        "en": "Ignores enemy's Defense-related stats."
+      },
+      "rimanda_a": null
+    },
+    "175": {
+      "nome": {
+        "it": "Incenerire",
+        "en": "Incinerate"
+      },
+      "descrizione": {
+        "it": "Incenerisce i PS massimi del nemico",
+        "en": "Incinerates Enemy Max HP"
+      },
+      "rimanda_a": null
+    },
+    "176": {
+      "nome": {
+        "it": "Fiamme perpetue",
+        "en": "Everlasting Flame"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni subiti dalle abilità Fuoco furente.",
+        "en": "Increases damage taken from Raging Fire skills."
+      },
+      "rimanda_a": null
+    },
+    "177": {
+      "nome": {
+        "it": null,
+        "en": "Scorching Flame"
+      },
+      "descrizione": {
+        "it": "Riduce i danni inflitti. Danni aggiuntivi proporzionali ai PS rimanenti alla fine del turno.",
+        "en": "Decreases damage dealt. Additional damage proportional to remaining HP at the end of the turn."
+      },
+      "rimanda_a": null
+    },
+    "178": {
+      "nome": {
+        "it": "Lampo",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 Aumento Possibilità critico. Aumenta i danni inflitti contro i nemici colpiti da Attacco focalizzato.",
+        "en": "2x Crit Chance Increase. Increases damage dealt against enemies affected by Focused Attack."
+      },
+      "rimanda_a": null
+    },
+    "179": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico.",
+        "en": "3x Crit Chance and 3x Crit Damage Increase."
+      },
+      "rimanda_a": null
+    },
+    "180": {
+      "nome": {
+        "it": "Luna oscura",
+        "en": "Dark Moon"
+      },
+      "descrizione": {
+        "it": "x3 aumento Perforazione. Aumenta le statistiche relative all'Attacco quando usa un'abilità. Aumenta i danni inflitti per ogni nemico sconfitto.",
+        "en": "3x Pierce Rate Increase. Increases Attack-related stats when using skill. Increases damage dealt for each defeated enemy."
+      },
+      "rimanda_a": null
+    },
+    "181": {
+      "nome": {
+        "it": "Invasione mentale",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce le statistiche relative all'Attacco. Disabilita gli attacchi a bersaglio singolo o contro tutti quando viene rimosso.",
+        "en": "Decreases Attack-related stats. Disables single or all-target attacks when removed."
+      },
+      "rimanda_a": null
+    },
+    "182": {
+      "nome": {
+        "it": "Super invasione mentale",
+        "en": "Enhanced Mind Break"
+      },
+      "descrizione": {
+        "it": "Riduce le statistiche relative all'Attacco. Applica Stordimento quando viene rimosso.",
+        "en": "Decreases Attack-related stats. Applies Stun when removed."
+      },
+      "rimanda_a": null
+    },
+    "183": {
+      "nome": {
+        "it": "Colpo del tuono",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 Aumento Possibilità critico. Ignora la Difesa critico del nemico utilizzando un'abilità.",
+        "en": "2x Crit Chance Increase. Ignores enemy Crit Defense on skill use."
+      },
+      "rimanda_a": null
+    },
+    "184": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Danno critico. Ignora la Resistenza critico del nemico utilizzando un'abilità mentre Giudizio della Dea del Tuono è attivo.",
+        "en": "2x Crit Damage Increase. Ignores enemy Crit Resistance on skill use while Thundergod's Judgment is active."
+      },
+      "rimanda_a": null
+    },
+    "185": {
+      "nome": {
+        "it": "Giudizio della Dea del Tuono",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta le statistiche relative all'Attacco. Infligge danni aggiuntivi su tutti i nemici quando l'eroe usa un attacco a bersaglio singolo.",
+        "en": "Increases Attack-related stats. Inflicts additional damage to all enemies when the hero uses a single-target attack."
+      },
+      "rimanda_a": null
+    },
+    "186": {
+      "nome": {
+        "it": "Protezione della Dea del Tuono",
+        "en": "Thundergod's Protection"
+      },
+      "descrizione": {
+        "it": "Riduce i danni subiti da tutti gli alleati. L'eroe diventa immune a tutti i danni.",
+        "en": "Decreases allies' damage taken. The hero becomes immune to all damage."
+      },
+      "rimanda_a": null
+    },
+    "192": {
+      "nome": {
+        "it": "Sostegno ardente",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico. Ignora la Difesa e la Resistenza del nemico.",
+        "en": "2x Crit Chance Increase. Ignores enemy Defense and Resistance."
+      },
+      "rimanda_a": null
+    },
+    "193": {
+      "nome": {
+        "it": "Ferma volontà",
+        "en": "Firm Volition"
+      },
+      "descrizione": {
+        "it": "I danni che l'eroe subisce da abilità del nemico non superano il 50% dei PS massimi. Aumenta le statistiche relative all'Attacco e i danni inflitti.",
+        "en": "The hero's damage taken from enemy skills does not exceed 50% of Max HP. Increases Attack-related stats and damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "194": {
+      "nome": {
+        "it": "Tenebre",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Danno critico. Aumenta i danni inflitti per ogni Furia dell'Oscurità sui nemici.",
+        "en": "2x Crit Damage Increase. Increases damage dealt for each Darkness Unleashed on enemies."
+      },
+      "rimanda_a": null
+    },
+    "199": {
+      "nome": {
+        "it": null,
+        "en": "Corruption"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in proporzione ai PS rimanenti. Aumenta la Possibilità critico per ogni applicazione di Maledizione di Gram sui nemici.",
+        "en": "Increases damage dealt proportional to remaining HP. Increases Crit Chance for each instance of Gram's Curse applied to enemies."
+      },
+      "rimanda_a": null
+    },
+    "200": {
+      "nome": {
+        "it": "Impatto",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 Aumento Perforazione. Ignora Resistenza.",
+        "en": "3x Pierce Rate Increase. Ignores Resistance."
+      },
+      "rimanda_a": null
+    },
+    "201": {
+      "nome": {
+        "it": null,
+        "en": "Penetration"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco quando usa un'abilità. Aumenta i danni inflitti per la metà della Perforazione.",
+        "en": "Increases Attack when using skill. Increases damage dealt by half of Pierce Rate."
+      },
+      "rimanda_a": null
+    },
+    "202": {
+      "nome": {
+        "it": "Freccia lacerante",
+        "en": "Piercing Arrow"
+      },
+      "descrizione": {
+        "it": "Aumenta la Perforazione. Tutto viene rimosso infliggendo danni con attacchi contro tutti diversi dalla Mossa finale.",
+        "en": "Increases Pierce Rate. All removed when dealing damage with all-target attacks other than the Ultimate Move."
+      },
+      "rimanda_a": null
+    },
+    "203": {
+      "nome": {
+        "it": null,
+        "en": "Illumination"
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico. Aumenta i danni inflitti in proporzione al Danno critico. Aumenta l'Attacco quando usa un'abilità mentre Lama del giudizio è attivo.",
+        "en": "2x Crit Chance Increase. Increases damage dealt proportional to Crit Damage. Increases Attack when using a skill while Blade of Judgment is active."
+      },
+      "rimanda_a": null
+    },
+    "204": {
+      "nome": {
+        "it": "Bagliore d'ombra",
+        "en": "Shadowflare"
+      },
+      "descrizione": {
+        "it": "x2 aumento Perforazione. x2 aumento Danno critico. 2x aumento Possibilità critico quando usa un'abilità mentre Guardiani dell'armonia è attivo.",
+        "en": "2x Pierce Rate Increase. 2x Crit Damage Increase. 2x Crit Chance Increase when using a skill while Guardians of Harmony is active."
+      },
+      "rimanda_a": null
+    },
+    "205": {
+      "nome": {
+        "it": "Lama del giudizio",
+        "en": "Blade of Judgment"
+      },
+      "descrizione": {
+        "it": "Aumenta le statistiche relative all'Attacco. Danni aggiuntivi in proporzione all'Attacco iniziale.",
+        "en": "Increases Attack-related stats. Additional damage proportional to initial Attack."
+      },
+      "rimanda_a": null
+    },
+    "210": {
+      "nome": {
+        "it": "Distruzione",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico, x2 aumento Danno critico Danni aumentati ai nemici colpiti da Marchio vendicativo.",
+        "en": "2x Crit Chance Increase, 2x Crit Damage Increase. Increased damage to enemies affected by Mark of Retribution."
+      },
+      "rimanda_a": null
+    },
+    "211": {
+      "nome": {
+        "it": "Increspatura",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 Aumento Perforazione. Ignora la Difesa del nemico, aumenta l'Attacco quando usa un'abilità e aumenta i danni inflitti per ogni Ondata punitiva sul nemico.",
+        "en": "3x Pierce Rate Increase. Ignores enemy Defense, increases Attack when using skills, and increases damage dealt for each Punishing Wave on the enemy."
+      },
+      "rimanda_a": null
+    },
+    "212": {
+      "nome": {
+        "it": "Marchio vendicativo",
+        "en": "Mark of Retribution"
+      },
+      "descrizione": {
+        "it": "Riduzione statistiche relative all'Attacco",
+        "en": "Attack-related Stats Decrease"
+      },
+      "rimanda_a": null
+    },
+    "213": {
+      "nome": {
+        "it": "Increspatura luminosa",
+        "en": "Ripple of Light"
+      },
+      "descrizione": {
+        "it": "Fissa i danni da abilità a 1, incluse le Mosse finali. (Limite: una volta)",
+        "en": "Fixes skill damage dealt to 1, including Ultimate Moves. (Limit once)"
+      },
+      "rimanda_a": null
+    },
+    "214": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico. Aumenta i danni inflitti contro i nemici colpiti da Pugnalata.",
+        "en": "2x Crit Chance Increase. Increases damage dealt against enemies affected by Stab Wound."
+      },
+      "rimanda_a": null
+    },
+    "215": {
+      "nome": {
+        "it": null,
+        "en": "Soul"
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico, x3 aumento Perforazione. Aumenta i danni inflitti quando un alleato ha l'effetto Regressione.",
+        "en": "2x Crit Chance Increase, 3x Pierce Rate Increase. Increases damage dealt when an ally has the Retrogression effect."
+      },
+      "rimanda_a": null
+    },
+    "216": {
+      "nome": {
+        "it": "Regressione",
+        "en": "Retrogression"
+      },
+      "descrizione": {
+        "it": "Aumenta le statistiche relative all'Attacco e i PS non scendono sotto 1. Aumenta l'Attacco quando viene rimosso.",
+        "en": "Increases Attack-related stats, and HP does not fall below 1. Increases Attack when removed."
+      },
+      "rimanda_a": null
+    },
+    "217": {
+      "nome": {
+        "it": null,
+        "en": "Rampage"
+      },
+      "descrizione": {
+        "it": "x3 Aumento Perforazione. Aumenta l'Attacco dell'eroe quando usa un'abilità.",
+        "en": "3x Pierce Rate Increase. Increases hero's Attack when using a skill."
+      },
+      "rimanda_a": null
+    },
+    "224": {
+      "nome": {
+        "it": "Bagliore d'ombra",
+        "en": "Shadowgleam"
+      },
+      "descrizione": {
+        "it": "Aumenta la Possibilità critico. Aumenta i danni inflitti per ogni Buff sul campo di battaglia.",
+        "en": "Increases Crit Chance. Increases damage dealt for each buff on the battlefield."
+      },
+      "rimanda_a": null
+    },
+    "225": {
+      "nome": {
+        "it": "Montagna colossale",
+        "en": "Colossal Mountain"
+      },
+      "descrizione": {
+        "it": "Perforazione x2 Danni aggiuntivi pari ai PS rimanenti. Applica Pietrificazione sul bersaglio per 1 turno quando usa Ira del Re delle Fate per infliggere danni.",
+        "en": "2x Pierce Rate. Additional damage equal to remaining HP. Applies Petrify on the target for 1 turn when using Wrath of the Fairy King to deal damage."
+      },
+      "rimanda_a": null
+    },
+    "226": {
+      "nome": {
+        "it": "Punto luce",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumento Attacco, x2 aumento Possibilità critico e x2 aumento Danno critico utilizzando le abilità. Aumenta i danni inflitti in base al valore accumulato di Ira della Terra del bersaglio.",
+        "en": "Attack Increase, 2x Crit Chance Increase, and 2x Crit Damage Increase when using skills. Increases damage dealt according to the target's accumulated Wrath of the Earth value."
+      },
+      "rimanda_a": null
+    },
+    "227": {
+      "nome": {
+        "it": "Ira del Re delle Fate",
+        "en": "Wrath of the Fairy King"
+      },
+      "descrizione": {
+        "it": "Aumento statistiche relative all'Attacco, Riduzione Danni subiti",
+        "en": "Attack-related Stats Increase, Damage Taken Decrease"
+      },
+      "rimanda_a": null
+    },
+    "228": {
+      "nome": {
+        "it": "Scontro pirotecnico",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta la Possibilità critico. Aumenta il Danno critico per ogni effetto Marchio infernale sul bersaglio.",
+        "en": "Increases Crit Chance. Increases Crit Damage for each Hellbrand effect on the target."
+      },
+      "rimanda_a": null
+    },
+    "229": {
+      "nome": {
+        "it": "Marchio infernale",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta i danni subiti, riduce i danni inflitti. Danni aggiuntivi in proporzione ai PS massimi del bersaglio quando viene rimosso.",
+        "en": "Increases damage taken, decreases damage dealt. Additional damage proportional to the target's Max HP when removed."
+      },
+      "rimanda_a": null
+    },
+    "236": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico, x2 danni inflitti sui nemici con Debuff, danni inflitti aumentano contro i nemici colpiti da Maledizione nera.",
+        "en": "2x Crit Chance Increase, 2x damage dealt to Debuffed enemies, damage dealt increase against enemies affected by Pitch Black Curse."
+      },
+      "rimanda_a": null
+    },
+    "237": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Ignora la Difesa e la Resistenza del nemico, i danni inflitti aumentano in proporzione alla Perforazione.",
+        "en": "Ignores enemy Defense and Resistance, damage dealt increase proportional to Pierce Rate."
+      },
+      "rimanda_a": null
+    },
+    "238": {
+      "nome": {
+        "it": "Spada nera",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumento statistiche relative all'Attacco, aumento Danno critico",
+        "en": "Attack-related Stats Increase, Crit Damage Increase"
+      },
+      "rimanda_a": null
+    },
+    "239": {
+      "nome": {
+        "it": null,
+        "en": "Nightmare"
+      },
+      "descrizione": {
+        "it": "x3 aumento Perforazione, aumenta i danni inflitti mentre Furia è attivo.",
+        "en": "3x Pierce Rate Increase, increases damage dealt while Rampage is active."
+      },
+      "rimanda_a": null
+    },
+    "240": {
+      "nome": {
+        "it": null,
+        "en": "Blood Clot"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in base ai PS rimanenti del bersaglio e infligge danni aggiuntivi in base al valore di Patto di sangue accumulato.",
+        "en": "Increases damage dealt based on the target's remaining HP and inflicts additional damage based on accumulated Blood Pact value."
+      },
+      "rimanda_a": null
+    },
+    "241": {
+      "nome": {
+        "it": "Macchia di sangue",
+        "en": "Bloodstain"
+      },
+      "descrizione": {
+        "it": "Infligge danni aggiuntivi in base ai PS rimanenti del bersaglio.",
+        "en": "Inflicts additional damage based on the target's remaining HP."
+      },
+      "rimanda_a": null
+    },
+    "242": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Perforazione. Danni aggiuntivi pari al 100% di (Danno critico - 100%).",
+        "en": "2x Pierce Rate Increase. Additional damage equal to 100% of (Crit Damage - 100%)."
+      },
+      "rimanda_a": null
+    },
+    "243": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 aumento Perforazione, danni aggiuntivi proporzionali ai PS rimanenti del bersaglio, Disabilita Attacco contro tutti al bersaglio quando infligge danni mentre è attivo Fili della preveggenza.",
+        "en": "3x Pierce Rate Increase, additional damage proportional to the target's remaining HP, All-Target Attack Disable on the target when dealing damage while Threads of Foresight is active."
+      },
+      "rimanda_a": null
+    },
+    "244": {
+      "nome": {
+        "it": "Previsione",
+        "en": "Prevision"
+      },
+      "descrizione": {
+        "it": "x3 Aumento Possibilità critico, x3 Aumento Danno critico. Aumenta i danni inflitti per ogni Filo del destino applicato agli alleati.",
+        "en": "3x Crit Chance Increase, 3x Crit Damage Increase. Increases damage dealt for each Thread of Fate applied to allies."
+      },
+      "rimanda_a": null
+    },
+    "245": {
+      "nome": {
+        "it": "Fili della preveggenza",
+        "en": "Threads of Foresight"
+      },
+      "descrizione": {
+        "it": "Aumento di tutte le statistiche, Aumento statistiche relative all'Attacco, Aumento danni inflitti.",
+        "en": "All Stats Increase, Attack-related Stats Increase, Damage Dealt Increase."
+      },
+      "rimanda_a": null
+    },
+    "246": {
+      "nome": {
+        "it": "Atteggiamento di preveggenza",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Contrattacca prima di un attacco del nemico, tranne le Mosse Finali.",
+        "en": "Counters before an enemy's attack other than Ultimate Moves."
+      },
+      "rimanda_a": null
+    },
+    "247": {
+      "nome": {
+        "it": null,
+        "en": "Illusion"
+      },
+      "descrizione": {
+        "it": "x3 Aumento Perforazione. Danni inflitti +50% per ogni Re, Regina o Jack applicato agli alleati.",
+        "en": "3x Pierce Rate Increase. Damage dealt +50% for each King, Queen, or Jack applied to allies."
+      },
+      "rimanda_a": null
+    },
+    "248": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico, x2 aumento Danno critico Danni inflitti +100% quando Re, Regina o Jack sono attivi.",
+        "en": "2x Crit Chance Increase, 2x Crit Damage Increase. Damage dealt +100% when King, Queen, or Jack is active."
+      },
+      "rimanda_a": null
+    },
+    "249": {
+      "nome": {
+        "it": "Jolly",
+        "en": "Joker"
+      },
+      "descrizione": {
+        "it": "Aumenta il rango abilità e i danni inflitti.",
+        "en": "Increases Skill Ranks and damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "255": {
+      "nome": {
+        "it": "Alba",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico. Danni aggiuntivi pari al 30% dei PS massimi dell'eroe. Aumenta i danni inflitti con abilità mentre Patto del crepuscolo è attivo.",
+        "en": "2x Crit Chance Increase. Additional damage equal to 30% of the hero's Max HP. Increases damage dealt with skills while Twilight Covenant is active."
+      },
+      "rimanda_a": null
+    },
+    "256": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione. Aumenta i danni inflitti per ogni Benedizione dell'alba e Dominio dell'ombra.",
+        "en": "5x Pierce Rate Increase. Increases damage dealt for each Dawn's Blessing and Shadow's Dominion."
+      },
+      "rimanda_a": null
+    },
+    "257": {
+      "nome": {
+        "it": "Patto del crepuscolo",
+        "en": "Twilight Covenant"
+      },
+      "descrizione": {
+        "it": "Aumenta tutte le statistiche e i danni inflitti. Danni subiti fissi.",
+        "en": "Increases all stats and damage dealt. Fixed damage taken."
+      },
+      "rimanda_a": null
+    },
+    "258": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico. Aumenta i danni inflitti per ogni Buff sul campo di battaglia.",
+        "en": "2x Crit Chance Increase. Increases damage dealt for each buff on the battlefield."
+      },
+      "rimanda_a": null
+    },
+    "259": {
+      "nome": {
+        "it": "Scudo gelido",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduzione Danni subiti, Aumento PS massimi, Immunità al Congelamento, riduce i danni inflitti dai nemici che hanno subito danni da quest'abilità",
+        "en": "Damage Taken Decrease, Max HP Increase, Freeze Immunity, Decreases Damage Dealt by enemies that have been damaged by this skill"
+      },
+      "rimanda_a": null
+    },
+    "260": {
+      "nome": {
+        "it": "Esplosione di ghiaccio",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione. x2 danni inflitti contro bersagli con Atteggiamento. Danni aggiuntivi in proporzione all'Attacco iniziale. Danni aggiuntivi pari al 70% dei danni finali. (Danni casuali alla morte)",
+        "en": "5x Pierce Rate Increase. 2x damage dealt against targets assuming a Stance. Additional damage proportional to initial Attack. Additional damage equal to 70% of the final damage. (Random damage on death)"
+      },
+      "rimanda_a": null
+    },
+    "261": {
+      "nome": {
+        "it": null,
+        "en": "Radiant Heat"
+      },
+      "descrizione": {
+        "it": "Aumenta i danni inflitti in base alla Perforazione del duo di eroi. Danni aggiuntivi in proporzione ai PS iniziali.",
+        "en": "Increases damage dealt by based on the hero duo's Pierce Rate. Additional damage proportional to initial HP."
+      },
+      "rimanda_a": null
+    },
+    "262": {
+      "nome": {
+        "it": "Spazio infinito",
+        "en": "Infinite Space"
+      },
+      "descrizione": {
+        "it": "Crea una barriera in proporzione ai PS iniziali. Subisce danni solo da statistiche di base.",
+        "en": "Creates a barrier proportional to initial HP. Only takes damage from basic stats."
+      },
+      "rimanda_a": null
+    },
+    "263": {
+      "nome": {
+        "it": "Fiamme dell'obliterazione",
+        "en": "Flames of Obliteration"
+      },
+      "descrizione": {
+        "it": "Aumenta le statistiche relative all'Attacco e i coefficienti delle abilità. I PS non scendono sotto una certa soglia.",
+        "en": "Increases Attack-related stats and skill coefficients. HP does not fall below a certain threshold."
+      },
+      "rimanda_a": null
+    },
+    "264": {
+      "nome": {
+        "it": null,
+        "en": "Ablation"
+      },
+      "descrizione": {
+        "it": "x2 aumento Possibilità critico, x2 aumento Danno critico. Danni aumentati ai nemici con Debuff.",
+        "en": "2x Crit Chance Increase, 2x Crit Damage Increase. Increased damage to Debuffed enemies."
+      },
+      "rimanda_a": null
+    },
+    "265": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce i ranghi abilità all'inizio del turno, infligge danni in proporzione ai PS massimi, poi riduce la Barra Mossa finale.",
+        "en": "Decreases skill ranks at the start of the turn, inflicts damage proportional to Max HP, then decreases the Ultimate Move Gauge."
+      },
+      "rimanda_a": null
+    },
+    "275": {
+      "nome": {
+        "it": null,
+        "en": "Chain"
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione. Aumenta l'Attacco dell'80% quando usa l'abilità. Aumenta i danni inflitti mentre Catene del patto è attivo su di sé.",
+        "en": "5x Pierce Rate Increase. Increases Attack by 80% when using the skill. Increases damage dealt while Chains of the Covenant is active on self."
+      },
+      "rimanda_a": null
+    },
+    "276": {
+      "nome": {
+        "it": "Catena vincolante",
+        "en": "Binding Chain"
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Attacco +70% per ogni effetto Catene maledette sul bersaglio quando usa l'abilità.",
+        "en": "3x Crit Chance and 3x Crit Damage Increase. Attack +70% for each Cursed Chains effect on the target when using the skill."
+      },
+      "rimanda_a": null
+    },
+    "277": {
+      "nome": {
+        "it": "Catene maledette",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduzione statistiche relative all'Attacco",
+        "en": "Attack-related Stats Decrease"
+      },
+      "rimanda_a": null
+    },
+    "278": {
+      "nome": {
+        "it": "Cataclisma",
+        "en": "Cataclysm"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco e Danno critico x2 quando usa un'abilità.",
+        "en": "Increases Attack and 2x Crit Damage when using skill."
+      },
+      "rimanda_a": null
+    },
+    "289": {
+      "nome": {
+        "it": "Disabilita gli attacchi contro tutti i bersagli",
+        "en": "Disables all-target attacks"
+      },
+      "descrizione": {
+        "it": "Disabilita gli attacchi contro tutti i bersagli",
+        "en": "Disables all-target attacks"
+      },
+      "rimanda_a": null
+    },
+    "290": {
+      "nome": {
+        "it": "Distruzione oscura",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Aumento danni inflitti ai nemici colpiti da \"Fiamme infernali\".",
+        "en": "3x Crit Chance and 3x Crit Damage Increase. Increased damage dealt to enemies affected by \"Hell Blaze.\""
+      },
+      "rimanda_a": null
+    },
+    "291": {
+      "nome": {
+        "it": "Assalto oscuro",
+        "en": "Dark Assault"
+      },
+      "descrizione": {
+        "it": "x3 aumento Perforazione e x3 aumento Danno critico. Danni aggiuntivi in proporzione all'Attacco aumentato dell'eroe.",
+        "en": "3x Pierce Rate and 3x Crit Damage Increase. Additional damage proportional to the hero's increased Attack."
+      },
+      "rimanda_a": null
+    },
+    "292": {
+      "nome": {
+        "it": "\"Modalità assalto\"",
+        "en": "\"Assault Mode\""
+      },
+      "descrizione": {
+        "it": "Aumenta le statistiche relative all'Attacco e i danni inflitti. Non subisce danni da Riflessione o Contrattacco. Concede Immortalità e Immunità a Riduzione statistiche. Rimuove i Buff Barriera prima di sferrare attacchi contro tutti.",
+        "en": "Increases Attack-related stats and damage dealt. Does not take Reflect or Counter damage. Grants Immortality and Stat Decrease Immunity. Removes barrier buffs before unleashing all-target attacks."
+      },
+      "rimanda_a": null
+    },
+    "293": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni subiti aumentati, danni aggiuntivi in proporzione ai PS rimanenti alla fine di ogni turno.",
+        "en": "Increased damage taken, additional damage proportional to remaining HP at the end of every turn."
+      },
+      "rimanda_a": null
+    },
+    "294": {
+      "nome": {
+        "it": "Sprofondamento nell'ombra",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Riduce tutte le statistiche del 50%.",
+        "en": "Decreases all stats by 50%."
+      },
+      "rimanda_a": null
+    },
+    "295": {
+      "nome": {
+        "it": "Limitazione Rango",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Permette solo l'uso delle abilità Rango 2.",
+        "en": "Allows use of only Rank 2 skills."
+      },
+      "rimanda_a": null
+    },
+    "305": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione. Ignora il 100% della Difesa critico del nemico. x2 danni contro nemici con Debuff.",
+        "en": "5x Pierce Rate Increase. Ignores 100% of the enemy's Crit Defense. 2x damage against Debuffed enemies."
+      },
+      "rimanda_a": null
+    },
+    "306": {
+      "nome": {
+        "it": "Marchio oscuro",
+        "en": null
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai PS rimanenti del bersaglio.",
+        "en": "Additional damage proportional to the target's remaining HP."
+      },
+      "rimanda_a": null
+    },
+    "307": {
+      "nome": {
+        "it": "Desiderio irrefrenabile",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 aumento Perforazione. Danni inflitti aumentati ai nemici con Marchio del desiderio irrefrenabile.",
+        "en": "3x Pierce Rate Increase. Increased damage dealt to enemies with Mark of Craving."
+      },
+      "rimanda_a": null
+    },
+    "308": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 aumento Perforazione. Danni aggiuntivi pari al 120% di (Danno critico -100%).",
+        "en": "3x Pierce Rate Increase. Additional damage equal to 120% of (Crit Damage -100%)."
+      },
+      "rimanda_a": null
+    },
+    "309": {
+      "nome": {
+        "it": "Marchio del desiderio irrefrenabile",
+        "en": "Mark of Craving"
+      },
+      "descrizione": {
+        "it": "Riduce i danni inflitti e aumenta i danni subiti.",
+        "en": "Decreases damage dealt and increases damage taken."
+      },
+      "rimanda_a": null
+    },
+    "310": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Rimuove 2 sfere dalle Barre Mossa finale di tutti i nemici quando viene usato su un nemico congelato.",
+        "en": "3x Crit Chance and 3x Crit Damage Increase. Removes 2 orbs from all enemies' Ultimate Move Gauges when used on a Frozen enemy."
+      },
+      "rimanda_a": null
+    },
+    "311": {
+      "nome": {
+        "it": "Incursione",
+        "en": "Raid"
+      },
+      "descrizione": {
+        "it": "Aumenta l'Attacco quando usa un'abilità. Danni aumentati contro nemici con Debuff.",
+        "en": "Increases Attack when using skill. Increased damage against Debuffed enemies."
+      },
+      "rimanda_a": null
+    },
+    "312": {
+      "nome": {
+        "it": "Cirripede",
+        "en": "Barnacle"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai PS alla fine di ogni turno.",
+        "en": "Additional damage proportional to HP at the end of every turn."
+      },
+      "rimanda_a": null
+    },
+    "313": {
+      "nome": {
+        "it": "Fuoco solare",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione e x2 aumento Danno critico. Danni inflitti aumentati ai nemici colpiti da Folgorazione.",
+        "en": "5x Pierce Rate and 2x Crit Damage Increase. Increased damage dealt to enemies affected by Fulmination."
+      },
+      "rimanda_a": null
+    },
+    "314": {
+      "nome": {
+        "it": "Lucentezza",
+        "en": "Brilliance"
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Quando viene utilizzata mentre l'eroe ha Lucentezza, annulla gli Atteggiamenti del nemico e gli applica Stordimento per 1 turno.",
+        "en": "3x Crit Chance and 3x Crit Damage Increase. When used while the hero has Brilliance, it cancels the enemy's Stances and they are Stunned for 1 turn."
+      },
+      "rimanda_a": null
+    },
+    "315": {
+      "nome": {
+        "it": null,
+        "en": null
+      },
+      "descrizione": {
+        "it": "Aumenta tutte le statistiche e i danni inflitti.",
+        "en": "Increases all stats and damage dealt."
+      },
+      "rimanda_a": null
+    },
+    "316": {
+      "nome": {
+        "it": "Cattura",
+        "en": "Capture"
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione e x3 aumento Possibilità critico. x3 Danno critico quando viene usata mentre Orlo è attivo sull'eroe.",
+        "en": "5x Pierce Rate and 3x Crit Chance Increase. 3x Crit Damage when used while Brink is active on the hero."
+      },
+      "rimanda_a": null
+    },
+    "317": {
+      "nome": {
+        "it": "Spada volante",
+        "en": null
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione. Statistiche relative all'Attacco aumentate per ogni Lama sull'eroe quando usa un'abilità.",
+        "en": "5x Pierce Rate Increase. Attack-related stats increased for each Blade on the hero when using a skill."
+      },
+      "rimanda_a": null
+    },
+    "318": {
+      "nome": {
+        "it": "Lama",
+        "en": "Blade"
+      },
+      "descrizione": {
+        "it": "Aumento statistiche relative ai PS e aumento Perforazione",
+        "en": "HP-related Stats Increase and Pierce Rate Increase"
+      },
+      "rimanda_a": null
+    }
+  },
+  "gruppi_ricerca": {
+    "01": {
+      "etichetta": {
+        "it": "Effetti Attacco",
+        "en": null
+      },
+      "etichetta_da": "DB_skill_search_group_01"
+    },
+    "02": {
+      "etichetta": {
+        "it": "Effetti Debuff",
+        "en": null
+      },
+      "etichetta_da": "DB_skill_search_group_02"
+    },
+    "03": {
+      "etichetta": {
+        "it": "Effetti Buff",
+        "en": null
+      },
+      "etichetta_da": "DB_skill_search_group_03"
+    },
+    "04": {
+      "etichetta": {
+        "it": "Altri effetti",
+        "en": null
+      },
+      "etichetta_da": "DB_skill_search_group_04"
+    },
+    "05": {
+      "etichetta": {
+        "it": "Tutte le abilità",
+        "en": "All Skills"
+      },
+      "etichetta_da": "DB_skill_search_group_05"
+    }
+  },
+  "lacune": [
+    {
+      "cosa": "a quale gruppo di ricerca appartiene ogni voce",
+      "stato": "in DBSkillSearchInfoRow.search_skill_group, cifrata"
+    }
+  ]
+}

@@ -1,0 +1,559 @@
+{
+  "descrizione": "Le statistiche degli eroi e i loro gruppi. Le chiavi sono le colonne di DBCostumeBaseRow e i nomi di StatusData.TYPE in minuscolo.",
+  "generato_da": "concetti.py, nella pipeline _7dsgc",
+  "fonti": {
+    "DBCostumeBaseRow": "tabella dei costumi del client (dump.cs): le 12 colonne delle statistiche, in quest'ordine",
+    "StatusData.TYPE": "enum del client (dump.cs): le statistiche numerate, coi nomi delle colonne",
+    "DB_skill_search_*": "la tassonomia con cui il client filtra gli effetti: nomi ed elenchi dei gruppi",
+    "UI_skin_stat_*": "testi del client con i nomi delle statistiche",
+    "7dshub": "le statistiche per eroe e i costumi (database_eroi.json)"
+  },
+  "statistiche": {
+    "atk": {
+      "etichetta": {
+        "it": "Attacco",
+        "en": "Attack"
+      },
+      "etichetta_da": "DB_skill_search_desc_056 e DB_skill_search_desc_045, nome 1 di 4",
+      "gruppo": "attacco",
+      "posizione": 1,
+      "misura": "valore",
+      "status_type": 0,
+      "chiave_7dshub": "atk",
+      "token_enum": "atk",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 1 di 12 in DBCostumeBaseRow, posizione 1 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
+        "nome 1 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
+        "StatusData.TYPE ATK = 0 (stesso nome della colonna)",
+        "7dshub atk: la colonna in camelCase, in 373 eroi",
+        "costumi: i 2.833 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "fixed_atk_per": {
+      "etichetta": {
+        "it": "Perforazione",
+        "en": "Pierce Rate"
+      },
+      "etichetta_da": "DB_skill_search_desc_056 e DB_skill_search_desc_045, nome 2 di 4",
+      "gruppo": "attacco",
+      "posizione": 2,
+      "misura": "percentuale",
+      "status_type": 1,
+      "chiave_7dshub": "fixedAtkPer",
+      "token_enum": "fixed_atk",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 2 di 12 in DBCostumeBaseRow, posizione 2 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
+        "nome 2 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
+        "StatusData.TYPE FIXED_ATK_PER = 1 (stesso nome della colonna)",
+        "7dshub fixedAtkPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 2.833 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "crit_per": {
+      "etichetta": {
+        "it": "Possibilità critico",
+        "en": "Crit Chance"
+      },
+      "etichetta_da": "DB_skill_search_desc_056 e DB_skill_search_desc_045, nome 3 di 4",
+      "gruppo": "attacco",
+      "posizione": 3,
+      "misura": "percentuale",
+      "status_type": 4,
+      "chiave_7dshub": "critPer",
+      "token_enum": "crit",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 3 di 12 in DBCostumeBaseRow, posizione 3 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
+        "nome 3 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
+        "StatusData.TYPE CRIT_PER = 4 (stesso nome della colonna)",
+        "7dshub critPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 2.833 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "crit_atk_per": {
+      "etichetta": {
+        "it": "Danno critico",
+        "en": "Crit Damage"
+      },
+      "etichetta_da": "DB_skill_search_desc_056 e DB_skill_search_desc_045, nome 4 di 4",
+      "gruppo": "attacco",
+      "posizione": 4,
+      "misura": "percentuale",
+      "status_type": 5,
+      "chiave_7dshub": "critAtkPer",
+      "token_enum": "crit_atk",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 4 di 12 in DBCostumeBaseRow, posizione 4 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
+        "nome 4 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
+        "StatusData.TYPE CRIT_ATK_PER = 5 (stesso nome della colonna)",
+        "7dshub critAtkPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 2.833 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "def": {
+      "etichetta": {
+        "it": "Difesa",
+        "en": "Defense"
+      },
+      "etichetta_da": "DB_skill_search_desc_057 e DB_skill_search_desc_046, nome 1 di 4",
+      "gruppo": "difesa",
+      "posizione": 1,
+      "misura": "valore",
+      "status_type": 2,
+      "chiave_7dshub": "def",
+      "token_enum": "def",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 5 di 12 in DBCostumeBaseRow, posizione 1 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
+        "nome 1 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
+        "StatusData.TYPE DEF = 2 (stesso nome della colonna)",
+        "7dshub def: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.708 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "fixed_def_per": {
+      "etichetta": {
+        "it": "Resistenza",
+        "en": "Resistance"
+      },
+      "etichetta_da": "DB_skill_search_desc_057 e DB_skill_search_desc_046, nome 2 di 4",
+      "gruppo": "difesa",
+      "posizione": 2,
+      "misura": "percentuale",
+      "status_type": 3,
+      "chiave_7dshub": "fixedDefPer",
+      "token_enum": "fixed_def",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 6 di 12 in DBCostumeBaseRow, posizione 2 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
+        "nome 2 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
+        "StatusData.TYPE FIXED_DEF_PER = 3 (stesso nome della colonna)",
+        "7dshub fixedDefPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.708 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "crit_res_per": {
+      "etichetta": {
+        "it": "Resistenza critico",
+        "en": "Crit Resistance"
+      },
+      "etichetta_da": "DB_skill_search_desc_057 e DB_skill_search_desc_046, nome 3 di 4",
+      "gruppo": "difesa",
+      "posizione": 3,
+      "misura": "percentuale",
+      "status_type": 6,
+      "chiave_7dshub": "critResPer",
+      "token_enum": "crit_res",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 7 di 12 in DBCostumeBaseRow, posizione 3 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
+        "nome 3 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
+        "StatusData.TYPE CRIT_RES_PER = 6 (stesso nome della colonna)",
+        "7dshub critResPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.708 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "crit_def_per": {
+      "etichetta": {
+        "it": "Difesa critico",
+        "en": "Crit Defense"
+      },
+      "etichetta_da": "DB_skill_search_desc_057 e DB_skill_search_desc_046, nome 4 di 4",
+      "gruppo": "difesa",
+      "posizione": 4,
+      "misura": "percentuale",
+      "status_type": 7,
+      "chiave_7dshub": "critDefPer",
+      "token_enum": "crit_def",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 8 di 12 in DBCostumeBaseRow, posizione 4 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
+        "nome 4 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
+        "StatusData.TYPE CRIT_DEF_PER = 7 (stesso nome della colonna)",
+        "7dshub critDefPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.708 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "hp": {
+      "etichetta": {
+        "it": "PS",
+        "en": "HP"
+      },
+      "etichetta_da": "DB_skill_search_desc_058 e DB_skill_search_desc_047, nome 1 di 4",
+      "gruppo": "ps",
+      "posizione": 1,
+      "misura": "valore",
+      "status_type": 8,
+      "chiave_7dshub": "hp",
+      "token_enum": "hp",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 9 di 12 in DBCostumeBaseRow, posizione 1 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
+        "nome 1 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
+        "StatusData.TYPE MAX_HP = 8 (l'unico con MAX_ davanti: la colonna e' hp)",
+        "7dshub hp: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.049 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "hp_regen_per": {
+      "etichetta": {
+        "it": "Velocità di rigenerazione",
+        "en": "Regeneration Rate"
+      },
+      "etichetta_da": "DB_skill_search_desc_058 e DB_skill_search_desc_047, nome 2 di 4",
+      "gruppo": "ps",
+      "posizione": 2,
+      "misura": "percentuale",
+      "status_type": 10,
+      "chiave_7dshub": "hpRegenPer",
+      "token_enum": "hp_regen",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 10 di 12 in DBCostumeBaseRow, posizione 2 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
+        "nome 2 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
+        "StatusData.TYPE HP_REGEN_PER = 10 (stesso nome della colonna)",
+        "7dshub hpRegenPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.049 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "hp_recovery_per": {
+      "etichetta": {
+        "it": "Velocità di recupero",
+        "en": "Recovery Rate"
+      },
+      "etichetta_da": "DB_skill_search_desc_058 e DB_skill_search_desc_047, nome 3 di 4",
+      "gruppo": "ps",
+      "posizione": 3,
+      "misura": "percentuale",
+      "status_type": 9,
+      "chiave_7dshub": "hpRecoveryPer",
+      "token_enum": "hp_recovery",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 11 di 12 in DBCostumeBaseRow, posizione 3 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
+        "nome 3 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
+        "StatusData.TYPE HP_RECOVERY_PER = 9 (stesso nome della colonna)",
+        "7dshub hpRecoveryPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.049 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "hp_steal_per": {
+      "etichetta": {
+        "it": "Furto di vita",
+        "en": "Lifesteal"
+      },
+      "etichetta_da": "DB_skill_search_desc_058 e DB_skill_search_desc_047, nome 4 di 4",
+      "gruppo": "ps",
+      "posizione": 4,
+      "misura": "percentuale",
+      "status_type": 11,
+      "chiave_7dshub": "hpStealPer",
+      "token_enum": "hp_steal",
+      "certezza": "dedotto",
+      "prove": [
+        "colonna 12 di 12 in DBCostumeBaseRow, posizione 4 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
+        "nome 4 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
+        "StatusData.TYPE HP_STEAL_PER = 11 (stesso nome della colonna)",
+        "7dshub hpStealPer: la colonna in camelCase, in 373 eroi",
+        "costumi: i 3.049 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "dmg_res": {
+      "etichetta": {
+        "it": "Resistenza ai danni",
+        "en": "Damage Resistance"
+      },
+      "etichetta_da": "UI_skin_stat_14",
+      "gruppo": null,
+      "misura": null,
+      "status_type": 12,
+      "chiave_7dshub": "dmgRes",
+      "token_enum": null,
+      "certezza": "dedotto",
+      "prove": [
+        "StatusData.TYPE DMG_RES = 12",
+        "stesso nome: DMG_RES, dmgRes, «Damage Resistance»",
+        "7dshub dmgRes: in 373 eroi"
+      ]
+    },
+    "dmg_inc": {
+      "etichetta": {
+        "it": "Amplificazione danni",
+        "en": "Damage Amplification"
+      },
+      "etichetta_da": "UI_skin_stat_15",
+      "gruppo": null,
+      "misura": null,
+      "status_type": 13,
+      "chiave_7dshub": null,
+      "token_enum": null,
+      "certezza": "dedotto",
+      "prove": [
+        "StatusData.TYPE DMG_INC = 13",
+        "per vicinanza: UI_skin_stat_14 e _15 seguono DMG_RES e DMG_INC, e «Damage Amplification» non ripete il nome"
+      ]
+    }
+  },
+  "gruppi": {
+    "attacco": {
+      "etichetta": {
+        "it": "Statistiche relative all'Attacco",
+        "en": "Attack-related Stats"
+      },
+      "etichetta_da": "DB_skill_search_name_056, senza «Aumento» / «Increase»",
+      "membri": [
+        "atk",
+        "fixed_atk_per",
+        "crit_per",
+        "crit_atk_per"
+      ],
+      "tassonomia": {
+        "aumento": "056",
+        "riduzione": "045"
+      },
+      "costume": {
+        "costume_stat_type": 1,
+        "pezzo": "arma",
+        "pezzi": 2833
+      },
+      "certezza": "dichiarato",
+      "prove": [
+        "DB_skill_search_desc_056: «Increases Attack, Pierce Rate, Crit Chance, and Crit Damage.»",
+        "DB_skill_search_desc_056: «Aumenta l'Attacco, la Perforazione, la Possibilità critico e il Danno critico.»",
+        "costumi: i 2.833 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "difesa": {
+      "etichetta": {
+        "it": "Statistiche relative alla Difesa",
+        "en": "Defense-related Stats"
+      },
+      "etichetta_da": "DB_skill_search_name_057, senza «Aumento» / «Increase»",
+      "membri": [
+        "def",
+        "fixed_def_per",
+        "crit_res_per",
+        "crit_def_per"
+      ],
+      "tassonomia": {
+        "aumento": "057",
+        "riduzione": "046"
+      },
+      "costume": {
+        "costume_stat_type": 5,
+        "pezzo": "corpo",
+        "pezzi": 3708
+      },
+      "certezza": "dichiarato",
+      "prove": [
+        "DB_skill_search_desc_057: «Increases Defense, Resistance, Crit Resistance, and Crit Defense.»",
+        "DB_skill_search_desc_057: «Aumenta la Difesa, la Resistenza, la Resistenza critico e la Difesa critico.»",
+        "costumi: i 3.708 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "ps": {
+      "etichetta": {
+        "it": "Statistiche relative ai PS",
+        "en": "HP-related Stats"
+      },
+      "etichetta_da": "DB_skill_search_name_058, senza «Aumento» / «Increase»",
+      "membri": [
+        "hp",
+        "hp_regen_per",
+        "hp_recovery_per",
+        "hp_steal_per"
+      ],
+      "tassonomia": {
+        "aumento": "058",
+        "riduzione": "047"
+      },
+      "costume": {
+        "costume_stat_type": 9,
+        "pezzo": "testa",
+        "pezzi": 3049
+      },
+      "certezza": "dichiarato",
+      "prove": [
+        "DB_skill_search_desc_058: «Increases HP, Regeneration Rate, Recovery Rate, and Lifesteal.»",
+        "DB_skill_search_desc_058: «Aumenta i PS, la Velocità di rigenerazione, la Velocità di recupero e il Furto di vita.»",
+        "costumi: i 3.049 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+      ]
+    },
+    "base": {
+      "etichetta": {
+        "it": "Statistiche di base",
+        "en": "Basic Stats"
+      },
+      "etichetta_da": "DB_skill_search_name_059, senza «Aumento» / «Increase»",
+      "membri": [
+        "atk",
+        "def",
+        "hp"
+      ],
+      "tassonomia": {
+        "aumento": "059",
+        "riduzione": null
+      },
+      "certezza": "dichiarato",
+      "prove": [
+        "DB_skill_search_desc_059: «Increases Attack, Defense, and HP.»",
+        "DB_skill_search_desc_059: «Aumenta l'Attacco, la Difesa e i PS.»"
+      ]
+    },
+    "tutte": {
+      "etichetta": {
+        "it": "Tutte le statistiche",
+        "en": "All Stats"
+      },
+      "etichetta_da": "DB_skill_search_name_102, senza «Aumento» / «Increase»",
+      "gruppi": [
+        "attacco",
+        "difesa",
+        "ps"
+      ],
+      "membri": [
+        "atk",
+        "fixed_atk_per",
+        "crit_per",
+        "crit_atk_per",
+        "def",
+        "fixed_def_per",
+        "crit_res_per",
+        "crit_def_per",
+        "hp",
+        "hp_regen_per",
+        "hp_recovery_per",
+        "hp_steal_per"
+      ],
+      "tassonomia": {
+        "aumento": "102",
+        "riduzione": "103"
+      },
+      "certezza": "dichiarato",
+      "prove": [
+        "DB_skill_search_desc_102: «Attack-related Stats, Defense-related Stats, HP-related Stats Increase»"
+      ]
+    }
+  },
+  "campi_7dshub_non_nominati": {
+    "atkAdd": {
+      "significato": null,
+      "valori": {
+        "base": {
+          "min": 22,
+          "max": 57,
+          "distinti": 27
+        }
+      }
+    },
+    "atkIncPer": {
+      "significato": null,
+      "valori": {
+        "base": {
+          "min": 100,
+          "max": 100,
+          "distinti": 1
+        },
+        "max": {
+          "min": 100,
+          "max": 100,
+          "distinti": 1
+        },
+        "max_con_equipaggiamento": {
+          "min": 130,
+          "max": 130,
+          "distinti": 1
+        }
+      }
+    },
+    "defAdd": {
+      "significato": null,
+      "valori": {
+        "base": {
+          "min": 15,
+          "max": 60,
+          "distinti": 35
+        }
+      }
+    },
+    "defIncPer": {
+      "significato": null,
+      "valori": {
+        "base": {
+          "min": 100,
+          "max": 100,
+          "distinti": 1
+        },
+        "max": {
+          "min": 100,
+          "max": 100,
+          "distinti": 1
+        },
+        "max_con_equipaggiamento": {
+          "min": 150,
+          "max": 150,
+          "distinti": 1
+        }
+      }
+    },
+    "fPower": {
+      "significato": null,
+      "valori": {
+        "eccesso": {
+          "min": 1500,
+          "max": 1500,
+          "distinti": 1
+        },
+        "max": {
+          "min": 1500,
+          "max": 1500,
+          "distinti": 1
+        },
+        "max_con_equipaggiamento": {
+          "min": 1500,
+          "max": 1500,
+          "distinti": 1
+        }
+      }
+    },
+    "hpAdd": {
+      "significato": null,
+      "valori": {
+        "base": {
+          "min": 380,
+          "max": 740,
+          "distinti": 57
+        }
+      }
+    },
+    "hpIncPer": {
+      "significato": null,
+      "valori": {
+        "base": {
+          "min": 100,
+          "max": 100,
+          "distinti": 1
+        },
+        "max": {
+          "min": 100,
+          "max": 100,
+          "distinti": 1
+        },
+        "max_con_equipaggiamento": {
+          "min": 150,
+          "max": 150,
+          "distinti": 1
+        }
+      }
+    }
+  },
+  "lacune": [
+    {
+      "cosa": "significato dei campi di 7dshub fuori dal client",
+      "stato": "atkAdd, atkIncPer, defAdd, defIncPer, fPower, hpAdd, hpIncPer: valori misurati, significato non accertato"
+    }
+  ]
+}

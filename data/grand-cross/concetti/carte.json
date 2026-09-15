@@ -1,0 +1,553 @@
+{
+  "descrizione": "Le carte e le abilita': slot, tipo di attacco, gittata, bersaglio. Le chiavi dei tipi, delle gittate e dei bersagli sono i codici degli enum del client.",
+  "generato_da": "concetti.py, nella pipeline _7dsgc",
+  "fonti": {
+    "DBSkinSkillRow / DBHeroBaseRow / DBCostumeBaseRow": "tabelle del client (dump.cs): dove stanno le abilita' di un eroe",
+    "SkillCardObject.ATTACK_TYPE / RANGE_TYPE": "enum del client (dump.cs)",
+    "SkillEffectEnum.TARGET": "enum del client (dump.cs)",
+    "UI_battle_tutorial_title_* / DB_skill_search_name_*": "testi del client coi nomi dei tipi di abilita'",
+    "7dshub": "range e attackType di ogni rango; il bersaglio letto dal testo (contesto_eroi.py)"
+  },
+  "note": {
+    "uso": "quanti ranghi dei dati hanno quel codice, per slot",
+    "gittate": "melee e range NON sono il numero di bersagli: vedi le prove"
+  },
+  "slot": {
+    "A": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "colonne": [
+        "DBSkinSkillRow.skill_a_1_id",
+        "DBSkinSkillRow.skill_a_2_id",
+        "DBSkinSkillRow.skill_a_3_id"
+      ],
+      "ranghi_nel_client": 3,
+      "chiave_7dshub": "skillsA",
+      "ranghi_nei_dati": 1119,
+      "certezza": "dichiarato",
+      "prove": [],
+      "campi_collegati": [
+        "skill_a_draw_per",
+        "skill_a_2_logic_cam",
+        "skill_a_3_logic_cam"
+      ]
+    },
+    "B": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "colonne": [
+        "DBSkinSkillRow.skill_b_1_id",
+        "DBSkinSkillRow.skill_b_2_id",
+        "DBSkinSkillRow.skill_b_3_id"
+      ],
+      "ranghi_nel_client": 3,
+      "chiave_7dshub": "skillsB",
+      "ranghi_nei_dati": 1119,
+      "certezza": "dichiarato",
+      "prove": [],
+      "campi_collegati": [
+        "skill_b_draw_per",
+        "skill_b_2_logic_cam",
+        "skill_b_3_logic_cam"
+      ]
+    },
+    "ultimate": {
+      "etichetta": {
+        "it": "Mossa finale",
+        "en": "Ultimate Move"
+      },
+      "etichetta_da": "UI_sort_condition_510014",
+      "colonne": [
+        "DBSkinSkillRow.special_id_1",
+        "DBSkinSkillRow.special_id_2",
+        "DBSkinSkillRow.special_id_3",
+        "DBSkinSkillRow.special_id_4",
+        "DBSkinSkillRow.special_id_5",
+        "DBSkinSkillRow.special_id_6"
+      ],
+      "ranghi_nel_client": 6,
+      "chiave_7dshub": "skillsSpecial",
+      "ranghi_nei_dati": 2238,
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "coop": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "colonne": [
+        "DBHeroBaseRow.hero_coop_main",
+        "DBHeroBaseRow.hero_coop_sub"
+      ],
+      "ranghi_nel_client": null,
+      "chiave_7dshub": "skillsCoop",
+      "ranghi_nei_dati": 336,
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "passiva": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "colonne": [
+        "DBCostumeBaseRow.passive_id",
+        "DBCostumeBaseRow.list_array_add_passive_id"
+      ],
+      "ranghi_nel_client": null,
+      "chiave_7dshub": "passive",
+      "ranghi_nei_dati": 495,
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "talento": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "colonne": [
+        "DBSkinSkillRow.ability_id"
+      ],
+      "ranghi_nel_client": null,
+      "chiave_7dshub": null,
+      "ranghi_nei_dati": 0,
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "contrattacco": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "colonne": [
+        "DBSkinSkillRow.counter_attack_1_id",
+        "DBSkinSkillRow.counter_attack_2_id",
+        "DBSkinSkillRow.counter_attack_3_id"
+      ],
+      "ranghi_nel_client": 3,
+      "chiave_7dshub": null,
+      "ranghi_nei_dati": 0,
+      "certezza": "dichiarato",
+      "prove": []
+    }
+  },
+  "tipi_attacco": {
+    "1": {
+      "etichetta": {
+        "it": "Attacco",
+        "en": "Attack"
+      },
+      "etichetta_da": {
+        "it": "UI_battle_tutorial_title_23",
+        "en": "DB_skill_search_name_040"
+      },
+      "enum": "atk",
+      "uso": {
+        "A": 863,
+        "ultimate": 1734,
+        "B": 493,
+        "coop": 216
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "UI_battle_tutorial_title_23: «Abilità Attacco»",
+        "DB_skill_search_name_040: «Attack Disable» / «Attacco disabilitato»"
+      ]
+    },
+    "2": {
+      "etichetta": {
+        "it": "Buff",
+        "en": "Buff"
+      },
+      "etichetta_da": {
+        "it": "UI_battle_tutorial_title_24",
+        "en": "DB_skill_search_name_041"
+      },
+      "enum": "buff",
+      "uso": {
+        "B": 153,
+        "ultimate": 90,
+        "coop": 12
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "UI_battle_tutorial_title_24: «Abilità Buff»",
+        "DB_skill_search_name_041: «Buff Disable» / «Non può usare le abilità Buff»"
+      ]
+    },
+    "3": {
+      "etichetta": {
+        "it": "Debuff",
+        "en": "Debuff"
+      },
+      "etichetta_da": {
+        "it": "UI_battle_tutorial_title_26",
+        "en": "DB_skill_search_name_042"
+      },
+      "enum": "debuff",
+      "uso": {
+        "B": 78,
+        "A": 2,
+        "ultimate": 12
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "UI_battle_tutorial_title_26: «Abilità Debuff»",
+        "DB_skill_search_name_042: «Debuff Disable» / «Non può usare le abilità Debuff»"
+      ]
+    },
+    "4": {
+      "etichetta": {
+        "it": "Attacco debuff",
+        "en": "Debuff Atk"
+      },
+      "etichetta_da": {
+        "it": "UI_battle_tutorial_title_27",
+        "en": "UI_battle_tutorial_title_27"
+      },
+      "enum": "debuff_atk",
+      "uso": {
+        "A": 251,
+        "B": 251,
+        "ultimate": 354,
+        "coop": 90
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "UI_battle_tutorial_title_27: «Debuff Atk Skills» / «Abilità Attacco debuff»"
+      ]
+    },
+    "5": {
+      "etichetta": {
+        "it": "Recupero",
+        "en": "Recovery"
+      },
+      "etichetta_da": {
+        "it": "UI_battle_tutorial_title_28",
+        "en": "DB_skill_search_name_043"
+      },
+      "enum": "heal",
+      "uso": {
+        "B": 60,
+        "ultimate": 36,
+        "coop": 18
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "UI_battle_tutorial_title_28: «Abilità Recupero»",
+        "DB_skill_search_name_043: «Recovery Disable» / «Disabilita Recupero»"
+      ]
+    },
+    "6": {
+      "etichetta": {
+        "it": "Atteggiamento Difesa",
+        "en": "Defense Stance"
+      },
+      "etichetta_da": {
+        "it": "DB_skill_search_name_068",
+        "en": "DB_skill_search_name_068"
+      },
+      "enum": "defence_pose",
+      "uso": {
+        "B": 39,
+        "A": 3
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "UI_battle_tutorial_title_25: «Stance Skills» / «Abilità Atteggiamento»",
+        "DB_skill_search_name_068: «Defense Stance» / «Atteggiamento Difesa»"
+      ]
+    },
+    "7": {
+      "etichetta": {
+        "it": "Atteggiamento Contrattacco",
+        "en": "Counter Stance"
+      },
+      "etichetta_da": {
+        "it": "DB_skill_search_name_067",
+        "en": "DB_skill_search_name_067"
+      },
+      "enum": "counter_pose",
+      "uso": {
+        "B": 45,
+        "ultimate": 12
+      },
+      "certezza": "dedotto",
+      "prove": [
+        "UI_battle_tutorial_title_25: «Stance Skills» / «Abilità Atteggiamento»",
+        "DB_skill_search_name_067: «Counter Stance» / «Atteggiamento Contrattacco»"
+      ]
+    },
+    "8": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "exceptional",
+      "uso": {},
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "9": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "exceptional_atk",
+      "uso": {},
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "10": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "ability_heal",
+      "uso": {},
+      "talento_di": "heal",
+      "certezza": "dedotto",
+      "prove": [
+        "le icone dei Talenti ability_icon_10..15 (cuore, onda, teschio, frecce in cerchio, spada, spada e scudo, riconosciute a vista: abilita_speciali.py) hanno gli stessi numeri dei tipi ability_heal 10 ... ability_counter_pose 15"
+      ]
+    },
+    "11": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "ability_buff",
+      "uso": {},
+      "talento_di": "buff",
+      "certezza": "dedotto",
+      "prove": [
+        "le icone dei Talenti ability_icon_10..15 (cuore, onda, teschio, frecce in cerchio, spada, spada e scudo, riconosciute a vista: abilita_speciali.py) hanno gli stessi numeri dei tipi ability_heal 10 ... ability_counter_pose 15"
+      ]
+    },
+    "12": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "ability_debuff",
+      "uso": {},
+      "talento_di": "debuff",
+      "certezza": "dedotto",
+      "prove": [
+        "le icone dei Talenti ability_icon_10..15 (cuore, onda, teschio, frecce in cerchio, spada, spada e scudo, riconosciute a vista: abilita_speciali.py) hanno gli stessi numeri dei tipi ability_heal 10 ... ability_counter_pose 15"
+      ]
+    },
+    "13": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "ability_mode",
+      "uso": {},
+      "talento_di": null,
+      "certezza": "dichiarato",
+      "prove": [
+        "le icone dei Talenti ability_icon_10..15 (cuore, onda, teschio, frecce in cerchio, spada, spada e scudo, riconosciute a vista: abilita_speciali.py) hanno gli stessi numeri dei tipi ability_heal 10 ... ability_counter_pose 15"
+      ]
+    },
+    "14": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "ability_attack",
+      "uso": {},
+      "talento_di": "atk",
+      "certezza": "dedotto",
+      "prove": [
+        "le icone dei Talenti ability_icon_10..15 (cuore, onda, teschio, frecce in cerchio, spada, spada e scudo, riconosciute a vista: abilita_speciali.py) hanno gli stessi numeri dei tipi ability_heal 10 ... ability_counter_pose 15"
+      ]
+    },
+    "15": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": {
+        "it": null,
+        "en": null
+      },
+      "enum": "ability_counter_pose",
+      "uso": {},
+      "talento_di": "counter_pose",
+      "certezza": "dedotto",
+      "prove": [
+        "le icone dei Talenti ability_icon_10..15 (cuore, onda, teschio, frecce in cerchio, spada, spada e scudo, riconosciute a vista: abilita_speciali.py) hanno gli stessi numeri dei tipi ability_heal 10 ... ability_counter_pose 15"
+      ]
+    }
+  },
+  "gittate": {
+    "1": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "enum": "melee",
+      "uso": {
+        "A": 597,
+        "ultimate": 859,
+        "B": 246,
+        "coop": 336
+      },
+      "certezza": "dichiarato",
+      "prove": [
+        "ranghi con il bersaglio letto nel testo: single_enemy 1.459 (72%), global_enemy 489 (24%), nessuno 72 (4%), global_ally 18 (1%)",
+        "il gioco nomina le abilita' «melee» in 3 nomi di effetto, es. DB_skill_buff_name_3551: «Evade Melee Skill»"
+      ]
+    },
+    "2": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "enum": "range",
+      "uso": {
+        "A": 522,
+        "B": 873,
+        "ultimate": 1379
+      },
+      "certezza": "dichiarato",
+      "prove": [
+        "ranghi con il bersaglio letto nel testo: global_enemy 1.332 (48%), single_enemy 979 (35%), global_ally 253 (9%), nessuno 193 (7%), single_ally 17 (1%)"
+      ]
+    }
+  },
+  "bersagli": {
+    "0": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "enum": "self",
+      "forme_nel_testo_en": [],
+      "uso": {},
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "1": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "enum": "single_ally",
+      "forme_nel_testo_en": [
+        "one ally"
+      ],
+      "uso": {
+        "B": 17
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "2": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "enum": "single_enemy",
+      "forme_nel_testo_en": [
+        "one enemy"
+      ],
+      "uso": {
+        "A": 918,
+        "B": 284,
+        "ultimate": 1026,
+        "coop": 210
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "3": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "enum": "global_ally",
+      "forme_nel_testo_en": [
+        "all allies"
+      ],
+      "uso": {
+        "B": 163,
+        "ultimate": 90,
+        "coop": 18
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    },
+    "4": {
+      "etichetta": {
+        "it": null,
+        "en": null
+      },
+      "etichetta_da": null,
+      "enum": "global_enemy",
+      "forme_nel_testo_en": [
+        "all enemies"
+      ],
+      "uso": {
+        "ultimate": 1002,
+        "B": 531,
+        "A": 192,
+        "coop": 96
+      },
+      "certezza": "dichiarato",
+      "prove": []
+    }
+  },
+  "lacune": [
+    {
+      "cosa": "nomi di gittate e bersagli",
+      "stato": "nessun testo del client che li nomini come categoria; restano i nomi degli enum"
+    }
+  ]
+}
