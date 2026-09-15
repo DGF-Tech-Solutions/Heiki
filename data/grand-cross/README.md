@@ -138,7 +138,7 @@ Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
 | `carte_base.json` | 4.044 ranghi (A 1.119, B 1.119, ultimate 1.674, coop 132): colonne, proposizioni, schema |
 | `carte_buff.json` | 1.704 righe di buff: 1.205 nominate dai modelli del client, 499 dette solo dalla lettura delle forme |
 | `carte_opzioni.json` | 2.578 righe di opzioni: 913 dai modelli del client, 1.665 dalla lettura delle forme |
-| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 263 con la loro lettura |
+| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 436 con la loro lettura |
 | `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
 | `conferme_letture.json` | le decisioni dell'utente sulle letture, dalla pagina di revisione: compilato a mano, nessuno script lo sovrascrive; non c'è finché non si decide la prima frase |
 
@@ -303,10 +303,10 @@ Decisioni dell'utente (15/09):
 
 | campo | |
 |---|---|
-| `tabella` | `base`, `buff` o `opzione`; manca in una `definizione`, che non ha numeri |
+| `tabella` | `base`, `buff` o `opzione`; manca dove l'effetto non ha numeri e la frase non dice la tabella: una `definizione`, «Decreases skill ranks» |
 | `colonne` | colonna → numero del buco, contato come in `dal_modello` fra tutti i `<V>`, `<T>`, `<K>` |
 | `bersaglio`, `termine` | il buco che va nella colonna `target` della carta; il buco del termine spiegato in nota |
-| `effetto` | `danno`, `cura`, `statistiche`, `rimozione`, `disabilita`, `barra`, `termine`, `danni_inflitti`, `danno_nel_tempo`, `definizione` |
+| `effetto` | `danno`, `cura`, `statistiche`, `rimozione`, `disabilita`, `barra`, `termine`, `danni_inflitti`, `danno_nel_tempo`, `definizione`, `voce` (l'effetto è una voce della tassonomia detta per nome: «Grants Debuff Immunity» è Immunity) |
 | `cosa`, `verso` | cosa si rimuove o si disabilita; `aumento` o `riduzione` |
 | `statistiche`, `in_base_a` | percorsi in `concetti/statistiche.json`: `statistiche.atk`, `gruppi.base` |
 | `a_chi` | un bersaglio di `concetti/carte.json` (`global_enemy`), `self`, o `bersaglio` per il bersaglio della carta |
@@ -326,22 +326,51 @@ ognuna delle sue):
 
 | regola | proposizioni |
 |---|---|
-| danno | 3.356 |
+| danno | 3.476 |
 | nota_statistica («5x Pierce Rate Increase») | 1.026 |
 | nota_danno («3x damage against Debuffed enemies») | 910 |
-| statistiche | 701 |
+| statistiche | 755 |
+| definizione_nota («※Charge: Ignores Defense» è la voce Charge) | 661 |
 | rimozione | 501 |
 | termine («Makes target(s) `<K>` for `<V>`») | 409 |
 | definizione (la frase è la descrizione di una voce della tassonomia) | 247 |
-| barra | 233 |
-| le altre otto | 528 |
+| barra | 238 |
+| nota_danno_in_base («Additional damage equal to `<V>` of (Crit Damage - `<V>`)») | 162 |
+| disabilita | 154 |
+| termine_contato («Applies `<V>` `<K>` effects for `<V>`») | 145 |
+| voce_applicata («Applies Mark of Craving on `<T>` for `<V>`») | 136 |
+| nota_danno_nel_tempo | 136 |
+| le altre 26 | 769 |
 
-Forme lette: 263 su 739. Proposizioni lette: 7.649 su 10.799. Nel corpo sono
-5.267 su 6.890 (76%), nelle note 2.382 su 3.903 (61%).
+Forme lette: 436 su 739. Proposizioni lette: 9.339 su 10.799 (86%). Nel corpo sono
+6.095 su 6.890 (88%), nelle note 3.244 su 3.903 (83%).
+
+**Le regole del 15/09 notte.** Il primo giro leggeva 263 forme. Le regole aggiunte
+dopo stanno in coda alle altre, così una forma già letta si legge come prima: le 263
+letture di prima, confrontate una per una, non sono cambiate. Sono di tre tipi:
+- varianti delle famiglie di prima: «Inflicting `<V>` of Attack», «Decreases damage
+  taken by `<V>` when attacked for `<V>`», due statistiche con gli stessi turni, lo
+  svuotamento della barra alla fine del turno nemico (un buff e non un'opzione: il
+  modello lo marca `{buff_N_val}`)
+- un effetto nuovo, `voce`, per quello che nessun altro effetto dice: la frase nomina
+  una voce della tassonomia («Applies Mark of Craving», «Taunts enemies», «Grants
+  Debuff Immunity», «Creates a barrier») o ne ripete una frase della descrizione
+  («allows only single target skills to be used» è la 146)
+- le note senza numeri, che si agganciano alla voce col nome della nota:
+  «※Charge: Ignores Defense» è la 005, anche se la tassonomia la descrive «Ignore
+  Defense.». Vale solo se tutte le note in cui la frase compare hanno il nome di una
+  voce, e la frase non sta mai nel corpo. «Incapacitates target» sta sotto Freeze e
+  Petrify, e la lettura nomina tutte e due
+
+Quello che di proposito non si legge: il numero degli effetti applicati («Applies 2
+Ignite effects»), perché i modelli lo scrivono sempre a mano e `{number_N_val}` il
+client lo usa una volta sola, per le attivazioni di una postura; e il valore di una
+barriera in base all'Attacco, che il modello marca `{buff_1_val}` in 9 ranghi e
+`{melee_val}` in 6.
 
 **Le righe.** La lettura riempie solo quello che il modello non dice:
 - nella riga della carta, `atk_per` e `target` vengono solo dal corpo, e solo se le
-  letture del rango dicono un valore solo: `atk_per` a 421 ranghi, 418 dei quali
+  letture del rango dicono un valore solo: `atk_per` a 428 ranghi, 425 dei quali
   senza modello o in conflitto; `target` a 30
 - un effetto con un numero va nella riga del modello se il modello marca uno dei
   suoi buchi (`BUFF_N`, `TURN_N`, `OPTION_N`), come `166921.o1`. Altrimenti nasce
@@ -350,12 +379,17 @@ Forme lette: 263 su 739. Proposizioni lette: 7.649 su 10.799. Nel corpo sono
   marcato dal modello non si riscrive: «-{opt_1_val}» (Wave, 199691) ha 20 nella
   colonna e -20% nel testo
 - `significato` è una lista. La nota che spiega un termine si unisce alla voce del
-  termine, ed è successo 117 volte: «Poisons ... for 3 turn(s)» e «※Poison: Additional damage
-  equal to 60% ...» sono lo stesso buff `110831.b1`. Due voci vogliono dire una riga
-  che fa due cose, perché il modello mette due frasi sullo stesso segnaposto. Sono
-  10 righe, come `128041.b1`, che viene da «Decreases Defense-related stats of
-  {target_val} by {buff_1_val} and Disables Attack Skills for {turn_1_val}»
-- 16 effetti hanno i buchi su due righe diverse del modello, e non si scrivono
+  termine, ed è successo 157 volte: «Poisons ... for 3 turn(s)» e «※Poison: Additional damage
+  equal to 60% ...» sono lo stesso buff `110831.b1`. Le righe con due voci sono 30:
+  - 18 fanno due cose, perché il modello mette due frasi sullo stesso segnaposto:
+    `128041.b1` («Decreases Defense-related stats of {target_val} by {buff_1_val} and
+    Disables Attack Skills for {turn_1_val}»), `151031.b1` (provoca per {turn_1_val} e
+    cura il turno dopo di {buff_1_val}), le due note di Immolation su `1000791.o1`
+  - 12 hanno sulla stessa riga una voce e la sua nota: «Explodes after 2 turn(s)» e
+    «※Explosion: Additional damage equal to 100% ...» (`117071.b1`). Non si uniscono
+    come i termini, perché la regola che unisce guarda solo i termini `<K>`, e
+    «Explodes» nel testo non lo è
+- 29 effetti hanno i buchi su due righe diverse del modello, e non si scrivono
 
 Il primo giro si è fermato su 298 contraddizioni. Nessuna era una lettura
 sbagliata. Erano tre casi: i termini con la loro nota; i buff composti; e una regola
@@ -400,9 +434,9 @@ Una correzione passa gli stessi controlli delle regole (`Letture.controlla` in
 `letture_carte.py`). Se mette un turno su un termine, o in un buff un numero che il
 gioco marca `{melee_val}`, la pagina non la salva e `righe_carte.py` si ferma.
 
-Alla prima apertura ci sono 263 frasi da rivedere, e 131 di queste non hanno
-nessun numero marcato dal gioco. Le 476 frasi senza lettura si possono scrivere a
-mano nella stessa pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
+Con le regole del 15/09 notte ci sono 436 frasi da rivedere, e 220 di queste non
+hanno nessun numero marcato dal gioco. Le 303 frasi senza lettura si possono
+scrivere a mano nella stessa pagina. Da sapere mentre si rivede: lo stesso buco può valere «2x» in una carta
 e «-100%» in un'altra («`<V>` Crit Chance»), e allora la frase da sola non dice il
 verso.
 
@@ -430,11 +464,12 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
   cifrata
 - i nomi di gittate e bersagli: nessun testo del client li nomina come categoria
 - i **valori dei ranghi senza modello** (447) o con letture in conflitto (24):
-  la lettura delle forme dà `atk_per` a 418 di loro e almeno una riga di buff o
-  opzione a 380, da confermare a mano; il resto aspetta le forme non lette
-- **476 forme senza lettura** (3.150 proposizioni): frammenti fra parentesi,
-  definizioni scritte con parole diverse da quelle della tassonomia, frasi che
-  nessuna regola prende per intero
+  la lettura delle forme dà `atk_per` a 425 di loro e almeno una riga di buff o
+  opzione a 410, da confermare a mano; il resto aspetta le forme non lette
+- **303 forme senza lettura** (1.460 proposizioni): posture («Assumes a Stance
+  which `<K>` enemies»), frammenti fra parentesi («(Limit `<V>`)»), note col segno
+  dentro il numero («Attack-related stats `<V>`», che aspettano la revisione di
+  `nota_statistica`), frasi condizionali lunghe che nessuna regola prende per intero
 - da quale colonna vengano `BUFF_N_VALUE` e `OPTION_N_VALUE`: due candidate
   ciascuno, nessun testo scioglie il dubbio
 - **17 chiavi del client che nessun rango usa** (Lancelot, Percival, Camila,
@@ -444,8 +479,8 @@ Ogni file ha la sua lista `lacune`. Le più importanti:
 ## Le tappe successive
 
 - **B.** righe d'effetto con lo schema delle tabelle del gioco. **Carte: fatto lo
-  strato del testo** (`effetti/`) **e la prima lettura delle forme** (263 forme, 71%
-  delle proposizioni); restano le forme non lette. Poi reliquie e passive
+  strato del testo** (`effetti/`) **e la lettura delle forme** (436 forme, 86%
+  delle proposizioni); restano 303 forme non lette. Poi reliquie e passive
   (`DBSkillPassiveRow`), che vanno scomposte per pezzi
 - **C.** pagina di revisione delle letture, divisa per forma di frase, con le
   conferme in un file scritto a mano: **fatta** (`rivedi_letture.py`, sopra «La
