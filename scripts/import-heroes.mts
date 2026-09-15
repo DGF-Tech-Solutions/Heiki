@@ -34,6 +34,7 @@ const DEST_ASSETS = resolve(ROOT, "src/lib/games", GAME, "hero-assets.generated.
 const DEST_ABILITIES = resolve(ROOT, "src/lib/games", GAME, "hero-abilities.generated.ts");
 const DEST_STATS = resolve(ROOT, "src/lib/games", GAME, "hero-stats.generated.ts");
 const DEST_CONTEXT = resolve(ROOT, "src/lib/games", GAME, "hero-context.generated.ts");
+const DEST_SPECIALS = resolve(ROOT, "src/lib/games", GAME, "hero-specials.generated.ts");
 const DEST_ICONS = resolve(ROOT, "src/lib/games", GAME, "game-icons.generated.ts");
 
 /** Forma delle voci in eroi.json, come le scrive la pipeline. */
@@ -168,8 +169,6 @@ interface SourceText {
   titolo?: Record<string, string>;
   epiteto?: Record<string, string>;
   descrizione?: Record<string, string>;
-  evocazione?: Record<string, string>;
-  caricamento?: Record<string, string>;
 }
 
 const textsJson = resolve(SOURCE, "eroi/testi_eroi.json");
@@ -199,8 +198,8 @@ if (!existsSync(textsJson)) {
       ["title", pick(text.titolo)],
       ["epithet", pick(text.epiteto)],
       ["description", pick(text.descrizione)],
-      ["summon", pick(text.evocazione)],
-      ["loading", pick(text.caricamento)],
+      // `evocazione` e `caricamento` restano in testi_eroi.json ma non vengono
+      // piu' qui: alimentavano la sezione "In combattimento", tolta il 15/09.
     ];
     const written = fields.filter(([, value]) => value !== undefined);
     if (written.length === 0) continue;
@@ -358,7 +357,11 @@ interface SourceDbCard {
 
 interface SourceDbHero {
   carte: SourceDbCard[];
-  passiva?: { nome?: SourceDbText; modello?: SourceDbText; livelli?: { testo_en?: string }[] };
+  passiva?: {
+    nome?: SourceDbText;
+    modello?: SourceDbText;
+    livelli?: { testo_en?: string; livello_speciale?: number | null }[];
+  };
   statistiche?: { max?: Record<string, number>; max_con_equipaggiamento?: Record<string, number> };
 }
 
@@ -379,6 +382,7 @@ if (!existsSync(databaseJson)) {
   let withCards = 0;
   let withUltimate = 0;
   let withPassive = 0;
+  let withPassiveSteps = 0;
   let withStats = 0;
   let italianNames = 0;
   let pairedSprites = 0;
@@ -427,10 +431,27 @@ if (!existsSync(databaseJson)) {
     const ultimate = ultimateCard ? renderCard(ultimateCard, hid) : null;
 
     // La passiva: il nome viene dal client quando tradotto, il testo dalla
-    // fonte inglese. `livelli` sono i gradi della passiva; il primo basta per
-    // la scheda, gli altri restano nel database della pipeline.
+    // fonte inglese.
+    //
+    // `livelli` NON sono gradi della passiva, come si leggeva qui prima: sono i
+    // testi che la passiva prende salendo di rango l'ultimate, e 7dshub segna
+    // ciascuno col suo `specialLevel`. Il gioco lo dice anche a colori: i
+    // valori legati al rango sono ARANCIONI (`[FF8000]`), non ambra come gli
+    // altri. L'arancione pero' segna 36 di queste passive su 42, e nelle altre
+    // 6 cambia un pezzo di frase senza colore: per trovarle vale il campo.
+    //
+    // `specialLevel` k vale dal rango k+1, e il testo senza livello dal rango 1.
+    // Non sta scritto da nessuna parte: lo dicono i dati. Su 122 livelli di 42
+    // eroi il valore va da 1 a 5 e non tocca MAI 6; il testo senza livello
+    // viene sempre per primo; e le 8 passive che cambiano a ogni rango hanno 6
+    // testi per 6 ranghi. Leggendo k come il rango stesso, in 38 eroi il testo
+    // senza livello non varrebbe a nessun rango.
     const passiveName = pick(voce.passiva?.nome);
-    const passiveText = voce.passiva?.livelli?.[0]?.testo_en;
+    const levels = (voce.passiva?.livelli ?? []).filter((l) => l.testo_en);
+    const passiveText = levels[0]?.testo_en;
+    const passiveSteps = ultimateStepsOf(levels, `passiva di ${hid}`).map(
+      (step) => `{ fromUltimateRank: ${step.fromUltimateRank}, text: ${JSON.stringify(step.text)} }`,
+    );
 
     if (cards.length === 0 && !ultimate && !passiveText) continue;
 
@@ -440,8 +461,11 @@ if (!existsSync(databaseJson)) {
     if (passiveText) {
       parts.push(
         `    passive: { name: ${JSON.stringify(passiveName ?? "")}, ` +
-          `text: ${JSON.stringify(passiveText)} },`,
+          `text: ${JSON.stringify(passiveText)}` +
+          (passiveSteps.length > 0 ? `, ultimateSteps: [${passiveSteps.join(", ")}]` : "") +
+          ` },`,
       );
+      if (passiveSteps.length > 0) withPassiveSteps++;
     }
     parts.push(`    source: "7dshub.com",`);
     parts.push(`    textsInEnglish: true,`);
@@ -514,7 +538,7 @@ ${statRows.join("\n")}
   writeFileSync(DEST_STATS, generatedStats, "utf8");
   console.log(
     `  abilita': ${withCards}/${heroes.length} con carte, ${withUltimate} con ultimate, ` +
-      `${withPassive} con passiva`,
+      `${withPassive} con passiva (${withPassiveSteps} che cambia col rango dell'ultimate)`,
   );
   console.log(
     `  ${italianNames} nomi di carta in italiano; ${pairedSprites} carte con la propria illustrazione ` +
@@ -550,6 +574,8 @@ interface SourceContext {
     etichetta: SourceLabel; definizione: SourceLabel;
     fonte: string; tipo: string; certezza: string;
   }>;
+  /** codice -> icona e frase del gioco; il legame e' dedotto, prove in contesto_eroi.py */
+  condizioni_passiva?: Record<string, { icona: string; descrizione: SourceLabel }>;
   eroi: Record<string, {
     rarita: { ottenibile_come: string | null; massima: string | null;
       puo_diventare_lr: boolean };
@@ -561,6 +587,7 @@ interface SourceContext {
       solo_a_certi_ranghi?: Record<string, string[]>;
       applicabile_a?: { razze: number[]; fazioni: number[] };
     }>;
+    condizioni?: number[];
   }>;
 }
 
@@ -585,6 +612,7 @@ if (!existsSync(contextJson)) {
 
   let withLr = 0;
   let withEffects = 0;
+  let withConditions = 0;
   const heroRows: string[] = [];
 
   for (const hero of heroes) {
@@ -606,6 +634,7 @@ if (!existsSync(contextJson)) {
     }
 
     if (voce.rarita.puo_diventare_lr) withLr++;
+    if (voce.condizioni?.length) withConditions++;
     if (Object.values(cards).length > 0) withEffects++;
 
     heroRows.push(
@@ -619,6 +648,9 @@ if (!existsSync(contextJson)) {
         race: voce.razza,
         factions: voce.fazioni,
         cards,
+        // Dove si attiva la passiva: solo i codici, icona e frase stanno una
+        // volta sola nella tabella delle condizioni.
+        ...(voce.condizioni?.length ? { passiveConditions: voce.condizioni } : {}),
       })},`,
     );
   }
@@ -647,7 +679,13 @@ if (!existsSync(contextJson)) {
  * scegliere qui butterebbe via l'unica versione buona di un'etichetta.
  */
 
-import type { HeroContext, HeroContextIndex, HeroEffect, HeroLabel } from "../types";
+import type {
+  HeroContext,
+  HeroContextIndex,
+  HeroEffect,
+  HeroLabel,
+  HeroPassiveCondition,
+} from "../types";
 
 const GLOSSARY: Readonly<Record<string, HeroEffect>> = {
 ${glossaryRows.join("\n")}
@@ -657,6 +695,17 @@ const RACE: Readonly<Record<string, HeroLabel>> = ${JSON.stringify(ctx.codici.ra
 const ATTRIBUTE: Readonly<Record<string, HeroLabel>> = ${JSON.stringify(ctx.codici.attributo)};
 const FACTION: Readonly<Record<string, HeroLabel>> = ${JSON.stringify(ctx.codici.fazione)};
 
+// Dove si attiva una passiva. Il legame codice-icona e' DEDOTTO: la tabella del
+// client e' cifrata, le prove stanno in contesto_eroi.py (CONDIZIONI_PASSIVA).
+const PASSIVE_CONDITIONS: Readonly<Record<string, HeroPassiveCondition>> = ${JSON.stringify(
+    Object.fromEntries(
+      Object.entries(ctx.condizioni_passiva ?? {}).map(([code, condition]) => [
+        code,
+        { icon: condition.icona, description: condition.descrizione },
+      ]),
+    ),
+  )};
+
 const HEROES: Readonly<Record<string, HeroContext>> = {
 ${heroRows.join("\n")}
 };
@@ -664,6 +713,7 @@ ${heroRows.join("\n")}
 export const HERO_CONTEXT: HeroContextIndex = {
   glossary: GLOSSARY,
   codes: { race: RACE, attribute: ATTRIBUTE, faction: FACTION },
+  passiveConditions: PASSIVE_CONDITIONS,
   sources: ${JSON.stringify(ctx.fonti)},
   heroes: HEROES,
 };
@@ -672,11 +722,145 @@ export const HERO_CONTEXT: HeroContextIndex = {
   writeFileSync(DEST_CONTEXT, generatedContext, "utf8");
   console.log(
     `  contesto: ${heroRows.length}/${heroes.length} eroi, ${withEffects} con effetti, ` +
-      `${withLr} che possono arrivare a LR`,
+      `${withLr} che possono arrivare a LR, ${withConditions} con le condizioni della passiva ` +
+      `(${Object.keys(ctx.condizioni_passiva ?? {}).length} codici)`,
   );
   console.log(
     `  glossario: ${glossaryRows.length} voci, ` +
       `${Object.values(ctx.glossario).filter((v) => v.etichetta.it).length} con etichetta italiana`,
+  );
+}
+
+/* --------------------------------------------------- abilita' speciali -- */
+
+/**
+ * I testi che cambiano col rango dell'ultimate, dal `livello_speciale` della fonte.
+ *
+ * `livello_speciale` k vale dal rango k+1, e il primo testo, senza livello, dal
+ * rango 1: le prove stanno nel commento della passiva, dove la regola e' nata.
+ * Serve anche ai Talenti, che 7dshub scrive con lo stesso schema. Fuori da
+ * questo schema la regola non e' piu' dimostrata: ci si ferma, invece di
+ * assegnare un testo al rango sbagliato.
+ */
+function ultimateStepsOf(
+  levels: readonly { testo_en?: string; livello_speciale?: number | null }[],
+  owner: string,
+): { fromUltimateRank: number; text: string }[] {
+  let lastRank = 1;
+  return levels.slice(1).map((level) => {
+    const from = (level.livello_speciale ?? Number.NaN) + 1;
+    if (!Number.isInteger(from) || from <= lastRank || from > 6) {
+      throw new Error(
+        `${owner}: livello_speciale ${level.livello_speciale} fuori schema ` +
+          `(atteso 1-5, crescente). Se manca, rilancia la pipeline.`,
+      );
+    }
+    lastRank = from;
+    return { fromUltimateRank: from, text: level.testo_en ?? "" };
+  });
+}
+
+/**
+ * Comandamenti, Grazie, Unita' e Talenti.
+ *
+ * Li prepara `python abilita_speciali.py`: effetti e condizioni da 7dshub, nomi
+ * e regole dal client, e le icone GIA' dentro la cornice del loro tipo, perche'
+ * il lavoro di immagini in questo progetto lo fa Python. Qui si traducono i
+ * nomi dei campi e si copiano le icone.
+ *
+ * `speciali/` si svuota prima di copiare, come `carte/`: un'icona accostata
+ * diversamente al giro prima resterebbe sul disco.
+ */
+interface SourceSpecials {
+  tipi: Record<string, { etichetta: SourceLabel; regole: SourceLabel[] }>;
+  abilita: Record<string, {
+    tipo: string;
+    nome: SourceLabel;
+    livelli: { testo_en?: string; livello_speciale?: number | null }[];
+    condizioni: number[];
+    icona: { file: string | null; fonte: string };
+    cornice: { sprite: string; certezza: string };
+  }>;
+  eroi: Record<string, string[]>;
+  /** heroId -> file dell'icona passiva giusta, dove mappa_asset.py ne ha preso un'altra */
+  correzioni_icona_passiva?: Record<string, string>;
+}
+
+const specialsJson = resolve(SOURCE, "eroi/abilita_speciali.json");
+const specialsSource = existsSync(specialsJson)
+  ? (JSON.parse(readFileSync(specialsJson, "utf8")) as SourceSpecials)
+  : null;
+
+if (!specialsSource) {
+  console.log(`  abilita_speciali.json non trovato: salto Comandamenti, Grazie, Unita' e Talenti.`);
+  console.log(`  (si genera con: python abilita_speciali.py, dentro _7dsgc)`);
+} else {
+  const iconDir = resolve(DEST_IMAGES, "speciali");
+  rmSync(iconDir, { recursive: true, force: true });
+  mkdirSync(iconDir, { recursive: true });
+
+  const rosterIds = new Set(heroes.map((hero) => String(hero.heroId)));
+  const specialRows: string[] = [];
+  let copiedSpecials = 0;
+
+  for (const [id, ability] of Object.entries(specialsSource.abilita)) {
+    const from = resolve(SOURCE, "abilita_speciali/icone", `${id}.png`);
+    const icon = existsSync(from);
+    if (icon) {
+      copyFileSync(from, resolve(iconDir, `${id}.png`));
+      copiedSpecials++;
+    }
+    const levels = ability.livelli.filter((level) => level.testo_en);
+    const steps = ultimateStepsOf(levels, `abilita' speciale ${id}`);
+    specialRows.push(
+      `    ${JSON.stringify(id)}: ${JSON.stringify({
+        kind: ability.tipo,
+        name: ability.nome,
+        text: levels[0]?.testo_en ?? "",
+        ...(steps.length > 0 ? { ultimateSteps: steps } : {}),
+        conditions: ability.condizioni,
+        icon,
+        iconSource: ability.icona.fonte,
+        frameSource: ability.cornice.certezza,
+      })},`,
+    );
+  }
+
+  const specialHeroes = Object.fromEntries(
+    Object.entries(specialsSource.eroi).filter(([hid]) => rosterIds.has(hid)),
+  );
+  const kinds = Object.fromEntries(
+    Object.entries(specialsSource.tipi).map(([kind, v]) => [kind, { label: v.etichetta, rules: v.regole }]),
+  );
+
+  writeFileSync(
+    DEST_SPECIALS,
+    `/**
+ * Comandamenti, Grazie, Unita' e Talenti degli eroi di Grand Cross.
+ *
+ * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
+ *
+ * FONTI: effetti e condizioni da 7dshub (grace, taboo, solidarity, ability);
+ * nomi e regole dal client, in due lingue dove si leggono; icone e cornici dal
+ * client. Le icone di Comandamenti, Grazie e Unita' non portano l'heroId: ogni
+ * abilita' dichiara in \`iconSource\` come si sa che l'icona e' sua.
+ */
+
+import type { HeroSpecialsIndex } from "../types";
+
+export const HERO_SPECIALS: HeroSpecialsIndex = {
+  kinds: ${JSON.stringify(kinds)},
+  abilities: {
+${specialRows.join("\n")}
+  },
+  heroes: ${JSON.stringify(specialHeroes)},
+};
+`,
+    "utf8",
+  );
+  console.log(
+    `  abilita' speciali: ${specialRows.length} per ${Object.keys(specialHeroes).length} eroi, ` +
+      `${copiedSpecials} icone incorniciate copiate`,
   );
 }
 
@@ -696,29 +880,6 @@ interface SourceAssets {
   splash?: string;
   abilita?: string;
   slug?: string;
-  colpi?: string;
-}
-
-/**
- * Legge `skill_attack_count_<id>.bytes`: quanti colpi porta ogni carta.
- *
- * Formato: un intero col numero di record, poi per ciascuno la lunghezza del
- * nome su un byte, il nome, e il valore su quattro byte. Il nome dice quale
- * carta e a che rango - `skill_a_1_atk` e' l'abilita' A al rango 1,
- * `skill_b_2_3_atk` la B ai ranghi 2 e 3.
- */
-function readHits(path: string): Record<string, number> {
-  const raw = readFileSync(path);
-  const out: Record<string, number> = {};
-  let i = 4;
-  while (i + 1 <= raw.length) {
-    const len = raw[i]!;
-    if (len === 0 || i + 1 + len + 4 > raw.length) break;
-    const name = raw.toString("utf8", i + 1, i + 1 + len);
-    out[name] = raw.readInt32LE(i + 1 + len);
-    i += 1 + len + 4;
-  }
-  return out;
 }
 
 const assetsJson = resolve(SOURCE, "eroi/asset_eroi.json");
@@ -750,9 +911,21 @@ if (!existsSync(assetsJson)) {
     for (const kind of ASSET_KINDS) {
       const rel = voce[kind.key];
       if (!rel) continue;
-      const from = resolve(estratti, rel);
+      // La passiva di un eroe puo' essere stata presa per l'icona di un'abilita'
+      // speciale che porta il suo heroId (Roxy [Winter Whirlwind]): la
+      // correzione la da' abilita_speciali.py, e si copia SEMPRE, perche' il file
+      // sbagliato gia' sul disco e' piu' nuovo di quello giusto.
+      const correction =
+        kind.key === "abilita" ? specialsSource?.correzioni_icona_passiva?.[hid] : undefined;
+      const from = correction ? resolve(estratti, "m/Texture2D", correction) : resolve(estratti, rel);
       if (!existsSync(from)) continue;
-      if (copyIfNewer(from, resolve(DEST_IMAGES, kind.dir, `${hid}.png`))) copied[kind.dir]!++;
+      const to = resolve(DEST_IMAGES, kind.dir, `${hid}.png`);
+      if (correction) {
+        copyFileSync(from, to);
+        copied[kind.dir]!++;
+      } else if (copyIfNewer(from, to)) {
+        copied[kind.dir]!++;
+      }
       flags.push(`${kind.key === "abilita" ? "skill" : "splash"}: true`);
     }
 
@@ -774,14 +947,9 @@ if (!existsSync(assetsJson)) {
       }
     }
 
-    // Colpi per carta: questo e' certo, l'heroId e' nel nome del file.
-    if (voce.colpi) {
-      const from = resolve(estratti, voce.colpi);
-      if (existsSync(from)) {
-        const hits = readHits(from);
-        if (Object.keys(hits).length > 0) flags.push(`hits: ${JSON.stringify(hits)}`);
-      }
-    }
+    // Il numero di colpi per carta (`skill_attack_count_<id>.bytes`, campo
+    // `colpi` di asset_eroi.json) non si importa piu': tolto dalla scheda il
+    // 15/09 perche' non serviva.
 
     if (flags.length > 0) rows.push(`  ${JSON.stringify(hid)}: { ${flags.join(", ")} },`);
   }
@@ -835,19 +1003,34 @@ ${rows.join("\n")}
 const ICON_SOURCE = resolve(SOURCE, "7dsgc_estratti/m/Texture2D");
 
 /**
- * La stella dei ranghi arriva da un'altra cartella, e c'e' un motivo.
+ * La stella e le pietre dei ranghi arrivano da un'altra cartella, e c'e' un
+ * motivo.
  *
- * Non e' un file separato nel gioco: sta impacchettata dentro
+ * Non sono file separati nel gioco: stanno impacchettate dentro
  * `atlas_skillcard`, una texture unica, accanto a cornici e sfondi delle carte.
- * La ritaglia `python stella_carte.py`, per nome (`card_star`) e con la mappa
- * NGUI dell'atlas. Il lavoro di immagini sta nella pipeline perche' in questo
- * progetto lo fa Python: qui si copia e basta, come per le card.
+ * Le ritaglia `python stella_carte.py`, per nome (`card_star` e
+ * `card_frame_special_jewelry_01..06`) e con la mappa NGUI dell'atlas. Il lavoro
+ * di immagini sta nella pipeline perche' in questo progetto lo fa Python: qui si
+ * copia e basta, come per le card.
  *
  * Prima qui arrivavano le cornici di bronzo, argento e oro, allungate per
  * stare attorno all'illustrazione: scartate, le stelle dicono il rango senza
  * ridisegnare la carta.
  */
 const STAR_SOURCE = resolve(SOURCE, "stella_carte");
+
+/**
+ * Le icone di dove si attiva una passiva, lette dal contesto.
+ *
+ * Non un elenco scritto qui: i file nel gioco sono dodici, ma le passive degli
+ * eroi ne usano nove, e quali siano lo dice la tabella dei codici che
+ * contesto_eroi.py ha costruito. La chiave e' il suffisso del file.
+ */
+function passiveConditionIcons(): string[] {
+  if (!existsSync(contextJson)) return [];
+  const ctx = JSON.parse(readFileSync(contextJson, "utf8")) as SourceContext;
+  return Object.values(ctx.condizioni_passiva ?? {}).map((condition) => condition.icona);
+}
 
 const ICONS: readonly { family: string; key: string; file: string; dir?: string }[] = [
   ...[1, 2, 3, 4, 5, 6].map((n) => ({
@@ -867,6 +1050,20 @@ const ICONS: readonly { family: string; key: string; file: string; dir?: string 
   })),
   // Una stella sola: il sito la ripete una, due o tre volte secondo il rango.
   { family: "carta", key: "stella", file: "stella.png", dir: STAR_SOURCE },
+  // L'ultimate ha sei ranghi e il gioco li segna con una pietra per rango, dalla
+  // verdina del primo alla goccia verde chiaro del sesto.
+  ...[1, 2, 3, 4, 5, 6].map((n) => ({
+    family: "carta",
+    key: `pietra_${n}`,
+    file: `pietra_${n}.png`,
+    dir: STAR_SOURCE,
+  })),
+  // Dove si attiva una passiva: le icone del riquadro dell'abilita' unica.
+  ...passiveConditionIcons().map((icon) => ({
+    family: "condizione",
+    key: icon,
+    file: `icon_passive_condition_${icon}_64x64.png`,
+  })),
 ];
 
 {
@@ -906,7 +1103,10 @@ const ICONS: readonly { family: string; key: string; file: string; dir?: string 
  * La chiave e' il codice del gioco - 1-6 per la razza, 1-5 per l'attributo, la
  * sigla per la rarita' - perche' e' gia' il numero scritto nel nome del file
  * originale. Le fazioni non compaiono: il gioco non ha un'icona per loro.
- * Sotto \`carta\` c'e' la stella dei ranghi, una sola: il rango la ripete.
+ * Sotto \`carta\` ci sono le insegne dei ranghi: la stella delle carte A e B, una
+ * sola che il rango ripete, e le sei pietre dell'ultimate, una per rango.
+ * Sotto \`condizione\` le icone di dove si attiva una passiva, col suffisso del
+ * file come chiave (\`start_combat\`, \`sub\`, \`pvp_only\`...).
  */
 
 export const GAME_ICONS: Readonly<Record<string, readonly string[]>> = {

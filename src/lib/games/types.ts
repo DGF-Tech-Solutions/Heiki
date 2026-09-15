@@ -112,10 +112,6 @@ export interface HeroText {
   title?: string;
   epithet?: string;
   description?: string;
-  /** testo mostrato quando esce dall'evocazione */
-  summon?: string;
-  /** frase nella schermata di caricamento */
-  loading?: string;
 }
 
 /**
@@ -145,11 +141,6 @@ export interface HeroAssets {
    * eroe la condivide: li' non c'e' niente da scegliere.
    */
   ultimate?: boolean;
-  /**
-   * Colpi per carta, dal client: `skill_a_1_atk` e' l'abilita' A al rango 1.
-   * Questo e' certo - l'heroId e' nel nome del file da cui viene.
-   */
-  hits?: Readonly<Record<string, number>>;
 }
 
 /**
@@ -200,7 +191,21 @@ export interface HeroAbilities {
   cards: readonly HeroCard[];
   /** l'attacco speciale: ha piu' ranghi delle carte, fino a sei */
   ultimate?: HeroCard;
-  passive?: { name?: string; text?: string };
+  passive?: {
+    name?: string;
+    /** il testo al rango 1 dell'ultimate; per 331 eroi su 373 e' l'unico */
+    text?: string;
+    /**
+     * Come cambia la passiva salendo di rango l'ultimate. Ogni voce vale dal suo
+     * rango fino a quello prima della voce seguente, e sotto la prima vale
+     * `text`: `[{2}, {5}]` sono tre testi, per i ranghi 1, 2-4 e 5-6.
+     *
+     * Il gioco colora d'arancione (`[FF8000]`) i valori legati al rango, ma dal
+     * colore i testi non si ricostruiscono: ogni versione e' un testo risolto
+     * della fonte. Assente quando la passiva non cambia; c'e' per 42 eroi.
+     */
+    ultimateSteps?: readonly { fromUltimateRank: number; text: string }[];
+  };
   /** da dove arriva il testo, es. "7dshub.com" */
   source: string;
   /**
@@ -312,6 +317,30 @@ export interface HeroContext {
   race: number | null;
   factions: readonly number[];
   cards: Readonly<Record<string, HeroCardContext>>;
+  /**
+   * Dove si attiva la passiva, come codici del gioco (1-9) nell'ordine della
+   * fonte: chiavi di `HeroContextIndex.passiveConditions`.
+   */
+  passiveConditions?: readonly number[];
+}
+
+/**
+ * Dove si attiva una passiva: l'icona e la frase che il gioco le mette accanto.
+ *
+ * Nel riquadro dell'abilita' unica il gioco ne mostra due o tre: la spada nel
+ * quadrato rosso "si attiva all'ingresso nella battaglia", la mano nel cerchio
+ * blu "si attiva anche in uno slot secondario", "solo in PvP"... `icon` e' il
+ * suffisso del file (`icon_passive_condition_<icon>`), lo stesso con cui il
+ * client nomina la frase.
+ *
+ * Il legame fra codice e icona e' DEDOTTO: la tabella del client che lo
+ * contiene sta nei bundle cifrati. Le prove sono scritte in contesto_eroi.py
+ * (CONDIZIONI_PASSIVA): nomi dei filtri, testi delle passive, e le icone
+ * riconosciute in gioco.
+ */
+export interface HeroPassiveCondition {
+  icon: string;
+  description: HeroLabel;
 }
 
 /**
@@ -329,8 +358,53 @@ export interface HeroContextIndex {
     readonly attribute: Readonly<Record<string, HeroLabel>>;
     readonly faction: Readonly<Record<string, HeroLabel>>;
   };
+  /** codice della condizione -> icona e frase, come per i nomi dei codici */
+  readonly passiveConditions: Readonly<Record<string, HeroPassiveCondition>>;
   readonly sources: Readonly<Record<string, string>>;
   readonly heroes: Readonly<Record<string, HeroContext>>;
+}
+
+/**
+ * Un'abilita' speciale: Comandamento, Grazia, Unita' o Talento.
+ *
+ * Si aggiunge all'abilita' unica di 49 eroi, e il gioco la disegna con una
+ * cornice del suo tipo (PassiveManager.ExclusiveIconFrame del client). Il
+ * Talento nel codice del gioco si chiama "ability".
+ *
+ * L'icona e' gia' incorniciata dalla pipeline: `iconSource` dice come si sa che
+ * e' sua, perche' per Comandamenti, Grazie e Unita' il file non porta l'heroId
+ * dell'eroe e l'accostamento viene da fonti di forza diversa.
+ */
+export interface HeroSpecialAbility {
+  /** "comandamento" | "grazia" | "unita" | "talento": chiave di `kinds` */
+  kind: string;
+  name: HeroLabel;
+  /** l'effetto al rango 1 dell'ultimate, in inglese come le altre abilita' */
+  text: string;
+  /** come per la passiva: un Talento puo' cambiare col rango dell'ultimate */
+  ultimateSteps?: readonly { fromUltimateRank: number; text: string }[];
+  /** dove si attiva: codici di HeroContextIndex.passiveConditions */
+  conditions: readonly number[];
+  /** c'e' l'immagine incorniciata in public/eroi/<gioco>/speciali/<id>.png */
+  icon: boolean;
+  /** "wiki" | "schema" | "a vista" | "id nel nome" | "generica" */
+  iconSource: string;
+  /** "dal tipo", o come e' stata dedotta */
+  frameSource: string;
+}
+
+/** Il tipo di un'abilita' speciale, con le regole del gioco su come convive con gli altri. */
+export interface HeroSpecialKind {
+  label: HeroLabel;
+  rules: readonly HeroLabel[];
+}
+
+/** Le abilita' speciali: ogni abilita' scritta una volta, gli eroi la citano. */
+export interface HeroSpecialsIndex {
+  readonly kinds: Readonly<Record<string, HeroSpecialKind>>;
+  readonly abilities: Readonly<Record<string, HeroSpecialAbility>>;
+  /** heroId -> id delle sue abilita' speciali */
+  readonly heroes: Readonly<Record<string, readonly string[]>>;
 }
 
 /**
@@ -435,6 +509,9 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * indice: il glossario si legge una volta e vale per tutti gli eroi.
    */
   readonly heroContext?: HeroContextIndex;
+
+  /** Comandamenti, Grazie, Unita' e Talenti: le abilita' che si aggiungono all'unica. */
+  readonly heroSpecials?: HeroSpecialsIndex;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

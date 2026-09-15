@@ -231,6 +231,23 @@ describe("contesto di Grand Cross", () => {
   });
 
   /**
+   * Le condizioni della passiva sono un indice come il glossario: un codice
+   * che non risolve piu' non da' errore, fa sparire un'icona dalla scheda.
+   */
+  it("ogni condizione di passiva citata esiste, con una frase in almeno una lingua", () => {
+    const orfane: string[] = [];
+    for (const [hid, hero] of Object.entries(context?.heroes ?? {})) {
+      for (const code of hero.passiveConditions ?? []) {
+        const condition = context?.passiveConditions[String(code)];
+        if (!condition || (!condition.description.it && !condition.description.en)) {
+          orfane.push(`${hid} -> ${code}`);
+        }
+      }
+    }
+    expect(orfane).toEqual([]);
+  });
+
+  /**
    * La distinzione fra dichiarato e dedotto e' il motivo per cui il campo
    * esiste: se un terzo valore comparisse, la pagina lo renderebbe come se
    * fosse dichiarato senza che nessuno se ne accorga.
@@ -274,5 +291,74 @@ describe("contesto di Grand Cross", () => {
     const soloNelleAbilita = [...daAbilita].filter((slot) => !daContesto.has(slot));
     expect(soloNelleAbilita).toEqual([]);
     expect(daContesto.has("passiva")).toBe(true);
+  });
+
+  /**
+   * La passiva che segue l'ultimate si accende rango per rango, con sei agganci
+   * scritti per esteso nella scheda. Una versione fuori ordine, oltre l'ultimo
+   * rango dell'ultimate o oltre il sesto lascerebbe un rango senza testo, e la
+   * scheda non darebbe errore: mostrerebbe una passiva vuota.
+   */
+  it("i testi della passiva cadono in ordine dentro i ranghi dell'ultimate", () => {
+    const storte: string[] = [];
+    for (const [hid, voce] of Object.entries(abilities ?? {})) {
+      const steps = voce.passive?.ultimateSteps ?? [];
+      if (steps.length === 0) continue;
+      const top = Math.min(voce.ultimate?.ranks.length ?? 0, 6);
+      let last = 1;
+      for (const step of steps) {
+        if (step.fromUltimateRank <= last || step.fromUltimateRank > top || !step.text) {
+          storte.push(`${hid} -> rango ${step.fromUltimateRank} su ${top}`);
+        }
+        last = step.fromUltimateRank;
+      }
+    }
+    expect(storte).toEqual([]);
+  });
+});
+
+/**
+ * Abilita' speciali: controlli sul contratto, come per il contesto.
+ *
+ * Anche qui un indice si rompe in silenzio: un id che non risolve piu', un tipo
+ * rinominato o un codice di condizione nuovo farebbero sparire una sezione o
+ * un'icona dalla scheda senza dare errore.
+ */
+describe("abilita' speciali di Grand Cross", () => {
+  const specials = grandCrossModule.heroSpecials;
+  const conditions = grandCrossModule.heroContext?.passiveConditions;
+
+  it("il modulo le espone", () => {
+    expect(Object.keys(specials?.heroes ?? {}).length).toBeGreaterThan(0);
+  });
+
+  it("ogni abilita' citata da un eroe esiste, e il suo tipo e' dichiarato", () => {
+    const orfane: string[] = [];
+    for (const [hid, ids] of Object.entries(specials?.heroes ?? {})) {
+      for (const id of ids) {
+        const ability = specials?.abilities[id];
+        if (!ability || !specials?.kinds[ability.kind]) orfane.push(`${hid} -> ${id}`);
+      }
+    }
+    expect(orfane).toEqual([]);
+  });
+
+  it("le condizioni delle abilita' speciali esistono nella tabella delle passive", () => {
+    const orfane = Object.entries(specials?.abilities ?? {}).flatMap(([id, ability]) =>
+      ability.conditions.filter((code) => !conditions?.[String(code)]).map((code) => `${id} -> ${code}`),
+    );
+    expect(orfane).toEqual([]);
+  });
+
+  it("i testi che seguono l'ultimate cadono in ordine fra il rango 2 e il 6", () => {
+    const storte = Object.entries(specials?.abilities ?? {}).flatMap(([id, ability]) => {
+      let last = 1;
+      return (ability.ultimateSteps ?? []).flatMap((step) => {
+        const fuori = step.fromUltimateRank <= last || step.fromUltimateRank > 6;
+        last = step.fromUltimateRank;
+        return fuori ? [`${id} -> rango ${step.fromUltimateRank}`] : [];
+      });
+    });
+    expect(storte).toEqual([]);
   });
 });

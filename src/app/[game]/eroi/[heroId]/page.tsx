@@ -12,6 +12,7 @@ import {
   heroUltimateArtSrc,
   heroCardSrc,
   heroSkillIconSrc,
+  heroSpecialIconSrc,
   heroSplashSrc,
   type IconFamily,
 } from "@/lib/games/heroes";
@@ -20,9 +21,13 @@ import type {
   HeroAffinity,
   HeroCard,
   HeroCardContext,
+  HeroContext,
   HeroEffect,
   HeroEntry,
   HeroLabel,
+  HeroSpecialAbility,
+  HeroSpecialKind,
+  HeroSpecialsIndex,
   HeroStats,
 } from "@/lib/games/types";
 
@@ -47,6 +52,45 @@ interface Props {
   params: Promise<{ game: string; heroId: string }>;
 }
 
+/** Le abilita' speciali dell'eroe, risolte dall'indice: l'id serve per l'icona. */
+function specialsOf(
+  index: HeroSpecialsIndex | undefined,
+  heroId: string,
+): { id: string; ability: HeroSpecialAbility }[] {
+  return (index?.heroes[heroId] ?? []).flatMap((id) => {
+    const ability = index?.abilities[id];
+    return ability ? [{ id, ability }] : [];
+  });
+}
+
+/**
+ * Le sole voci del glossario che l'eroe cita, invece del glossario intero.
+ *
+ * Le 460 voci arrivavano a ogni carta, a ogni blocco di effetti e alla passiva.
+ * Sono componenti server, ma in sviluppo React mette nel payload le props dei
+ * componenti server per i propri strumenti di debug: ogni scheda si portava
+ * dietro tutto il glossario - 460 chiavi su 460, fra 280 e 505 KB di pagina per
+ * l'86-89% script - per usarne una ventina.
+ */
+function glossaryFor(
+  glossary: Readonly<Record<string, HeroEffect>> | undefined,
+  context: HeroContext | undefined,
+): Readonly<Record<string, HeroEffect>> | undefined {
+  if (!glossary || !context) return undefined;
+
+  const keys = new Set<string>();
+  for (const card of Object.values(context.cards)) {
+    for (const key of card.effects) keys.add(key);
+    for (const list of Object.values(card.onlyAtRanks ?? {})) {
+      for (const key of list) keys.add(key);
+    }
+  }
+
+  return Object.fromEntries(
+    [...keys].flatMap((key) => (glossary[key] ? [[key, glossary[key]] as const] : [])),
+  );
+}
+
 function lookup(game: string, heroId: string) {
   const entry = findGame(game);
   if (!entry) return null;
@@ -68,8 +112,11 @@ function lookup(game: string, heroId: string) {
     stats: gameModule.heroStats?.[heroId],
     // Due cose e non una: il glossario vale per tutti gli eroi e si legge una
     // volta, il contesto e' di questo eroe soltanto.
-    glossary: gameModule.heroContext?.glossary,
+    glossary: glossaryFor(gameModule.heroContext?.glossary, gameModule.heroContext?.heroes[heroId]),
     codes: gameModule.heroContext?.codes,
+    passiveConditions: gameModule.heroContext?.passiveConditions,
+    specials: specialsOf(gameModule.heroSpecials, heroId),
+    specialKinds: gameModule.heroSpecials?.kinds,
     icons: gameModule.icons,
     context: gameModule.heroContext?.heroes[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
@@ -98,8 +145,23 @@ export default async function HeroPage({ params }: Props) {
   const found = lookup(game, heroId);
   if (!found) notFound();
 
-  const { entry, roster, hero, text, assets, abilities, stats, affinity, glossary, codes, context, icons } =
-    found;
+  const {
+    entry,
+    roster,
+    hero,
+    text,
+    assets,
+    abilities,
+    stats,
+    affinity,
+    glossary,
+    codes,
+    passiveConditions,
+    specials,
+    specialKinds,
+    context,
+    icons,
+  } = found;
 
   /**
    * Razza e fazioni, coi nomi che il gioco da' ai propri codici.
@@ -141,7 +203,11 @@ export default async function HeroPage({ params }: Props) {
         ]}
       />
 
-      <article>
+      {/*
+        `group/scheda` e' l'antenato comune di ultimate e passiva: il rango si
+        sceglie in una sezione e la passiva che ne dipende sta in un'altra.
+      */}
+      <article className="group/scheda">
         <header className="mb-6 grid gap-5 border-b border-rule pb-6 sm:grid-cols-[128px_minmax(0,1fr)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -234,9 +300,14 @@ export default async function HeroPage({ params }: Props) {
             </div>
 
             {text?.title && text.title !== hero.name ? (
-              <p className="mt-3 text-sm text-ink-2">
+              // Un <div> e non un <p>: GameText disegna un <div> di <p>, e un <p>
+              // dentro un <p> non e' HTML valido. Il browser chiudeva il primo in
+              // anticipo, l'albero non combaciava piu' con quello del server e
+              // ogni scheda con un titolo nel gioco dava un errore di hydration:
+              // le "5 Issues" del pallino di Next.
+              <div className="mt-3 text-sm text-ink-2">
                 Nel gioco: <GameText text={text.title} className="inline [&>p]:inline" />
-              </p>
+              </div>
             ) : null}
           </div>
         </header>
@@ -289,35 +360,6 @@ export default async function HeroPage({ params }: Props) {
             Di questo eroe il client non porta una descrizione. Restano nome, rarità e attributo.
           </Notice>
         )}
-
-        {/*
-          Questi due testi sembravano decorazione e li avevo messi come
-          citazioni. Non lo sono: descrivono cosa fa l'eroe in combattimento, e
-          sono i soli testi sulle abilita' che il CLIENT lega all'heroId.
-
-          Restano anche adesso che le singole abilita' ci sono, perche' dicono
-          una cosa diversa: qui c'e' il ruolo dell'eroe nell'insieme, scritto
-          dal gioco e in italiano, mentre le carte qui sotto sono meccaniche in
-          inglese. La riga in fondo diceva che le descrizioni delle abilita'
-          stavano sul server e basta: era vero prima di avere gli id da 7dshub,
-          adesso non lo e' piu' ed e' stata tolta.
-        */}
-        {text?.loading || text?.summon ? (
-          <section className="mb-7">
-            <h2 className={cx(eyebrow, "mb-2.5")}>In combattimento</h2>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Ability label="Cosa fanno le sue abilità" text={text.loading} />
-              <Ability label="Ruolo in squadra" text={text.summon} />
-            </div>
-
-            <p className="mt-3 text-[13px] text-ink-3">
-              Come il gioco descrive l’eroe nell’insieme. Le singole carte sono qui sotto.
-            </p>
-          </section>
-        ) : null}
-
-        <Stats stats={stats} />
 
         {abilities && abilities.cards.length > 0 ? (
           <section className="mb-7">
@@ -402,8 +444,6 @@ export default async function HeroPage({ params }: Props) {
               </div>
             ) : null}
 
-            <Hits hits={assets?.hits} />
-
             <p className="mt-3 text-[13px] text-ink-3">
               Quali carte ha l’eroe e cosa fanno a ogni rango vengono da una fonte esterna: il
               client tiene le descrizioni ma non il legame con l’eroe, che sta sul server del
@@ -440,7 +480,6 @@ export default async function HeroPage({ params }: Props) {
                 </li>
               ))}
             </ul>
-            <Hits hits={assets?.hits} />
           </section>
         ) : null}
 
@@ -495,16 +534,27 @@ export default async function HeroPage({ params }: Props) {
                 {abilities?.passive?.name ? (
                   <p className="m-0 mb-1 font-semibold">{abilities.passive.name}</p>
                 ) : null}
+                <PassiveConditions
+                  game={game}
+                  codes={context?.passiveConditions}
+                  conditions={passiveConditions}
+                  icons={icons}
+                />
                 {abilities?.passive?.text ? (
-                  <>
-                    <GameText
-                      text={abilities.passive.text}
-                      omitNotes
-                      className="text-sm leading-relaxed text-ink-2"
-                    />
-                    <Effects context={context?.cards["passiva"]} glossary={glossary} />
-                    <GameNotes texts={[abilities.passive.text]} className="mt-2.5" />
-                  </>
+                  <PassiveText
+                    game={game}
+                    text={abilities.passive.text}
+                    // Senza i pulsanti dell'ultimate non c'e' un rango da seguire:
+                    // resta il testo del rango 1, e nessun pannello resta spento.
+                    steps={
+                      (abilities.ultimate?.ranks.length ?? 0) > 1
+                        ? abilities.passive.ultimateSteps
+                        : undefined
+                    }
+                    context={context?.cards["passiva"]}
+                    glossary={glossary}
+                    icons={icons}
+                  />
                 ) : (
                   <p className="m-0 text-sm text-ink-3">
                     Di questa passiva abbiamo l’icona dal client, non ancora il testo.
@@ -514,6 +564,32 @@ export default async function HeroPage({ params }: Props) {
             </div>
           </section>
         ) : null}
+
+        {/*
+          Comandamenti, Grazie, Unita' e Talenti: una sezione per abilita', col
+          nome del suo tipo come titolo, subito dopo la passiva a cui si
+          aggiungono. Nessun eroe ne ha piu' di una, ma la lista regge anche quel
+          caso.
+        */}
+        {specials.map(({ id, ability }) => {
+          const kind = specialKinds?.[ability.kind];
+          return (
+            <section key={id} className="mb-7">
+              <h2 className={cx(eyebrow, "mb-2.5")}>
+                {kind?.label.it ?? kind?.label.en ?? ability.kind}
+              </h2>
+              <SpecialAbility
+                game={game}
+                id={id}
+                ability={ability}
+                kind={kind}
+                conditions={passiveConditions}
+                icons={icons}
+                reactive={(abilities?.ultimate?.ranks.length ?? 0) > 1}
+              />
+            </section>
+          );
+        })}
 
         <section className="mb-7">
           <h2 className={cx(eyebrow, "mb-2.5")}>Identificativo</h2>
@@ -540,6 +616,7 @@ export default async function HeroPage({ params }: Props) {
             </ul>
           </section>
         ) : null}
+        <Stats stats={stats} />
       </article>
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
@@ -700,44 +777,6 @@ function AffinityTag({
 }
 
 /**
- * Colpi per carta.
- *
- * Il client li nomina `skill_a_1_atk`: abilita' A, rango 1. Il rango puo'
- * valerne piu' d'uno - `skill_b_2_3_atk` copre il 2 e il 3 - perche' il gioco
- * cambia il numero di colpi solo quando cambia davvero.
- *
- * E' l'unico dato numerico di combattimento che il client contenga: tutto il
- * resto lo scarica dal server. Vale la pena mostrarlo proprio per questo.
- */
-function Hits({ hits }: { hits: Readonly<Record<string, number>> | undefined }) {
-  if (!hits) return null;
-
-  const rows = Object.entries(hits)
-    .map(([key, value]) => {
-      const match = /^skill_([a-z])_([\d_]+)_atk$/.exec(key);
-      if (!match) return { label: key, value };
-      const ranks = match[2]!.split("_").join("–");
-      return { label: `Abilità ${match[1]!.toUpperCase()} · rango ${ranks}`, value };
-    })
-    .filter((row) => row.value > 0);
-
-  if (rows.length === 0) return null;
-
-  return (
-    <dl className="m-0 mt-4 flex flex-wrap gap-x-6 gap-y-1.5">
-      {rows.map((row) => (
-        <div key={row.label} className="flex items-baseline gap-2">
-          <dt className="text-[13px] text-ink-2">{row.label}</dt>
-          <dd className={cx(numeric, "m-0 text-[13px] font-medium")}>
-            {row.value} {row.value === 1 ? "colpo" : "colpi"}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-/**
  * Cosa fa una carta, detto con i termini del gioco.
  *
  * Il testo del rango e' inglese e pieno di meccaniche evidenziate che non si
@@ -891,6 +930,330 @@ const RANK_CLASSES = [
   },
 ] as const;
 
+/** Cosa porta il pulsante del rango: stelle (carte A e B), pietre (ultimate), o la sigla. */
+type RankMark = "stelle" | "pietre" | "sigle";
+
+/**
+ * Il rango dell'ultimate letto da FUORI della sua carta: lo usa la passiva.
+ *
+ * Il radio dell'ultimate porta due agganci. `rkN` lo legge la carta, per il
+ * testo del rango; `ultN` la passiva, che sta in un'altra sezione e quindi
+ * chiede all'`<article>` (`group/scheda`). L'articolo contiene anche le carte A
+ * e B coi loro `rk1`-`rk3`: chiedendogli `.rk3:checked` risponderebbe pure la
+ * carta A, e la passiva seguirebbe il rango sbagliato.
+ *
+ * Scritte per esteso per la stessa ragione di RANK_CLASSES: Tailwind legge il
+ * sorgente.
+ */
+const ULTIMATE_LINK = [
+  {
+    hook: "ult1",
+    show: "group-has-[.ult1:checked]/scheda:block",
+    inline: "group-has-[.ult1:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult2",
+    show: "group-has-[.ult2:checked]/scheda:block",
+    inline: "group-has-[.ult2:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult3",
+    show: "group-has-[.ult3:checked]/scheda:block",
+    inline: "group-has-[.ult3:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult4",
+    show: "group-has-[.ult4:checked]/scheda:block",
+    inline: "group-has-[.ult4:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult5",
+    show: "group-has-[.ult5:checked]/scheda:block",
+    inline: "group-has-[.ult5:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult6",
+    show: "group-has-[.ult6:checked]/scheda:block",
+    inline: "group-has-[.ult6:checked]/scheda:inline-flex",
+  },
+] as const;
+
+/** L'articolo davanti al tipo, nella riga "... segue il rango scelto": l'Unita', la Grazia. */
+const ARTICOLO_SPECIALE: Readonly<Record<string, string>> = {
+  comandamento: "il ",
+  grazia: "la ",
+  unita: "l'",
+  talento: "il ",
+};
+
+/** Come si sa che l'icona di un'abilita' speciale e' sua: la parola breve e la spiegazione. */
+const FONTE_ICONA_SPECIALE: Readonly<Record<string, { breve: string; spiega: string }>> = {
+  wiki: {
+    breve: "dal wiki",
+    spiega: "Il wiki di community cita questo file nella pagina dell'eroe, accanto all'abilità.",
+  },
+  schema: {
+    breve: "dedotta",
+    spiega:
+      "Nessuna fonte la cita, ma segue lo schema dei nomi delle icone dichiarate per le altre abilità dello stesso tipo.",
+  },
+  "a vista": {
+    breve: "riconosciuta a vista",
+    spiega:
+      "Un'icona del personaggio che nessun'altra abilità reclama, riconosciuta dal disegno: le sfere contano i comandamenti, il volto dice la versione.",
+  },
+  "id nel nome": {
+    breve: "dal client",
+    spiega: "Il file dell'icona porta l'id dell'eroe nel nome: nessun accostamento da indovinare.",
+  },
+  generica: {
+    breve: "generica",
+    spiega: "L'icona propria non si trova fra quelle estratte: resta il simbolo del tipo.",
+  },
+};
+
+/**
+ * Un Comandamento, una Grazia, un'Unita' o un Talento.
+ *
+ * L'icona arriva gia' nella cornice del suo tipo, com'e' nel gioco. Accanto al
+ * nome si dice come si sa che l'icona e' sua, perche' per tre tipi su quattro il
+ * file non porta l'heroId e le fonti hanno forza diversa. Sotto il testo, le
+ * regole con cui il gioco fa convivere i tipi in squadra: sono la cosa che
+ * decide se l'abilita' si attiva davvero.
+ */
+function SpecialAbility({
+  game,
+  id,
+  ability,
+  kind,
+  conditions,
+  icons,
+  reactive,
+}: {
+  game: string;
+  id: string;
+  ability: HeroSpecialAbility;
+  kind: HeroSpecialKind | undefined;
+  conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+  /** c'e' un rango dell'ultimate da seguire */
+  reactive: boolean;
+}) {
+  const name = ability.name.it ?? ability.name.en;
+  const source = FONTE_ICONA_SPECIALE[ability.iconSource];
+  const rules = (kind?.rules ?? [])
+    .map((rule) => rule.it ?? rule.en)
+    .filter((rule): rule is string => rule !== null);
+
+  return (
+    <div
+      className="grid items-start gap-4 rounded-card border border-rule bg-paper-2 p-4"
+      style={ability.icon ? { gridTemplateColumns: "76px minmax(0, 1fr)" } : undefined}
+    >
+      {ability.icon ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={heroSpecialIconSrc(game, id)}
+          alt=""
+          width={122}
+          height={127}
+          loading="lazy"
+          className="block h-auto w-full"
+        />
+      ) : null}
+
+      <div className="min-w-0">
+        {name ? (
+          <GameText text={name} className="m-0 font-semibold [&>p]:m-0" />
+        ) : null}
+        {ability.icon && source ? (
+          <p
+            className="m-0 mb-1.5 text-[12px] text-ink-3"
+            title={`${source.spiega} Cornice: ${ability.frameSource}.`}
+          >
+            icona {source.breve}
+          </p>
+        ) : null}
+
+        <PassiveConditions game={game} codes={ability.conditions} conditions={conditions} icons={icons} />
+        <PassiveText
+          game={game}
+          text={ability.text}
+          steps={reactive ? ability.ultimateSteps : undefined}
+          icons={icons}
+          subject={kind?.label.it ? `${ARTICOLO_SPECIALE[ability.kind] ?? "l'abilità: "}${kind.label.it}` : "l'abilità"}
+        />
+
+        {rules.length > 0 ? (
+          <ul className="m-0 mt-2.5 list-none border-t border-rule p-0 pt-2 text-[12px] leading-snug text-ink-3 [&>li+li]:mt-1">
+            {rules.map((rule) => (
+              <li key={rule}>
+                <GameText text={rule} className="[&>p]:m-0" />
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Dove si attiva la passiva, con le icone del gioco.
+ *
+ * Sono quelle del riquadro dell'abilita' unica - la spada nel quadrato rosso,
+ * la mano bianca nel cerchio blu - e servono a capire a colpo d'occhio se una
+ * passiva vale in battaglia o anche dallo slot secondario, in tutti i contenuti
+ * o solo in PvP.
+ *
+ * Icona E frase, non l'icona da sola: le frasi sono quelle del gioco, e le
+ * icone dell'esclusione (la croce rossa sulla bestia, sul demone) non si
+ * leggono al primo sguardo per chi il gioco non lo conosce ancora. Dove l'icona
+ * manca - chi clona senza asset - resta la frase.
+ */
+function PassiveConditions({
+  game,
+  codes,
+  conditions,
+  icons,
+}: {
+  game: string;
+  codes: readonly number[] | undefined;
+  conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+}) {
+  const rows = (codes ?? [])
+    .map((code) => conditions?.[String(code)])
+    .filter((condition): condition is { icon: string; description: HeroLabel } => !!condition)
+    .map((condition) => ({
+      icon: condition.icon,
+      text: condition.description.it ?? condition.description.en,
+    }))
+    .filter((row): row is { icon: string; text: string } => row.text !== null);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <ul className="m-0 mb-2.5 flex list-none flex-wrap gap-x-4 gap-y-1.5 p-0">
+      {rows.map((row) => (
+        <li
+          key={row.icon}
+          className="inline-flex items-center gap-1.5 text-[12px] leading-snug text-ink-2"
+        >
+          {hasIcon(icons, "condizione", row.icon) ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={gameIconSrc(game, "condizione", row.icon)}
+              alt=""
+              width={64}
+              height={64}
+              className="h-5 w-5 shrink-0"
+            />
+          ) : null}
+          {row.text}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Il testo della passiva, che in 42 eroi segue il rango dell'ultimate.
+ *
+ * Come i ranghi delle carte, senza JavaScript: un pannello per versione del
+ * testo, e ogni pannello si accende sui ranghi in cui vale. La versione che
+ * vale dal rango 2 al 4 porta le classi dei ranghi 2, 3 e 4. Parte dal rango
+ * che l'ultimate ha scelto da sola, il sesto.
+ *
+ * Le note in fondo seguono il rango anche loro: in 21 di queste 42 passive il
+ * valore che sale sta anche dentro la definizione di un termine (`※Cold Snap:
+ * Attack-related stats 15%`), e in 8 cambia SOLTANTO li'. Una nota ferma al
+ * primo rango direbbe un numero sbagliato proprio dove la passiva cambia.
+ */
+function PassiveText({
+  game,
+  text,
+  steps,
+  context,
+  glossary,
+  icons,
+  subject = "la passiva",
+}: {
+  game: string;
+  text: string;
+  /** chi segue il rango, nella riga sopra il testo: "la passiva", "il Talento" */
+  subject?: string;
+  /** assenti quando la passiva non cambia, o quando non c'e' un rango da scegliere */
+  steps?: readonly { fromUltimateRank: number; text: string }[];
+  context?: HeroCardContext;
+  glossary?: Readonly<Record<string, HeroEffect>>;
+  icons?: Readonly<Record<string, readonly string[]>>;
+}) {
+  const body = "text-sm leading-relaxed text-ink-2";
+
+  if (!steps || steps.length === 0) {
+    return (
+      <>
+        <GameText text={text} omitNotes className={body} />
+        <Effects context={context} glossary={glossary} />
+        <GameNotes texts={[text]} className="mt-2.5" />
+      </>
+    );
+  }
+
+  const versions = [{ fromUltimateRank: 1, text }, ...steps];
+  // Ogni versione vale dal suo rango fino a quello prima della seguente.
+  const shows = versions.map((version, index) => {
+    const until = versions[index + 1]?.fromUltimateRank ?? ULTIMATE_LINK.length + 1;
+    return ULTIMATE_LINK.slice(version.fromUltimateRank - 1, until - 1).map((link) => link.show);
+  });
+  const gems = ULTIMATE_LINK.every((link) => hasIcon(icons, "carta", `pietra_${link.hook.slice(3)}`));
+  const orange = versions.some((version) => version.text.includes("[FF8000]"));
+
+  return (
+    <>
+      <p className="m-0 mb-2 flex flex-wrap items-center gap-x-1.5 text-[12px] leading-snug text-ink-3">
+        {ULTIMATE_LINK.map((link, index) => (
+          <span
+            key={link.hook}
+            className={cx("hidden items-center gap-1 font-semibold text-ink-2", link.inline)}
+          >
+            {gems ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={gameIconSrc(game, "carta", `pietra_${index + 1}`)}
+                alt=""
+                width={14}
+                height={14}
+                className="h-3.5 w-3.5 object-contain"
+              />
+            ) : null}
+            Ultimate al rango {index + 1}
+          </span>
+        ))}
+        <span>
+          · {subject} segue il rango scelto qui sopra
+          {orange ? ": i valori in arancione sono quelli legati al rango" : ""}
+        </span>
+      </p>
+
+      {versions.map((version, index) => (
+        <div key={`testo-${version.fromUltimateRank}`} className={cx("hidden", ...shows[index]!)}>
+          <GameText text={version.text} omitNotes className={body} />
+        </div>
+      ))}
+
+      <Effects context={context} glossary={glossary} />
+
+      {versions.map((version, index) => (
+        <div key={`note-${version.fromUltimateRank}`} className={cx("hidden", ...shows[index]!)}>
+          <GameNotes texts={[version.text]} className="mt-2.5" />
+        </div>
+      ))}
+    </>
+  );
+}
+
 /**
  * I pulsanti per scegliere il rango.
  *
@@ -909,10 +1272,11 @@ const RANK_CLASSES = [
  * legame passa da `group-has-[]` sulla carta intera, non da `peer-checked`,
  * che guarda solo i fratelli precedenti.
  *
- * Sulle carte A e B il pulsante porta le stelle del rango - una, due, tre -
- * come le segna il gioco. L'ultimate ha sei ranghi e il gioco non le da'
- * stelle, quindi resta a sigle R1-R6; e alle sigle si torna anche senza il PNG
- * della stella, per chi clona senza gli asset.
+ * Il pulsante segna il rango come lo segna il gioco. Sulle carte A e B porta
+ * le stelle - una, due, tre. L'ultimate ha sei ranghi e il gioco li segna con
+ * una pietra incastonata in cima alla carta, un colore per rango: verdina,
+ * azzurra, gialla, arancione, rossa, e al sesto la goccia verde chiaro. Alle
+ * sigle R1-R6 si torna senza i PNG, per chi clona senza gli asset.
  *
  * Parte dal rango PIU' ALTO: e' la carta com'e' quando conta, e chi vuole
  * vedere da dove parte scende di uno.
@@ -921,24 +1285,28 @@ function RankButtons({
   game,
   group,
   card,
-  stars,
+  mark,
   fill,
 }: {
   game: string;
   group: string;
   card: HeroCard;
-  stars: boolean;
+  mark: RankMark;
   /** sotto l'illustrazione: la riga e' larga quanto la carta, e i pulsanti crescono fino ai bordi */
   fill: boolean;
 }) {
-  // Sotto la carta i tre pulsanti a stelle stanno in una riga. Le sei sigle
-  // dell'ultimate in 120px non ci stanno - 25px l'una piu' gli spazi fanno 170 -
+  // Sotto la carta i pulsanti stanno in una riga sola. I tre a stelle crescono
+  // fino ai bordi. Le sei pietre le mette in fila la griglia, a 18px l'una -
+  // 120 meno cinque spazi da 2px, diviso sei - e la pietra ne occupa 14. Le sei
+  // sigle invece in 120px non ci stanno - 25px l'una piu' gli spazi fanno 170 -
   // quindi vanno tre per riga.
   const layout = !fill
     ? "mt-2 flex flex-wrap gap-1.5"
-    : stars
+    : mark === "stelle"
       ? "mt-1.5 flex gap-1"
-      : "mt-1.5 grid grid-cols-3 gap-1";
+      : mark === "pietre"
+        ? "mt-1.5 grid grid-cols-6 gap-0.5"
+        : "mt-1.5 grid grid-cols-3 gap-1";
 
   return (
     <div className={layout}>
@@ -949,7 +1317,11 @@ function RankButtons({
           name={group}
           id={`${group}-${rank.rank}`}
           defaultChecked={index === card.ranks.length - 1}
-          className={cx("sr-only", RANK_CLASSES[index]?.hook)}
+          className={cx(
+            "sr-only",
+            RANK_CLASSES[index]?.hook,
+            card.slot === "ultimate" && ULTIMATE_LINK[rank.rank - 1]?.hook,
+          )}
         />
       ))}
 
@@ -962,14 +1334,17 @@ function RankButtons({
             numeric,
             "flex cursor-pointer items-center justify-center rounded-[2px] border border-rule bg-paper-2",
             "text-[10px] text-ink-3 transition hover:text-ink",
-            // Le stelle spente a meta' dicono quale rango NON e' scelto meglio
-            // del solo bordo: sono tutte dello stesso giallo.
-            stars ? "h-5 px-1 opacity-50 hover:opacity-100" : "px-1.5",
+            // Le insegne spente a meta' dicono quale rango NON e' scelto meglio
+            // del solo bordo: le stelle sono tutte dello stesso giallo, e sei
+            // pietre accese di sei colori non ne farebbero risaltare nessuna.
+            mark === "sigle" ? "px-1.5" : "h-5 opacity-50 hover:opacity-100",
+            // nella griglia delle sei pietre restano 16px dentro il bordo: niente margini
+            mark !== "sigle" && (mark === "pietre" && fill ? "px-0" : "px-1"),
             fill && "flex-auto",
             RANK_CLASSES[index]?.chip,
           )}
         >
-          {stars ? (
+          {mark === "stelle" ? (
             <>
               {Array.from({ length: rank.rank }, (_, star) => (
                 /* eslint-disable-next-line @next/next/no-img-element */
@@ -984,6 +1359,25 @@ function RankButtons({
                 />
               ))}
               {/* le stelle sono immagini decorative: il nome del radio sta qui */}
+              <span className="sr-only">Rango {rank.rank}</span>
+            </>
+          ) : mark === "pietre" ? (
+            <>
+              {/*
+                Una casella quadrata e `object-contain`: le pietre hanno misure
+                diverse (dalla 62x71 della prima alla 96x128 della sesta), e
+                cosi' stanno tutte alla stessa altezza senza scrivere qui le
+                misure dell'atlas.
+              */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={gameIconSrc(game, "carta", `pietra_${rank.rank}`)}
+                alt=""
+                width={14}
+                height={14}
+                loading="lazy"
+                className="h-3.5 w-3.5 object-contain"
+              />
               <span className="sr-only">Rango {rank.rank}</span>
             </>
           ) : (
@@ -1048,9 +1442,17 @@ function CardRow({
   const art =
     artSrc ?? (card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null);
 
-  // Le stelle dei pulsanti valgono per le carte d'attacco, che hanno tre ranghi
-  // e cosi' li segna anche il gioco: l'ultimate ne ha sei, e stelle non ne porta.
-  const stars = (card.slot === "A" || card.slot === "B") && hasIcon(icons, "carta", "stella");
+  // Il rango si segna come lo segna il gioco: stelle sulle carte d'attacco, che
+  // hanno tre ranghi, e una pietra per rango sull'ultimate, che ne ha sei. Se
+  // manca anche una sola pietra si torna alle sigle per tutta la carta: meta'
+  // pulsanti a pietre e meta' a sigle non si leggerebbero come la stessa scala.
+  const mark: RankMark =
+    (card.slot === "A" || card.slot === "B") && hasIcon(icons, "carta", "stella")
+      ? "stelle"
+      : card.slot === "ultimate" &&
+          card.ranks.every((rank) => hasIcon(icons, "carta", `pietra_${rank.rank}`))
+        ? "pietre"
+        : "sigle";
   // Con un rango solo non c'e' niente da scegliere, quindi nessun pulsante.
   const picker = card.ranks.length > 1;
   const group = `${heroId}-${card.slot ?? "carta"}`;
@@ -1081,7 +1483,7 @@ function CardRow({
           />
 
           {picker ? (
-            <RankButtons game={game} group={group} card={card} stars={stars} fill />
+            <RankButtons game={game} group={group} card={card} mark={mark} fill />
           ) : null}
         </div>
       ) : null}
@@ -1101,7 +1503,7 @@ function CardRow({
 
         {/* Senza illustrazione non c'e' una carta sotto cui metterli: stanno sopra il testo. */}
         {art === null && picker ? (
-          <RankButtons game={game} group={group} card={card} stars={stars} fill={false} />
+          <RankButtons game={game} group={group} card={card} mark={mark} fill={false} />
         ) : null}
 
         <RankPanels card={card} />
@@ -1121,11 +1523,19 @@ function CardRow({
 }
 
 /**
- * Le statistiche al massimo livello, nude e equipaggiate.
+ * Le statistiche al massimo livello, senza equipaggiamento.
  *
- * Si mostrano le sei che si guardano davvero. Le altre - quindici per colonna -
- * esistono nel dataset e non qui: una tabella di trenta numeri non e' piu'
- * informativa, e' solo piu' lunga.
+ * Si mostrano le sei che si guardano davvero. Le altre quindici esistono nel
+ * dataset e non qui: una tabella di ventuno numeri non e' piu' informativa, e'
+ * solo piu' lunga.
+ *
+ * La colonna con l'equipaggiamento e' stata tolta il 15/09, su richiesta
+ * dell'utente, e aggiungeva poco: la differenza fra le due colonne e' lo stesso
+ * pacchetto per tutti i 373 eroi, quindi non diceva niente dell'eroe. Il dato
+ * resta in `maxGeared`.
+ *
+ * Sta in fondo alla scheda: carte, ultimate e passiva sono il motivo per cui la
+ * si apre.
  */
 const STAT_ROWS: readonly { key: string; label: string; percent?: boolean }[] = [
   { key: "atk", label: "Attacco" },
@@ -1150,52 +1560,28 @@ function Stats({ stats }: { stats: HeroStats | undefined }) {
 
   return (
     <section className="mb-7">
-      <h2 className={cx(eyebrow, "mb-2.5")}>Statistiche al massimo</h2>
+      <h2 className={cx(eyebrow, "mb-2.5")}>Statistiche al massimo, senza equipaggiamento</h2>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[320px] border-collapse text-[13px]">
-          <thead>
-            <tr className="border-b border-rule text-left">
-              <th className="py-1.5 pr-3 font-normal text-ink-3">&nbsp;</th>
-              <th className="py-1.5 pr-3 font-normal text-ink-3">Senza equipaggiamento</th>
-              <th className="py-1.5 font-normal text-ink-3">Equipaggiato</th>
+      {/* Una colonna di numeri: stretta, perche' larga quanto la scheda il
+          valore finirebbe a mille pixel dalla sua etichetta. */}
+      <table className="w-full max-w-[420px] border-collapse text-[13px]">
+        <tbody>
+          {STAT_ROWS.filter((row) => stats.max[row.key] !== undefined).map((row) => (
+            <tr key={row.key} className="border-b border-rule/60">
+              <td className="py-1.5 pr-3 text-ink-2">{row.label}</td>
+              <td className={cx(numeric, "py-1.5 text-right font-medium")}>
+                {numero(stats.max[row.key]!)}
+                {row.percent ? "%" : ""}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {STAT_ROWS.filter((row) => stats.max[row.key] !== undefined).map((row) => (
-              <tr key={row.key} className="border-b border-rule/60">
-                <td className="py-1.5 pr-3 text-ink-2">{row.label}</td>
-                <td className={cx(numeric, "py-1.5 pr-3")}>
-                  {numero(stats.max[row.key]!)}
-                  {row.percent ? "%" : ""}
-                </td>
-                <td className={cx(numeric, "py-1.5 font-medium")}>
-                  {stats.maxGeared[row.key] !== undefined
-                    ? numero(stats.maxGeared[row.key]!)
-                    : "—"}
-                  {row.percent && stats.maxGeared[row.key] !== undefined ? "%" : ""}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
 
       <p className="mt-3 text-[13px] text-ink-3">
         Nel client non ci sono: le tiene il server del gioco.
       </p>
     </section>
-  );
-}
-
-function Ability({ label, text }: { label: string; text: string | undefined }) {
-  if (!text) return null;
-
-  return (
-    <div className="rounded-card border border-rule border-l-[3px] border-l-brand bg-paper-2 p-4">
-      <p className={cx(eyebrow, "m-0 mb-1.5")}>{label}</p>
-      <GameText text={text} className="text-sm leading-relaxed text-ink-2" />
-    </div>
   );
 }
 

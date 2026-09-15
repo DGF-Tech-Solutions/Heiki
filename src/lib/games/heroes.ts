@@ -144,8 +144,17 @@ export function heroSkillIconSrc(gameSlug: string, heroId: string): string {
   return `/eroi/${gameSlug}/abilita/${heroId}.png`;
 }
 
+/**
+ * Icona di un'abilita' speciale, gia' nella sua cornice:
+ * `public/eroi/<gioco>/speciali/<id abilita'>.png`. Per id dell'abilita' e non
+ * dell'eroe, perche' le versioni di un personaggio la condividono.
+ */
+export function heroSpecialIconSrc(gameSlug: string, abilityId: string): string {
+  return `/eroi/${gameSlug}/speciali/${abilityId}.png`;
+}
+
 /** Le famiglie di icone che il gioco usa per etichettare un eroe. */
-export type IconFamily = "razza" | "attributo" | "rarita" | "carta";
+export type IconFamily = "razza" | "attributo" | "rarita" | "carta" | "condizione";
 
 /**
  * Icona del gioco per un valore: `public/eroi/<gioco>/icone/<famiglia>/<chiave>.png`.

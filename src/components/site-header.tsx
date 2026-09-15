@@ -16,10 +16,10 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b-2 border-ink bg-paper">
-      <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-6 px-6">
+      <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-3 px-6 sm:gap-6">
         <Link
           href="/"
-          className="whitespace-nowrap font-display text-xl font-extrabold uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_78]"
+          className="shrink-0 whitespace-nowrap font-display text-xl font-extrabold uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_78]"
         >
           Gacha<span className="text-brand">Zone</span>
         </Link>
@@ -33,12 +33,21 @@ export async function SiteHeader() {
           />
         </form>
 
-        <nav className="flex items-center gap-5 text-sm font-medium md:ml-0 ml-auto">
-          <Link href="/" className="text-ink-2 hover:text-brand">
+        {/*
+          Sul telefono questa riga sforava: a 390px chiedeva 12px in piu', e con
+          lei tutta la pagina scorreva di lato, perche' una riga troppo larga
+          allarga l'area visibile di ogni sezione. Sotto sm sparisce "Giochi",
+          che porta alla stessa pagina del logo, e gli spazi si stringono.
+
+          `min-w-0` e `overflow-x-auto` sono la rete: con un nome utente lungo, o
+          i pulsanti in piu' di chi modera, a scorrere e' la barra e non la pagina.
+        */}
+        <nav className="ml-auto flex min-w-0 items-center gap-3 overflow-x-auto py-1 text-sm font-medium whitespace-nowrap [scrollbar-width:none] sm:gap-5 md:ml-0">
+          <Link href="/" className="hidden text-ink-2 hover:text-brand sm:inline">
             Giochi
           </Link>
 
-          <span className="flex items-center gap-2.5 border-l border-rule pl-5">
+          <span className="flex items-center gap-2.5 sm:border-l sm:border-rule sm:pl-5">
             {user ? (
               <>
                 {/* Le aree riservate compaiono solo a chi le puo' aprire: un
