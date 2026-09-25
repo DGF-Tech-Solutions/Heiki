@@ -274,7 +274,9 @@ export interface HeroAbilities {
  * Statistiche di un eroe al massimo livello.
  *
  * Calcolate dalle tabelle del client (scheda_client.py): fino al 24/09
- * venivano da 7dshub, perche' le tabelle stavano nei bundle cifrati. Due colonne perche' sono due domande diverse - quanto vale l'eroe nudo, e
+ * venivano da 7dshub, perche' le tabelle stavano nei bundle cifrati.
+ *
+ * Due colonne perche' sono due domande diverse - quanto vale l'eroe nudo, e
  * quanto vale equipaggiato - e mostrarne una sola nasconde quanto pesa
  * l'equipaggiamento, che e' met&agrave; del gioco.
  *
