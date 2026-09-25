@@ -12,13 +12,16 @@
  * prima plausibile, e chi modera perde l'informazione che l'elenco doveva dare.
  */
 
+import type { Locale } from "@/lib/i18n/locale";
+
+/** `label` e' l'italiano, `labels` le due lingue: usa reportReasonLabel. */
 export const REPORT_REASONS = [
-  { id: "spam", label: "Spam o pubblicità" },
-  { id: "abuso", label: "Insulti o molestie" },
-  { id: "dati", label: "Dati personali di qualcuno" },
-  { id: "numeri", label: "Numeri dichiarati falsi" },
-  { id: "copyright", label: "Materiale protetto" },
-  { id: "altro", label: "Altro" },
+  { id: "spam", label: "Spam o pubblicità", labels: { it: "Spam o pubblicità", en: "Spam or advertising" } },
+  { id: "abuso", label: "Insulti o molestie", labels: { it: "Insulti o molestie", en: "Insults or harassment" } },
+  { id: "dati", label: "Dati personali di qualcuno", labels: { it: "Dati personali di qualcuno", en: "Someone's personal data" } },
+  { id: "numeri", label: "Numeri dichiarati falsi", labels: { it: "Numeri dichiarati falsi", en: "False numbers" } },
+  { id: "copyright", label: "Materiale protetto", labels: { it: "Materiale protetto", en: "Copyrighted material" } },
+  { id: "altro", label: "Altro", labels: { it: "Altro", en: "Other" } },
 ] as const;
 
 export type ReportReason = (typeof REPORT_REASONS)[number]["id"];
@@ -29,6 +32,6 @@ export const REPORT_REASON_IDS = REPORT_REASONS.map((reason) => reason.id) as [
 ];
 
 /** Etichetta di un motivo, anche se arriva da una versione precedente. */
-export function reportReasonLabel(id: string): string {
-  return REPORT_REASONS.find((reason) => reason.id === id)?.label ?? id;
+export function reportReasonLabel(id: string, locale: Locale = "it"): string {
+  return REPORT_REASONS.find((reason) => reason.id === id)?.labels[locale] ?? id;
 }

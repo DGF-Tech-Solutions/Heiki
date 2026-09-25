@@ -13,9 +13,52 @@
 
 import type { SimulationAttachment } from "@/lib/community/types";
 import type { AttachmentCheck } from "@/lib/community/verify";
+import { intlLocale, testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { cx, Stat, StatGrid, Tag } from "../ui";
 
-export function AttachmentCard({
+const TESTI = testi({
+  it: {
+    turni: "turni",
+    simulazione: "simulazione",
+    unita: (n: number) => `${n} unità`,
+    dannoMediano: "Danno mediano",
+    noveSuDieci: "Nove su dieci",
+    koIn: "KO in",
+    mai: "mai",
+    riuscita: "Riuscita",
+    tentativi: (_n: number, scritto: string) => `${scritto} tentativi`,
+    rifallo: "rifallo tu e ti escono gli stessi numeri",
+    medianaDiversa: (ricalcolata: string, dichiarata: string) =>
+      `Rieseguendo il calcolo con questo seed la mediana risulta ${ricalcolata} invece di ${dichiarata}.`,
+    verificatoTitolo: "Il motore ha rifatto il calcolo con questo seed e ottiene gli stessi numeri.",
+    nonRiprodottoTitolo: "Rieseguendo il calcolo con questo seed i numeri non coincidono.",
+    verificato: "✓ verificato",
+    nonRiprodotto: "✗ non riprodotto",
+  },
+  en: {
+    turni: "turns",
+    simulazione: "simulation",
+    unita: (n: number) => `${n} ${n === 1 ? "unit" : "units"}`,
+    dannoMediano: "Median damage",
+    noveSuDieci: "Nine in ten",
+    koIn: "KO in",
+    mai: "never",
+    riuscita: "Success rate",
+    tentativi: (n: number, scritto: string) => `${scritto} ${n === 1 ? "run" : "runs"}`,
+    rifallo: "run it yourself and you get the same numbers",
+    medianaDiversa: (ricalcolata: string, dichiarata: string) =>
+      `Rerunning the calculation with this seed gives a median of ${ricalcolata} instead of ${dichiarata}.`,
+    verificatoTitolo: "The engine redid the calculation with this seed and gets the same numbers.",
+    nonRiprodottoTitolo: "Rerunning the calculation with this seed, the numbers don't match.",
+    verificato: "✓ verified",
+    nonRiprodotto: "✗ not reproduced",
+  },
+});
+
+type Testi = (typeof TESTI)["it"];
+
+export async function AttachmentCard({
   data,
   check,
 }: {
@@ -23,35 +66,34 @@ export function AttachmentCard({
   /** esito della riverifica; assente nel feed, dove non si ricalcola */
   check?: AttachmentCheck;
 }) {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+  const tag = intlLocale(locale);
+  const round = (value: number) => Math.round(value).toLocaleString(tag);
+
   const span = Math.max(1, data.p90 - data.p10);
   const position = Math.min(100, Math.max(0, ((data.median - data.p10) / span) * 100));
-  const unit = data.timeUnit === "turns" ? "turni" : "s";
+  const unit = data.timeUnit === "turns" ? t.turni : "s";
 
   return (
     <figure className="m-0 mt-3.5 rounded-card border border-rule bg-paper-2 p-3.5">
       <figcaption className="mb-3 flex flex-wrap items-center gap-2.5">
-        <Tag tone="brand">simulazione</Tag>
-        {check ? <CheckBadge check={check} /> : null}
+        <Tag tone="brand">{t.simulazione}</Tag>
+        {check ? <CheckBadge check={check} t={t} /> : null}
         <span className="font-mono text-[11px] text-ink-3">
-          {data.character} · {data.team.length} unità · patch {data.patch}
+          {data.character} · {t.unita(data.team.length)} · patch {data.patch}
         </span>
       </figcaption>
 
       <StatGrid className="bg-paper">
-        <Stat label="Danno mediano" value={Math.round(data.median).toLocaleString("it-IT")} />
+        <Stat label={t.dannoMediano} value={round(data.median)} />
+        <Stat label={t.noveSuDieci} small value={`${round(data.p10)} – ${round(data.p90)}`} />
         <Stat
-          label="Nove su dieci"
-          small
-          value={`${Math.round(data.p10).toLocaleString("it-IT")} – ${Math.round(
-            data.p90,
-          ).toLocaleString("it-IT")}`}
-        />
-        <Stat
-          label="KO in"
+          label={t.koIn}
           value={data.timeToKill === null ? "—" : data.timeToKill}
-          unit={data.timeToKill === null ? "mai" : unit}
+          unit={data.timeToKill === null ? t.mai : unit}
         />
-        <Stat label="Riuscita" value={Math.round(data.killRate * 100)} unit="%" />
+        <Stat label={t.riuscita} value={Math.round(data.killRate * 100)} unit="%" />
       </StatGrid>
 
       <div className="relative mt-3.5 h-1 rounded-full bg-paper-3" aria-hidden>
@@ -63,15 +105,15 @@ export function AttachmentCard({
 
       <p className="m-0 mt-2 font-mono text-[10px] text-ink-3">
         seed {data.seed}
-        {data.iterations > 0 ? ` · ${data.iterations.toLocaleString("it-IT")} tentativi` : ""} ·
-        rifallo tu e ti escono gli stessi numeri
+        {data.iterations > 0
+          ? ` · ${t.tentativi(data.iterations, data.iterations.toLocaleString(tag))}`
+          : ""}{" "}
+        · {t.rifallo}
       </p>
 
       {check?.status === "mismatch" ? (
         <p className="m-0 mt-2 text-[11px] text-hot">
-          Rieseguendo il calcolo con questo seed la mediana risulta{" "}
-          {Math.round(check.recomputed ?? 0).toLocaleString("it-IT")} invece di{" "}
-          {Math.round(check.declared ?? 0).toLocaleString("it-IT")}.
+          {t.medianaDiversa(round(check.recomputed ?? 0), round(check.declared ?? 0))}
         </p>
       ) : null}
     </figure>
@@ -85,24 +127,20 @@ export function AttachmentCard({
  * di un'altra patch, personaggi non piu' presenti - fa piu' danno di nessun
  * segno. Si dichiara solo quando si ha qualcosa da dichiarare.
  */
-function CheckBadge({ check }: { check: AttachmentCheck }) {
+function CheckBadge({ check, t }: { check: AttachmentCheck; t: Testi }) {
   if (check.status === "unverifiable") return null;
 
   const verified = check.status === "match";
 
   return (
     <span
-      title={
-        verified
-          ? "Il motore ha rifatto il calcolo con questo seed e ottiene gli stessi numeri."
-          : "Rieseguendo il calcolo con questo seed i numeri non coincidono."
-      }
+      title={verified ? t.verificatoTitolo : t.nonRiprodottoTitolo}
       className={cx(
         "inline-flex h-5 items-center gap-1 rounded-[2px] px-[7px] font-mono text-[10px] font-medium uppercase tracking-[0.06em]",
         verified ? "bg-[#128a5b] text-white" : "bg-hot text-white",
       )}
     >
-      {verified ? "✓ verificato" : "✗ non riprodotto"}
+      {verified ? t.verificato : t.nonRiprodotto}
     </span>
   );
 }

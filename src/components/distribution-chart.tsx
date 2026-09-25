@@ -12,7 +12,22 @@
  */
 
 import type { DistributionStats, Histogram } from "@/lib/engine";
+import { intlLocale, testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { eyebrow, numeric } from "./ui";
+
+const TESTI = testi({
+  it: {
+    descrizione: (mediana: string, da: string, a: string) =>
+      `Distribuzione: mediana ${mediana}, intervallo da ${da} a ${a}`,
+    mediana: "mediana",
+  },
+  en: {
+    descrizione: (mediana: string, da: string, a: string) =>
+      `Distribution: median ${mediana}, range from ${da} to ${a}`,
+    mediana: "median",
+  },
+});
 
 interface Props {
   histogram: Histogram;
@@ -26,8 +41,11 @@ const WIDTH = 420;
 const HEIGHT = 150;
 const PAD_BOTTOM = 18;
 
-export function DistributionChart({ histogram, stats, title, caption, formatValue }: Props) {
-  const format = formatValue ?? defaultFormat;
+export async function DistributionChart({ histogram, stats, title, caption, formatValue }: Props) {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+  const format =
+    formatValue ?? ((value: number) => Math.round(value).toLocaleString(intlLocale(locale)));
   const bins = histogram.bins;
   const peak = bins.reduce((max, value) => (value > max ? value : max), 0);
   const barWidth = bins.length > 0 ? WIDTH / bins.length : WIDTH;
@@ -51,9 +69,7 @@ export function DistributionChart({ histogram, stats, title, caption, formatValu
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         preserveAspectRatio="none"
         role="img"
-        aria-label={`Distribuzione: mediana ${format(stats.median)}, intervallo da ${format(
-          stats.p10,
-        )} a ${format(stats.p90)}`}
+        aria-label={t.descrizione(format(stats.median), format(stats.p10), format(stats.p90))}
       >
         {bins.map((count, index) => {
           const height = peak > 0 ? (count / peak) * plotHeight : 0;
@@ -110,7 +126,7 @@ export function DistributionChart({ histogram, stats, title, caption, formatValu
 
       <figcaption className="mt-3 flex flex-wrap gap-4.5 border-t border-rule-2 pt-3">
         <Legend color="var(--color-brand)" label="p10" value={format(stats.p10)} />
-        <Legend color="var(--color-hot)" label="mediana" value={format(stats.median)} />
+        <Legend color="var(--color-hot)" label={t.mediana} value={format(stats.median)} />
         <Legend color="var(--color-brand)" label="p90" value={format(stats.p90)} />
       </figcaption>
     </figure>
@@ -129,8 +145,4 @@ function Legend({ color, label, value }: { color: string; label: string; value: 
       <b className={`${numeric} text-[13px] font-medium text-ink`}>{value}</b>
     </div>
   );
-}
-
-function defaultFormat(value: number): string {
-  return Math.round(value).toLocaleString("it-IT");
 }

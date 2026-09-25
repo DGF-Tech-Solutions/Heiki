@@ -5,9 +5,13 @@
  * l'editor glieli passa dal proprio stato React a ogni battuta di tasto. Un solo
  * componente per entrambi, cosi' l'anteprima dal vivo non e' un'approssimazione
  * della pagina vera: e' la pagina vera.
+ *
+ * Per lo stesso motivo la lingua arriva come prop e non da un hook: il
+ * componente gira sia sul server (pagina pubblica) sia nel browser (editor).
  */
 
-import { ROLE_LABELS, type Role } from "@/lib/auth/permissions";
+import { roleLabel, type Role } from "@/lib/auth/permissions";
+import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
 import { levelProgress } from "@/lib/profile/level";
 import {
   BADGE_SHOWCASE_LIMIT,
@@ -61,13 +65,60 @@ export interface ProfileViewData {
   customization?: ProfileCustomization;
 }
 
-const TRUST_LABEL: Readonly<Record<BadgeTrust, string>> = {
-  VERIFIED: "verificato",
-  IMPORTED: "importato",
-  DECLARED: "dichiarato",
-};
+const TESTI = testi({
+  it: {
+    fiducia: {
+      VERIFIED: "verificato",
+      IMPORTED: "importato",
+      DECLARED: "dichiarato",
+    } satisfies Record<BadgeTrust, string>,
+    livello: (n: number) => `Livello ${n}`,
+    livelloMassimo: "livello massimo",
+    alProssimo: (xp: string, mancano: number) => `${xp} XP · ${mancano} al prossimo`,
+    badgeVerificati: "Badge verificati",
+    buildPubbliche: "Build pubbliche",
+    profiliCollegati: "Profili collegati",
+    esperienza: "Esperienza",
+    preferiti: "Preferiti",
+    badge: "Badge",
+    verificatiSu: (verificati: number, totale: number) => `${verificati} verificati su ${totale}`,
+    vetrinaVuota: "Vetrina vuota. Collega un profilo di gioco per sbloccare i badge verificati.",
+    profiliDiGioco: "Profili di gioco",
+    soloUidPubblici: "solo UID pubblici",
+    nessunProfilo: "Nessun profilo collegato.",
+    condivise: (n: number) => `${n} condivise`,
+    nessunaBuild: "Nessuna build pubblica.",
+    mediana: "mediana",
+  },
+  en: {
+    fiducia: {
+      VERIFIED: "verified",
+      IMPORTED: "imported",
+      DECLARED: "declared",
+    },
+    livello: (n: number) => `Level ${n}`,
+    livelloMassimo: "max level",
+    alProssimo: (xp: string, mancano: number) => `${xp} XP · ${mancano} to next`,
+    badgeVerificati: "Verified badges",
+    buildPubbliche: "Public builds",
+    profiliCollegati: "Linked profiles",
+    esperienza: "Experience",
+    preferiti: "Favorites",
+    badge: "Badges",
+    verificatiSu: (verificati: number, totale: number) => `${verificati} verified out of ${totale}`,
+    vetrinaVuota: "Empty showcase. Link a game profile to unlock verified badges.",
+    profiliDiGioco: "Game profiles",
+    soloUidPubblici: "public UIDs only",
+    nessunProfilo: "No linked profiles.",
+    condivise: (n: number) => `${n} shared`,
+    nessunaBuild: "No public builds.",
+    mediana: "median",
+  },
+});
 
-export function ProfileView({ data }: { data: ProfileViewData }) {
+export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; locale?: Locale }) {
+  const t = TESTI[locale];
+  const numberLocale = intlLocale(locale);
   const custom = data.customization ?? DEFAULT_CUSTOMIZATION;
   const progress = levelProgress(data.xp);
 
@@ -112,13 +163,13 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
 
           <p className="m-0 mt-1.5 flex flex-wrap items-center gap-2 font-mono text-[13px] text-ink-3">
             @{data.username}
-            <Tag tone="accent">{ROLE_LABELS[data.role]}</Tag>
+            <Tag tone="accent">{roleLabel(data.role, locale)}</Tag>
             {data.country ? <span>{data.country}</span> : null}
           </p>
         </div>
 
         <div className="ml-auto text-right">
-          <span className={eyebrow}>Livello {progress.level}</span>
+          <span className={eyebrow}>{t.livello(progress.level)}</span>
           <span className="mt-1.5 block h-1.5 w-[170px] overflow-hidden rounded-full bg-paper-3">
             <span
               className="block h-full"
@@ -127,8 +178,8 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
           </span>
           <span className={cx(numeric, "text-[11px] text-ink-3")}>
             {progress.maxed
-              ? "livello massimo"
-              : `${data.xp.toLocaleString("it-IT")} XP · ${progress.needed - progress.current} al prossimo`}
+              ? t.livelloMassimo
+              : t.alProssimo(data.xp.toLocaleString(numberLocale), progress.needed - progress.current)}
           </span>
         </div>
       </header>
@@ -145,15 +196,15 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
       ) : null}
 
       <StatGrid className="mt-6">
-        <Stat label="Badge verificati" value={verified} />
-        <Stat label="Build pubbliche" value={publicBuilds.length} />
-        <Stat label="Profili collegati" value={shownAccounts.length} />
-        <Stat label="Esperienza" value={data.xp.toLocaleString("it-IT")} />
+        <Stat label={t.badgeVerificati} value={verified} />
+        <Stat label={t.buildPubbliche} value={publicBuilds.length} />
+        <Stat label={t.profiliCollegati} value={shownAccounts.length} />
+        <Stat label={t.esperienza} value={data.xp.toLocaleString(numberLocale)} />
       </StatGrid>
 
       {data.favorites.length > 0 ? (
         <section className={compact ? "py-8" : "py-11"}>
-          <SectionHead title="Preferiti" />
+          <SectionHead title={t.preferiti} />
           <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
             {data.favorites.map((name) => (
               <li
@@ -176,18 +227,12 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
 
       <section className={compact ? "py-8" : "py-11"}>
         <SectionHead
-          title="Badge"
-          aside={
-            <span className={eyebrow}>
-              {verified} verificati su {shownBadges.length}
-            </span>
-          }
+          title={t.badge}
+          aside={<span className={eyebrow}>{t.verificatiSu(verified, shownBadges.length)}</span>}
         />
 
         {shownBadges.length === 0 ? (
-          <Empty>
-            Vetrina vuota. Collega un profilo di gioco per sbloccare i badge verificati.
-          </Empty>
+          <Empty>{t.vetrinaVuota}</Empty>
         ) : (
           <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
             {shownBadges.map((badge) => {
@@ -221,7 +266,7 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
                         isVerified ? "font-medium text-[var(--accent)]" : "text-ink-3",
                       )}
                     >
-                      {TRUST_LABEL[badge.trust]}
+                      {t.fiducia[badge.trust]}
                     </span>
                   </span>
                 </li>
@@ -233,12 +278,12 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
 
       <section className={compact ? "py-8" : "py-11"}>
         <SectionHead
-          title="Profili di gioco"
-          aside={<span className={eyebrow}>solo UID pubblici</span>}
+          title={t.profiliDiGioco}
+          aside={<span className={eyebrow}>{t.soloUidPubblici}</span>}
         />
 
         {shownAccounts.length === 0 ? (
-          <Empty>Nessun profilo collegato.</Empty>
+          <Empty>{t.nessunProfilo}</Empty>
         ) : (
           <ul className="m-0 list-none overflow-hidden rounded-card border border-rule p-0">
             {shownAccounts.map((account, index) => (
@@ -257,7 +302,7 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
                 </span>
                 <span className={cx(numeric, "text-xs text-ink-3")}>UID {account.uid}</span>
                 <Tag tone={account.trust === "VERIFIED" ? "accent" : "neutral"}>
-                  {TRUST_LABEL[account.trust]}
+                  {t.fiducia[account.trust]}
                 </Tag>
               </li>
             ))}
@@ -267,12 +312,12 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
 
       <section className={compact ? "pt-8" : "pt-11"}>
         <SectionHead
-          title="Build pubbliche"
-          aside={<span className={eyebrow}>{publicBuilds.length} condivise</span>}
+          title={t.buildPubbliche}
+          aside={<span className={eyebrow}>{t.condivise(publicBuilds.length)}</span>}
         />
 
         {publicBuilds.length === 0 ? (
-          <Empty>Nessuna build pubblica.</Empty>
+          <Empty>{t.nessunaBuild}</Empty>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {publicBuilds.map((build) => (
@@ -287,9 +332,9 @@ export function ProfileView({ data }: { data: ProfileViewData }) {
                   {build.game} · {build.character}
                 </p>
                 <p className={cx(numeric, "m-0 mt-3 text-xl font-medium tracking-[-0.02em]")}>
-                  {Math.round(build.median).toLocaleString("it-IT")}
+                  {Math.round(build.median).toLocaleString(numberLocale)}
                   <span className="ml-1.5 font-mono text-[10px] font-normal tracking-normal text-ink-3 uppercase">
-                    mediana
+                    {t.mediana}
                   </span>
                 </p>
               </article>

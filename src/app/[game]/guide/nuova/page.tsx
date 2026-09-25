@@ -8,11 +8,37 @@ import { requireGameModule } from "@/lib/games/registry";
 import { can } from "@/lib/auth/permissions";
 import { currentViewer } from "@/lib/community/actions";
 import { getGuideStore } from "@/lib/guides/store";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Scrivi una guida",
-  robots: { index: false, follow: false },
-};
+const TESTI = testi({
+  it: {
+    scriviGuida: "Scrivi una guida",
+    guide: "Guide",
+    nuova: "Nuova",
+    intro:
+      "Nasce come bozza. Quando la ritieni finita la mandi in revisione, e un redattore decide se pubblicarla e per quale patch i numeri valgono.",
+    serveRuolo:
+      "Per proporre una guida serve il ruolo di collaboratore. Si ottiene partecipando alla community: chi risponde in modo utile e pubblica build che il sito riesce a riverificare viene promosso da un redattore.",
+  },
+  en: {
+    scriviGuida: "Write a guide",
+    guide: "Guides",
+    nuova: "New",
+    intro:
+      "It starts as a draft. When you think it's finished you send it to review, and an editor decides whether to publish it and which patch the numbers hold for.",
+    serveRuolo:
+      "Proposing a guide requires the contributor role. You earn it by taking part in the community: people who give useful answers and post builds the site can re-verify get promoted by an editor.",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return {
+    title: t.scriviGuida,
+    robots: { index: false, follow: false },
+  };
+}
 
 interface Props {
   params: Promise<{ game: string }>;
@@ -26,6 +52,7 @@ interface Props {
  */
 export default async function NewGuidePage({ params }: Props) {
   const { game } = await params;
+  const t = TESTI[await getLocale()];
 
   const entry = findGame(game);
   if (!entry) notFound();
@@ -40,27 +67,20 @@ export default async function NewGuidePage({ params }: Props) {
       <Breadcrumb
         items={[
           { label: entry.shortName, href: `/${game}` },
-          { label: "Guide", href: `/${game}/guide` },
-          { label: "Nuova" },
+          { label: t.guide, href: `/${game}/guide` },
+          { label: t.nuova },
         ]}
       />
 
       <header className="mb-6 border-b border-rule pb-5">
         <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(24px,3.2vw,34px)]")}>Scrivi una guida</h1>
-        <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">
-          Nasce come bozza. Quando la ritieni finita la mandi in revisione, e un redattore decide
-          se pubblicarla e per quale patch i numeri valgono.
-        </p>
+        <h1 className={cx(display, "mt-3 text-[clamp(24px,3.2vw,34px)]")}>{t.scriviGuida}</h1>
+        <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">{t.intro}</p>
       </header>
 
       {!can(role, "submitGuide") ? (
         <Notice tone="warn">
-          <span>
-            Per proporre una guida serve il ruolo di collaboratore. Si ottiene partecipando alla
-            community: chi risponde in modo utile e pubblica build che il sito riesce a
-            riverificare viene promosso da un redattore.
-          </span>
+          <span>{t.serveRuolo}</span>
         </Notice>
       ) : (
         <GuideEditor game={game} characters={gameModule.characters} />

@@ -7,17 +7,31 @@
  * non e' un extra: e' il motivo per cui questa sezione esiste.
  */
 
+import type { Bilingual, Locale } from "@/lib/i18n/locale";
 import { slugify } from "@/lib/markdown";
 
 export const GUIDE_STATUSES = ["DRAFT", "IN_REVIEW", "PUBLISHED", "ARCHIVED"] as const;
 
 export type GuideStatus = (typeof GUIDE_STATUSES)[number];
 
+const STATUS_NAMES: Readonly<Record<GuideStatus, Bilingual>> = {
+  DRAFT: { it: "Bozza", en: "Draft" },
+  IN_REVIEW: { it: "In revisione", en: "In review" },
+  PUBLISHED: { it: "Pubblicata", en: "Published" },
+  ARCHIVED: { it: "Archiviata", en: "Archived" },
+};
+
+/** Lo stato di una guida nella lingua del sito. */
+export function statusLabel(status: GuideStatus, locale: Locale): string {
+  return STATUS_NAMES[status][locale];
+}
+
+/** I nomi in italiano. Per chi non passa ancora la lingua: usa statusLabel. */
 export const STATUS_LABELS: Readonly<Record<GuideStatus, string>> = {
-  DRAFT: "Bozza",
-  IN_REVIEW: "In revisione",
-  PUBLISHED: "Pubblicata",
-  ARCHIVED: "Archiviata",
+  DRAFT: STATUS_NAMES.DRAFT.it,
+  IN_REVIEW: STATUS_NAMES.IN_REVIEW.it,
+  PUBLISHED: STATUS_NAMES.PUBLISHED.it,
+  ARCHIVED: STATUS_NAMES.ARCHIVED.it,
 };
 
 export interface GuideAuthor {

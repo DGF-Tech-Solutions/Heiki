@@ -8,7 +8,14 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { countHeroes, filterHeroes, heroCardSrc, sortHeroes } from "../heroes";
+import {
+  countHeroes,
+  filterHeroes,
+  heroCardSrc,
+  heroEpithet,
+  heroName,
+  sortHeroes,
+} from "../heroes";
 import { grandCrossModule } from "../grand-cross";
 import type { HeroEntry } from "../types";
 
@@ -83,6 +90,47 @@ describe("filterHeroes", () => {
 
   it("una ricerca di soli spazi non filtra", () => {
     expect(filterHeroes(SAMPLE, { search: "   " })).toHaveLength(4);
+  });
+
+  it("trova un eroe per nome ed epiteto in tutte e due le lingue", () => {
+    const bilingue = [
+      ...SAMPLE,
+      hero({
+        id: "5",
+        group: "Ban",
+        name: "Brawler Ban",
+        epithet: "Snatch",
+        nameIt: "Ban attaccabrighe",
+        epithetIt: "Furto",
+      }),
+    ];
+    expect(filterHeroes(bilingue, { search: "attaccabrighe" }).map((h) => h.id)).toEqual(["5"]);
+    expect(filterHeroes(bilingue, { search: "brawler" }).map((h) => h.id)).toEqual(["5"]);
+    expect(filterHeroes(bilingue, { search: "furto" }).map((h) => h.id)).toEqual(["5"]);
+    expect(filterHeroes(bilingue, { search: "snatch ban" }).map((h) => h.id)).toEqual(["5"]);
+  });
+});
+
+describe("heroName e heroEpithet", () => {
+  const ban = hero({
+    id: "5",
+    name: "Brawler Ban",
+    epithet: "Snatch",
+    nameIt: "Ban attaccabrighe",
+    epithetIt: "Furto",
+  });
+
+  it("in italiano mostrano l'italiano, in inglese l'inglese", () => {
+    expect([heroName(ban, "it"), heroEpithet(ban, "it")]).toEqual(["Ban attaccabrighe", "Furto"]);
+    expect([heroName(ban, "en"), heroEpithet(ban, "en")]).toEqual(["Brawler Ban", "Snatch"]);
+  });
+
+  it("senza l'italiano ripiegano sul nome del roster", () => {
+    const soloInglese = hero({ id: "6", name: "Escanor the One", epithet: "Sunshine" });
+    expect([heroName(soloInglese, "it"), heroEpithet(soloInglese, "it")]).toEqual([
+      "Escanor the One",
+      "Sunshine",
+    ]);
   });
 });
 
@@ -183,6 +231,80 @@ describe("roster di Grand Cross", () => {
 
   it("nessun epiteto conserva la decorazione della fonte", () => {
     expect(roster?.heroes.filter((h) => decorated(h.epithet)).map((h) => h.epithet)).toEqual([]);
+  });
+
+  /*
+   * Nome ed epiteto italiani arrivano dal client, e dove il client non li ha da
+   * 7dshub in italiano: oggi ci sono per tutti. Se una fonte li perdesse, la
+   * griglia in italiano tornerebbe all'inglese senza dare errore.
+   */
+  it("ogni eroe ha nome ed epiteto in italiano, senza decorazione", () => {
+    const senza = roster?.heroes.filter((h) => !h.nameIt || !h.epithetIt).map((h) => h.id) ?? [];
+    expect(senza).toEqual([]);
+    const decorati =
+      roster?.heroes.filter((h) => h.epithetIt && decorated(h.epithetIt)).map((h) => h.epithetIt) ?? [];
+    expect(decorati).toEqual([]);
+  });
+});
+
+/**
+ * I testi in italiano: controlli sul contratto, non sui numeri.
+ *
+ * `textsInItalian` promette che la scheda in italiano non deve avvertire di
+ * niente: se un rango restasse senza `textIt`, la pagina lo mostrerebbe in
+ * inglese SENZA la nota che lo dice. E U+FEFF, che la fonte italiana si porta
+ * dietro in 37 stringhe, non si vede ma rompe ricerche e confronti.
+ */
+describe("testi in italiano di Grand Cross", () => {
+  const abilities = grandCrossModule.heroAbilities;
+  const texts = grandCrossModule.heroTexts;
+  const specials = grandCrossModule.heroSpecials;
+  const roster = grandCrossModule.roster;
+
+  it("con textsInItalian ogni testo inglese ha il suo italiano", () => {
+    const senza: string[] = [];
+    for (const [hid, voce] of Object.entries(abilities ?? {})) {
+      if (!voce.textsInItalian) continue;
+      for (const card of [...voce.cards, ...(voce.ultimate ? [voce.ultimate] : [])]) {
+        for (const rank of card.ranks) {
+          if (rank.text && !rank.textIt) senza.push(`${hid} ${card.slot} rango ${rank.rank}`);
+        }
+      }
+      if (voce.passive?.text && !voce.passive.textIt) senza.push(`${hid} passiva`);
+      for (const step of voce.passive?.ultimateSteps ?? []) {
+        if (step.text && !step.textIt) senza.push(`${hid} passiva dal rango ${step.fromUltimateRank}`);
+      }
+    }
+    expect(senza).toEqual([]);
+  });
+
+  it("i testi italiani non contengono U+FEFF", () => {
+    const italiani: [string, string | null | undefined][] = [];
+    for (const hero of roster?.heroes ?? []) {
+      italiani.push([`${hero.id} nome`, hero.nameIt], [`${hero.id} epiteto`, hero.epithetIt]);
+    }
+    for (const [hid, text] of Object.entries(texts ?? {})) {
+      for (const [campo, label] of Object.entries(text.i18n ?? {})) {
+        italiani.push([`${hid} ${campo}`, label.it]);
+      }
+    }
+    for (const [hid, voce] of Object.entries(abilities ?? {})) {
+      for (const card of [...voce.cards, ...(voce.ultimate ? [voce.ultimate] : [])]) {
+        italiani.push([`${hid} ${card.slot} nome`, card.nameI18n?.it]);
+        for (const rank of card.ranks) italiani.push([`${hid} ${card.slot} ${rank.rank}`, rank.textIt]);
+      }
+      italiani.push([`${hid} passiva nome`, voce.passive?.nameI18n?.it], [`${hid} passiva`, voce.passive?.textIt]);
+      for (const step of voce.passive?.ultimateSteps ?? []) {
+        italiani.push([`${hid} passiva ${step.fromUltimateRank}`, step.textIt]);
+      }
+    }
+    for (const [id, ability] of Object.entries(specials?.abilities ?? {})) {
+      italiani.push([`${id} nome`, ability.name.it], [`${id} testo`, ability.textIt]);
+      for (const step of ability.ultimateSteps ?? []) {
+        italiani.push([`${id} ${step.fromUltimateRank}`, step.textIt]);
+      }
+    }
+    expect(italiani.filter(([, value]) => value?.includes("﻿")).map(([where]) => where)).toEqual([]);
   });
 });
 

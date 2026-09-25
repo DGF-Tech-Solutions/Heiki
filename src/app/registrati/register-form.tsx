@@ -3,10 +3,40 @@
 import { useActionState } from "react";
 import { registerAction, type FormState } from "@/lib/auth/actions";
 import { Button, Field, Input, Notice } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: {
+    handle: "Handle",
+    esempioHandle: "ilmionome",
+    nomeVisualizzato: "Nome visualizzato",
+    email: "Email",
+    esempioEmail: "tu@esempio.it",
+    password: "Password",
+    almenoDieci: "almeno 10 caratteri",
+    creo: "Creo…",
+    creaProfilo: "Crea il profilo",
+    senzaDatabase: "Senza database anche questo modulo porta al profilo di esempio.",
+  },
+  en: {
+    handle: "Handle",
+    esempioHandle: "myname",
+    nomeVisualizzato: "Display name",
+    email: "Email",
+    esempioEmail: "you@example.com",
+    password: "Password",
+    almenoDieci: "at least 10 characters",
+    creo: "Creating…",
+    creaProfilo: "Create profile",
+    senzaDatabase: "Without a database, this form also takes you to the sample profile.",
+  },
+});
 
 const INITIAL: FormState = {};
 
 export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
+  const t = TESTI[useLocale()];
   const [state, action, pending] = useActionState(registerAction, INITIAL);
   const errors = state.fieldErrors ?? {};
 
@@ -18,7 +48,7 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
         </Notice>
       ) : null}
 
-      <Field label="Handle" hint="gachazone.it/u/…" error={errors.username}>
+      <Field label={t.handle} hint="gachazone.it/u/…" error={errors.username}>
         <Input
           className="font-mono"
           name="username"
@@ -26,12 +56,12 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
           required
           minLength={3}
           maxLength={20}
-          placeholder="ilmionome"
+          placeholder={t.esempioHandle}
           aria-invalid={errors.username ? true : undefined}
         />
       </Field>
 
-      <Field label="Nome visualizzato" error={errors.displayName}>
+      <Field label={t.nomeVisualizzato} error={errors.displayName}>
         <Input
           name="displayName"
           autoComplete="nickname"
@@ -41,18 +71,18 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
         />
       </Field>
 
-      <Field label="Email" error={errors.email}>
+      <Field label={t.email} error={errors.email}>
         <Input
           type="email"
           name="email"
           autoComplete="email"
           required
-          placeholder="tu@esempio.it"
+          placeholder={t.esempioEmail}
           aria-invalid={errors.email ? true : undefined}
         />
       </Field>
 
-      <Field label="Password" hint="almeno 10 caratteri" error={errors.password}>
+      <Field label={t.password} hint={t.almenoDieci} error={errors.password}>
         <Input
           type="password"
           name="password"
@@ -69,13 +99,11 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
         className="w-full"
         disabled={pending}
       >
-        {pending ? "Creo…" : "Crea il profilo"}
+        {pending ? t.creo : t.creaProfilo}
       </Button>
 
       {demoMode ? (
-        <p className="mt-2.5 text-[11px] text-ink-3">
-          Senza database anche questo modulo porta al profilo di esempio.
-        </p>
+        <p className="mt-2.5 text-[11px] text-ink-3">{t.senzaDatabase}</p>
       ) : null}
     </form>
   );

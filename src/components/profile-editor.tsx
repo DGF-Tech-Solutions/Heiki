@@ -28,6 +28,103 @@ import {
   type ProfileCustomization,
 } from "@/lib/profile/customization";
 import { Button, cx, display, Empty, Field, Input, Textarea } from "./ui";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: {
+    chiSei: "Chi sei",
+    chiSeiNota: "Come ti trovano e come ti presenti",
+    nomeVisualizzato: "Nome visualizzato",
+    handle: "Handle",
+    paese: "Paese o regione",
+    facoltativo: "facoltativo",
+    esempioPaese: "Italia",
+    bio: "Bio",
+    aspetto: "Aspetto",
+    aspettoNota: "Tutti i cosmetici sono disegni nostri: nessun asset dei giochi",
+    accento: "Accento",
+    accentoNota: "colora livello, badge e dettagli",
+    premium: " (premium)",
+    richiedePremium: (nome: string) => `${nome} — richiede il premium`,
+    preferiti: "Personaggi preferiti",
+    preferitiNota: "Compaiono in cima al profilo, nell'ordine che scegli",
+    aggiungiPreferito: "Aggiungi preferito",
+    nomePersonaggio: "Nome del personaggio",
+    vetrina: "Vetrina dei badge",
+    vetrinaNota: (esposti: number, posti: number) =>
+      `${esposti} esposti su ${posti} posti. I badge si guadagnano: scegli quali mostrare e in che ordine, non come si chiamano.`,
+    nessunBadge: "Nessun badge ancora.",
+    vetrinaPiena: "Vetrina piena",
+    esponi: "esponi",
+    profiliGioco: "Profili di gioco",
+    profiliGiocoNota:
+      "Solo UID pubblici. Non chiediamo mai le credenziali del tuo account di gioco, e il livello di fiducia lo assegna la verifica automatica.",
+    collegaProfilo: "Collega un profilo",
+    gioco: "Gioco",
+    uid: "UID",
+    nickname: "Nickname",
+    mostra: "mostra",
+    build: "Build",
+    buildNota: "Decidi quali rendere pubbliche sul profilo",
+    nuovaBuild: "Nuova build",
+    aggiungiBuild: "Aggiungi build",
+    nomeBuild: "Nome della build",
+    personaggio: "Personaggio",
+    danno: "Danno",
+    pubblica: "pubblica",
+    spostaSu: "Sposta su",
+    spostaGiu: "Sposta giù",
+    rimuovi: "Rimuovi",
+    nienteQui: "Niente qui, per ora.",
+  },
+  en: {
+    chiSei: "Who you are",
+    chiSeiNota: "How people find you and how you present yourself",
+    nomeVisualizzato: "Display name",
+    handle: "Handle",
+    paese: "Country or region",
+    facoltativo: "optional",
+    esempioPaese: "Italy",
+    bio: "Bio",
+    aspetto: "Appearance",
+    aspettoNota: "All cosmetics are our own designs: no game assets",
+    accento: "Accent",
+    accentoNota: "colors your level, badges and details",
+    premium: " (premium)",
+    richiedePremium: (nome: string) => `${nome} — requires Premium`,
+    preferiti: "Favorite characters",
+    preferitiNota: "They appear at the top of your profile, in the order you choose",
+    aggiungiPreferito: "Add favorite",
+    nomePersonaggio: "Character name",
+    vetrina: "Badge showcase",
+    vetrinaNota: (esposti: number, posti: number) =>
+      `${esposti} shown out of ${posti} slots. Badges are earned: choose which to show and in what order, not what they're called.`,
+    nessunBadge: "No badges yet.",
+    vetrinaPiena: "Showcase full",
+    esponi: "show",
+    profiliGioco: "Game profiles",
+    profiliGiocoNota:
+      "Public UIDs only. We never ask for your game account credentials, and the trust level is assigned by automatic verification.",
+    collegaProfilo: "Link a profile",
+    gioco: "Game",
+    uid: "UID",
+    nickname: "Nickname",
+    mostra: "show",
+    build: "Builds",
+    buildNota: "Choose which ones are public on your profile",
+    nuovaBuild: "New build",
+    aggiungiBuild: "Add build",
+    nomeBuild: "Build name",
+    personaggio: "Character",
+    danno: "Damage",
+    pubblica: "public",
+    spostaSu: "Move up",
+    spostaGiu: "Move down",
+    rimuovi: "Remove",
+    nienteQui: "Nothing here yet.",
+  },
+});
 
 const ACCENT_SWATCH: Readonly<Record<string, string>> = {
   brand: "#6425ff",
@@ -73,6 +170,9 @@ interface Props {
 }
 
 export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
+  const locale = useLocale();
+  const t = TESTI[locale];
+
   const patch = (changes: Partial<ProfileDraft>) => onChange({ ...value, ...changes });
 
   const setCustom = (key: CustomizationKey, option: string) =>
@@ -82,9 +182,9 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
 
   return (
     <div className="grid gap-5">
-      <Group title="Chi sei" hint="Come ti trovano e come ti presenti">
+      <Group title={t.chiSei} hint={t.chiSeiNota}>
         <Field
-          label="Nome visualizzato"
+          label={t.nomeVisualizzato}
           hint={<Counter value={value.displayName.length} limit={NAME_LIMIT} />}
         >
           <Input
@@ -94,7 +194,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
           />
         </Field>
 
-        <Field label="Handle" hint={`/u/${value.username || "…"}`}>
+        <Field label={t.handle} hint={`/u/${value.username || "…"}`}>
           <Input
             className="font-mono"
             value={value.username}
@@ -103,17 +203,17 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
           />
         </Field>
 
-        <Field label="Paese o regione" hint="facoltativo">
+        <Field label={t.paese} hint={t.facoltativo}>
           <Input
             value={value.country ?? ""}
             maxLength={40}
-            placeholder="Italia"
+            placeholder={t.esempioPaese}
             onChange={(event) => patch({ country: event.target.value })}
           />
         </Field>
 
         <Field
-          label="Bio"
+          label={t.bio}
           hint={<Counter value={(value.bio ?? "").length} limit={BIO_LIMIT} />}
           className="mb-0"
         >
@@ -125,20 +225,21 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         </Field>
       </Group>
 
-      <Group title="Aspetto" hint="Tutti i cosmetici sono disegni nostri: nessun asset dei giochi">
-        <Subgroup label="Accento" hint="colora livello, badge e dettagli">
+      <Group title={t.aspetto} hint={t.aspettoNota}>
+        <Subgroup label={t.accento} hint={t.accentoNota}>
           <div className="flex flex-wrap gap-2.5">
             {ACCENTS.map((option) => {
               const locked = option.premium && !canUsePremium;
               const active = value.customization.accent === option.id;
+              const label = option.labels[locale];
               return (
                 <button
                   key={option.id}
                   type="button"
                   disabled={locked}
                   aria-pressed={active}
-                  aria-label={`${option.label}${option.premium ? " (premium)" : ""}`}
-                  title={locked ? `${option.label} — richiede il premium` : option.description}
+                  aria-label={`${label}${option.premium ? t.premium : ""}`}
+                  title={locked ? t.richiedePremium(label) : option.descriptions[locale]}
                   onClick={() => setCustom("accent", option.id)}
                   style={{ background: ACCENT_SWATCH[option.id] ?? "#6425ff" }}
                   className={cx(
@@ -159,18 +260,19 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         </Subgroup>
 
         {CUSTOMIZATION_GROUPS.filter((group) => group.key !== "accent").map((group) => (
-          <Subgroup key={group.key} label={group.label} hint={group.hint}>
+          <Subgroup key={group.key} label={group.labels[locale]} hint={group.hints[locale]}>
             <div className="flex flex-wrap gap-2">
               {group.options.map((option) => {
                 const locked = option.premium && !canUsePremium;
                 const active = value.customization[group.key] === option.id;
+                const label = option.labels[locale];
                 return (
                   <button
                     key={option.id}
                     type="button"
                     disabled={locked}
                     aria-pressed={active}
-                    title={locked ? `${option.label} — richiede il premium` : option.description}
+                    title={locked ? t.richiedePremium(label) : option.descriptions[locale]}
                     onClick={() => setCustom(group.key, option.id)}
                     className={cx(
                       "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-card border px-3 text-[13px] transition-colors",
@@ -180,7 +282,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                         : "border-rule text-ink-2 hover:border-ink-3 hover:text-ink",
                     )}
                   >
-                    {option.label}
+                    {label}
                     {option.premium ? <span className="text-[9px] text-gold">★</span> : null}
                   </button>
                 );
@@ -191,28 +293,25 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
       </Group>
 
       <ListGroup
-        title="Personaggi preferiti"
-        hint="Compaiono in cima al profilo, nell'ordine che scegli"
+        title={t.preferiti}
+        hint={t.preferitiNota}
         items={value.favorites}
         onChange={(favorites) => patch({ favorites })}
         create={() => ""}
-        addLabel="Aggiungi preferito"
+        addLabel={t.aggiungiPreferito}
         renderFields={(item, update) => (
           <MiniInput
             value={item}
-            placeholder="Nome del personaggio"
+            placeholder={t.nomePersonaggio}
             maxLength={40}
             onChange={(next) => update(next)}
           />
         )}
       />
 
-      <Group
-        title="Vetrina dei badge"
-        hint={`${shownBadges} esposti su ${BADGE_SHOWCASE_LIMIT} posti. I badge si guadagnano: scegli quali mostrare e in che ordine, non come si chiamano.`}
-      >
+      <Group title={t.vetrina} hint={t.vetrinaNota(shownBadges, BADGE_SHOWCASE_LIMIT)}>
         {value.badges.length === 0 ? (
-          <Empty>Nessun badge ancora.</Empty>
+          <Empty>{t.nessunBadge}</Empty>
         ) : (
           <div className="grid gap-2">
             {value.badges.map((badge, index) => {
@@ -235,7 +334,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                   </span>
                   <label
                     className="inline-flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-ink-2"
-                    title={atLimit ? "Vetrina piena" : undefined}
+                    title={atLimit ? t.vetrinaPiena : undefined}
                   >
                     <input
                       type="checkbox"
@@ -251,7 +350,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                         })
                       }
                     />
-                    esponi
+                    {t.esponi}
                   </label>
                 </Row>
               );
@@ -261,8 +360,8 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
       </Group>
 
       <ListGroup
-        title="Profili di gioco"
-        hint="Solo UID pubblici. Non chiediamo mai le credenziali del tuo account di gioco, e il livello di fiducia lo assegna la verifica automatica."
+        title={t.profiliGioco}
+        hint={t.profiliGiocoNota}
         items={value.gameAccounts}
         onChange={(gameAccounts) => patch({ gameAccounts })}
         create={() => ({
@@ -273,12 +372,12 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
           trust: "DECLARED" as const,
           shown: true,
         })}
-        addLabel="Collega un profilo"
+        addLabel={t.collegaProfilo}
         renderFields={(account, update) => (
           <>
             <MiniInput
               value={account.game}
-              placeholder="Gioco"
+              placeholder={t.gioco}
               maxLength={40}
               onChange={(game) => update({ ...account, game })}
             />
@@ -286,13 +385,13 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
               <MiniInput
                 mono
                 value={account.uid}
-                placeholder="UID"
+                placeholder={t.uid}
                 maxLength={24}
                 onChange={(uid) => update({ ...account, uid })}
               />
               <MiniInput
                 value={account.nickname ?? ""}
-                placeholder="Nickname"
+                placeholder={t.nickname}
                 maxLength={30}
                 onChange={(nickname) => update({ ...account, nickname })}
               />
@@ -302,46 +401,46 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         renderAside={(account, update) => (
           <Toggle
             checked={account.shown !== false}
-            label="mostra"
+            label={t.mostra}
             onChange={(shown) => update({ ...account, shown })}
           />
         )}
       />
 
       <ListGroup
-        title="Build"
-        hint="Decidi quali rendere pubbliche sul profilo"
+        title={t.build}
+        hint={t.buildNota}
         items={value.builds}
         onChange={(builds) => patch({ builds })}
         create={() => ({
           id: `build-${Date.now()}`,
-          name: "Nuova build",
+          name: t.nuovaBuild,
           game: "",
           character: "",
           median: 0,
           patch: "—",
           isPublic: true,
         })}
-        addLabel="Aggiungi build"
+        addLabel={t.aggiungiBuild}
         renderFields={(build, update) => (
           <>
             <MiniInput
               value={build.name}
-              placeholder="Nome della build"
+              placeholder={t.nomeBuild}
               maxLength={50}
               onChange={(name) => update({ ...build, name })}
             />
             <span className="flex gap-1.5">
               <MiniInput
                 value={build.character}
-                placeholder="Personaggio"
+                placeholder={t.personaggio}
                 maxLength={40}
                 onChange={(character) => update({ ...build, character })}
               />
               <MiniInput
                 mono
                 value={build.median || ""}
-                placeholder="Danno"
+                placeholder={t.danno}
                 inputMode="numeric"
                 onChange={(raw) =>
                   update({ ...build, median: Number(String(raw).replace(/\D/g, "")) || 0 })
@@ -353,7 +452,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         renderAside={(build, update) => (
           <Toggle
             checked={build.isPublic !== false}
-            label="pubblica"
+            label={t.pubblica}
             onChange={(isPublic) => update({ ...build, isPublic })}
           />
         )}
@@ -482,12 +581,14 @@ function Reorder({
   length: number;
   onMove: (from: number, to: number) => void;
 }) {
+  const t = TESTI[useLocale()];
+
   return (
     <span className="flex flex-col gap-0.5">
       <button
         type="button"
         className={cx(ICON_BTN, "h-4.5 w-6")}
-        aria-label="Sposta su"
+        aria-label={t.spostaSu}
         disabled={index === 0}
         onClick={() => onMove(index, index - 1)}
       >
@@ -496,7 +597,7 @@ function Reorder({
       <button
         type="button"
         className={cx(ICON_BTN, "h-4.5 w-6")}
-        aria-label="Sposta giù"
+        aria-label={t.spostaGiu}
         disabled={index === length - 1}
         onClick={() => onMove(index, index + 1)}
       >
@@ -530,10 +631,12 @@ function ListGroup<T>({
   renderFields: (item: T, update: (next: T) => void) => ReactNode;
   renderAside?: (item: T, update: (next: T) => void) => ReactNode;
 }) {
+  const t = TESTI[useLocale()];
+
   return (
     <Group title={title} hint={hint}>
       {items.length === 0 ? (
-        <Empty>Niente qui, per ora.</Empty>
+        <Empty>{t.nienteQui}</Empty>
       ) : (
         <div className="grid gap-2">
           {items.map((item, index) => {
@@ -552,7 +655,7 @@ function ListGroup<T>({
                 <button
                   type="button"
                   className={cx(ICON_BTN, "size-6 text-xs hover:border-hot hover:text-hot")}
-                  aria-label="Rimuovi"
+                  aria-label={t.rimuovi}
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
                 >
                   ×

@@ -6,10 +6,12 @@ import { buttonClass, cx, display, Empty, eyebrow, Notice, Tag } from "@/compone
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
 import { getGuideStore } from "@/lib/guides/store";
-import { isStale, STATUS_LABELS } from "@/lib/guides/types";
+import { isStale, statusLabel } from "@/lib/guides/types";
 import { formatDate } from "@/components/freshness";
 import { can } from "@/lib/auth/permissions";
 import { currentViewer } from "@/lib/community/actions";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
 /**
  * Elenco delle guide di un gioco.
@@ -24,6 +26,47 @@ import { currentViewer } from "@/lib/community/actions";
  * un indice, e' un cassetto.
  */
 
+const TESTI = testi({
+  it: {
+    titoloPagina: (gioco: string) => `Guide di ${gioco} · GachaZone`,
+    descrizione: (gioco: string) =>
+      `Guide e rotazioni per ${gioco}, con la patch in cui i numeri sono stati verificati.`,
+    gioco: "gioco",
+    questoGioco: "questo gioco",
+    guide: "Guide",
+    intro: (patch: string) =>
+      `Ogni guida dice in quale patch è stata controllata. Quando il dataset supera quella patch, la guida si segna da sola come da rivedere: patch corrente ${patch}.`,
+    scrivi: "Scrivi una guida",
+    demo: "Modalità dimostrativa: queste guide vivono in memoria e si azzerano al riavvio del server.",
+    nessunaGuida: (gioco: string) =>
+      `Nessuna guida pubblicata per ${gioco}. È la sezione più lenta da riempire e la più difficile da falsificare: una guida sbagliata si vede subito.`,
+    patchNonDichiarata: "patch non dichiarata",
+    verificataSu: (patch: string) => `verificata su ${patch}`,
+    daRivedere: "da rivedere",
+    di: "di",
+    nonPubblicate: "Non pubblicate",
+  },
+  en: {
+    titoloPagina: (gioco: string) => `${gioco} guides · GachaZone`,
+    descrizione: (gioco: string) =>
+      `Guides and rotations for ${gioco}, with the patch the numbers were verified on.`,
+    gioco: "Game",
+    questoGioco: "this game",
+    guide: "Guides",
+    intro: (patch: string) =>
+      `Every guide states which patch it was checked on. When the dataset moves past that patch, the guide flags itself for review: current patch ${patch}.`,
+    scrivi: "Write a guide",
+    demo: "Demo mode: these guides live in memory and reset when the server restarts.",
+    nessunaGuida: (gioco: string) =>
+      `No published guides for ${gioco} yet. It's the slowest section to fill and the hardest to fake: a wrong guide shows right away.`,
+    patchNonDichiarata: "patch not declared",
+    verificataSu: (patch: string) => `verified on ${patch}`,
+    daRivedere: "needs review",
+    di: "by",
+    nonPubblicate: "Unpublished",
+  },
+});
+
 interface Props {
   params: Promise<{ game: string }>;
 }
@@ -31,14 +74,17 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game } = await params;
   const entry = findGame(game);
+  const t = TESTI[await getLocale()];
   return {
-    title: `Guide di ${entry?.shortName ?? "gioco"} · GachaZone`,
-    description: `Guide e rotazioni per ${entry?.name ?? "questo gioco"}, con la patch in cui i numeri sono stati verificati.`,
+    title: t.titoloPagina(entry?.shortName ?? t.gioco),
+    description: t.descrizione(entry?.name ?? t.questoGioco),
   };
 }
 
 export default async function GuidesPage({ params }: Props) {
   const { game } = await params;
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const entry = findGame(game);
   if (!entry) notFound();
@@ -63,37 +109,30 @@ export default async function GuidesPage({ params }: Props) {
 
   return (
     <main className="pt-6 pb-20">
-      <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: "Guide" }]} />
+      <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.guide }]} />
 
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-rule pb-5">
         <div>
           <p className={eyebrow}>{entry.shortName}</p>
-          <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>Guide</h1>
-          <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">
-            Ogni guida dice in quale patch è stata controllata. Quando il dataset supera quella
-            patch, la guida si segna da sola come da rivedere: patch corrente {currentPatch}.
-          </p>
+          <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.guide}</h1>
+          <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">{t.intro(currentPatch)}</p>
         </div>
 
         {canWrite ? (
           <Link href={`/${game}/guide/nuova`} className={buttonClass("primary")}>
-            Scrivi una guida
+            {t.scrivi}
           </Link>
         ) : null}
       </header>
 
       {store.volatile ? (
         <Notice tone="warn" className="mb-6">
-          Modalità dimostrativa: queste guide vivono in memoria e si azzerano al riavvio del
-          server.
+          {t.demo}
         </Notice>
       ) : null}
 
       {published.length === 0 ? (
-        <Empty>
-          Nessuna guida pubblicata per {entry.shortName}. È la sezione più lenta da riempire e la
-          più difficile da falsificare: una guida sbagliata si vede subito.
-        </Empty>
+        <Empty>{t.nessunaGuida(entry.shortName)}</Empty>
       ) : (
         <ul className="m-0 grid list-none gap-3.5 p-0">
           {published.map((guide) => {
@@ -105,19 +144,19 @@ export default async function GuidesPage({ params }: Props) {
               >
                 <div className="mb-2 flex flex-wrap items-center gap-2.5">
                   {guide.verifiedPatch === null ? (
-                    <Tag>patch non dichiarata</Tag>
+                    <Tag>{t.patchNonDichiarata}</Tag>
                   ) : (
                     <Tag tone={stale ? "neutral" : "brand"}>
-                      {stale ? `verificata su ${guide.verifiedPatch}` : `patch ${currentPatch}`}
+                      {stale ? t.verificataSu(guide.verifiedPatch) : `patch ${currentPatch}`}
                     </Tag>
                   )}
                   {stale ? (
                     <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot">
-                      da rivedere
+                      {t.daRivedere}
                     </span>
                   ) : null}
                   <span className="ml-auto font-mono text-[11px] text-ink-3">
-                    {guide.publishedAt ? formatDate(guide.publishedAt) : "—"}
+                    {guide.publishedAt ? formatDate(guide.publishedAt, locale) : "—"}
                   </span>
                 </div>
 
@@ -133,7 +172,7 @@ export default async function GuidesPage({ params }: Props) {
                 <p className="m-0 text-sm leading-relaxed text-ink-2">{guide.excerpt}</p>
 
                 <p className="m-0 mt-2.5 text-xs text-ink-3">
-                  di{" "}
+                  {t.di}{" "}
                   <Link href={`/u/${guide.author.username}`} className="text-ink-2 hover:text-brand">
                     {guide.author.displayName}
                   </Link>
@@ -146,14 +185,14 @@ export default async function GuidesPage({ params }: Props) {
 
       {canReview && inProgress.length > 0 ? (
         <section className="mt-10">
-          <h2 className={cx(display, "mb-3 text-lg")}>Non pubblicate</h2>
+          <h2 className={cx(display, "mb-3 text-lg")}>{t.nonPubblicate}</h2>
           <ul className="m-0 grid list-none gap-2 p-0">
             {inProgress.map((guide) => (
               <li
                 key={guide.id}
                 className="flex flex-wrap items-center gap-3 rounded-card border border-dashed border-rule bg-paper-2 px-4 py-3 text-sm"
               >
-                <Tag>{STATUS_LABELS[guide.status]}</Tag>
+                <Tag>{statusLabel(guide.status, locale)}</Tag>
                 <Link
                   href={`/${game}/guide/${guide.slug}`}
                   className="font-medium hover:text-brand"

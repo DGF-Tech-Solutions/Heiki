@@ -172,6 +172,37 @@ describe("splitHeroNotes", () => {
     const { notes } = splitHeroNotes("Colpisce.\\n[00D5FF]※Sunfire: 5x.\\nDanni +100%.[-]");
     expect(notes[1]?.[0]?.color).toBe("#00D5FF");
   });
+
+  /*
+   * I testi italiani di 7dshub aprono 16 note con l'asterisco al posto di ※:
+   * il caso vero e' Meliodas, rango 110043, "*Evasione: immune ad Attacco...".
+   */
+  it("riconosce la nota aperta con l'asterisco, seguito da un nome e dai due punti", () => {
+    const { body, notes } = splitHeroNotes(
+      "Assume un Atteggiamento per 1 turno.\\n\\n[00D5FF]*Evasione: immune ad Attacco.[-]",
+    );
+    expect(body.map((l) => l.map((s) => s.text).join(""))).toEqual([
+      "Assume un Atteggiamento per 1 turno.",
+    ]);
+    expect(notes.map((l) => l.map((s) => s.text).join(""))).toEqual([
+      "*Evasione: immune ad Attacco.",
+    ]);
+  });
+
+  it("l'asterisco vale come marca solo in testa alla riga", () => {
+    const { notes } = splitHeroNotes("Danni x2 *Evasione: immune.\\nPoi guarisce.");
+    expect(notes).toEqual([]);
+  });
+
+  it("un asterisco senza un nome e i due punti resta testo", () => {
+    expect(splitHeroNotes("Colpisce.\\n* nota a margine: niente").notes).toEqual([]);
+    expect(splitHeroNotes("Colpisce.\\n*Evasione senza definizione").notes).toEqual([]);
+  });
+
+  it("le note con l'asterisco si raccolgono una volta sola come le altre", () => {
+    const ranghi = ["Colpisce.\\n*Esplosione: danni +100%.", "Colpisce forte.\\n*Esplosione: danni +100%."];
+    expect(collectHeroNotes(ranghi)).toHaveLength(1);
+  });
 });
 
 describe("collectHeroNotes", () => {

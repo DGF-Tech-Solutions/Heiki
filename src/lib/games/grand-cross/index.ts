@@ -102,6 +102,7 @@ function toAction(skill: SkillData, attribute: Attribute, isUltimate: boolean): 
   return {
     id: skill.id,
     name: skill.name,
+    names: skill.names,
     duration: 1,
     cooldown: 0,
     hits: [hit],
@@ -137,6 +138,7 @@ function resolveActor(build: GrandCrossBuild, slotId: string): ResolvedActor {
     buffs[buff.id] = {
       id: buff.id,
       name: buff.name,
+      names: buff.names,
       duration: buff.duration,
       maxStacks: buff.maxStacks,
       appliesTo: buff.appliesTo,

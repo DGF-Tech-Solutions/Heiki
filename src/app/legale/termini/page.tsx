@@ -1,12 +1,33 @@
 import type { Metadata } from "next";
 import { cx, display, eyebrow, Notice } from "@/components/ui";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Termini di servizio · GachaZone",
-  description: "Regole d'uso di GachaZone, contenuti degli utenti, acquisti e diritto di recesso.",
-};
+/** Un blocco JSX intero per lingua: vedi la nota nella pagina privacy. */
+const TESTI = testi({
+  it: {
+    titoloPagina: "Termini di servizio · GachaZone",
+    descrizione: "Regole d'uso di GachaZone, contenuti degli utenti, acquisti e diritto di recesso.",
+    Documento: TerminiIt,
+  },
+  en: {
+    titoloPagina: "Terms of service · GachaZone",
+    descrizione: "GachaZone's rules of use, user content, purchases and right of withdrawal.",
+    Documento: TerminiEn,
+  },
+});
 
-export default function TermsPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return { title: t.titoloPagina, description: t.descrizione };
+}
+
+export default async function TermsPage() {
+  const { Documento } = TESTI[await getLocale()];
+  return <Documento />;
+}
+
+function TerminiIt() {
   return (
     <>
       <p className={eyebrow}>Condizioni</p>
@@ -91,6 +112,94 @@ export default function TermsPage() {
       <p>
         Si applica la legge italiana. Il foro competente va indicato qui prima della
         pubblicazione.
+      </p>
+    </>
+  );
+}
+
+function TerminiEn() {
+  return (
+    <>
+      <p className={eyebrow}>Conditions</p>
+      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>
+        Terms of service
+      </h1>
+
+      <Notice className="mb-8">
+        <span>
+          <strong>Technical draft.</strong> It describes how the site works and which rules the
+          software enforces; it must be reviewed by a lawyer before publication.
+        </span>
+      </Notice>
+
+      <h2>What GachaZone is</h2>
+      <p>
+        A calculation tool and a community for gacha games. Simulations are estimates produced by
+        our own engine from game data collected by the community:{" "}
+        <strong>they are not official numbers</strong> and may differ from the actual game.
+      </p>
+
+      <h2>No relationship with publishers</h2>
+      <p>
+        GachaZone <strong>is not affiliated with, sponsored by or endorsed by</strong> Netmarble,
+        HoYoverse, Kuro Games or other publishers. Trademarks, names and game content belong to
+        their respective owners and are mentioned to identify what is being discussed.
+      </p>
+
+      <h2>Your account</h2>
+      <ul>
+        <li>One account per person; a valid email address is required.</li>
+        <li>You are responsible for what happens with your credentials.</li>
+        <li>
+          We neither ask for nor want the credentials of your game account. If someone asks you
+          for them on our behalf, it isn&apos;t us.
+        </li>
+      </ul>
+
+      <h2>What you can publish</h2>
+      <p>
+        You remain the owner of what you write. By publishing it, you grant us the non-exclusive,
+        free right to display it on the site and in share previews.
+      </p>
+      <p>The following is not allowed:</p>
+      <ul>
+        <li>Insulting or harassing anyone. Criticize the build, not the person who made it.</li>
+        <li>Publishing other people&apos;s personal data.</li>
+        <li>Spam, hidden advertising, undisclosed affiliate links.</li>
+        <li>
+          Claiming false numbers as your own results. The site re-checks attachments and flags it
+          publicly.
+        </li>
+        <li>Uploading copyrighted material you have no rights to.</li>
+      </ul>
+      <p>
+        Moderators can hide content or suspend an account. Decisions can be appealed by writing
+        to the operator.
+      </p>
+
+      <h2>Purchases</h2>
+      <p>
+        The items for sale are <strong>cosmetics of our own making</strong>: frames, backgrounds,
+        accents, layouts. We don&apos;t sell advantages, we don&apos;t sell badges, and we
+        don&apos;t sell anything that belongs to a game publisher.
+      </p>
+      <h3>Right of withdrawal</h3>
+      <p>
+        These are digital goods delivered immediately. At the time of purchase you are asked to
+        expressly waive the fourteen-day right of withdrawal: without that waiver, the right of
+        withdrawal remains valid and you can request a refund within fourteen days.
+      </p>
+
+      <h2>Interruptions and changes</h2>
+      <p>
+        The service is provided as is. It may be interrupted for maintenance, and features may
+        change. Game data changes with every patch: a build calculated months ago may no longer
+        hold, which is why every result carries the version of the data it was produced with.
+      </p>
+
+      <h2>Governing law</h2>
+      <p>
+        Italian law applies. The competent court must be specified here before publication.
       </p>
     </>
   );

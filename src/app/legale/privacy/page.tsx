@@ -1,13 +1,38 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cx, display, eyebrow, Notice } from "@/components/ui";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Informativa privacy · GachaZone",
-  description: "Quali dati raccoglie GachaZone, perché, per quanto tempo e cosa puoi chiedere.",
-};
+/**
+ * Il testo di un documento legale e' prosa con tabelle e collegamenti: tenerlo
+ * in due blocchi JSX interi, uno per lingua, lo lascia leggibile e fa vedere
+ * subito se una sezione manca da una delle due parti.
+ */
+const TESTI = testi({
+  it: {
+    titoloPagina: "Informativa privacy · GachaZone",
+    descrizione: "Quali dati raccoglie GachaZone, perché, per quanto tempo e cosa puoi chiedere.",
+    Documento: PrivacyIt,
+  },
+  en: {
+    titoloPagina: "Privacy policy · GachaZone",
+    descrizione: "What data GachaZone collects, why, for how long, and what you can request.",
+    Documento: PrivacyEn,
+  },
+});
 
-export default function PrivacyPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return { title: t.titoloPagina, description: t.descrizione };
+}
+
+export default async function PrivacyPage() {
+  const { Documento } = TESTI[await getLocale()];
+  return <Documento />;
+}
+
+function PrivacyIt() {
   return (
     <>
       <p className={eyebrow}>Informativa</p>
@@ -117,6 +142,120 @@ export default function PrivacyPage() {
         I dati risiedono sul fornitore di hosting e sul database gestito. L&apos;elenco dei
         fornitori — hosting, rete pubblicitaria, gestore dei pagamenti — va completato qui con i
         nomi effettivi prima della pubblicazione.
+      </p>
+    </>
+  );
+}
+
+function PrivacyEn() {
+  return (
+    <>
+      <p className={eyebrow}>Notice</p>
+      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>Privacy</h1>
+
+      <Notice className="mb-8">
+        <span>
+          This is a <strong>technical draft</strong>: it faithfully describes what the software
+          does today, but it does not replace a privacy notice drafted by a lawyer. It must be
+          reviewed before opening the site to the public or turning on advertising.
+        </span>
+      </Notice>
+
+      <h2>Who processes the data</h2>
+      <p>
+        The data controller is the operator of GachaZone. Contact details must be added here
+        before publication: without a reachable contact, the notice is not compliant.
+      </p>
+
+      <h2>What data we collect</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Why</th>
+            <th>Legal basis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Email</td>
+            <td>Identify the account and allow password recovery</td>
+            <td>Performance of the contract</td>
+          </tr>
+          <tr>
+            <td>Password (fingerprint only)</td>
+            <td>Verify sign-in</td>
+            <td>Performance of the contract</td>
+          </tr>
+          <tr>
+            <td>Handle, name, bio, country</td>
+            <td>Build the public profile</td>
+            <td>Performance of the contract</td>
+          </tr>
+          <tr>
+            <td>Posts, comments, votes</td>
+            <td>Run the community</td>
+            <td>Performance of the contract</td>
+          </tr>
+          <tr>
+            <td>Public game UIDs</td>
+            <td>Verify game-related badges</td>
+            <td>Consent — you enter them yourself</td>
+          </tr>
+          <tr>
+            <td>Payment data</td>
+            <td>Manage subscriptions and purchases</td>
+            <td>Performance of the contract</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>What we don&apos;t collect</h3>
+      <p>
+        <strong>We never ask for your game account credentials.</strong> Profiles are linked
+        through a public UID or through a file you generate yourself on your computer. We have no
+        way to access your HoYoverse, Netmarble or Kuro Games account, and we don&apos;t want one:
+        it would expose you to the risk of suspension.
+      </p>
+      <p>
+        Your password is not stored: we store a cryptographic fingerprint from which the original
+        text cannot be recovered.
+      </p>
+
+      <h2>Advertising and statistics</h2>
+      <p>
+        Once advertising is active, the ad network may set profiling cookies. This happens{" "}
+        <strong>only after your consent</strong>, collected through the banner and revocable at
+        any time from the cookie page. Without consent, the site works all the same.
+      </p>
+
+      <h2>For how long</h2>
+      <ul>
+        <li>Account data: for as long as the account exists.</li>
+        <li>
+          Posts and comments: they remain after the account is deleted, but no longer linked to
+          your identity. Deleting them would break other people&apos;s discussions.
+        </li>
+        <li>Tax records of purchases: for the period required by law.</li>
+      </ul>
+
+      <h2>What you can request</h2>
+      <p>
+        Access, rectification, erasure, restriction, objection and portability. You can already
+        delete your account on your own from{" "}
+        <Link href="/impostazioni/account">Settings → Account</Link>. For everything else, write
+        to the controller&apos;s address.
+      </p>
+      <p>
+        You also have the right to lodge a complaint with the Italian Data Protection Authority
+        (Garante per la protezione dei dati personali).
+      </p>
+
+      <h2>Transfers and providers</h2>
+      <p>
+        The data resides with the hosting provider and the managed database. The list of
+        providers — hosting, ad network, payment processor — must be completed here with their
+        actual names before publication.
       </p>
     </>
   );

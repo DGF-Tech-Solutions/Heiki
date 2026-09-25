@@ -7,12 +7,20 @@ import { PostCard } from "@/components/community/post-card";
 import { cx, display, Empty, eyebrow, numeric, Stat, StatGrid, Tag } from "@/components/ui";
 import { DistributionChart } from "@/components/distribution-chart";
 import { findGame } from "@/lib/games/catalog";
-import { findCharacter, resolveCharacter, simulateSolo, REFERENCE_LEVEL } from "@/lib/games/preview";
+import {
+  findCharacter,
+  localName,
+  resolveCharacter,
+  simulateSolo,
+  REFERENCE_LEVEL,
+} from "@/lib/games/preview";
 import { requireGameModule } from "@/lib/games/registry";
 import { getStore } from "@/lib/community/store";
 import { getGuideStore } from "@/lib/guides/store";
 import { isStale } from "@/lib/guides/types";
 import { sortFeed } from "@/lib/community/ranking";
+import { inLingua, intlLocale, testi, type Locale } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
 /**
  * Scheda personaggio.
@@ -26,6 +34,132 @@ import { sortFeed } from "@/lib/community/ranking";
  * sintetico, poi i numeri, poi i dettagli, e in fondo i collegamenti.
  */
 
+const TESTI = testi({
+  it: {
+    titoloGenerico: "Personaggio · GachaZone",
+    titoloPagina: (nome: string) => `${nome} — build, statistiche e danno · GachaZone`,
+    descrizione: (nome: string, gioco: string) =>
+      `Statistiche, abilità e danno simulato di ${nome} in ${gioco}. Build della community con seed verificabile.`,
+    sezioni: {
+      sintesi: "Sintesi",
+      simulazione: "Danno simulato",
+      statistiche: "Statistiche",
+      abilita: "Abilità",
+      buff: "Effetti",
+      guide: "Guide",
+      community: "Dalla community",
+      collegati: "Altri personaggi",
+    },
+    personaggi: "Personaggi",
+    dati: (patch: string) => `dati ${patch}`,
+    datiDiGioco: "Dati di gioco",
+    calcoli: "Calcoli",
+    motore: (seed: string) => `motore v0.1 · seed ${seed}`,
+    bersaglioRiferimento: "il bersaglio di riferimento",
+    sintesiPrima: (bersaglio: string, livello: number, nome: string) =>
+      `Da solo contro ${bersaglio}, al livello ${livello}, ${nome} produce una mediana di`,
+    sintesiDopo: "danni.",
+    nonAbbatte: "Da solo non arriva ad abbattere il bersaglio entro il limite di turni.",
+    abbatte: (quanti: number, unita: string) =>
+      `Lo abbatte in ${quanti} ${unita} nella metà dei tentativi.`,
+    dannoMediano: "Danno mediano",
+    noveSuDieci: "Nove su dieci",
+    turniAlKo: "Turni al KO",
+    turni: "turni",
+    mai: "mai",
+    riuscita: "Riuscita",
+    nessunaSimulazione: "Nessuna simulazione disponibile per questo personaggio.",
+    tentativi: (quanti: string) => `${quanti} tentativi`,
+    stessoSeed:
+      "Stesso seed, stesso dataset: chiunque riapra questa pagina ottiene gli stessi numeri.",
+    valoriBase: (livello: number) => `Valori base al livello ${livello}, senza equipaggiamento.`,
+    statistica: "Statistica",
+    valore: "Valore",
+    abilita: "Abilità",
+    tipo: "Tipo",
+    moltiplicatore: "Moltiplicatore",
+    ultimate: "Ultimate",
+    effettiConcessi: "Effetti concessi",
+    nessunEffetto: "Questo personaggio non concede effetti.",
+    effetto: "Effetto",
+    durata: "Durata",
+    aChi: "A chi",
+    cumuli: "Cumuli",
+    seStesso: "se stesso",
+    squadra: "squadra",
+    bersaglio: "bersaglio",
+    guide: "Guide",
+    nessunaGuida: (nome: string) =>
+      `Nessuna guida agganciata a ${nome}. I numeri qui sopra li calcola il motore sul dataset corrente: una guida serve per il metodo, non per i valori.`,
+    daRivedere: "da rivedere",
+    nessunaBuild: (nome: string) => `Nessuno ha ancora condiviso una build con ${nome}.`,
+    primo: "Puoi essere il primo",
+    indice: "Indice",
+    inQuestaPagina: "In questa pagina",
+  },
+  en: {
+    titoloGenerico: "Character · GachaZone",
+    titoloPagina: (nome: string) => `${nome} — builds, stats and damage · GachaZone`,
+    descrizione: (nome: string, gioco: string) =>
+      `Stats, skills and simulated damage for ${nome} in ${gioco}. Community builds with a verifiable seed.`,
+    sezioni: {
+      sintesi: "Summary",
+      simulazione: "Simulated damage",
+      statistiche: "Stats",
+      abilita: "Skills",
+      buff: "Effects",
+      guide: "Guides",
+      community: "From the community",
+      collegati: "Other characters",
+    },
+    personaggi: "Characters",
+    dati: (patch: string) => `data ${patch}`,
+    datiDiGioco: "Game data",
+    calcoli: "Calculations",
+    motore: (seed: string) => `engine v0.1 · seed ${seed}`,
+    bersaglioRiferimento: "the reference target",
+    sintesiPrima: (bersaglio: string, livello: number, nome: string) =>
+      `Solo against ${bersaglio}, at level ${livello}, ${nome} deals a median of`,
+    sintesiDopo: "damage.",
+    nonAbbatte: "On their own they can't bring the target down within the turn limit.",
+    abbatte: (quanti: number, unita: string) =>
+      `They bring it down in ${quanti} ${unita} in half of the attempts.`,
+    dannoMediano: "Median damage",
+    noveSuDieci: "Nine in ten",
+    turniAlKo: "Turns to KO",
+    turni: "turns",
+    mai: "never",
+    riuscita: "Success rate",
+    nessunaSimulazione: "No simulation available for this character.",
+    tentativi: (quanti: string) => `${quanti} attempts`,
+    stessoSeed: "Same seed, same dataset: anyone who reopens this page gets the same numbers.",
+    valoriBase: (livello: number) => `Base values at level ${livello}, without gear.`,
+    statistica: "Stat",
+    valore: "Value",
+    abilita: "Skill",
+    tipo: "Type",
+    moltiplicatore: "Multiplier",
+    ultimate: "Ultimate Move",
+    effettiConcessi: "Effects granted",
+    nessunEffetto: "This character grants no effects.",
+    effetto: "Effect",
+    durata: "Duration",
+    aChi: "Applies to",
+    cumuli: "Stacks",
+    seStesso: "self",
+    squadra: "team",
+    bersaglio: "target",
+    guide: "Guides",
+    nessunaGuida: (nome: string) =>
+      `No guides linked to ${nome}. The numbers above are calculated by the engine on the current dataset: a guide is for the method, not the values.`,
+    daRivedere: "needs review",
+    nessunaBuild: (nome: string) => `Nobody has shared a build with ${nome} yet.`,
+    primo: "Be the first",
+    indice: "Contents",
+    inQuestaPagina: "On this page",
+  },
+});
+
 interface Props {
   params: Promise<{ game: string; characterId: string }>;
 }
@@ -35,24 +169,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const entry = findGame(game);
   const gameModule = entry ? requireGameModule(game) : null;
   const character = gameModule ? findCharacter(gameModule, characterId) : undefined;
+  const t = TESTI[await getLocale()];
 
-  if (!character) return { title: "Personaggio · GachaZone" };
+  if (!character) return { title: t.titoloGenerico };
 
   return {
-    title: `${character.name} — build, statistiche e danno · GachaZone`,
-    description: `Statistiche, abilità e danno simulato di ${character.name} in ${entry?.name}. Build della community con seed verificabile.`,
+    title: t.titoloPagina(character.name),
+    description: t.descrizione(character.name, entry?.name ?? ""),
   };
 }
 
+/** Gli id sono le ancore della pagina; i nomi arrivano da TESTI.sezioni. */
 const SECTIONS = [
-  { id: "sintesi", label: "Sintesi" },
-  { id: "simulazione", label: "Danno simulato" },
-  { id: "statistiche", label: "Statistiche" },
-  { id: "abilita", label: "Abilità" },
-  { id: "buff", label: "Effetti" },
-  { id: "guide", label: "Guide" },
-  { id: "community", label: "Dalla community" },
-  { id: "collegati", label: "Altri personaggi" },
+  "sintesi",
+  "simulazione",
+  "statistiche",
+  "abilita",
+  "buff",
+  "guide",
+  "community",
+  "collegati",
 ] as const;
 
 export default async function CharacterPage({ params }: Props) {
@@ -61,6 +197,10 @@ export default async function CharacterPage({ params }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
+  const locale = await getLocale();
+  const t = TESTI[locale];
+  const numbers = intlLocale(locale);
+
   const gameModule = requireGameModule(game);
   const character = findCharacter(gameModule, characterId);
   const actor = resolveCharacter(gameModule, characterId);
@@ -68,7 +208,7 @@ export default async function CharacterPage({ params }: Props) {
 
   const result = simulateSolo(gameModule, characterId);
   const target = gameModule.targets[0];
-  const unit = gameModule.timeUnit === "turns" ? "turni" : "s";
+  const unit = gameModule.timeUnit === "turns" ? t.turni : "s";
 
   const actions = Object.values(actor.actions);
   const ultimate = actions.find((action) => action.meta?.["isUltimate"] === true);
@@ -93,7 +233,7 @@ export default async function CharacterPage({ params }: Props) {
         <Breadcrumb
           items={[
             { label: entry.shortName, href: `/${game}` },
-            { label: "Personaggi", href: `/${game}/personaggi` },
+            { label: t.personaggi, href: `/${game}/personaggi` },
             { label: character.name },
           ]}
         />
@@ -107,7 +247,7 @@ export default async function CharacterPage({ params }: Props) {
             <Tag tone="brand">{character.affinity}</Tag>
             <Tag>{character.role}</Tag>
             <Tag tone="gold">{character.rarity}★</Tag>
-            <Tag>dati {gameModule.dataset.patch}</Tag>
+            <Tag>{t.dati(gameModule.dataset.patch)}</Tag>
           </div>
         </header>
 
@@ -115,87 +255,89 @@ export default async function CharacterPage({ params }: Props) {
           className="mt-5"
           entries={[
             {
-              label: "Dati di gioco",
-              value: `patch ${gameModule.dataset.patch} · ${formatDate(gameModule.dataset.releasedAt)}`,
+              label: t.datiDiGioco,
+              value: `patch ${gameModule.dataset.patch} · ${formatDate(gameModule.dataset.releasedAt, locale)}`,
             },
-            { label: "Calcoli", value: `motore v0.1 · seed ${result?.seed ?? "—"}` },
+            { label: t.calcoli, value: t.motore(String(result?.seed ?? "—")) },
           ]}
         />
 
         <div className="grid items-start gap-10 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,220px)]">
           <div className="min-w-0">
-            <Section id="sintesi" title="Sintesi">
+            <Section id="sintesi" title={t.sezioni.sintesi}>
               {result ? (
                 <>
                   <p className="max-w-[68ch] text-[15px] text-ink-2">
-                    Da solo contro {target?.name ?? "il bersaglio di riferimento"}, al livello{" "}
-                    {REFERENCE_LEVEL}, {character.name} produce una mediana di{" "}
+                    {t.sintesiPrima(
+                      target ? localName(target, locale) : t.bersaglioRiferimento,
+                      REFERENCE_LEVEL,
+                      character.name,
+                    )}{" "}
                     <strong className="text-ink">
-                      {Math.round(result.damage.median).toLocaleString("it-IT")}
+                      {Math.round(result.damage.median).toLocaleString(numbers)}
                     </strong>{" "}
-                    danni.{" "}
+                    {t.sintesiDopo}{" "}
                     {result.timeToKill === null
-                      ? "Da solo non arriva ad abbattere il bersaglio entro il limite di turni."
-                      : `Lo abbatte in ${result.timeToKill.median} ${unit} nella metà dei tentativi.`}
+                      ? t.nonAbbatte
+                      : t.abbatte(result.timeToKill.median, unit)}
                   </p>
                   <StatGrid className="mt-4">
                     <Stat
-                      label="Danno mediano"
-                      value={Math.round(result.damage.median).toLocaleString("it-IT")}
+                      label={t.dannoMediano}
+                      value={Math.round(result.damage.median).toLocaleString(numbers)}
                     />
                     <Stat
-                      label="Nove su dieci"
+                      label={t.noveSuDieci}
                       small
-                      value={`${Math.round(result.damage.p10).toLocaleString("it-IT")} – ${Math.round(
+                      value={`${Math.round(result.damage.p10).toLocaleString(numbers)} – ${Math.round(
                         result.damage.p90,
-                      ).toLocaleString("it-IT")}`}
+                      ).toLocaleString(numbers)}`}
                     />
                     <Stat
-                      label="Turni al KO"
+                      label={t.turniAlKo}
                       value={result.timeToKill === null ? "—" : result.timeToKill.median}
-                      unit={result.timeToKill === null ? "mai" : unit}
+                      unit={result.timeToKill === null ? t.mai : unit}
                     />
-                    <Stat label="Riuscita" value={Math.round(result.killRate * 100)} unit="%" />
+                    <Stat label={t.riuscita} value={Math.round(result.killRate * 100)} unit="%" />
                   </StatGrid>
                 </>
               ) : (
-                <Empty>Nessuna simulazione disponibile per questo personaggio.</Empty>
+                <Empty>{t.nessunaSimulazione}</Empty>
               )}
             </Section>
 
             {result ? (
-              <Section id="simulazione" title="Danno simulato">
+              <Section id="simulazione" title={t.sezioni.simulazione}>
                 <DistributionChart
                   histogram={result.damageHistogram}
                   stats={result.damage}
-                  title={`${result.iterations.toLocaleString("it-IT")} tentativi`}
+                  title={t.tentativi(result.iterations.toLocaleString(numbers))}
                   caption={`seed ${result.seed}`}
                 />
-                <p className="mt-3 text-[13px] text-ink-3">
-                  Stesso seed, stesso dataset: chiunque riapra questa pagina ottiene gli stessi
-                  numeri.
-                </p>
+                <p className="mt-3 text-[13px] text-ink-3">{t.stessoSeed}</p>
               </Section>
             ) : null}
 
-            <Section id="statistiche" title="Statistiche">
-              <p className="mb-3 text-[13px] text-ink-3">
-                Valori base al livello {REFERENCE_LEVEL}, senza equipaggiamento.
-              </p>
+            <Section id="statistiche" title={t.sezioni.statistiche}>
+              <p className="mb-3 text-[13px] text-ink-3">{t.valoriBase(REFERENCE_LEVEL)}</p>
               <DataTable
-                head={["Statistica", "Valore"]}
+                head={[t.statistica, t.valore]}
                 rows={gameModule.statModel.map((definition) => [
-                  definition.label,
-                  formatStat(actor.stats[definition.key] ?? definition.defaultValue, definition.kind),
+                  inLingua(definition.labels, locale) ?? definition.label,
+                  formatStat(
+                    actor.stats[definition.key] ?? definition.defaultValue,
+                    definition.kind,
+                    locale,
+                  ),
                 ])}
               />
             </Section>
 
-            <Section id="abilita" title="Abilità">
+            <Section id="abilita" title={t.sezioni.abilita}>
               <DataTable
-                head={["Abilità", "Tipo", "Moltiplicatore"]}
+                head={[t.abilita, t.tipo, t.moltiplicatore]}
                 rows={skills.map((action) => [
-                  action.name,
+                  localName(action, locale),
                   action.hits[0]?.category ?? "—",
                   action.hits.length > 0
                     ? `${action.hits.reduce((sum, hit) => sum + hit.motionValue, 0)}%`
@@ -205,9 +347,9 @@ export default async function CharacterPage({ params }: Props) {
 
               {ultimate ? (
                 <div className="mt-4 rounded-card border border-rule border-l-4 border-l-brand bg-brand-soft px-4 py-3">
-                  <p className={cx(eyebrow, "m-0")}>Ultimate</p>
+                  <p className={cx(eyebrow, "m-0")}>{t.ultimate}</p>
                   <p className="m-0 mt-1.5 text-sm">
-                    <strong>{ultimate.name}</strong> ·{" "}
+                    <strong>{localName(ultimate, locale)}</strong> ·{" "}
                     <span className={numeric}>
                       {ultimate.hits.reduce((sum, hit) => sum + hit.motionValue, 0)}%
                     </span>
@@ -216,20 +358,20 @@ export default async function CharacterPage({ params }: Props) {
               ) : null}
             </Section>
 
-            <Section id="buff" title="Effetti concessi">
+            <Section id="buff" title={t.effettiConcessi}>
               {buffs.length === 0 ? (
-                <Empty>Questo personaggio non concede effetti.</Empty>
+                <Empty>{t.nessunEffetto}</Empty>
               ) : (
                 <DataTable
-                  head={["Effetto", "Durata", "A chi", "Cumuli"]}
+                  head={[t.effetto, t.durata, t.aChi, t.cumuli]}
                   rows={buffs.map((buff) => [
-                    buff.name,
+                    localName(buff, locale),
                     `${buff.duration} ${unit}`,
                     buff.appliesTo === "self"
-                      ? "se stesso"
+                      ? t.seStesso
                       : buff.appliesTo === "party"
-                        ? "squadra"
-                        : "bersaglio",
+                        ? t.squadra
+                        : t.bersaglio,
                     String(buff.maxStacks),
                   ])}
                 />
@@ -242,12 +384,9 @@ export default async function CharacterPage({ params }: Props) {
               qui non dicesse che una guida e' vecchia, la scheda personaggio
               diventerebbe il posto da cui si arriva ai numeri scaduti.
             */}
-            <Section id="guide" title="Guide">
+            <Section id="guide" title={t.guide}>
               {guides.length === 0 ? (
-                <Empty>
-                  Nessuna guida agganciata a {character.name}. I numeri qui sopra li calcola il
-                  motore sul dataset corrente: una guida serve per il metodo, non per i valori.
-                </Empty>
+                <Empty>{t.nessunaGuida(character.name)}</Empty>
               ) : (
                 <ul className="m-0 grid list-none gap-2.5 p-0">
                   {guides.map((guide) => {
@@ -266,7 +405,7 @@ export default async function CharacterPage({ params }: Props) {
                           </Link>
                           {stale ? (
                             <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot">
-                              da rivedere
+                              {t.daRivedere}
                             </span>
                           ) : (
                             <Tag tone="brand">patch {guide.verifiedPatch}</Tag>
@@ -280,12 +419,12 @@ export default async function CharacterPage({ params }: Props) {
               )}
             </Section>
 
-            <Section id="community" title="Dalla community">
+            <Section id="community" title={t.sezioni.community}>
               {posts.length === 0 ? (
                 <Empty>
-                  Nessuno ha ancora condiviso una build con {character.name}.{" "}
+                  {t.nessunaBuild(character.name)}{" "}
                   <Link href={`/${game}`} className="font-semibold text-brand hover:underline">
-                    Puoi essere il primo
+                    {t.primo}
                   </Link>
                   .
                 </Empty>
@@ -298,7 +437,7 @@ export default async function CharacterPage({ params }: Props) {
               )}
             </Section>
 
-            <Section id="collegati" title="Altri personaggi">
+            <Section id="collegati" title={t.sezioni.collegati}>
               <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
                 {others.map((item) => (
                   <li key={item.id}>
@@ -317,15 +456,15 @@ export default async function CharacterPage({ params }: Props) {
           {/* Indice con link di salto: le schede sono lunghe e senza indice
               nessuno arriva in fondo. */}
           <nav
-            aria-label="Indice"
+            aria-label={t.indice}
             className="hidden lg:sticky lg:top-[78px] lg:block lg:rounded-card lg:border lg:border-rule lg:p-4"
           >
-            <p className={cx(eyebrow, "mb-2.5")}>In questa pagina</p>
+            <p className={cx(eyebrow, "mb-2.5")}>{t.inQuestaPagina}</p>
             <ul className="m-0 grid list-none gap-1.5 p-0">
-              {SECTIONS.map((section) => (
-                <li key={section.id}>
-                  <a href={`#${section.id}`} className="text-[13px] text-ink-2 hover:text-brand">
-                    {section.label}
+              {SECTIONS.map((id) => (
+                <li key={id}>
+                  <a href={`#${id}`} className="text-[13px] text-ink-2 hover:text-brand">
+                    {t.sezioni[id]}
                   </a>
                 </li>
               ))}
@@ -389,8 +528,8 @@ function DataTable({ head, rows }: { head: string[]; rows: string[][] }) {
   );
 }
 
-function formatStat(value: number, kind: "flat" | "percent"): string {
+function formatStat(value: number, kind: "flat" | "percent", locale: Locale): string {
   return kind === "percent"
     ? `${(value * 100).toFixed(1)}%`
-    : Math.round(value).toLocaleString("it-IT");
+    : Math.round(value).toLocaleString(intlLocale(locale));
 }

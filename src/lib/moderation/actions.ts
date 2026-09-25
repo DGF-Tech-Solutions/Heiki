@@ -25,8 +25,63 @@ import { auth } from "@/lib/auth";
 import { can, type Role } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
 import { comments, modActions, posts, reports, suspensions, users } from "@/lib/db/schema";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { REPORT_REASON_IDS } from "./reasons";
+
+const TESTI = testi({
+  it: {
+    demoSenzaCoda: "In modalità dimostrativa non c'è una coda di moderazione. Serve il database.",
+    entraPerSegnalare: "Entra per segnalare.",
+    datiNonValidi: "Dati non validi.",
+    bersaglioNonValido: "Bersaglio non valido",
+    dettagliTroppoLunghi: "I dettagli possono essere lunghi al massimo 1000 caratteri",
+    giaSegnalato: "Avevi già segnalato questo contenuto. Ce ne stiamo occupando.",
+    segnalazioneInviata: "Segnalazione inviata. La guarda un moderatore.",
+    nonHaiPermessi: "Non hai i permessi per farlo.",
+    contenutoNascosto: "Contenuto nascosto.",
+    contenutoRipristinato: "Contenuto ripristinato.",
+    segnalazioneInesistente: "Segnalazione inesistente.",
+    segnalazioneChiusa: "Segnalazione chiusa.",
+    segnalazioneArchiviata: "Segnalazione archiviata.",
+    utenteNonValido: "Identificativo utente non valido",
+    scriviIlMotivo: "Scrivi il motivo: serve a chi lo legge dopo",
+    motivoTroppoLungo: "Il motivo può essere lungo al massimo 500 caratteri",
+    giorniNonValidi: "I giorni vanno da 0 a 3650",
+    utenteInesistente: "Utente inesistente.",
+    nonSospendereAmministratore: "Non puoi sospendere un amministratore.",
+    nonSospendereTeStesso: "Non puoi sospendere te stesso.",
+    utenteSospeso: "Utente sospeso.",
+    sospensioneRevocata: "Sospensione revocata.",
+  },
+  en: {
+    demoSenzaCoda: "Demo mode has no moderation queue. A database is required.",
+    entraPerSegnalare: "Log in to report.",
+    datiNonValidi: "Invalid data.",
+    bersaglioNonValido: "Invalid target",
+    dettagliTroppoLunghi: "Details can be at most 1000 characters long",
+    giaSegnalato: "You had already reported this content. We're looking into it.",
+    segnalazioneInviata: "Report sent. A moderator will review it.",
+    nonHaiPermessi: "You don't have permission to do that.",
+    contenutoNascosto: "Content hidden.",
+    contenutoRipristinato: "Content restored.",
+    segnalazioneInesistente: "Report not found.",
+    segnalazioneChiusa: "Report closed.",
+    segnalazioneArchiviata: "Report dismissed.",
+    utenteNonValido: "Invalid user ID",
+    scriviIlMotivo: "Write the reason: it's for whoever reads it later",
+    motivoTroppoLungo: "The reason can be at most 500 characters long",
+    giorniNonValidi: "Days must be between 0 and 3650",
+    utenteInesistente: "User not found.",
+    nonSospendereAmministratore: "You can't suspend an administrator.",
+    nonSospendereTeStesso: "You can't suspend yourself.",
+    utenteSospeso: "User suspended.",
+    sospensioneRevocata: "Suspension lifted.",
+  },
+});
+
+type Testi = (typeof TESTI)["it"];
 
 export interface ModResult {
   ok: boolean;
@@ -52,42 +107,49 @@ async function moderator(): Promise<{ id: string; role: Role } | null> {
 
 /* ------------------------------------------------------- segnalazione -- */
 
-const reportSchema = z.object({
-  targetType: z.enum(["POST", "COMMENT"]),
-  targetId: z.string().uuid("Bersaglio non valido"),
-  reason: z.enum(REPORT_REASON_IDS),
-  details: z.string().trim().max(1000).optional(),
-});
+// Lo schema nasce dentro l'azione: i messaggi di errore vanno nella lingua di
+// chi ha inviato il modulo, che si conosce solo durante la richiesta.
+function reportSchema(t: Testi) {
+  return z.object({
+    targetType: z.enum(["POST", "COMMENT"], t.datiNonValidi),
+    targetId: z.string().uuid(t.bersaglioNonValido),
+    reason: z.enum(REPORT_REASON_IDS, t.datiNonValidi),
+    details: z.string().trim().max(1000, t.dettagliTroppoLunghi).optional(),
+  });
+}
 
 export async function reportAction(
   _previous: ModResult,
   formData: FormData,
 ): Promise<ModResult> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   // In modalita' dimostrativa la community vive in memoria e non esiste una
   // coda dove mettere la segnalazione: dirlo e' meglio di un "entra" che
   // manderebbe a cercare un accesso che qui non serve.
   if (!(await databaseReachable())) {
     return {
       ok: false,
-      error: "In modalità dimostrativa non c'è una coda di moderazione. Serve il database.",
+      error: t.demoSenzaCoda,
     };
   }
 
   const current = await viewer();
-  if (!current) return { ok: false, error: "Entra per segnalare." };
+  if (!current) return { ok: false, error: t.entraPerSegnalare };
 
-  const parsed = reportSchema.safeParse({
+  const parsed = reportSchema(t).safeParse({
     targetType: formData.get("targetType"),
     targetId: formData.get("targetId"),
     reason: formData.get("reason"),
     details: formData.get("details") ?? undefined,
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
   const limit = rateLimit("report", current.id);
-  if (!limit.allowed) return { ok: false, error: retryMessage(limit) };
+  if (!limit.allowed) return { ok: false, error: retryMessage(limit, locale) };
 
   // Una seconda segnalazione della stessa persona sullo stesso contenuto non
   // aggiunge informazione e gonfierebbe la coda.
@@ -100,7 +162,7 @@ export async function reportAction(
     columns: { id: true },
   });
   if (existing) {
-    return { ok: true, message: "Avevi già segnalato questo contenuto. Ce ne stiamo occupando." };
+    return { ok: true, message: t.giaSegnalato };
   }
 
   await db.insert(reports).values({
@@ -111,7 +173,7 @@ export async function reportAction(
     details: parsed.data.details ?? null,
   });
 
-  return { ok: true, message: "Segnalazione inviata. La guarda un moderatore." };
+  return { ok: true, message: t.segnalazioneInviata };
 }
 
 /* --------------------------------------------------------- moderazione -- */
@@ -137,8 +199,9 @@ export async function setHiddenAction(
   targetId: string,
   hidden: boolean,
 ): Promise<ModResult> {
+  const t = TESTI[await getLocale()];
   const mod = await moderator();
-  if (!mod) return { ok: false, error: "Non hai i permessi per farlo." };
+  if (!mod) return { ok: false, error: t.nonHaiPermessi };
 
   if (targetType === "POST") {
     await db.update(posts).set({ hidden }).where(eq(posts.id, targetId));
@@ -150,21 +213,22 @@ export async function setHiddenAction(
 
   revalidatePath("/moderazione");
   revalidatePath("/", "layout");
-  return { ok: true, message: hidden ? "Contenuto nascosto." : "Contenuto ripristinato." };
+  return { ok: true, message: hidden ? t.contenutoNascosto : t.contenutoRipristinato };
 }
 
 export async function resolveReportAction(
   reportId: string,
   outcome: "RESOLVED" | "DISMISSED",
 ): Promise<ModResult> {
+  const t = TESTI[await getLocale()];
   const mod = await moderator();
-  if (!mod) return { ok: false, error: "Non hai i permessi per farlo." };
+  if (!mod) return { ok: false, error: t.nonHaiPermessi };
 
   const report = await db.query.reports.findFirst({
     where: eq(reports.id, reportId),
     columns: { targetType: true, targetId: true },
   });
-  if (!report) return { ok: false, error: "Segnalazione inesistente." };
+  if (!report) return { ok: false, error: t.segnalazioneInesistente };
 
   await db.update(reports).set({ status: outcome }).where(eq(reports.id, reportId));
   await logAction(
@@ -177,45 +241,52 @@ export async function resolveReportAction(
   revalidatePath("/moderazione");
   return {
     ok: true,
-    message: outcome === "RESOLVED" ? "Segnalazione chiusa." : "Segnalazione archiviata.",
+    message: outcome === "RESOLVED" ? t.segnalazioneChiusa : t.segnalazioneArchiviata,
   };
 }
 
-const suspendSchema = z.object({
-  userId: z.string().uuid(),
-  reason: z.string().trim().min(5, "Scrivi il motivo: serve a chi lo legge dopo").max(500),
-  days: z.coerce.number().int().min(0).max(3650),
-});
+function suspendSchema(t: Testi) {
+  return z.object({
+    userId: z.string().uuid(t.utenteNonValido),
+    reason: z.string().trim().min(5, t.scriviIlMotivo).max(500, t.motivoTroppoLungo),
+    days: z.coerce
+      .number(t.giorniNonValidi)
+      .int(t.giorniNonValidi)
+      .min(0, t.giorniNonValidi)
+      .max(3650, t.giorniNonValidi),
+  });
+}
 
 export async function suspendAction(
   _previous: ModResult,
   formData: FormData,
 ): Promise<ModResult> {
+  const t = TESTI[await getLocale()];
   const mod = await moderator();
-  if (!mod) return { ok: false, error: "Non hai i permessi per farlo." };
+  if (!mod) return { ok: false, error: t.nonHaiPermessi };
 
-  const parsed = suspendSchema.safeParse({
+  const parsed = suspendSchema(t).safeParse({
     userId: formData.get("userId"),
     reason: formData.get("reason"),
     days: formData.get("days") ?? 0,
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
   const target = await db.query.users.findFirst({
     where: eq(users.id, parsed.data.userId),
     columns: { id: true, role: true },
   });
-  if (!target) return { ok: false, error: "Utente inesistente." };
+  if (!target) return { ok: false, error: t.utenteInesistente };
 
   // Un moderatore non sospende un amministratore: la gerarchia va rispettata,
   // altrimenti chi ha il ruolo minore puo' disattivare chi lo sorveglia.
   if (target.role === "ADMIN") {
-    return { ok: false, error: "Non puoi sospendere un amministratore." };
+    return { ok: false, error: t.nonSospendereAmministratore };
   }
   if (target.id === mod.id) {
-    return { ok: false, error: "Non puoi sospendere te stesso." };
+    return { ok: false, error: t.nonSospendereTeStesso };
   }
 
   await db.insert(suspensions).values({
@@ -228,12 +299,13 @@ export async function suspendAction(
   });
 
   revalidatePath("/moderazione");
-  return { ok: true, message: "Utente sospeso." };
+  return { ok: true, message: t.utenteSospeso };
 }
 
 export async function liftSuspensionAction(suspensionId: string): Promise<ModResult> {
+  const t = TESTI[await getLocale()];
   const mod = await moderator();
-  if (!mod) return { ok: false, error: "Non hai i permessi per farlo." };
+  if (!mod) return { ok: false, error: t.nonHaiPermessi };
 
   await db
     .update(suspensions)
@@ -241,7 +313,7 @@ export async function liftSuspensionAction(suspensionId: string): Promise<ModRes
     .where(eq(suspensions.id, suspensionId));
 
   revalidatePath("/moderazione");
-  return { ok: true, message: "Sospensione revocata." };
+  return { ok: true, message: t.sospensioneRevocata };
 }
 
 /* ------------------------------------------------------------- lettura -- */

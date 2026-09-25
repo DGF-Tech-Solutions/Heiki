@@ -1,4 +1,11 @@
+import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { cx, eyebrow } from "./ui";
+
+const TESTI = testi({
+  it: { daRivedere: " · da rivedere" },
+  en: { daRivedere: " · needs review" },
+});
 
 /**
  * Dichiarazione di freschezza.
@@ -20,7 +27,7 @@ export interface FreshnessEntry {
   stale?: boolean;
 }
 
-export function Freshness({
+export async function Freshness({
   entries,
   className,
 }: {
@@ -28,6 +35,7 @@ export function Freshness({
   className?: string;
 }) {
   if (entries.length === 0) return null;
+  const t = TESTI[await getLocale()];
 
   return (
     <dl
@@ -46,7 +54,7 @@ export function Freshness({
             )}
           >
             {entry.value}
-            {entry.stale ? " · da rivedere" : ""}
+            {entry.stale ? t.daRivedere : ""}
           </dd>
         </div>
       ))}
@@ -54,9 +62,16 @@ export function Freshness({
   );
 }
 
-/** Data in forma breve e leggibile, senza dipendenze esterne. */
-export function formatDate(value: string | Date): string {
+/**
+ * Data in forma breve e leggibile, senza dipendenze esterne. La lingua e'
+ * facoltativa per chi la chiamava gia' senza: in quel caso resta l'italiano.
+ */
+export function formatDate(value: string | Date, locale: Locale = "it"): string {
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" });
+  return date.toLocaleDateString(intlLocale(locale), {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }

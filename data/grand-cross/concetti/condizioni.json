@@ -4,7 +4,7 @@
   "fonti": {
     "DB_passive_condition_*": "testi del client: la frase accanto all'icona e il nome del filtro",
     "icon_passive_condition_*": "le icone del client, col suffisso che fa da nome",
-    "7dshub": "i codici delle condizioni di ogni passiva (passiveConditions)",
+    "DB_skill_passive": "i codici delle condizioni di ogni passiva (list_array_exclusive_condition_icon)",
     "ConstValues.ContentsOpenType": "enum del client (dump.cs): come il client apre i contenuti"
   },
   "note": {
@@ -52,7 +52,7 @@
       "ruolo": "slot secondario",
       "contenuto": null,
       "uso": {
-        "eroi": 94,
+        "eroi": 95,
         "abilita_speciali": 0
       },
       "certezza": "dedotto",
@@ -104,7 +104,7 @@
       "ruolo": "escluso",
       "contenuto": "pvp",
       "uso": {
-        "eroi": 16,
+        "eroi": 17,
         "abilita_speciali": 0
       },
       "certezza": "dedotto",

@@ -26,9 +26,38 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { databaseReachable, db } from "@/lib/db";
 import { passwordResetTokens, sessions, users } from "@/lib/db/schema";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { PASSWORD_MIN } from "./account";
 import { siteUrl } from "@/lib/site";
+
+const TESTI = testi({
+  it: {
+    emailNonValida: "Inserisci un indirizzo email valido",
+    databaseAssente: "Il database non risponde: il recupero non è disponibile.",
+    datiNonValidi: "Dati non validi.",
+    rispostaGenerica:
+      "Se quell'indirizzo è registrato, ti arriverà un collegamento per reimpostare la password. Vale un'ora.",
+    passwordCorta: (min: number) => `La password deve avere almeno ${min} caratteri`,
+    passwordDiverse: "Le due password non coincidono",
+    collegamentoScaduto:
+      "Collegamento non valido o scaduto. Chiedine un altro: quelli vecchi smettono di funzionare dopo un'ora o dopo il primo uso.",
+    passwordReimpostata: "Password reimpostata. Ora puoi entrare.",
+  },
+  en: {
+    emailNonValida: "Enter a valid email address",
+    databaseAssente: "The database isn't responding: password recovery is unavailable.",
+    datiNonValidi: "Invalid data.",
+    rispostaGenerica:
+      "If that address is registered, you'll receive a link to reset your password. It's valid for one hour.",
+    passwordCorta: (min: number) => `The password must be at least ${min} characters`,
+    passwordDiverse: "The two passwords don't match",
+    collegamentoScaduto:
+      "Invalid or expired link. Request a new one: old links stop working after one hour or after their first use.",
+    passwordReimpostata: "Password reset. You can log in now.",
+  },
+});
 
 export interface ResetState {
   error?: string;
@@ -44,29 +73,29 @@ function fingerprint(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-const requestSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Inserisci un indirizzo email valido"),
-});
-
 export async function requestResetAction(
   _previous: ResetState,
   formData: FormData,
 ): Promise<ResetState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   if (!(await databaseReachable())) {
-    return { error: "Il database non risponde: il recupero non è disponibile." };
+    return { error: t.databaseAssente };
   }
 
+  const requestSchema = z.object({
+    email: z.string().trim().toLowerCase().email(t.emailNonValida),
+  });
+
   const parsed = requestSchema.safeParse({ email: formData.get("email") });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
 
   const limit = rateLimit("passwordReset", parsed.data.email);
-  if (!limit.allowed) return { error: retryMessage(limit) };
+  if (!limit.allowed) return { error: retryMessage(limit, locale) };
 
   // Risposta identica in ogni caso: e' il punto dell'intera funzione.
-  const generic: ResetState = {
-    success:
-      "Se quell'indirizzo è registrato, ti arriverà un collegamento per reimpostare la password. Vale un'ora.",
-  };
+  const generic: ResetState = { success: t.rispostaGenerica };
 
   const user = await db.query.users.findFirst({
     where: eq(users.email, parsed.data.email),
@@ -91,34 +120,34 @@ export async function requestResetAction(
   return process.env.NODE_ENV === "production" ? generic : { ...generic, devLink: link };
 }
 
-const resetSchema = z
-  .object({
-    token: z.string().min(10),
-    password: z
-      .string()
-      .min(PASSWORD_MIN, `La password deve avere almeno ${PASSWORD_MIN} caratteri`)
-      .max(200),
-    repeat: z.string(),
-  })
-  .refine((data) => data.password === data.repeat, {
-    message: "Le due password non coincidono",
-    path: ["repeat"],
-  });
-
 export async function completeResetAction(
   _previous: ResetState,
   formData: FormData,
 ): Promise<ResetState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   if (!(await databaseReachable())) {
-    return { error: "Il database non risponde: il recupero non è disponibile." };
+    return { error: t.databaseAssente };
   }
+
+  const resetSchema = z
+    .object({
+      token: z.string().min(10),
+      password: z.string().min(PASSWORD_MIN, t.passwordCorta(PASSWORD_MIN)).max(200),
+      repeat: z.string(),
+    })
+    .refine((data) => data.password === data.repeat, {
+      message: t.passwordDiverse,
+      path: ["repeat"],
+    });
 
   const parsed = resetSchema.safeParse({
     token: formData.get("token"),
     password: formData.get("password"),
     repeat: formData.get("repeat"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
 
   const row = await db.query.passwordResetTokens.findFirst({
     where: and(
@@ -129,10 +158,7 @@ export async function completeResetAction(
   });
 
   if (!row) {
-    return {
-      error:
-        "Collegamento non valido o scaduto. Chiedine un altro: quelli vecchi smettono di funzionare dopo un'ora o dopo il primo uso.",
-    };
+    return { error: t.collegamentoScaduto };
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
@@ -153,7 +179,7 @@ export async function completeResetAction(
     await tx.delete(sessions).where(eq(sessions.userId, row.userId));
   });
 
-  return { success: "Password reimpostata. Ora puoi entrare." };
+  return { success: t.passwordReimpostata };
 }
 
 /** Dice se un gettone e' ancora spendibile, per non mostrare un modulo inutile. */

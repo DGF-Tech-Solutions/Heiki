@@ -20,9 +20,40 @@ import { revalidatePath } from "next/cache";
 import { desc, eq, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { hasRole, isRole, ROLES, type Role } from "@/lib/auth/permissions";
+import { hasRole, isRole, roleLabel, ROLES, type Role } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
 import { modActions, sponsorPlacements, users } from "@/lib/db/schema";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    nonHaiPermessi: "Non hai i permessi per farlo.",
+    identificativoNonValido: "Identificativo non valido",
+    ruoloInesistente: "Ruolo inesistente",
+    datiNonValidi: "Dati non validi.",
+    nonCambiareIlTuoRuolo: "Non puoi cambiare il tuo ruolo da qui.",
+    utenteInesistente: "Utente inesistente.",
+    ruoloAmministratoreDalDatabase: "Il ruolo di un amministratore si cambia dal database.",
+    haGiaQuestoRuolo: (utente: string) => `${utente} ha già questo ruolo.`,
+    oraE: (utente: string, ruolo: string) => `${utente}: ora è ${ruolo}.`,
+    slotRiattivato: "Slot riattivato.",
+    slotInPausa: "Slot messo in pausa.",
+  },
+  en: {
+    nonHaiPermessi: "You don't have permission to do that.",
+    identificativoNonValido: "Invalid ID",
+    ruoloInesistente: "Unknown role",
+    datiNonValidi: "Invalid data.",
+    nonCambiareIlTuoRuolo: "You can't change your own role from here.",
+    utenteInesistente: "User not found.",
+    ruoloAmministratoreDalDatabase: "An administrator's role can only be changed in the database.",
+    haGiaQuestoRuolo: (utente: string) => `${utente} already has this role.`,
+    oraE: (utente: string, ruolo: string) => `${utente} is now ${ruolo}.`,
+    slotRiattivato: "Slot reactivated.",
+    slotInPausa: "Slot paused.",
+  },
+});
 
 export interface AdminState {
   error?: string;
@@ -37,41 +68,46 @@ async function administrator(): Promise<{ id: string; role: Role } | null> {
   return { id: session.user.id, role: session.user.role };
 }
 
-const roleSchema = z.object({
-  userId: z.string().uuid("Identificativo non valido"),
-  role: z.string().refine(isRole, "Ruolo inesistente"),
-});
+// Lo schema nasce dentro l'azione, per avere i messaggi nella lingua di chi scrive.
+function roleSchema(t: (typeof TESTI)["it"]) {
+  return z.object({
+    userId: z.string().uuid(t.identificativoNonValido),
+    role: z.string().refine(isRole, t.ruoloInesistente),
+  });
+}
 
 export async function setRoleAction(
   _previous: AdminState,
   formData: FormData,
 ): Promise<AdminState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
   const admin = await administrator();
-  if (!admin) return { error: "Non hai i permessi per farlo." };
+  if (!admin) return { error: t.nonHaiPermessi };
 
-  const parsed = roleSchema.safeParse({
+  const parsed = roleSchema(t).safeParse({
     userId: formData.get("userId"),
     role: formData.get("role"),
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+    return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
   if (parsed.data.userId === admin.id) {
-    return { error: "Non puoi cambiare il tuo ruolo da qui." };
+    return { error: t.nonCambiareIlTuoRuolo };
   }
 
   const target = await db.query.users.findFirst({
     where: eq(users.id, parsed.data.userId),
     columns: { id: true, username: true, role: true },
   });
-  if (!target) return { error: "Utente inesistente." };
+  if (!target) return { error: t.utenteInesistente };
 
   if (target.role === "ADMIN") {
-    return { error: "Il ruolo di un amministratore si cambia dal database." };
+    return { error: t.ruoloAmministratoreDalDatabase };
   }
   if (parsed.data.role === target.role) {
-    return { success: `${target.username} ha già questo ruolo.` };
+    return { success: t.haGiaQuestoRuolo(target.username) };
   }
 
   await db.transaction(async (tx) => {
@@ -94,7 +130,7 @@ export async function setRoleAction(
   });
 
   revalidatePath("/admin");
-  return { success: `${target.username}: ora è ${parsed.data.role}.` };
+  return { success: t.oraE(target.username, roleLabel(parsed.data.role as Role, locale)) };
 }
 
 export interface AdminUser {
@@ -183,12 +219,13 @@ export async function listSponsorPlacements(): Promise<SponsorRow[]> {
 }
 
 export async function toggleSponsorAction(id: string, active: boolean): Promise<AdminState> {
+  const t = TESTI[await getLocale()];
   const admin = await administrator();
-  if (!admin) return { error: "Non hai i permessi per farlo." };
+  if (!admin) return { error: t.nonHaiPermessi };
 
   await db.update(sponsorPlacements).set({ active }).where(eq(sponsorPlacements.id, id));
 
   revalidatePath("/admin");
   revalidatePath("/", "layout");
-  return { success: active ? "Slot riattivato." : "Slot messo in pausa." };
+  return { success: active ? t.slotRiattivato : t.slotInPausa };
 }

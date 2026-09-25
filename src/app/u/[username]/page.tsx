@@ -17,6 +17,27 @@ import { currentViewer } from "@/lib/community/actions";
 import { cx, Empty, eyebrow, SectionHead, Stat, StatGrid } from "@/components/ui";
 import { listGameModules } from "@/lib/games/registry";
 import { normalizeCustomization } from "@/lib/profile/customization";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    seguaci: "Seguaci",
+    segue: "Segue",
+    haScritto: "Ha scritto",
+    postRecenti: (n: number) => `${n} post recenti`,
+    nessunPost: "Nessun post pubblicato.",
+    gioco: "Gioco",
+  },
+  en: {
+    seguaci: "Followers",
+    segue: "Following",
+    haScritto: "Posts",
+    postRecenti: (n: number) => `${n} recent ${n === 1 ? "post" : "posts"}`,
+    nessunPost: "No published posts.",
+    gioco: "Game",
+  },
+});
 
 interface Props {
   params: Promise<{ username: string }>;
@@ -39,8 +60,11 @@ export default async function ProfilePage({ params }: Props) {
     );
   }
 
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   const handle = username.toLowerCase();
-  const data = await loadProfile(handle);
+  const data = await loadProfile(handle, t.gioco);
   if (data === null) notFound();
 
   const session = await safeSession();
@@ -65,8 +89,8 @@ export default async function ProfilePage({ params }: Props) {
     <>
       <div className="mt-6 flex flex-wrap items-center gap-4">
         <StatGrid columns="repeat(2, minmax(0, 140px))" className="flex-none">
-          <Stat label="Seguaci" value={counts.followers} />
-          <Stat label="Segue" value={counts.following} />
+          <Stat label={t.seguaci} value={counts.followers} />
+          <Stat label={t.segue} value={counts.following} />
         </StatGrid>
 
         {owner && !isOwner && session?.user?.id ? (
@@ -80,11 +104,11 @@ export default async function ProfilePage({ params }: Props) {
 
       <section className="mt-10 border-t border-rule pt-8">
         <SectionHead
-          title="Ha scritto"
-          aside={<span className={eyebrow}>{authored.length} post recenti</span>}
+          title={t.haScritto}
+          aside={<span className={eyebrow}>{t.postRecenti(authored.length)}</span>}
         />
         {authored.length === 0 ? (
-          <Empty>Nessun post pubblicato.</Empty>
+          <Empty>{t.nessunPost}</Empty>
         ) : (
           <div className="grid gap-3.5">
             {authored.map((post) => (
@@ -101,7 +125,7 @@ export default async function ProfilePage({ params }: Props) {
   if (!isOwner || !session?.user?.id) {
     return (
       <main className={cx("mx-auto w-full max-w-[1200px] px-6 py-10")}>
-        <ProfileView data={data} />
+        <ProfileView data={data} locale={locale} />
         {social}
       </main>
     );
@@ -160,7 +184,7 @@ async function hasActivePremium(userId: string): Promise<boolean> {
  * Un database non ancora migrato non deve produrre una schermata di errore
  * grezza: si tratta come profilo inesistente, e la pagina 404 lo dice in chiaro.
  */
-async function loadProfile(username: string): Promise<ProfileViewData | null> {
+async function loadProfile(username: string, unknownGame: string): Promise<ProfileViewData | null> {
   try {
     const row = await db.query.users.findFirst({
       where: eq(users.username, username),
@@ -213,7 +237,7 @@ async function loadProfile(username: string): Promise<ProfileViewData | null> {
         })),
       gameAccounts: row.gameAccounts.map((account) => ({
         id: account.id,
-        game: gameNames.get(account.gameId) ?? "Gioco",
+        game: gameNames.get(account.gameId) ?? unknownGame,
         uid: account.uid,
         nickname: account.nickname,
         trust: account.trust,
@@ -223,7 +247,7 @@ async function loadProfile(username: string): Promise<ProfileViewData | null> {
         .map((build) => ({
           id: build.id,
           name: build.name,
-          game: gameNames.get(build.gameId) ?? "Gioco",
+          game: gameNames.get(build.gameId) ?? unknownGame,
           character: build.characterId,
           median: readMedian(build.payload),
           patch: "—",

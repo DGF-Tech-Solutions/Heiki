@@ -4,10 +4,34 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { requestResetAction, type ResetState } from "@/lib/auth/password-reset";
 import { Button, Field, Input, Notice } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: {
+    sviluppo: "Sviluppo:",
+    invioNonConfigurato: "l'invio email non è configurato, quindi il collegamento è qui.",
+    reimpostaPassword: "Reimposta la password",
+    email: "Email",
+    esempioEmail: "tu@esempio.it",
+    invio: "Invio…",
+    mandaCollegamento: "Manda il collegamento",
+  },
+  en: {
+    sviluppo: "Development:",
+    invioNonConfigurato: "email sending isn't configured, so the link is here.",
+    reimpostaPassword: "Reset your password",
+    email: "Email",
+    esempioEmail: "you@example.com",
+    invio: "Sending…",
+    mandaCollegamento: "Send the link",
+  },
+});
 
 const INITIAL: ResetState = {};
 
 export function RequestResetForm() {
+  const t = TESTI[useLocale()];
   const [state, action, pending] = useActionState(requestResetAction, INITIAL);
 
   return (
@@ -29,10 +53,9 @@ export function RequestResetForm() {
               <>
                 <br />
                 <br />
-                <strong>Sviluppo:</strong> l&apos;invio email non è configurato, quindi il
-                collegamento è qui.{" "}
+                <strong>{t.sviluppo}</strong> {t.invioNonConfigurato}{" "}
                 <Link href={state.devLink} className="font-semibold text-brand hover:underline">
-                  Reimposta la password
+                  {t.reimpostaPassword}
                 </Link>
               </>
             ) : null}
@@ -40,18 +63,18 @@ export function RequestResetForm() {
         </Notice>
       ) : null}
 
-      <Field label="Email">
+      <Field label={t.email}>
         <Input
           type="email"
           name="email"
           autoComplete="email"
           required
-          placeholder="tu@esempio.it"
+          placeholder={t.esempioEmail}
         />
       </Field>
 
       <Button type="submit" variant="primary" className="w-full" disabled={pending}>
-        {pending ? "Invio…" : "Manda il collegamento"}
+        {pending ? t.invio : t.mandaCollegamento}
       </Button>
     </form>
   );

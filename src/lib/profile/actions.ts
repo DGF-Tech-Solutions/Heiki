@@ -22,6 +22,8 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { databaseReachable, db } from "@/lib/db";
 import { badgeShowcaseSlots, profiles, subscriptions, userBadges, users } from "@/lib/db/schema";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import {
   BADGE_SHOWCASE_LIMIT,
   normalizeCustomization,
@@ -29,39 +31,67 @@ import {
   toCosmeticRecord,
 } from "./customization";
 
+const TESTI = testi({
+  it: {
+    handleCorto: "L'handle deve avere almeno 3 caratteri",
+    handleLungo: "L'handle non può superare i 20 caratteri",
+    handleCaratteri: "Usa solo lettere minuscole, numeri, trattino e underscore",
+    nomeCorto: "Il nome è troppo corto",
+    databaseAssente: "Database non raggiungibile: le modifiche non sono state salvate.",
+    sessioneScaduta: "Sessione scaduta. Rientra e riprova.",
+    datiNonValidi: "Dati non validi.",
+    handlePreso: "Questo handle è già preso.",
+  },
+  en: {
+    handleCorto: "The handle must be at least 3 characters",
+    handleLungo: "The handle can't be longer than 20 characters",
+    handleCaratteri: "Use only lowercase letters, numbers, hyphens and underscores",
+    nomeCorto: "The name is too short",
+    databaseAssente: "Database unreachable: your changes were not saved.",
+    sessioneScaduta: "Session expired. Log in again and retry.",
+    datiNonValidi: "Invalid data.",
+    handlePreso: "This handle is already taken.",
+  },
+});
+
 export interface SaveResult {
   ok: boolean;
   error?: string;
 }
 
-const payloadSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(3, "L'handle deve avere almeno 3 caratteri")
-    .max(20, "L'handle non puo' superare i 20 caratteri")
-    .regex(/^[a-z0-9_-]+$/, "Usa solo lettere minuscole, numeri, trattino e underscore"),
-  displayName: z.string().trim().min(2, "Il nome e' troppo corto").max(40),
-  bio: z.string().max(280).nullish(),
-  country: z.string().max(40).nullish(),
-  favorites: z.array(z.string().trim().max(40)).max(12),
-  customization: z.record(z.string(), z.string()),
-  badges: z.array(z.object({ id: z.string(), shown: z.boolean().optional() })),
-});
+/** Lo schema nasce con i messaggi nella lingua di chi salva. */
+function payloadSchema(t: (typeof TESTI)["it"]) {
+  return z.object({
+    username: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(3, t.handleCorto)
+      .max(20, t.handleLungo)
+      .regex(/^[a-z0-9_-]+$/, t.handleCaratteri),
+    displayName: z.string().trim().min(2, t.nomeCorto).max(40),
+    bio: z.string().max(280).nullish(),
+    country: z.string().max(40).nullish(),
+    favorites: z.array(z.string().trim().max(40)).max(12),
+    customization: z.record(z.string(), z.string()),
+    badges: z.array(z.object({ id: z.string(), shown: z.boolean().optional() })),
+  });
+}
 
 export async function saveProfileAction(payload: unknown): Promise<SaveResult> {
+  const t = TESTI[await getLocale()];
+
   if (!(await databaseReachable())) {
-    return { ok: false, error: "Database non raggiungibile: le modifiche non sono state salvate." };
+    return { ok: false, error: t.databaseAssente };
   }
 
   const session = await auth();
   const userId = session?.user?.id;
-  if (!userId) return { ok: false, error: "Sessione scaduta. Rientra e riprova." };
+  if (!userId) return { ok: false, error: t.sessioneScaduta };
 
-  const parsed = payloadSchema.safeParse(payload);
+  const parsed = payloadSchema(t).safeParse(payload);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
   const { username, displayName, bio, country, favorites, customization, badges } = parsed.data;
@@ -71,7 +101,7 @@ export async function saveProfileAction(payload: unknown): Promise<SaveResult> {
     where: and(eq(users.username, username), ne(users.id, userId)),
     columns: { id: true },
   });
-  if (taken) return { ok: false, error: "Questo handle e' gia' preso." };
+  if (taken) return { ok: false, error: t.handlePreso };
 
   // Le opzioni premium richiedono un abbonamento attivo: la verifica va fatta
   // qui, non nell'interfaccia, che e' solo un suggerimento.

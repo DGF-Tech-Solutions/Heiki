@@ -15,9 +15,44 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { databaseReachable, db } from "@/lib/db";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { profiles, users } from "@/lib/db/schema";
 import { signIn } from "./index";
+
+const TESTI = testi({
+  it: {
+    handleCorto: "L'handle deve avere almeno 3 caratteri",
+    handleLungo: "L'handle non può superare i 20 caratteri",
+    handleCaratteri: "Usa solo lettere minuscole, numeri, trattino e underscore",
+    nomeCorto: "Il nome visualizzato deve avere almeno 2 caratteri",
+    nomeLungo: "Il nome visualizzato non può superare i 40 caratteri",
+    emailNonValida: "Inserisci un indirizzo email valido",
+    passwordCorta: "La password deve avere almeno 10 caratteri",
+    passwordLunga: "La password non può superare i 200 caratteri",
+    emailRegistrata: "Questa email è già registrata",
+    handlePreso: "Questo handle è già preso",
+    servonoEmailPassword: "Inserisci email e password",
+    credenzialiErrate: "Email o password non corrette",
+  },
+  en: {
+    handleCorto: "The handle must be at least 3 characters",
+    handleLungo: "The handle can't be longer than 20 characters",
+    handleCaratteri: "Use only lowercase letters, numbers, hyphens and underscores",
+    nomeCorto: "The display name must be at least 2 characters",
+    nomeLungo: "The display name can't be longer than 40 characters",
+    emailNonValida: "Enter a valid email address",
+    passwordCorta: "The password must be at least 10 characters",
+    passwordLunga: "The password can't be longer than 200 characters",
+    emailRegistrata: "This email is already registered",
+    handlePreso: "This handle is already taken",
+    servonoEmailPassword: "Enter your email and password",
+    credenzialiErrate: "Incorrect email or password",
+  },
+});
+
+type Testi = (typeof TESTI)["it"];
 
 export interface FormState {
   error?: string;
@@ -33,32 +68,31 @@ const USERNAME_RULE = /^[a-z0-9_-]+$/;
  */
 const DEMO_PROFILE = "/anteprima/profilo";
 
-const registerSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(3, "L'handle deve avere almeno 3 caratteri")
-    .max(20, "L'handle non puo' superare i 20 caratteri")
-    .regex(USERNAME_RULE, "Usa solo lettere minuscole, numeri, trattino e underscore"),
-  displayName: z
-    .string()
-    .trim()
-    .min(2, "Il nome visualizzato deve avere almeno 2 caratteri")
-    .max(40, "Il nome visualizzato non puo' superare i 40 caratteri"),
-  email: z.string().trim().toLowerCase().email("Inserisci un indirizzo email valido"),
-  password: z
-    .string()
-    .min(10, "La password deve avere almeno 10 caratteri")
-    .max(200, "La password non puo' superare i 200 caratteri"),
-});
+/** Lo schema nasce con i messaggi nella lingua di chi compila il modulo. */
+function registerSchema(t: Testi) {
+  return z.object({
+    username: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(3, t.handleCorto)
+      .max(20, t.handleLungo)
+      .regex(USERNAME_RULE, t.handleCaratteri),
+    displayName: z.string().trim().min(2, t.nomeCorto).max(40, t.nomeLungo),
+    email: z.string().trim().toLowerCase().email(t.emailNonValida),
+    password: z.string().min(10, t.passwordCorta).max(200, t.passwordLunga),
+  });
+}
 
 export async function registerAction(_prev: FormState, formData: FormData): Promise<FormState> {
   if (!(await databaseReachable())) {
     redirect(DEMO_PROFILE);
   }
 
-  const parsed = registerSchema.safeParse({
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
+  const parsed = registerSchema(t).safeParse({
     username: formData.get("username"),
     displayName: formData.get("displayName"),
     email: formData.get("email"),
@@ -79,14 +113,14 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   // Il limite arriva dopo la validazione: un modulo compilato male non deve
   // consumare i tentativi di chi sta solo sbagliando a digitare.
   const registerLimit = rateLimit("register", email);
-  if (!registerLimit.allowed) return { error: retryMessage(registerLimit) };
+  if (!registerLimit.allowed) return { error: retryMessage(registerLimit, locale) };
 
   const existingEmail = await db.query.users.findFirst({
     where: eq(users.email, email),
     columns: { id: true },
   });
   if (existingEmail) {
-    return { fieldErrors: { email: "Questa email e' gia' registrata" } };
+    return { fieldErrors: { email: t.emailRegistrata } };
   }
 
   const existingUsername = await db.query.users.findFirst({
@@ -94,7 +128,7 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
     columns: { id: true },
   });
   if (existingUsername) {
-    return { fieldErrors: { username: "Questo handle e' gia' preso" } };
+    return { fieldErrors: { username: t.handlePreso } };
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
@@ -122,23 +156,26 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
     redirect(DEMO_PROFILE);
   }
 
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    return { error: "Inserisci email e password" };
+    return { error: t.servonoEmailPassword };
   }
 
   // Senza un tetto, il modulo di accesso e' una porta aperta: si possono
   // provare migliaia di password al secondo.
   const limit = rateLimit("login", email.toLowerCase());
-  if (!limit.allowed) return { error: retryMessage(limit) };
+  if (!limit.allowed) return { error: retryMessage(limit, locale) };
 
   try {
     await signIn("credentials", { email, password, redirectTo: "/" });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Email o password non corrette" };
+      return { error: t.credenzialiErrate };
     }
     // signIn segnala il redirect riuscito lanciando: va rilanciato, non gestito.
     throw error;

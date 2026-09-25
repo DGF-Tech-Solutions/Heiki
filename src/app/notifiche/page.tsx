@@ -3,29 +3,65 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { listNotifications, markAllReadAction } from "@/lib/social/actions";
 import { relativeTime } from "@/lib/community/ranking";
 import { Button, cx, display, Empty, eyebrow, Notice } from "@/components/ui";
 
-export const metadata: Metadata = {
-  title: "Notifiche · GachaZone",
-  robots: { index: false, follow: false },
-};
+const TESTI = testi({
+  it: {
+    titoloPagina: "Notifiche · GachaZone",
+    richiedeDatabase: "Le notifiche richiedono il database. Avvialo con",
+    attivita: "Attività",
+    notifiche: "Notifiche",
+    segnaLette: "Segna tutte come lette",
+    nessuna:
+      "Nessuna notifica. Arrivano quando qualcuno risponde a un tuo post o inizia a seguirti.",
+    // La frase che segue il nome di chi ha agito, per tipo di notifica.
+    azioni: {
+      POST_REPLY: "ha risposto al tuo post",
+      COMMENT_REPLY: "ha risposto al tuo commento",
+      NEW_FOLLOWER: "ha iniziato a seguirti",
+      POST_VOTED: "ha votato il tuo post",
+    } as Readonly<Record<string, string>>,
+    interagito: "ha interagito",
+  },
+  en: {
+    titoloPagina: "Notifications · GachaZone",
+    richiedeDatabase: "Notifications need the database. Start it with",
+    attivita: "Activity",
+    notifiche: "Notifications",
+    segnaLette: "Mark all as read",
+    nessuna: "No notifications. They arrive when someone replies to one of your posts or starts following you.",
+    azioni: {
+      POST_REPLY: "replied to your post",
+      COMMENT_REPLY: "replied to your comment",
+      NEW_FOLLOWER: "started following you",
+      POST_VOTED: "voted on your post",
+    },
+    interagito: "interacted with you",
+  },
+});
 
-const LABEL: Record<string, string> = {
-  POST_REPLY: "ha risposto al tuo post",
-  COMMENT_REPLY: "ha risposto al tuo commento",
-  NEW_FOLLOWER: "ha iniziato a seguirti",
-  POST_VOTED: "ha votato il tuo post",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return {
+    title: t.titoloPagina,
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function NotificationsPage() {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   if (!(await databaseReachable())) {
     return (
       <main className="mx-auto w-full max-w-[760px] px-6 pt-8 pb-20">
         <Notice>
           <span>
-            Le notifiche richiedono il database. Avvialo con <code>docker compose up -d</code>.
+            {t.richiedeDatabase} <code>docker compose up -d</code>.
           </span>
         </Notice>
       </main>
@@ -37,13 +73,14 @@ export default async function NotificationsPage() {
 
   const items = await listNotifications();
   const unread = items.filter((item) => !item.read).length;
+  const now = new Date();
 
   return (
     <main className="mx-auto w-full max-w-[760px] px-6 pt-8 pb-20">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink pb-4">
         <div>
-          <p className={eyebrow}>Attività</p>
-          <h1 className={cx(display, "mt-2 text-[32px]")}>Notifiche</h1>
+          <p className={eyebrow}>{t.attivita}</p>
+          <h1 className={cx(display, "mt-2 text-[32px]")}>{t.notifiche}</h1>
         </div>
 
         {unread > 0 ? (
@@ -53,15 +90,13 @@ export default async function NotificationsPage() {
               await markAllReadAction();
             }}
           >
-            <Button type="submit">Segna tutte come lette</Button>
+            <Button type="submit">{t.segnaLette}</Button>
           </form>
         ) : null}
       </header>
 
       {items.length === 0 ? (
-        <Empty>
-          Nessuna notifica. Arrivano quando qualcuno risponde a un tuo post o inizia a seguirti.
-        </Empty>
+        <Empty>{t.nessuna}</Empty>
       ) : (
         <ul className="m-0 grid list-none gap-2 p-0">
           {items.map((item) => (
@@ -75,7 +110,7 @@ export default async function NotificationsPage() {
               <Link href={`/u/${item.actor.username}`} className="font-semibold hover:text-brand">
                 {item.actor.displayName}
               </Link>
-              <span className="text-ink-2">{LABEL[item.type] ?? "ha interagito"}</span>
+              <span className="text-ink-2">{t.azioni[item.type] ?? t.interagito}</span>
 
               {item.postId && item.gameSlug ? (
                 <Link
@@ -87,7 +122,7 @@ export default async function NotificationsPage() {
               ) : null}
 
               <span className="ml-auto font-mono text-[11px] text-ink-3">
-                {relativeTime(item.createdAt)}
+                {relativeTime(item.createdAt, now, locale)}
               </span>
             </li>
           ))}

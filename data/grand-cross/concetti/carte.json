@@ -6,7 +6,7 @@
     "SkillCardObject.ATTACK_TYPE / RANGE_TYPE": "enum del client (dump.cs)",
     "SkillEffectEnum.TARGET": "enum del client (dump.cs)",
     "UI_battle_tutorial_title_* / DB_skill_search_name_*": "testi del client coi nomi dei tipi di abilita'",
-    "7dshub": "range e attackType di ogni rango; il bersaglio letto dal testo (contesto_eroi.py)"
+    "DB_skill_card_base": "range e attackType di ogni rango (force_range_type o range_type, attack_type); il bersaglio letto dal testo (contesto_eroi.py)"
   },
   "note": {
     "uso": "quanti ranghi dei dati hanno quel codice, per slot",
@@ -26,7 +26,7 @@
       ],
       "ranghi_nel_client": 3,
       "chiave_7dshub": "skillsA",
-      "ranghi_nei_dati": 1119,
+      "ranghi_nei_dati": 1122,
       "certezza": "dichiarato",
       "prove": [],
       "campi_collegati": [
@@ -48,7 +48,7 @@
       ],
       "ranghi_nel_client": 3,
       "chiave_7dshub": "skillsB",
-      "ranghi_nei_dati": 1119,
+      "ranghi_nei_dati": 1122,
       "certezza": "dichiarato",
       "prove": [],
       "campi_collegati": [
@@ -73,7 +73,7 @@
       ],
       "ranghi_nel_client": 6,
       "chiave_7dshub": "skillsSpecial",
-      "ranghi_nei_dati": 2238,
+      "ranghi_nei_dati": 2244,
       "certezza": "dichiarato",
       "prove": []
     },
@@ -105,7 +105,7 @@
       ],
       "ranghi_nel_client": null,
       "chiave_7dshub": "passive",
-      "ranghi_nei_dati": 495,
+      "ranghi_nei_dati": 503,
       "certezza": "dichiarato",
       "prove": []
     },
@@ -154,8 +154,8 @@
       },
       "enum": "atk",
       "uso": {
-        "A": 863,
-        "ultimate": 1734,
+        "A": 864,
+        "ultimate": 1740,
         "B": 493,
         "coop": 216
       },
@@ -218,10 +218,10 @@
       },
       "enum": "debuff_atk",
       "uso": {
-        "A": 251,
-        "B": 251,
         "ultimate": 354,
-        "coop": 90
+        "coop": 90,
+        "A": 253,
+        "B": 251
       },
       "certezza": "dedotto",
       "prove": [
@@ -239,7 +239,7 @@
       },
       "enum": "heal",
       "uso": {
-        "B": 60,
+        "B": 63,
         "ultimate": 36,
         "coop": 18
       },
@@ -429,14 +429,14 @@
       "etichetta_da": null,
       "enum": "melee",
       "uso": {
-        "A": 597,
+        "A": 600,
+        "B": 249,
         "ultimate": 859,
-        "B": 246,
         "coop": 336
       },
       "certezza": "dichiarato",
       "prove": [
-        "ranghi con il bersaglio letto nel testo: single_enemy 1.459 (72%), global_enemy 489 (24%), nessuno 72 (4%), global_ally 18 (1%)",
+        "ranghi con il bersaglio letto nel testo: single_enemy 1.462 (72%), global_enemy 489 (24%), nessuno 75 (4%), global_ally 18 (1%)",
         "il gioco nomina le abilita' «melee» in 3 nomi di effetto, es. DB_skill_buff_name_3551: «Evade Melee Skill»"
       ]
     },
@@ -450,11 +450,11 @@
       "uso": {
         "A": 522,
         "B": 873,
-        "ultimate": 1379
+        "ultimate": 1385
       },
       "certezza": "dichiarato",
       "prove": [
-        "ranghi con il bersaglio letto nel testo: global_enemy 1.332 (48%), single_enemy 979 (35%), global_ally 253 (9%), nessuno 193 (7%), single_ally 17 (1%)"
+        "ranghi con il bersaglio letto nel testo: global_enemy 1.338 (48%), single_enemy 979 (35%), global_ally 256 (9%), nessuno 190 (7%), single_ally 17 (1%)"
       ]
     }
   },
@@ -498,10 +498,10 @@
         "one enemy"
       ],
       "uso": {
-        "A": 918,
-        "B": 284,
+        "A": 921,
         "ultimate": 1026,
-        "coop": 210
+        "coop": 210,
+        "B": 284
       },
       "certezza": "dichiarato",
       "prove": []
@@ -517,7 +517,7 @@
         "all allies"
       ],
       "uso": {
-        "B": 163,
+        "B": 166,
         "ultimate": 90,
         "coop": 18
       },
@@ -535,9 +535,9 @@
         "all enemies"
       ],
       "uso": {
-        "ultimate": 1002,
         "B": 531,
         "A": 192,
+        "ultimate": 1008,
         "coop": 96
       },
       "certezza": "dichiarato",

@@ -19,8 +19,67 @@ import {
   deleteAccountAction,
   type AccountState,
 } from "@/lib/auth/account-actions";
-import { DELETE_PHRASE } from "@/lib/auth/account";
+import { deletePhrase } from "@/lib/auth/account";
 import { Button, cx, display, Field, Input, Notice } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: {
+    indirizzoEmail: "Indirizzo email",
+    indirizzoEmailNota:
+      "Serve per entrare e per recuperare la password. Cambiarlo richiede la password attuale.",
+    nuovoIndirizzo: "Nuovo indirizzo",
+    attuale: (indirizzo: string) => `attuale: ${indirizzo}`,
+    passwordAttuale: "Password attuale",
+    aggiorno: "Aggiorno…",
+    cambiaIndirizzo: "Cambia indirizzo",
+    password: "Password",
+    passwordNota:
+      "Cambiandola chiudiamo tutte le altre sessioni aperte: se sospetti un accesso altrui, è quello che serve.",
+    nuovaPassword: "Nuova password",
+    almenoDieci: "almeno 10 caratteri",
+    ripetila: "Ripetila",
+    cambiaPassword: "Cambia password",
+    eliminaAccount: "Elimina l'account",
+    eliminaNota: "Irreversibile. Profilo, badge, voti e notifiche vengono cancellati.",
+    postPrima: "I tuoi post e commenti",
+    restano: "restano",
+    postDopo:
+      ", senza più il collegamento al tuo nome: cancellarli spezzerebbe discussioni di altre persone, che non hanno chiesto di perderle.",
+    conferma: "Conferma",
+    scrivi: (parola: string) => `scrivi ${parola}`,
+    elimino: "Elimino…",
+    eliminaDefinitivamente: "Elimina definitivamente",
+  },
+  en: {
+    indirizzoEmail: "Email address",
+    indirizzoEmailNota:
+      "Used to log in and to recover your password. Changing it requires your current password.",
+    nuovoIndirizzo: "New address",
+    attuale: (indirizzo: string) => `current: ${indirizzo}`,
+    passwordAttuale: "Current password",
+    aggiorno: "Updating…",
+    cambiaIndirizzo: "Change address",
+    password: "Password",
+    passwordNota:
+      "Changing it closes all your other open sessions: if you suspect someone else has access, that's exactly what you need.",
+    nuovaPassword: "New password",
+    almenoDieci: "at least 10 characters",
+    ripetila: "Repeat it",
+    cambiaPassword: "Change password",
+    eliminaAccount: "Delete account",
+    eliminaNota: "Irreversible. Your profile, badges, votes and notifications are deleted.",
+    postPrima: "Your posts and comments",
+    restano: "stay",
+    postDopo:
+      ", no longer linked to your name: deleting them would break other people's discussions, and they didn't ask to lose them.",
+    conferma: "Confirm",
+    scrivi: (parola: string) => `type ${parola}`,
+    elimino: "Deleting…",
+    eliminaDefinitivamente: "Delete permanently",
+  },
+});
 
 const INITIAL: AccountState = {};
 
@@ -57,26 +116,24 @@ function Feedback({ state }: { state: AccountState }) {
 }
 
 export function ChangeEmailForm({ current }: { current: string }) {
+  const t = TESTI[useLocale()];
   const [state, action, pending] = useActionState(changeEmailAction, INITIAL);
 
   return (
-    <Panel
-      title="Indirizzo email"
-      hint="Serve per entrare e per recuperare la password. Cambiarlo richiede la password attuale."
-    >
+    <Panel title={t.indirizzoEmail} hint={t.indirizzoEmailNota}>
       <form action={action} noValidate>
         <Feedback state={state} />
 
-        <Field label="Nuovo indirizzo" hint={`attuale: ${current}`}>
+        <Field label={t.nuovoIndirizzo} hint={t.attuale(current)}>
           <Input type="email" name="email" autoComplete="email" required defaultValue={current} />
         </Field>
 
-        <Field label="Password attuale">
+        <Field label={t.passwordAttuale}>
           <Input type="password" name="password" autoComplete="current-password" required />
         </Field>
 
         <Button type="submit" variant="primary" disabled={pending}>
-          {pending ? "Aggiorno…" : "Cambia indirizzo"}
+          {pending ? t.aggiorno : t.cambiaIndirizzo}
         </Button>
       </form>
     </Panel>
@@ -84,30 +141,28 @@ export function ChangeEmailForm({ current }: { current: string }) {
 }
 
 export function ChangePasswordForm() {
+  const t = TESTI[useLocale()];
   const [state, action, pending] = useActionState(changePasswordAction, INITIAL);
 
   return (
-    <Panel
-      title="Password"
-      hint="Cambiandola chiudiamo tutte le altre sessioni aperte: se sospetti un accesso altrui, è quello che serve."
-    >
+    <Panel title={t.password} hint={t.passwordNota}>
       <form action={action} noValidate>
         <Feedback state={state} />
 
-        <Field label="Password attuale">
+        <Field label={t.passwordAttuale}>
           <Input type="password" name="current" autoComplete="current-password" required />
         </Field>
 
-        <Field label="Nuova password" hint="almeno 10 caratteri">
+        <Field label={t.nuovaPassword} hint={t.almenoDieci}>
           <Input type="password" name="next" autoComplete="new-password" required minLength={10} />
         </Field>
 
-        <Field label="Ripetila">
+        <Field label={t.ripetila}>
           <Input type="password" name="repeat" autoComplete="new-password" required />
         </Field>
 
         <Button type="submit" variant="primary" disabled={pending}>
-          {pending ? "Aggiorno…" : "Cambia password"}
+          {pending ? t.aggiorno : t.cambiaPassword}
         </Button>
       </form>
     </Panel>
@@ -115,28 +170,27 @@ export function ChangePasswordForm() {
 }
 
 export function DeleteAccountForm() {
+  const locale = useLocale();
+  const t = TESTI[locale];
+  const phrase = deletePhrase(locale);
   const [state, action, pending] = useActionState(deleteAccountAction, INITIAL);
 
   return (
-    <Panel
-      title="Elimina l'account"
-      hint="Irreversibile. Profilo, badge, voti e notifiche vengono cancellati."
-      danger
-    >
+    <Panel title={t.eliminaAccount} hint={t.eliminaNota} danger>
       <form action={action} noValidate>
         <Feedback state={state} />
 
         <p className="mb-4 text-[13px] text-ink-2">
-          I tuoi post e commenti <strong>restano</strong>, senza più il collegamento al tuo nome:
-          cancellarli spezzerebbe discussioni di altre persone, che non hanno chiesto di perderle.
+          {t.postPrima} <strong>{t.restano}</strong>
+          {t.postDopo}
         </p>
 
-        <Field label="Password attuale">
+        <Field label={t.passwordAttuale}>
           <Input type="password" name="password" autoComplete="current-password" required />
         </Field>
 
-        <Field label="Conferma" hint={`scrivi ${DELETE_PHRASE}`}>
-          <Input name="confirm" required placeholder={DELETE_PHRASE} className="font-mono" />
+        <Field label={t.conferma} hint={t.scrivi(phrase)}>
+          <Input name="confirm" required placeholder={phrase} className="font-mono" />
         </Field>
 
         <Button
@@ -144,7 +198,7 @@ export function DeleteAccountForm() {
           disabled={pending}
           className="border-hot text-hot hover:bg-hot hover:text-white"
         >
-          {pending ? "Elimino…" : "Elimina definitivamente"}
+          {pending ? t.elimino : t.eliminaDefinitivamente}
         </Button>
       </form>
     </Panel>

@@ -69,6 +69,150 @@ if (!existsSync(heroesJson)) {
 const heroes = JSON.parse(readFileSync(heroesJson, "utf8")) as SourceHero[];
 console.log(`\n  ${heroes.length} eroi letti da eroi.json`);
 
+/* ---------------------------------------------------- testi in italiano -- */
+
+/**
+ * Le schede degli eroi in italiano, dal client del gioco.
+ *
+ * Le scrive la pipeline (`python scheda_client.py`, dentro _7dsgc) in
+ * eroi/client/abilita_it.json, per heroId, con la stessa forma di quelle
+ * inglesi: le tabelle del gioco dicono quali abilita' ha l'eroe, e i testi sono
+ * i modelli del client riempiti coi numeri delle tabelle, come fa il gioco
+ * (modelli_client.py). Stessi id di abilita', stessi valori per rango, stesso
+ * markup: il testo italiano di un rango si accosta a quello inglese PER ID,
+ * senza indovinare niente. Passiva e Talenti non hanno un id per livello e si
+ * accostano per POSIZIONE, ma solo dove la sequenza coincide livello per
+ * livello col suo `specialLevel`.
+ *
+ * Fino al 24/09 questi testi venivano da 7dshub (le schede del sito, in
+ * italiano). La forma e' rimasta la stessa: per questo qui cambia solo il file.
+ *
+ * Due difetti dei testi si correggono qui e non in pagina:
+ *
+ *   U+FEFF    un carattere invisibile rimasto in 37 stringhe, dentro
+ *             "l'evocazione" o subito dopo le virgolette di un nome di carta.
+ *             Non si vede, ma spezza una ricerca e un confronto: si toglie.
+ *   NONE_DB   al posto del testo in tre ranghi di un eroe (2008501). Vale come
+ *             testo mancante, e quei ranghi restano in inglese.
+ *
+ * Se il file manca, il sito resta com'era: nessun campo italiano, e la scheda
+ * in italiano mostra i testi inglesi dichiarandolo.
+ */
+interface SourceHubSkill {
+  id: number;
+  name?: string;
+  explain?: string;
+}
+
+interface SourceHubIndex {
+  explain?: string;
+  specialLevel?: number | null;
+}
+
+interface SourceHubHero {
+  skin?: { name?: string; nickname?: string; description?: string };
+  passive?: { name?: string; indexes?: SourceHubIndex[] };
+  skillsA?: SourceHubSkill[];
+  skillsB?: SourceHubSkill[];
+  skillsSpecial?: SourceHubSkill[];
+  skillsCoop?: SourceHubSkill[];
+  // Comandamento, Grazia e Unita' hanno un testo solo; il Talento ("ability")
+  // puo' cambiare col rango dell'ultimate, e allora ha i livelli come la passiva.
+  taboo?: SourceHubSkill;
+  grace?: SourceHubSkill;
+  solidarity?: SourceHubSkill;
+  ability?: { id: number; name?: string; indexes?: SourceHubIndex[] };
+}
+
+/** Un testo a livelli - passiva o abilita' speciale - col livello che ne verifica la posizione. */
+interface ItalianLevel {
+  text?: string;
+  specialLevel: number | null;
+}
+
+interface ItalianHero {
+  name?: string;
+  nickname?: string;
+  description?: string;
+  /** id dell'abilita' (= id del rango in database_eroi.json) -> nome e testo */
+  skills: Map<number, { name?: string; explain?: string }>;
+  passiveName?: string;
+  passiveLevels: ItalianLevel[];
+}
+
+const italianJson = resolve(SOURCE, "eroi/client/abilita_it.json");
+const italianHeroes = new Map<string, ItalianHero>();
+/** id dell'abilita' speciale -> nome e testi, nell'ordine dei livelli */
+const italianSpecials = new Map<string, { name?: string; levels: ItalianLevel[] }>();
+
+/** Una stringa italiana usabile: senza U+FEFF, e nulla se e' vuota o un segnaposto. */
+function italian(value: string | null | undefined): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const out = value.replace(/﻿/g, "");
+  if (out.trim() === "" || out.trim() === "NONE_DB") return undefined;
+  return out;
+}
+
+/**
+ * Due sequenze di livelli sono la stessa se hanno la stessa lunghezza e lo
+ * stesso `specialLevel` in ogni posizione. E' la condizione per accostarle per
+ * posizione: senza, un testo italiano finirebbe sotto il rango sbagliato.
+ */
+function sameLevels(
+  source: readonly { livello_speciale?: number | null }[],
+  italianLevels: readonly ItalianLevel[] | undefined,
+): boolean {
+  return (
+    italianLevels !== undefined &&
+    italianLevels.length === source.length &&
+    italianLevels.every((level, index) => level.specialLevel === (source[index]?.livello_speciale ?? null))
+  );
+}
+
+if (!existsSync(italianJson)) {
+  console.log(`  client/abilita_it.json non trovato: niente testi in italiano, restano quelli inglesi.`);
+  console.log(`  (lo scrive la pipeline: python scheda_client.py, dentro _7dsgc)`);
+} else {
+  const hub = JSON.parse(readFileSync(italianJson, "utf8")) as Record<string, SourceHubHero>;
+  const levelsOf = (indexes: readonly SourceHubIndex[] | undefined): ItalianLevel[] =>
+    (indexes ?? []).map((index) => ({ text: italian(index.explain), specialLevel: index.specialLevel ?? null }));
+
+  for (const [hid, voce] of Object.entries(hub)) {
+    const skills = new Map<number, { name?: string; explain?: string }>();
+    for (const list of [voce.skillsA, voce.skillsB, voce.skillsSpecial, voce.skillsCoop]) {
+      for (const skill of list ?? []) {
+        skills.set(skill.id, { name: italian(skill.name), explain: italian(skill.explain) });
+      }
+    }
+    italianHeroes.set(hid, {
+      name: italian(voce.skin?.name),
+      nickname: italian(voce.skin?.nickname),
+      description: italian(voce.skin?.description),
+      skills,
+      passiveName: italian(voce.passive?.name),
+      passiveLevels: levelsOf(voce.passive?.indexes),
+    });
+
+    for (const special of [voce.taboo, voce.grace, voce.solidarity]) {
+      if (!special) continue;
+      italianSpecials.set(String(special.id), {
+        name: italian(special.name),
+        levels: [{ text: italian(special.explain), specialLevel: null }],
+      });
+    }
+    if (voce.ability) {
+      italianSpecials.set(String(voce.ability.id), {
+        name: italian(voce.ability.name),
+        levels: levelsOf(voce.ability.indexes),
+      });
+    }
+  }
+  console.log(
+    `  testi in italiano da client/abilita_it.json: ${italianHeroes.size} eroi, ` +
+      `${italianSpecials.size} abilita' speciali`,
+  );
+}
+
 /* ---------------------------------------------------------------- dati -- */
 
 /**
@@ -97,18 +241,55 @@ function clean(text: string): string {
   return out;
 }
 
+/**
+ * I testi del client, letti qui e non nella loro sezione: il nome e l'epiteto
+ * italiani del roster vengono da li'. La forma e la provenienza del file sono
+ * spiegate sotto, in "testi".
+ */
+interface SourceText {
+  nome?: Record<string, string>;
+  titolo?: Record<string, string>;
+  epiteto?: Record<string, string>;
+  descrizione?: Record<string, string>;
+}
+
+const textsJson = resolve(SOURCE, "eroi/testi_eroi.json");
+const textsSource = existsSync(textsJson)
+  ? (JSON.parse(readFileSync(textsJson, "utf8")) as Record<string, SourceText>)
+  : null;
+
+/**
+ * Nome ed epiteto in italiano, accanto a quelli inglesi di eroi.json.
+ *
+ * Prima i testi dell'eroe (testi_eroi.json), poi la scheda italiana: vengono
+ * tutti e due dal client e dicono la stessa cosa, ma i testi dell'eroe sono la
+ * fonte di tutti gli altri testi della scheda, e un nome che cambia fonte da
+ * una colonna all'altra sarebbe una differenza da spiegare. L'epiteto passa da `clean` come quello inglese: "\"Furto\"" arriva
+ * decorato come "\"Snatch\"".
+ */
+let italianNames = 0;
 const rows = heroes
-  .map((hero) =>
-    [
-      String(hero.heroId),
+  .map((hero) => {
+    const hid = String(hero.heroId);
+    const nameIt = italian(textsSource?.[hid]?.nome?.it) ?? italianHeroes.get(hid)?.name;
+    const epithetIt = italian(textsSource?.[hid]?.epiteto?.it) ?? italianHeroes.get(hid)?.nickname;
+    const cells = [
+      hid,
       hero.gruppo,
       hero.nome,
       clean(hero.nickname),
       hero.rarita,
       hero.ottenibile_come,
       hero.attributo,
-    ].map((cell) => JSON.stringify(cell)),
-  )
+    ];
+    // Le due colonne italiane si scrivono solo se ce n'e' almeno una: senza la
+    // fonte italiana le righe restano di sette, com'erano.
+    if (nameIt || epithetIt) {
+      cells.push(nameIt ?? "", epithetIt ? clean(epithetIt) : "");
+      if (nameIt && epithetIt) italianNames++;
+    }
+    return cells.map((cell) => JSON.stringify(cell));
+  })
   .map((cells) => `  [${cells.join(", ")}],`)
   .join("\n");
 
@@ -123,19 +304,23 @@ const generated = `/**
  * Row le tiene comunque controllate dal compilatore.
  *
  * L'ordine e' quello della fonte: dal piu' recente.
+ *
+ * Nome ed epiteto stanno in due lingue: le prime colonne sono l'inglese di
+ * eroi.json, le ultime due l'italiano del client. La pagina sceglie quale
+ * mostrare, e la ricerca le legge tutte e due.
  */
 
 import type { HeroEntry } from "../types";
 
-/** id, gruppo, nome, epiteto, rarita', ottenibile come, attributo */
-type Row = readonly [string, string, string, string, string, string, string];
+/** id, gruppo, nome, epiteto, rarita', ottenibile come, attributo, nome e epiteto in italiano */
+type Row = readonly [string, string, string, string, string, string, string, string?, string?];
 
 const ROWS: readonly Row[] = [
 ${rows}
 ];
 
 export const HEROES: readonly HeroEntry[] = ROWS.map(
-  ([id, group, name, epithet, rarity, obtainedAs, affinity]) => ({
+  ([id, group, name, epithet, rarity, obtainedAs, affinity, nameIt, epithetIt]) => ({
     id,
     group,
     name,
@@ -143,12 +328,17 @@ export const HEROES: readonly HeroEntry[] = ROWS.map(
     rarity,
     obtainedAs,
     affinity,
+    ...(nameIt ? { nameIt } : {}),
+    ...(epithetIt ? { epithetIt } : {}),
   }),
 );
 `;
 
 writeFileSync(DEST_DATA, generated, "utf8");
-console.log(`  dataset scritto in src/lib/games/${GAME}/heroes.generated.ts`);
+console.log(
+  `  dataset scritto in src/lib/games/${GAME}/heroes.generated.ts ` +
+    `(${italianNames}/${heroes.length} eroi con nome ed epiteto in italiano)`,
+);
 
 /* --------------------------------------------------------------- testi -- */
 
@@ -163,30 +353,31 @@ console.log(`  dataset scritto in src/lib/games/${GAME}/heroes.generated.ts`);
  *
  * Se il file manca, il roster resta quello di prima: nomi, rarita' e
  * attributi. La scheda del singolo eroe mostrera' meno, non si rompera'.
+ *
+ * Il file si legge piu' su, prima del roster (`textsSource`), perche' anche il
+ * nome e l'epiteto italiani della griglia vengono da qui.
  */
-interface SourceText {
-  nome?: Record<string, string>;
-  titolo?: Record<string, string>;
-  epiteto?: Record<string, string>;
-  descrizione?: Record<string, string>;
-}
-
-const textsJson = resolve(SOURCE, "eroi/testi_eroi.json");
-
-if (!existsSync(textsJson)) {
+if (!textsSource) {
   console.log(`  testi_eroi.json non trovato: salto i testi.`);
   console.log(`  (si genera con: python estrai_testi.py, dentro _7dsgc)`);
 } else {
-  const source = JSON.parse(readFileSync(textsJson, "utf8")) as Record<string, SourceText>;
+  const source = textsSource;
 
   // Italiano quando c'e', inglese quando il gioco non ha tradotto. Il ripiego
   // e' silenzioso di proposito: sono due voci su 313, e segnalarle in pagina
   // costerebbe piu' attenzione di quanta ne valgano.
+  //
+  // Questi quattro campi restano come sono, per chi li legge gia'. Accanto,
+  // in `i18n`, le due lingue separate: la pagina in inglese non deve ricevere
+  // l'italiano, e quella in italiano non deve ricevere l'inglese dove
+  // l'italiano esiste da un'altra parte.
   const pick = (field?: Record<string, string>) => field?.it ?? field?.en;
 
   const entries: string[] = [];
   let withText = 0;
   let fallbacks = 0;
+  let italianFromHub = 0;
+  let epithetsFromRoster = 0;
 
   for (const hero of heroes) {
     const hid = String(hero.heroId);
@@ -206,9 +397,44 @@ if (!existsSync(textsJson)) {
 
     if (text.descrizione && !text.descrizione.it && text.descrizione.en) fallbacks++;
     withText++;
+
+    // L'italiano: i testi dell'eroe, e dove mancano la scheda italiana. Fino al
+    // 24/09 serviva per due descrizioni (1705001 e 1675001) che la decifratura a
+    // punteggio perdeva; con quella esatta (testi_client.py) non serve piu', ma
+    // il ripiego costa niente. Il titolo la scheda non lo porta.
+    const hub = italianHeroes.get(hid);
+    const withFallback = (client: string | undefined, fromHub: string | undefined) => {
+      const value = italian(client);
+      if (value) return value;
+      if (fromHub) italianFromHub++;
+      return fromHub ?? null;
+    };
+
+    // L'epiteto inglese era l'unico testo rovinato dalla decifratura a
+    // punteggio: per 1065002 diceva "5biNasc&" dove il gioco scrive "Snatch".
+    // Con la decifratura esatta (25/09) non succede piu'; il riscontro con
+    // l'epiteto del roster resta, e dice 0 se tutto e' a posto.
+    const clientEpithetEn = text.epiteto?.en;
+    const epithetEn =
+      clientEpithetEn === undefined || clean(clientEpithetEn) === clean(hero.nickname)
+        ? (clientEpithetEn ?? hero.nickname)
+        : hero.nickname;
+    if (clientEpithetEn !== undefined && epithetEn !== clientEpithetEn) epithetsFromRoster++;
+
+    const i18n = {
+      name: { it: withFallback(text.nome?.it, hub?.name), en: text.nome?.en ?? null },
+      title: { it: italian(text.titolo?.it) ?? null, en: text.titolo?.en ?? null },
+      epithet: { it: withFallback(text.epiteto?.it, hub?.nickname), en: epithetEn },
+      description: {
+        it: withFallback(text.descrizione?.it, hub?.description),
+        en: text.descrizione?.en ?? null,
+      },
+    };
+
     const body = written.map(([key, value]) => `    ${key}: ${JSON.stringify(value)},`).join("\n");
     entries.push(`  ${JSON.stringify(hid)}: {
 ${body}
+    i18n: ${JSON.stringify(i18n)},
   },`);
   }
 
@@ -237,6 +463,10 @@ ${entries.join("\n")}
   writeFileSync(DEST_TEXTS, generatedTexts, "utf8");
   console.log(`  testi scritti per ${withText}/${heroes.length} eroi` +
     (fallbacks > 0 ? ` (${fallbacks} descrizioni rimaste in inglese)` : ""));
+  console.log(
+    `  testi dell'eroe nelle due lingue: ${italianFromHub} italiani presi dalla scheda dove i testi non li hanno, ` +
+      `${epithetsFromRoster} epiteti inglesi ripresi dal roster perche' il client li ha rovinati`,
+  );
 }
 
 /* ------------------------------------------------------- carte agli eroi -- */
@@ -323,19 +553,17 @@ if (!existsSync(choicesJson)) {
 /**
  * Carte, ultimate, passiva e statistiche dal database della pipeline.
  *
- * Lo produce `python costruisci_database.py`, che unisce due fonti perche'
- * nessuna delle due basta:
+ * Lo produce `python costruisci_database.py`, dalla scheda di ogni eroe che
+ * `scheda_client.py` ricava dal client: quali abilita' ha l'eroe (la tabella
+ * DB_skin_skill), i valori risolti per ogni rango, i nomi nelle due lingue.
  *
- *   7dshub   QUALI abilita' ha l'eroe, e i valori risolti per ogni rango
- *   client   come si chiamano, in italiano dove il gioco l'ha tradotto
+ * Fino al 24/09 il legame fra eroe e abilita' sembrava non essere nel client, e
+ * veniva da 7dshub: stava nelle tabelle dei due bundle cifrati, che dal 25/09
+ * si aprono (decifra_bundle.py). Gli id delle abilita' sono una numerazione a
+ * se' - Lancelot ha l'abilita' 1005021 e l'heroId 1967502 - e la tabella li
+ * collega uno per uno.
  *
- * Il legame fra eroe e abilita' non e' nel client - verificato anche cercando
- * le tabelle per percorso di progetto fra tutti i 262.420 asset: esistono sei
- * `db_*.csv`, tutti filtri di parolacce. E non si ricava dall'heroId, perche'
- * gli id delle abilita' sono una numerazione a se': Lancelot ha l'abilita'
- * 1005021 e l'heroId 1967502.
- *
- * Copre tutti e 373 gli eroi, dove il wiki si fermava a 167.
+ * Copre tutti gli eroi usciti, dove il wiki si fermava a 167.
  */
 interface SourceDbText {
   it?: string;
@@ -384,9 +612,18 @@ if (!existsSync(databaseJson)) {
   let withPassive = 0;
   let withPassiveSteps = 0;
   let withStats = 0;
-  let italianNames = 0;
+  let italianCardNames = 0;
   let pairedSprites = 0;
   const bySource: Record<string, number> = {};
+  // I testi italiani: quanti se ne scrivono, quali mancano, e quanti eroi li
+  // hanno tutti. `missingInHero` si azzera a ogni eroe e decide `textsInItalian`.
+  let italianRanks = 0;
+  let italianPassives = 0;
+  let italianSteps = 0;
+  let italianNamesFromHub = 0;
+  let heroesInItalian = 0;
+  let missingInHero = 0;
+  const missingItalian: string[] = [];
 
   const renderCard = (card: SourceDbCard, hid: string): string | null => {
     // `clean` toglie le virgolette con cui il gioco decora i nomi delle carte -
@@ -394,11 +631,38 @@ if (!existsSync(databaseJson)) {
     const raw = pick(card.nome);
     const name = raw ? clean(raw) : undefined;
     if (!name) return null;
+    const hub = italianHeroes.get(hid);
     const ranks = card.ranghi
       .filter((r) => r.testo_en)
-      .map((r) => `{ rank: ${r.rango}, text: ${JSON.stringify(r.testo_en)} }`)
+      .map((r) => {
+        // Il rango italiano si trova per id: e' lo stesso id d'abilita' nelle
+        // due schede, quindi non c'e' niente da accostare.
+        const textIt = hub?.skills.get(r.id)?.explain;
+        if (hub && textIt) italianRanks++;
+        if (hub && !textIt) {
+          missingInHero++;
+          missingItalian.push(`${hid} rango ${r.id}`);
+        }
+        return (
+          `{ rank: ${r.rango}, text: ${JSON.stringify(r.testo_en)}` +
+          (textIt ? `, textIt: ${JSON.stringify(textIt)}` : "") +
+          ` }`
+        );
+      })
       .join(", ");
     if (!ranks) return null;
+
+    // Il nome nelle due lingue: dal database, e se manca dalla scheda italiana,
+    // col nome del primo rango, che e' lo stesso per tutti i ranghi. Passa da
+    // `clean` come `name`: le virgolette sono le stesse.
+    const clientIt = italian(card.nome?.it);
+    const hubIt = card.ranghi.map((r) => hub?.skills.get(r.id)?.name).find((value) => value !== undefined);
+    if (!clientIt && hubIt) italianNamesFromHub++;
+    const nameIt = clientIt ?? hubIt;
+    const nameI18n = {
+      it: nameIt ? clean(nameIt) : null,
+      en: card.nome?.en ? clean(card.nome.en) : null,
+    };
     // L'illustrazione si prende per SLOT dagli accostamenti. L'ultimate porta
     // solo la fonte: il suo file e' ultimate/<id>.png, e c'e' quando c'e'
     // `HeroAssets.ultimate`.
@@ -408,11 +672,12 @@ if (!existsSync(databaseJson)) {
       pairedSprites++;
       bySource[source] = (bySource[source] ?? 0) + 1;
     }
-    if (card.nome?.it) italianNames++;
+    if (card.nome?.it) italianCardNames++;
     return (
       `{ name: ${JSON.stringify(name)}, slot: ${JSON.stringify(card.tipo)}` +
       (sprite ? `, sprite: ${sprite.n}` : "") +
       (source ? `, spriteSource: ${JSON.stringify(source)}` : "") +
+      `, nameI18n: ${JSON.stringify(nameI18n)}` +
       `, ranks: [${ranks}] }`
     );
   };
@@ -421,6 +686,8 @@ if (!existsSync(databaseJson)) {
     const hid = String(hero.heroId);
     const voce = db[hid];
     if (!voce) continue;
+    missingInHero = 0;
+    const hub = italianHeroes.get(hid);
 
     const cards = voce.carte
       .filter((c) => c.tipo === "A" || c.tipo === "B")
@@ -434,7 +701,7 @@ if (!existsSync(databaseJson)) {
     // fonte inglese.
     //
     // `livelli` NON sono gradi della passiva, come si leggeva qui prima: sono i
-    // testi che la passiva prende salendo di rango l'ultimate, e 7dshub segna
+    // testi che la passiva prende salendo di rango l'ultimate, e la scheda segna
     // ciascuno col suo `specialLevel`. Il gioco lo dice anche a colori: i
     // valori legati al rango sono ARANCIONI (`[FF8000]`), non ambra come gli
     // altri. L'arancione pero' segna 36 di queste passive su 42, e nelle altre
@@ -446,12 +713,39 @@ if (!existsSync(databaseJson)) {
     // viene sempre per primo; e le 8 passive che cambiano a ogni rango hanno 6
     // testi per 6 ranghi. Leggendo k come il rango stesso, in 38 eroi il testo
     // senza livello non varrebbe a nessun rango.
+    //
+    // Il testo italiano di ogni livello si accosta per POSIZIONE, e solo se la
+    // sequenza italiana coincide con questa livello per livello: altrimenti la
+    // passiva resta tutta in inglese, invece di mettere un testo sotto il rango
+    // sbagliato.
     const passiveName = pick(voce.passiva?.nome);
-    const levels = (voce.passiva?.livelli ?? []).filter((l) => l.testo_en);
+    const allLevels = voce.passiva?.livelli ?? [];
+    const passiveItalian = hub && sameLevels(allLevels, hub.passiveLevels) ? hub.passiveLevels : undefined;
+    const levels = allLevels
+      .map((level, index) => ({ ...level, testo_it: passiveItalian?.[index]?.text }))
+      .filter((l) => l.testo_en);
     const passiveText = levels[0]?.testo_en;
-    const passiveSteps = ultimateStepsOf(levels, `passiva di ${hid}`).map(
-      (step) => `{ fromUltimateRank: ${step.fromUltimateRank}, text: ${JSON.stringify(step.text)} }`,
-    );
+    const passiveTextIt = levels[0]?.testo_it;
+    const passiveSteps = ultimateStepsOf(levels, `passiva di ${hid}`);
+    const passiveNameI18n = {
+      it: italian(voce.passiva?.nome?.it) ?? hub?.passiveName ?? null,
+      en: voce.passiva?.nome?.en ?? null,
+    };
+
+    if (hub && passiveText) {
+      if (passiveTextIt) italianPassives++;
+      else {
+        missingInHero++;
+        missingItalian.push(`${hid} passiva`);
+      }
+      for (const step of passiveSteps) {
+        if (step.textIt) italianSteps++;
+        else {
+          missingInHero++;
+          missingItalian.push(`${hid} passiva dal rango ${step.fromUltimateRank}`);
+        }
+      }
+    }
 
     if (cards.length === 0 && !ultimate && !passiveText) continue;
 
@@ -459,16 +753,31 @@ if (!existsSync(databaseJson)) {
     parts.push(`    cards: [\n${cards.map((c) => `      ${c},`).join("\n")}\n    ],`);
     if (ultimate) parts.push(`    ultimate: ${ultimate},`);
     if (passiveText) {
+      const steps = passiveSteps.map(
+        (step) =>
+          `{ fromUltimateRank: ${step.fromUltimateRank}, text: ${JSON.stringify(step.text)}` +
+          (step.textIt ? `, textIt: ${JSON.stringify(step.textIt)}` : "") +
+          ` }`,
+      );
       parts.push(
         `    passive: { name: ${JSON.stringify(passiveName ?? "")}, ` +
+          `nameI18n: ${JSON.stringify(passiveNameI18n)}, ` +
           `text: ${JSON.stringify(passiveText)}` +
-          (passiveSteps.length > 0 ? `, ultimateSteps: [${passiveSteps.join(", ")}]` : "") +
+          (passiveTextIt ? `, textIt: ${JSON.stringify(passiveTextIt)}` : "") +
+          (steps.length > 0 ? `, ultimateSteps: [${steps.join(", ")}]` : "") +
           ` },`,
       );
-      if (passiveSteps.length > 0) withPassiveSteps++;
+      if (steps.length > 0) withPassiveSteps++;
     }
-    parts.push(`    source: "7dshub.com",`);
+    parts.push(`    source: "client del gioco",`);
     parts.push(`    textsInEnglish: true,`);
+    // Tutti i testi dell'eroe hanno l'italiano: la scheda in italiano non ha
+    // niente da avvertire. Ne basta uno senza perche' l'avviso resti, dato che
+    // quel testo si leggera' in inglese.
+    if (hub && missingInHero === 0) {
+      parts.push(`    textsInItalian: true,`);
+      heroesInItalian++;
+    }
     abilityRows.push(`  ${JSON.stringify(hid)}: {\n${parts.join("\n")}\n  },`);
 
     if (cards.length > 0) withCards++;
@@ -491,17 +800,21 @@ if (!existsSync(databaseJson)) {
  *
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  *
- * DUE FONTI, e serve dirlo perche' danno garanzie diverse:
+ * FONTE: il client del gioco. Le tabelle dei bundle cifrati (aperti dal 25/09)
+ * dicono quali abilita' ha l'eroe e con quali numeri; i testi sono i modelli
+ * del client - "damage equal to {melee_val} of Attack" - riempiti con quei
+ * numeri come fa il gioco (UnitSkillCardData.ChangeText, rifatto in
+ * modelli_client.py). Fino al 24/09 venivano da 7dshub.
  *
- *   7dshub.com   quali abilita' ha l'eroe e cosa fanno a ogni rango
- *   il client    il nome della carta in italiano, dove il gioco l'ha tradotto
+ * I TESTI SONO IN DUE LINGUE: \`text\` in inglese e \`textIt\` in italiano, per
+ * ogni rango, passiva e passo della passiva. Lo stesso modello nelle due lingue
+ * con gli stessi numeri: valori e markup coincidono, e il rango italiano si
+ * accosta a quello inglese per id.
+ * \`textsInItalian\` dice che l'eroe li ha TUTTI: ${heroesInItalian} eroi su ${abilityRows.length}.
  *
- * I TESTI DEI RANGHI SONO IN INGLESE, e non per pigrizia: il client spedisce
- * 285 descrizioni di abilita' in tutto, e sono modelli - "damage equal to
- * {melee_val} of Attack" - che il server riempie. Provando a ricostruire
- * l'italiano sostituendo i valori nel modello si arriva a 377 ranghi su 4.812,
- * e con i valori ancora in inglese dentro la frase. Un italiano a meta' e'
- * peggio di un inglese dichiarato.
+ * Accanto a \`name\` - l'italiano col ripiego sull'inglese, com'e' sempre stato -
+ * \`nameI18n\` tiene le due lingue separate, e ha l'italiano anche per le carte
+ * che il client non ha tradotto.
  *
  * Sono esclusi i giudizi - valutazioni, pro e contro, consigli: quelli sono
  * opinioni, e il database deve restare la base su cui formarne di proprie.
@@ -519,9 +832,10 @@ ${abilityRows.join("\n")}
  *
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  *
- * FONTE ESTERNA: 7dshub.com. Nel client non ci sono - le tiene il server del
- * gioco - e questo e' il dato che rende calibrabile il motore, oggi a
- * segnaposto in data.ts.
+ * FONTE: il client del gioco (scheda_client.py). Il gioco somma base, crescita
+ * per livello, risveglio, trascendenza, exceed e i costumi; qui al livello 100,
+ * con tutto al massimo e i 5 costumi migliori per tipo. E' il dato che rende
+ * calibrabile il motore, oggi a segnaposto in data.ts.
  *
  * Due colonne: l'eroe nudo e l'eroe equipaggiato. Mostrarne una sola
  * nasconderebbe quanto pesa l'equipaggiamento, che e' meta' del gioco.
@@ -541,9 +855,20 @@ ${statRows.join("\n")}
       `${withPassive} con passiva (${withPassiveSteps} che cambia col rango dell'ultimate)`,
   );
   console.log(
-    `  ${italianNames} nomi di carta in italiano; ${pairedSprites} carte con la propria illustrazione ` +
+    `  ${italianCardNames} nomi di carta in italiano dal database, ${italianNamesFromHub} dalla scheda italiana; ` +
+      `${pairedSprites} carte con la propria illustrazione ` +
       `(${Object.entries(bySource).map(([fonte, n]) => `${fonte} ${n}`).join(", ")})`,
   );
+  if (italianHeroes.size > 0) {
+    console.log(
+      `  testi in italiano: ${italianRanks} ranghi, ${italianPassives} passive, ${italianSteps} passi ` +
+        `della passiva; ${heroesInItalian} eroi con tutti i testi in italiano` +
+        (missingItalian.length > 0
+          ? `; ${missingItalian.length} senza (${missingItalian.slice(0, 6).join(", ")}` +
+            `${missingItalian.length > 6 ? ", ..." : ""})`
+          : ""),
+    );
+  }
   console.log(`  statistiche: ${withStats}/${heroes.length} eroi`);
 }
 
@@ -660,7 +985,7 @@ if (!existsSync(contextJson)) {
  *
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  *
- * FONTE: il CLIENT, non 7dshub. Gli enum del gioco (TeamUnitData.Kind,
+ * FONTE: il CLIENT. Gli enum del gioco (TeamUnitData.Kind,
  * .Attribute, .JobGroup, RatingType) danno il significato dei codici; le note
  * che il gioco si scrive dentro le abilita', il suo dizionario dei buff e la
  * tassonomia con cui filtra gli effetti danno le definizioni. Nessuna tabella
@@ -738,14 +1063,14 @@ export const HERO_CONTEXT: HeroContextIndex = {
  *
  * `livello_speciale` k vale dal rango k+1, e il primo testo, senza livello, dal
  * rango 1: le prove stanno nel commento della passiva, dove la regola e' nata.
- * Serve anche ai Talenti, che 7dshub scrive con lo stesso schema. Fuori da
+ * Serve anche ai Talenti, che la scheda scrive con lo stesso schema. Fuori da
  * questo schema la regola non e' piu' dimostrata: ci si ferma, invece di
  * assegnare un testo al rango sbagliato.
  */
 function ultimateStepsOf(
-  levels: readonly { testo_en?: string; livello_speciale?: number | null }[],
+  levels: readonly { testo_en?: string; testo_it?: string | undefined; livello_speciale?: number | null }[],
   owner: string,
-): { fromUltimateRank: number; text: string }[] {
+): { fromUltimateRank: number; text: string; textIt?: string }[] {
   let lastRank = 1;
   return levels.slice(1).map((level) => {
     const from = (level.livello_speciale ?? Number.NaN) + 1;
@@ -756,14 +1081,19 @@ function ultimateStepsOf(
       );
     }
     lastRank = from;
-    return { fromUltimateRank: from, text: level.testo_en ?? "" };
+    // `textIt` si aggiunge solo se c'e': il passo senza italiano resta com'era.
+    return {
+      fromUltimateRank: from,
+      text: level.testo_en ?? "",
+      ...(level.testo_it ? { textIt: level.testo_it } : {}),
+    };
   });
 }
 
 /**
  * Comandamenti, Grazie, Unita' e Talenti.
  *
- * Li prepara `python abilita_speciali.py`: effetti e condizioni da 7dshub, nomi
+ * Li prepara `python abilita_speciali.py`: effetti e condizioni dalla scheda del client, nomi
  * e regole dal client, e le icone GIA' dentro la cornice del loro tipo, perche'
  * il lavoro di immagini in questo progetto lo fa Python. Qui si traducono i
  * nomi dei campi e si copiano le icone.
@@ -802,6 +1132,9 @@ if (!specialsSource) {
   const rosterIds = new Set(heroes.map((hero) => String(hero.heroId)));
   const specialRows: string[] = [];
   let copiedSpecials = 0;
+  let italianSpecialTexts = 0;
+  let italianSpecialNames = 0;
+  const specialsWithoutItalian: string[] = [];
 
   for (const [id, ability] of Object.entries(specialsSource.abilita)) {
     const from = resolve(SOURCE, "abilita_speciali/icone", `${id}.png`);
@@ -810,13 +1143,37 @@ if (!specialsSource) {
       copyFileSync(from, resolve(iconDir, `${id}.png`));
       copiedSpecials++;
     }
-    const levels = ability.livelli.filter((level) => level.testo_en);
+    // L'italiano per posizione, come per la passiva: solo se la scheda italiana
+    // ha gli stessi livelli, con lo stesso `specialLevel`.
+    const hub = italianSpecials.get(id);
+    const italianLevels = hub && sameLevels(ability.livelli, hub.levels) ? hub.levels : undefined;
+    const levels = ability.livelli
+      .map((level, index) => ({ ...level, testo_it: italianLevels?.[index]?.text }))
+      .filter((level) => level.testo_en);
     const steps = ultimateStepsOf(levels, `abilita' speciale ${id}`);
+    const textIt = levels[0]?.testo_it;
+    if (textIt && steps.every((step) => step.textIt)) italianSpecialTexts++;
+    else if (italianSpecials.size > 0) specialsWithoutItalian.push(id);
+
+    // Il nome italiano, se abilita_speciali.py non l'ha, si prende dalla scheda
+    // italiana. Si tolgono solo le virgolette
+    // che avvolgono tutto il nome ("\"Lettura del cuore\""), come nei nomi delle
+    // carte; il grassetto resta, perche' c'e' anche nel nome inglese
+    // ("Grace of [b]Sunshine[/b]") e la pagina lo rende.
+    const hubName = hub?.name;
+    const unquoted =
+      hubName && hubName.length > 1 && hubName.startsWith('"') && hubName.endsWith('"')
+        ? hubName.slice(1, -1).trim()
+        : hubName;
+    if (!ability.nome.it && unquoted) italianSpecialNames++;
+    const name = { ...ability.nome, it: ability.nome.it ?? unquoted ?? null };
+
     specialRows.push(
       `    ${JSON.stringify(id)}: ${JSON.stringify({
         kind: ability.tipo,
-        name: ability.nome,
+        name,
         text: levels[0]?.testo_en ?? "",
+        ...(textIt ? { textIt } : {}),
         ...(steps.length > 0 ? { ultimateSteps: steps } : {}),
         conditions: ability.condizioni,
         icon,
@@ -840,10 +1197,11 @@ if (!specialsSource) {
  *
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  *
- * FONTI: effetti e condizioni da 7dshub (grace, taboo, solidarity, ability);
- * nomi e regole dal client, in due lingue dove si leggono; icone e cornici dal
- * client. Le icone di Comandamenti, Grazie e Unita' non portano l'heroId: ogni
- * abilita' dichiara in \`iconSource\` come si sa che l'icona e' sua.
+ * FONTE: il client. Effetti e condizioni dalla scheda (grace, taboo,
+ * solidarity, ability), \`text\` in inglese e \`textIt\` in italiano; nomi e
+ * regole nelle due lingue; icone e cornici. Le icone di Comandamenti, Grazie e
+ * Unita' non portano l'heroId: ogni abilita' dichiara in \`iconSource\` come si
+ * sa che l'icona e' sua.
  */
 
 import type { HeroSpecialsIndex } from "../types";
@@ -862,6 +1220,13 @@ ${specialRows.join("\n")}
     `  abilita' speciali: ${specialRows.length} per ${Object.keys(specialHeroes).length} eroi, ` +
       `${copiedSpecials} icone incorniciate copiate`,
   );
+  if (italianSpecials.size > 0) {
+    console.log(
+      `  abilita' speciali in italiano: ${italianSpecialTexts}/${specialRows.length} con tutti i testi, ` +
+        `${italianSpecialNames} nomi presi dalla scheda italiana` +
+        (specialsWithoutItalian.length > 0 ? `; senza: ${specialsWithoutItalian.join(", ")}` : ""),
+    );
+  }
 }
 
 /* --------------------------------------------------------------- asset -- */

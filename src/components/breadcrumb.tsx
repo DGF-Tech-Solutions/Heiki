@@ -1,5 +1,12 @@
 import Link from "next/link";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { cx } from "./ui";
+
+const TESTI = testi({
+  it: { percorso: "Percorso" },
+  en: { percorso: "Breadcrumb" },
+});
 
 /**
  * Briciole di pane.
@@ -15,6 +22,9 @@ import { cx } from "./ui";
  * La lista visibile e quella strutturata sono generate dagli STESSI dati: non
  * possono divergere, che e' l'errore classico dei dati strutturati scritti a
  * mano.
+ *
+ * E' un componente server asincrono: legge la lingua dal cookie per l'etichetta
+ * della navigazione. Lo usano solo pagine server.
  */
 
 export interface Crumb {
@@ -23,8 +33,16 @@ export interface Crumb {
   href?: string;
 }
 
-export function Breadcrumb({ items, className }: { items: readonly Crumb[]; className?: string }) {
+export async function Breadcrumb({
+  items,
+  className,
+}: {
+  items: readonly Crumb[];
+  className?: string;
+}) {
   if (items.length === 0) return null;
+
+  const t = TESTI[await getLocale()];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -39,7 +57,7 @@ export function Breadcrumb({ items, className }: { items: readonly Crumb[]; clas
 
   return (
     <>
-      <nav aria-label="Percorso" className={cx("mb-4", className)}>
+      <nav aria-label={t.percorso} className={cx("mb-4", className)}>
         <ol className="m-0 flex flex-wrap items-center gap-1.5 p-0 font-mono text-[11px] text-ink-3">
           {items.map((item, index) => (
             <li key={`${item.label}-${index}`} className="flex items-center gap-1.5">

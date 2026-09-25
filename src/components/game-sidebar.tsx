@@ -20,7 +20,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { GameSectionGroup } from "@/lib/games/catalog";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
 import { cx, eyebrow } from "./ui";
+
+const TESTI = testi({
+  it: { sezioni: "Sezioni del gioco" },
+  en: { sezioni: "Game sections" },
+});
 
 export function GameSidebar({
   game,
@@ -31,9 +38,10 @@ export function GameSidebar({
 }) {
   const pathname = usePathname();
   const base = `/${game}`;
+  const t = TESTI[useLocale()];
 
   return (
-    <nav aria-label="Sezioni del gioco" className="grid gap-5">
+    <nav aria-label={t.sezioni} className="grid gap-5">
       {groups.map((group) => (
         <div key={group.label}>
           <p className={cx(eyebrow, "mb-2")}>{group.label}</p>

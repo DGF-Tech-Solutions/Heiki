@@ -9,32 +9,98 @@ import { DemoNotice, SetupHint } from "@/components/demo-notice";
 import { activeSuspensions, recentModActions, reportQueue } from "@/lib/moderation/actions";
 import { reportReasonLabel } from "@/lib/moderation/reasons";
 import { relativeTime } from "@/lib/community/ranking";
+import { intlLocale, testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { cx, display, Empty, eyebrow, SectionHead, Tag } from "@/components/ui";
 
-export const metadata: Metadata = {
-  title: "Moderazione",
-  // La coda non deve finire negli indici: non e' contenuto, ed espone
-  // frammenti di cio' che e' stato segnalato.
-  robots: { index: false, follow: false },
-};
+const TESTI = testi({
+  it: {
+    titoloPagina: "Moderazione",
+    riservato: "Riservato",
+    titolo: "Moderazione",
+    introduzione:
+      "Nascondere non cancella: la riga resta nel database con chi ha deciso e quando, e la decisione si può revocare. Ogni azione compare nel registro in fondo alla pagina.",
+    coda: "Coda",
+    codaVuota: "vuota",
+    daGuardare: (n: number) => (n === 1 ? "1 da guardare" : `${n} da guardare`),
+    nessunaSegnalazione: "Nessuna segnalazione aperta. È il risultato migliore possibile.",
+    post: "Post",
+    commento: "Commento",
+    segnalatoDa: "segnalato da",
+    contenutoInesistente: "Il contenuto non esiste più: la segnalazione si può archiviare.",
+    dettagli: "dettagli:",
+    autore: "autore:",
+    apriNelContesto: "Apri nel contesto",
+    sospensioniAttive: "Sospensioni attive",
+    nessuna: "nessuna",
+    nessunAccountSospeso: "Nessun account sospeso.",
+    finoAl: (data: string) => `fino al ${data}`,
+    aTempoIndeterminato: "a tempo indeterminato",
+    sospendiUnAccount: "Sospendi un account",
+    registro: "Registro",
+    ultimeAzioni: "ultime 30 azioni",
+    nessunaAzione: "Nessuna azione registrata.",
+    azioni: {
+      hide: "ha nascosto",
+      unhide: "ha ripristinato",
+      resolve: "ha chiuso",
+      dismiss: "ha archiviato",
+    },
+    unPost: "un post",
+    unCommento: "un commento",
+  },
+  en: {
+    titoloPagina: "Moderation",
+    riservato: "Restricted",
+    titolo: "Moderation",
+    introduzione:
+      "Hiding doesn't delete: the row stays in the database with who decided and when, and the decision can be reversed. Every action shows up in the log at the bottom of the page.",
+    coda: "Queue",
+    codaVuota: "empty",
+    daGuardare: (n: number) => `${n} to review`,
+    nessunaSegnalazione: "No open reports. That's the best possible outcome.",
+    post: "Post",
+    commento: "Comment",
+    segnalatoDa: "reported by",
+    contenutoInesistente: "The content no longer exists: the report can be dismissed.",
+    dettagli: "details:",
+    autore: "author:",
+    apriNelContesto: "Open in context",
+    sospensioniAttive: "Active suspensions",
+    nessuna: "none",
+    nessunAccountSospeso: "No suspended accounts.",
+    finoAl: (data: string) => `until ${data}`,
+    aTempoIndeterminato: "indefinitely",
+    sospendiUnAccount: "Suspend an account",
+    registro: "Log",
+    ultimeAzioni: "last 30 actions",
+    nessunaAzione: "No actions logged.",
+    azioni: {
+      hide: "hid",
+      unhide: "restored",
+      resolve: "closed",
+      dismiss: "dismissed",
+    },
+    unPost: "a post",
+    unCommento: "a comment",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return {
+    title: t.titoloPagina,
+    // La coda non deve finire negli indici: non e' contenuto, ed espone
+    // frammenti di cio' che e' stato segnalato.
+    robots: { index: false, follow: false },
+  };
+}
 
 function Meta({ children }: { children: React.ReactNode }) {
   return (
     <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">{children}</span>
   );
 }
-
-function queueLabel(count: number): string {
-  if (count === 0) return "vuota";
-  return count === 1 ? "1 da guardare" : `${count} da guardare`;
-}
-
-const ACTION_LABELS: Record<string, string> = {
-  hide: "ha nascosto",
-  unhide: "ha ripristinato",
-  resolve: "ha chiuso",
-  dismiss: "ha archiviato",
-};
 
 export default async function ModerationPage() {
   if (!(await databaseReachable())) {
@@ -59,22 +125,27 @@ export default async function ModerationPage() {
     recentModActions(),
   ]);
 
+  const locale = await getLocale();
+  const t = TESTI[locale];
+  const actionLabels: Record<string, string> = t.azioni;
+  const now = new Date();
+
   return (
     <main className="mx-auto w-full max-w-[1000px] px-6 pt-9 pb-24">
       <header className="mb-8">
-        <p className={eyebrow}>Riservato</p>
-        <h1 className={cx(display, "mt-2.5 text-[32px]")}>Moderazione</h1>
-        <p className="mt-3 max-w-[62ch] text-sm text-ink-2">
-          Nascondere non cancella: la riga resta nel database con chi ha deciso e quando, e la
-          decisione si può revocare. Ogni azione compare nel registro in fondo alla pagina.
-        </p>
+        <p className={eyebrow}>{t.riservato}</p>
+        <h1 className={cx(display, "mt-2.5 text-[32px]")}>{t.titolo}</h1>
+        <p className="mt-3 max-w-[62ch] text-sm text-ink-2">{t.introduzione}</p>
       </header>
 
       <section className="mb-12">
-        <SectionHead title="Coda" aside={<Meta>{queueLabel(queue.length)}</Meta>} />
+        <SectionHead
+          title={t.coda}
+          aside={<Meta>{queue.length === 0 ? t.codaVuota : t.daGuardare(queue.length)}</Meta>}
+        />
 
         {queue.length === 0 ? (
-          <Empty>Nessuna segnalazione aperta. È il risultato migliore possibile.</Empty>
+          <Empty>{t.nessunaSegnalazione}</Empty>
         ) : (
           <ul className="m-0 grid list-none gap-3.5 p-0">
             {queue.map((item) => (
@@ -83,16 +154,16 @@ export default async function ModerationPage() {
                 className="rounded-card border border-rule border-l-[3px] border-l-hot bg-paper p-4"
               >
                 <div className="mb-2 flex flex-wrap items-center gap-2.5 text-xs text-ink-3">
-                  <Tag>{item.targetType === "POST" ? "Post" : "Commento"}</Tag>
-                  <Tag tone="brand">{reportReasonLabel(item.reason)}</Tag>
+                  <Tag>{item.targetType === "POST" ? t.post : t.commento}</Tag>
+                  <Tag tone="brand">{reportReasonLabel(item.reason, locale)}</Tag>
                   <span>
-                    segnalato da{" "}
+                    {t.segnalatoDa}{" "}
                     <Link href={`/u/${item.reporter}`} className="text-ink-2 hover:text-brand">
                       {item.reporter}
                     </Link>
                   </span>
                   <span className="ml-auto font-mono text-[11px]">
-                    {relativeTime(item.createdAt)}
+                    {relativeTime(item.createdAt, now, locale)}
                   </span>
                 </div>
 
@@ -101,15 +172,13 @@ export default async function ModerationPage() {
                     {item.preview}
                   </p>
                 ) : (
-                  <p className="m-0 mb-2 text-sm text-ink-3">
-                    Il contenuto non esiste più: la segnalazione si può archiviare.
-                  </p>
+                  <p className="m-0 mb-2 text-sm text-ink-3">{t.contenutoInesistente}</p>
                 )}
 
                 {item.details ? (
                   <p className="m-0 mb-2.5 text-[13px] text-ink-2">
                     <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3">
-                      dettagli:{" "}
+                      {t.dettagli}{" "}
                     </span>
                     {item.details}
                   </p>
@@ -118,7 +187,7 @@ export default async function ModerationPage() {
                 <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-ink-3">
                   {item.authorUsername ? (
                     <span>
-                      autore:{" "}
+                      {t.autore}{" "}
                       <Link
                         href={`/u/${item.authorUsername}`}
                         className="text-ink-2 hover:text-brand"
@@ -133,7 +202,7 @@ export default async function ModerationPage() {
                       href={`/${item.gameSlug}/post/${item.postId}`}
                       className="font-mono text-[10px] uppercase tracking-[0.08em] text-brand hover:underline"
                     >
-                      Apri nel contesto
+                      {t.apriNelContesto}
                     </Link>
                   ) : null}
                 </div>
@@ -152,12 +221,12 @@ export default async function ModerationPage() {
 
       <section className="mb-12">
         <SectionHead
-          title="Sospensioni attive"
-          aside={<Meta>{suspended.length === 0 ? "nessuna" : String(suspended.length)}</Meta>}
+          title={t.sospensioniAttive}
+          aside={<Meta>{suspended.length === 0 ? t.nessuna : String(suspended.length)}</Meta>}
         />
 
         {suspended.length === 0 ? (
-          <Empty>Nessun account sospeso.</Empty>
+          <Empty>{t.nessunAccountSospeso}</Empty>
         ) : (
           <ul className="m-0 mb-6 grid list-none gap-2.5 p-0">
             {suspended.map((entry) => (
@@ -171,8 +240,8 @@ export default async function ModerationPage() {
                 <span className="text-ink-2">{entry.reason}</span>
                 <span className="ml-auto font-mono text-[11px] text-ink-3">
                   {entry.until
-                    ? `fino al ${new Date(entry.until).toLocaleDateString("it-IT")}`
-                    : "a tempo indeterminato"}
+                    ? t.finoAl(new Date(entry.until).toLocaleDateString(intlLocale(locale)))
+                    : t.aTempoIndeterminato}
                 </span>
                 <LiftButton suspensionId={entry.id} />
               </li>
@@ -182,28 +251,30 @@ export default async function ModerationPage() {
 
         <div className="rounded-card border border-rule bg-paper-2 p-5">
           <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
-            Sospendi un account
+            {t.sospendiUnAccount}
           </p>
           <SuspendForm />
         </div>
       </section>
 
       <section>
-        <SectionHead title="Registro" aside={<Meta>ultime 30 azioni</Meta>} />
+        <SectionHead title={t.registro} aside={<Meta>{t.ultimeAzioni}</Meta>} />
 
         {log.length === 0 ? (
-          <Empty>Nessuna azione registrata.</Empty>
+          <Empty>{t.nessunaAzione}</Empty>
         ) : (
           <ol className="m-0 grid list-none gap-1.5 p-0">
             {log.map((entry) => (
               <li key={entry.id} className="flex gap-2.5 py-1 text-[13px] text-ink-2">
                 <span className="font-mono text-[11px] text-ink-3">
-                  {relativeTime(entry.createdAt)}
+                  {relativeTime(entry.createdAt, now, locale)}
                 </span>
                 <span>
                   <strong className="font-semibold text-ink">{entry.moderator}</strong>{" "}
-                  {ACTION_LABELS[entry.action] ?? entry.action}{" "}
-                  {entry.targetType === "POST" ? "un post" : "un commento"}
+                  {Object.hasOwn(actionLabels, entry.action)
+                    ? actionLabels[entry.action]
+                    : entry.action}{" "}
+                  {entry.targetType === "POST" ? t.unPost : t.unCommento}
                 </span>
               </li>
             ))}

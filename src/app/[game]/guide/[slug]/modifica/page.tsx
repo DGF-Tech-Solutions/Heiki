@@ -8,11 +8,35 @@ import { currentViewer } from "@/lib/community/actions";
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
 import { getGuideStore } from "@/lib/guides/store";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Modifica guida",
-  robots: { index: false, follow: false },
-};
+const TESTI = testi({
+  it: {
+    titoloPagina: "Modifica guida",
+    guide: "Guide",
+    modifica: "Modifica",
+    intro:
+      "La versione precedente resta in cronologia. Se cambi i numeri, aggiorna anche la patch di verifica: altrimenti la guida continua a dichiarare un controllo che non c'è più.",
+    soloTue: "Puoi modificare solo le guide che hai scritto.",
+  },
+  en: {
+    titoloPagina: "Edit guide",
+    guide: "Guides",
+    modifica: "Edit",
+    intro:
+      "The previous version stays in the history. If you change the numbers, update the verification patch too: otherwise the guide keeps declaring a check that no longer holds.",
+    soloTue: "You can only edit guides you wrote.",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return {
+    title: t.titoloPagina,
+    robots: { index: false, follow: false },
+  };
+}
 
 interface Props {
   params: Promise<{ game: string; slug: string }>;
@@ -26,6 +50,7 @@ interface Props {
  */
 export default async function EditGuidePage({ params }: Props) {
   const { game, slug } = await params;
+  const t = TESTI[await getLocale()];
 
   const entry = findGame(game);
   if (!entry) notFound();
@@ -45,23 +70,20 @@ export default async function EditGuidePage({ params }: Props) {
       <Breadcrumb
         items={[
           { label: entry.shortName, href: `/${game}` },
-          { label: "Guide", href: `/${game}/guide` },
+          { label: t.guide, href: `/${game}/guide` },
           { label: guide.title, href: `/${game}/guide/${guide.slug}` },
-          { label: "Modifica" },
+          { label: t.modifica },
         ]}
       />
 
       <header className="mb-6 border-b border-rule pb-5">
         <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(24px,3.2vw,34px)]")}>Modifica</h1>
-        <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">
-          La versione precedente resta in cronologia. Se cambi i numeri, aggiorna anche la patch di
-          verifica: altrimenti la guida continua a dichiarare un controllo che non c&apos;è più.
-        </p>
+        <h1 className={cx(display, "mt-3 text-[clamp(24px,3.2vw,34px)]")}>{t.modifica}</h1>
+        <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">{t.intro}</p>
       </header>
 
       {!own && !canReview ? (
-        <Notice tone="warn">Puoi modificare solo le guide che hai scritto.</Notice>
+        <Notice tone="warn">{t.soloTue}</Notice>
       ) : (
         <GuideEditor
           game={game}

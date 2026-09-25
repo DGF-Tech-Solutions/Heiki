@@ -2,9 +2,22 @@ import Link from "next/link";
 import { VoteControl } from "./vote-control";
 import { AttachmentCard } from "./attachment-card";
 import { relativeTime } from "@/lib/community/ranking";
-import { ROLE_LABELS } from "@/lib/auth/permissions";
-import type { FeedPost } from "@/lib/community/types";
+import { roleLabel } from "@/lib/auth/permissions";
+import { hubLabel, type FeedPost } from "@/lib/community/types";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { display, Tag } from "../ui";
+
+const TESTI = testi({
+  it: {
+    rispondiPerPrimo: "Rispondi per primo",
+    risposte: (n: number) => (n === 1 ? "1 risposta" : `${n} risposte`),
+  },
+  en: {
+    rispondiPerPrimo: "Be the first to reply",
+    risposte: (n: number) => (n === 1 ? "1 reply" : `${n} replies`),
+  },
+});
 
 /**
  * Una voce del feed.
@@ -13,7 +26,10 @@ import { display, Tag } from "../ui";
  * cosmetico che si compra non serve solo sulla propria pagina, si porta dietro
  * ovunque quella persona scriva. E' quello che gli da' valore.
  */
-export function PostCard({ post }: { post: FeedPost }) {
+export async function PostCard({ post }: { post: FeedPost }) {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   return (
     <article
       data-accent={post.author.accent}
@@ -24,7 +40,7 @@ export function PostCard({ post }: { post: FeedPost }) {
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex flex-wrap items-center gap-2.5 text-xs text-ink-3">
           <Link href={`/${post.game}?hub=${post.hub}`}>
-            <Tag>{post.hubName}</Tag>
+            <Tag>{hubLabel(post.hub, locale, post.hubName)}</Tag>
           </Link>
 
           <Link
@@ -40,11 +56,13 @@ export function PostCard({ post }: { post: FeedPost }) {
 
           {post.author.role !== "USER" ? (
             <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--accent)]">
-              {ROLE_LABELS[post.author.role]}
+              {roleLabel(post.author.role, locale)}
             </span>
           ) : null}
 
-          <span className="ml-auto font-mono text-[11px]">{relativeTime(post.createdAt)}</span>
+          <span className="ml-auto font-mono text-[11px]">
+            {relativeTime(post.createdAt, new Date(), locale)}
+          </span>
         </div>
 
         <h2
@@ -63,11 +81,7 @@ export function PostCard({ post }: { post: FeedPost }) {
           href={`/${post.game}/post/${post.id}`}
           className="mt-3 inline-block text-xs text-ink-3 hover:text-ink"
         >
-          {post.commentCount === 0
-            ? "Rispondi per primo"
-            : post.commentCount === 1
-              ? "1 risposta"
-              : `${post.commentCount} risposte`}
+          {post.commentCount === 0 ? t.rispondiPerPrimo : t.risposte(post.commentCount)}
         </Link>
       </div>
     </article>

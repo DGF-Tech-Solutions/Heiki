@@ -1,4 +1,11 @@
 import type { SponsorItem } from "@/lib/community/types";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: { contenuto: "Contenuto sponsorizzato", etichetta: "Sponsorizzato" },
+  en: { contenuto: "Sponsored content", etichetta: "Sponsored" },
+});
 
 /**
  * Spazio sponsorizzato.
@@ -10,16 +17,14 @@ import type { SponsorItem } from "@/lib/community/types";
  *
  * L'etichetta e' obbligatoria e sempre visibile (DSA).
  */
-export function SponsorSlot({ items }: { items: readonly SponsorItem[] }) {
+export async function SponsorSlot({ items }: { items: readonly SponsorItem[] }) {
   if (items.length === 0) return null;
+  const t = TESTI[await getLocale()];
 
   return (
-    <aside
-      className="rounded-card border border-dashed border-rule p-4"
-      aria-label="Contenuto sponsorizzato"
-    >
+    <aside className="rounded-card border border-dashed border-rule p-4" aria-label={t.contenuto}>
       <span className="mb-2.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-ink-3">
-        Sponsorizzato
+        {t.etichetta}
       </span>
 
       {items.map((item, index) => (

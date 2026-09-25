@@ -1,11 +1,30 @@
 import Link from "next/link";
 import { cx, eyebrow } from "@/components/ui";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    privacy: "Privacy",
+    termini: "Termini",
+    cookie: "Cookie",
+    documentiLegali: "Documenti legali",
+    bozza: "Documento in bozza — va rivisto da un legale prima della pubblicazione",
+  },
+  en: {
+    privacy: "Privacy",
+    termini: "Terms",
+    cookie: "Cookies",
+    documentiLegali: "Legal documents",
+    bozza: "Draft document — must be reviewed by a lawyer before publication",
+  },
+});
 
 const PAGES = [
-  { href: "/legale/privacy", label: "Privacy" },
-  { href: "/legale/termini", label: "Termini" },
-  { href: "/legale/cookie", label: "Cookie" },
-];
+  { href: "/legale/privacy", key: "privacy" },
+  { href: "/legale/termini", key: "termini" },
+  { href: "/legale/cookie", key: "cookie" },
+] as const;
 
 /**
  * Guscio delle pagine legali.
@@ -17,17 +36,19 @@ const PAGES = [
  * La classe `legal-prose` porta la tipografia del testo lungo: definirla una
  * volta qui evita di ripetere gli stessi stili in tre file.
  */
-export default function LegalLayout({ children }: { children: React.ReactNode }) {
+export default async function LegalLayout({ children }: { children: React.ReactNode }) {
+  const t = TESTI[await getLocale()];
+
   return (
     <main className="mx-auto w-full max-w-[760px] px-6 pt-10 pb-24">
-      <nav aria-label="Documenti legali" className="mb-8 flex flex-wrap gap-2">
+      <nav aria-label={t.documentiLegali} className="mb-8 flex flex-wrap gap-2">
         {PAGES.map((page) => (
           <Link
             key={page.href}
             href={page.href}
             className="inline-flex h-8 items-center rounded-card border border-rule px-3 text-[13px] text-ink-2 hover:border-ink-3 hover:text-ink"
           >
-            {page.label}
+            {t[page.key]}
           </Link>
         ))}
       </nav>
@@ -48,9 +69,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         {children}
       </div>
 
-      <p className={cx(eyebrow, "mt-12 border-t border-rule pt-5")}>
-        Documento in bozza — va rivisto da un legale prima della pubblicazione
-      </p>
+      <p className={cx(eyebrow, "mt-12 border-t border-rule pt-5")}>{t.bozza}</p>
     </main>
   );
 }

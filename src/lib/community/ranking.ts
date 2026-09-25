@@ -10,9 +10,21 @@
  * essere verificabile, non un dettaglio sepolto in una query.
  */
 
+import type { Locale } from "@/lib/i18n/locale";
 import type { FeedPost } from "./types";
 
 export type FeedSort = "hot" | "new" | "top";
+
+const FEED_SORT_NAMES: Readonly<Record<FeedSort, Readonly<Record<Locale, string>>>> = {
+  hot: { it: "Di tendenza", en: "Trending" },
+  new: { it: "Recenti", en: "Latest" },
+  top: { it: "Più votati", en: "Top voted" },
+};
+
+/** Il nome di un ordinamento del feed nella lingua del sito. */
+export function feedSortLabel(sort: FeedSort, locale: Locale): string {
+  return FEED_SORT_NAMES[sort][locale];
+}
 
 export const FEED_SORTS: readonly { id: FeedSort; label: string }[] = [
   { id: "hot", label: "Di tendenza" },
@@ -75,13 +87,14 @@ function time(iso: string): number {
   return Number.isNaN(value) ? 0 : value;
 }
 
-/** Etichetta relativa compatta: "3 min", "5 h", "2 g". */
-export function relativeTime(iso: string, now: Date = new Date()): string {
+/** Etichetta relativa compatta: "3 min", "5 h", "2 g" ("2 d" in inglese). */
+export function relativeTime(iso: string, now: Date = new Date(), locale: Locale = "it"): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return "";
+  const en = locale === "en";
 
   const seconds = Math.max(0, Math.round((now.getTime() - then) / 1000));
-  if (seconds < 60) return "ora";
+  if (seconds < 60) return en ? "now" : "ora";
 
   const minutes = Math.round(seconds / 60);
   if (minutes < 60) return `${minutes} min`;
@@ -90,10 +103,11 @@ export function relativeTime(iso: string, now: Date = new Date()): string {
   if (hours < 24) return `${hours} h`;
 
   const days = Math.round(hours / 24);
-  if (days < 30) return `${days} g`;
+  if (days < 30) return en ? `${days} d` : `${days} g`;
 
   const months = Math.round(days / 30);
-  if (months < 12) return `${months} mesi`;
+  if (months < 12) return en ? `${months} mo` : `${months} mesi`;
 
-  return `${Math.round(months / 12)} anni`;
+  const years = Math.round(months / 12);
+  return en ? `${years} y` : `${years} anni`;
 }

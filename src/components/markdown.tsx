@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { testi, type Locale } from "@/lib/i18n/locale";
 import {
   parseMarkdown,
   plainText,
@@ -10,6 +11,11 @@ import {
   type Inline,
 } from "@/lib/markdown";
 import { cx, display } from "./ui";
+
+const TESTI = testi({
+  it: { indiceGuida: "Indice della guida", inQuestaGuida: "In questa guida" },
+  en: { indiceGuida: "Guide contents", inQuestaGuida: "In this guide" },
+});
 
 /**
  * Resa del markdown.
@@ -158,20 +164,26 @@ function InlineView({ parts }: { parts: readonly Inline[] }): ReactNode {
  * Su una guida lunga e' l'unico modo per capire cosa c'e' dentro senza
  * scorrerla tutta. I titoli di terzo livello rientrano, cosi' la gerarchia si
  * legge anche senza numerazione.
+ *
+ * La lingua arriva come prop: questo file lo usa anche l'editor, che gira nel
+ * browser, quindi non puo' leggere il cookie ne' usare il contesto del client.
  */
 export function TableOfContents({
   headings,
   className,
+  locale = "it",
 }: {
   headings: readonly Heading[];
   className?: string;
+  locale?: Locale;
 }) {
   if (headings.length < 2) return null;
+  const t = TESTI[locale];
 
   return (
-    <nav aria-label="Indice della guida" className={cx("text-sm", className)}>
+    <nav aria-label={t.indiceGuida} className={cx("text-sm", className)}>
       <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
-        In questa guida
+        {t.inQuestaGuida}
       </p>
       <ol className="m-0 grid list-none gap-1.5 p-0">
         {headings.map((heading) => (

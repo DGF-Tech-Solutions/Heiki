@@ -8,8 +8,21 @@
  * che la rende una trappola: in sviluppo sembra funzionare.
  */
 
+import type { Bilingual, Locale } from "@/lib/i18n/locale";
+
 /** Parola da digitare per confermare l'eliminazione dell'account. */
 export const DELETE_PHRASE = "ELIMINA";
+
+/**
+ * La stessa parola nelle due lingue: chi legge in inglese scrive DELETE.
+ * L'azione le accetta entrambe, perche' la lingua puo' cambiare fra il momento
+ * in cui il modulo si disegna e quello in cui si invia.
+ */
+export const DELETE_PHRASES: Bilingual = { it: DELETE_PHRASE, en: "DELETE" };
+
+export function deletePhrase(locale: Locale): string {
+  return DELETE_PHRASES[locale];
+}
 
 /**
  * Lunghezza minima di una password.

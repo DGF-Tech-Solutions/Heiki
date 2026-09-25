@@ -7,8 +7,33 @@ import {
   type AdminState,
   type AdminUser,
 } from "@/lib/admin/actions";
-import { ROLE_LABELS, ROLES } from "@/lib/auth/permissions";
+import { roleLabel, ROLES } from "@/lib/auth/permissions";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
 import { Button, Notice, Select } from "@/components/ui";
+
+const TESTI = testi({
+  it: {
+    applica: "Applica",
+    seiTu: "sei tu",
+    amministratore: "amministratore",
+    mettiInPausa: "Metti in pausa",
+    riattiva: "Riattiva",
+    nomeOEmail: "Nome utente o email",
+    cercaUnUtente: "Cerca un utente",
+    cerca: "Cerca",
+  },
+  en: {
+    applica: "Apply",
+    seiTu: "you",
+    amministratore: "administrator",
+    mettiInPausa: "Pause",
+    riattiva: "Reactivate",
+    nomeOEmail: "Username or email",
+    cercaUnUtente: "Search for a user",
+    cerca: "Search",
+  },
+});
 
 const INITIAL: AdminState = {};
 
@@ -23,6 +48,8 @@ const INITIAL: AdminState = {};
  * automatico su un permesso e' il modo piu' facile per promuovere qualcuno per errore.
  */
 export function RoleForm({ user, self }: { user: AdminUser; self: boolean }) {
+  const locale = useLocale();
+  const t = TESTI[locale];
   const [state, action, pending] = useActionState(setRoleAction, INITIAL);
   const [role, setRole] = useState(user.role);
 
@@ -41,18 +68,18 @@ export function RoleForm({ user, self }: { user: AdminUser; self: boolean }) {
       >
         {ROLES.map((option) => (
           <option key={option} value={option}>
-            {ROLE_LABELS[option]}
+            {roleLabel(option, locale)}
           </option>
         ))}
       </Select>
 
       <Button type="submit" size="sm" disabled={locked || pending || role === user.role}>
-        {pending ? "…" : "Applica"}
+        {pending ? "…" : t.applica}
       </Button>
 
       {locked ? (
         <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3">
-          {self ? "sei tu" : "amministratore"}
+          {self ? t.seiTu : t.amministratore}
         </span>
       ) : null}
 
@@ -63,6 +90,7 @@ export function RoleForm({ user, self }: { user: AdminUser; self: boolean }) {
 }
 
 export function SponsorToggle({ id, active }: { id: string; active: boolean }) {
+  const t = TESTI[useLocale()];
   const [isActive, setIsActive] = useState(active);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -81,7 +109,7 @@ export function SponsorToggle({ id, active }: { id: string; active: boolean }) {
           })
         }
       >
-        {pending ? "…" : isActive ? "Metti in pausa" : "Riattiva"}
+        {pending ? "…" : isActive ? t.mettiInPausa : t.riattiva}
       </Button>
       {error ? <span className="ml-2 text-[11px] text-hot">{error}</span> : null}
     </>
@@ -90,17 +118,19 @@ export function SponsorToggle({ id, active }: { id: string; active: boolean }) {
 
 /** Ricerca: un modulo GET, cosi' il risultato e' un indirizzo condivisibile. */
 export function UserSearch({ initial }: { initial: string }) {
+  const t = TESTI[useLocale()];
+
   return (
     <form className="mb-5 flex flex-wrap gap-2.5">
       <input
         name="q"
         defaultValue={initial}
-        placeholder="Nome utente o email"
-        aria-label="Cerca un utente"
+        placeholder={t.nomeOEmail}
+        aria-label={t.cercaUnUtente}
         className="h-9 w-full max-w-[320px] rounded-card border border-rule bg-paper px-3 text-sm focus:border-brand focus:outline-none"
       />
       <Button type="submit" size="sm">
-        Cerca
+        {t.cerca}
       </Button>
     </form>
   );

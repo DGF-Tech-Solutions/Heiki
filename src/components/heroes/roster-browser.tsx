@@ -11,6 +11,9 @@
  *
  * Le immagini invece restano fuori dal bundle: le carica il browser una alla
  * volta, solo quando entrano nello schermo.
+ *
+ * I nomi degli attributi arrivano gia' tradotti dalla pagina, dentro il roster:
+ * qui si traducono solo le scritte del componente.
  */
 
 import Link from "next/link";
@@ -21,17 +24,50 @@ import {
   filterHeroes,
   gameIconSrc,
   heroCardSrc,
+  heroEpithet,
+  heroName,
   sortHeroes,
   type HeroOrder,
   type IconFamily,
 } from "@/lib/games/heroes";
 import type { HeroAffinity, HeroEntry, HeroRoster } from "@/lib/games/types";
+import { useLocale } from "@/lib/i18n/client";
+import { testi, type Locale } from "@/lib/i18n/locale";
 
-const ORDERS: readonly { id: HeroOrder; label: string }[] = [
-  { id: "roster", label: "Recenti" },
-  { id: "name", label: "Nome" },
-  { id: "group", label: "Personaggio" },
-];
+const TESTI = testi({
+  it: {
+    ordini: { roster: "Recenti", name: "Nome", group: "Personaggio" },
+    cercaSegnaposto: "Cerca per nome, epiteto o personaggio…",
+    cercaEtichetta: "Cerca un eroe",
+    ordina: "Ordina",
+    rarita: "Rarità",
+    attributo: "Attributo",
+    esceCome: "Esce come",
+    tutte: "Tutte",
+    tutti: "Tutti",
+    eroi: (n: number): string => (n === 1 ? "eroe" : "eroi"),
+    suTotale: (n: number) => ` su ${n}`,
+    azzera: "Azzera i filtri",
+    nessunEroe: "Nessun eroe con questi filtri.",
+  },
+  en: {
+    ordini: { roster: "Recent", name: "Name", group: "Character" },
+    cercaSegnaposto: "Search by name, epithet or character…",
+    cercaEtichetta: "Search for a hero",
+    ordina: "Sort",
+    rarita: "Rarity",
+    attributo: "Attribute",
+    esceCome: "Obtained as",
+    tutte: "All",
+    tutti: "All",
+    eroi: (n: number) => (n === 1 ? "hero" : "heroes"),
+    suTotale: (n: number) => ` of ${n}`,
+    azzera: "Clear filters",
+    nessunEroe: "No heroes match these filters.",
+  },
+});
+
+const ORDERS: readonly HeroOrder[] = ["roster", "name", "group"];
 
 export function RosterBrowser({
   game,
@@ -57,6 +93,9 @@ export function RosterBrowser({
    */
   initialSearch?: string;
 }) {
+  const locale = useLocale();
+  const t = TESTI[locale];
+
   const [search, setSearch] = useState(initialSearch);
   const [rarity, setRarity] = useState<string | null>(null);
   const [affinity, setAffinity] = useState<string | null>(null);
@@ -66,8 +105,8 @@ export function RosterBrowser({
   const heroes = roster.heroes;
 
   const visible = useMemo(
-    () => sortHeroes(filterHeroes(heroes, { search, rarity, affinity, obtainable }), order),
-    [heroes, search, rarity, affinity, obtainable, order],
+    () => sortHeroes(filterHeroes(heroes, { search, rarity, affinity, obtainable }), order, locale),
+    [heroes, search, rarity, affinity, obtainable, order, locale],
   );
 
   // Ogni gruppo di pulsanti si conta escludendo se stesso dal filtro: il numero
@@ -113,29 +152,29 @@ export function RosterBrowser({
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Cerca per nome, epiteto o personaggio…"
-            aria-label="Cerca un eroe"
+            placeholder={t.cercaSegnaposto}
+            aria-label={t.cercaEtichetta}
             className="h-9 max-w-[320px] flex-1 bg-paper text-sm"
           />
 
           <div className="flex items-center gap-1.5">
-            <span className={eyebrow}>Ordina</span>
-            {ORDERS.map((item) => (
+            <span className={eyebrow}>{t.ordina}</span>
+            {ORDERS.map((id) => (
               <Chip
-                key={item.id}
-                active={order === item.id}
-                onClick={() => setOrder(item.id)}
-                label={item.label}
+                key={id}
+                active={order === id}
+                onClick={() => setOrder(id)}
+                label={t.ordini[id]}
               />
             ))}
           </div>
         </div>
 
-        <FilterRow label="Rarità">
+        <FilterRow label={t.rarita}>
           <Chip
             active={rarity === null}
             onClick={() => setRarity(null)}
-            label="Tutte"
+            label={t.tutte}
             count={heroes.length}
           />
           {roster.rarities.map((value) => (
@@ -150,8 +189,8 @@ export function RosterBrowser({
           ))}
         </FilterRow>
 
-        <FilterRow label="Attributo">
-          <Chip active={affinity === null} onClick={() => setAffinity(null)} label="Tutti" />
+        <FilterRow label={t.attributo}>
+          <Chip active={affinity === null} onClick={() => setAffinity(null)} label={t.tutti} />
           {roster.affinities.map((item) => (
             <Chip
               key={item.id}
@@ -165,8 +204,8 @@ export function RosterBrowser({
           ))}
         </FilterRow>
 
-        <FilterRow label="Esce come">
-          <Chip active={obtainable === null} onClick={() => setObtainable(null)} label="Tutte" />
+        <FilterRow label={t.esceCome}>
+          <Chip active={obtainable === null} onClick={() => setObtainable(null)} label={t.tutte} />
           {roster.obtainable.map((value) => (
             <Chip
               key={value}
@@ -183,8 +222,8 @@ export function RosterBrowser({
       <div className="mb-3.5 flex items-baseline justify-between gap-3">
         <p className="m-0 text-[13px] text-ink-2">
           <strong className={cx(numeric, "font-semibold text-ink")}>{visible.length}</strong>{" "}
-          {visible.length === 1 ? "eroe" : "eroi"}
-          {filtered ? ` su ${heroes.length}` : null}
+          {t.eroi(visible.length)}
+          {filtered ? t.suTotale(heroes.length) : null}
         </p>
 
         {filtered ? (
@@ -193,13 +232,13 @@ export function RosterBrowser({
             onClick={reset}
             className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 underline-offset-2 hover:text-brand hover:underline"
           >
-            Azzera i filtri
+            {t.azzera}
           </button>
         ) : null}
       </div>
 
       {visible.length === 0 ? (
-        <Empty>Nessun eroe con questi filtri.</Empty>
+        <Empty>{t.nessunEroe}</Empty>
       ) : (
         <ul
           className="m-0 grid list-none gap-x-3 gap-y-4 p-0"
@@ -209,6 +248,7 @@ export function RosterBrowser({
             <HeroCard
               key={hero.id}
               game={game}
+              locale={locale}
               hero={hero}
               affinity={byAffinity.get(hero.affinity)}
             />
@@ -223,13 +263,18 @@ export function RosterBrowser({
 
 function HeroCard({
   game,
+  locale,
   hero,
   affinity,
 }: {
   game: string;
+  locale: Locale;
   hero: HeroEntry;
   affinity: HeroAffinity | undefined;
 }) {
+  const name = heroName(hero, locale);
+  const epithet = heroEpithet(hero, locale);
+
   return (
     <li className="min-w-0">
       {/*
@@ -264,16 +309,16 @@ function HeroCard({
           <figcaption className="mt-1.5">
             <p
               className="m-0 truncate text-[11px] leading-tight text-ink-3"
-              title={hero.epithet}
+              title={epithet}
               style={affinity ? { color: affinity.color } : undefined}
             >
-              {hero.epithet}
+              {epithet}
             </p>
             <p
               className="m-0 text-[12px] font-semibold leading-tight group-hover:text-brand"
-              title={hero.name}
+              title={name}
             >
-              {hero.name}
+              {name}
             </p>
           </figcaption>
         </figure>

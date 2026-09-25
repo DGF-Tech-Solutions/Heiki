@@ -15,6 +15,24 @@
 import { and, desc, gt, isNull, or, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { suspensions } from "@/lib/db/schema";
+import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: {
+    finoAl: (data: string) => `fino al ${data}`,
+    aTempoIndeterminato: "a tempo indeterminato",
+    motivo: (motivo: string) => ` Motivo: ${motivo}`,
+    sospeso: (quando: string, motivo: string) =>
+      `Il tuo account è sospeso ${quando} e non può pubblicare.${motivo}`,
+  },
+  en: {
+    finoAl: (data: string) => `until ${data}`,
+    aTempoIndeterminato: "indefinitely",
+    motivo: (motivo: string) => ` Reason: ${motivo}`,
+    sospeso: (quando: string, motivo: string) =>
+      `Your account is suspended ${quando} and can't post.${motivo}`,
+  },
+});
 
 export interface SuspensionState {
   active: boolean;
@@ -44,11 +62,15 @@ export async function suspensionFor(userId: string): Promise<SuspensionState> {
   return { active: true, reason: row.reason, until: row.until };
 }
 
-/** Messaggio da mostrare a chi prova a scrivere mentre e' sospeso. */
-export function suspensionMessage(state: SuspensionState): string {
+/**
+ * Messaggio da mostrare a chi prova a scrivere mentre e' sospeso.
+ * Chi lo chiama da un'azione passa la lingua di `getLocale()`.
+ */
+export function suspensionMessage(state: SuspensionState, locale: Locale = "it"): string {
+  const t = TESTI[locale];
   const when = state.until
-    ? `fino al ${state.until.toLocaleDateString("it-IT")}`
-    : "a tempo indeterminato";
-  const reason = state.reason ? ` Motivo: ${state.reason}` : "";
-  return `Il tuo account è sospeso ${when} e non può pubblicare.${reason}`;
+    ? t.finoAl(state.until.toLocaleDateString(intlLocale(locale)))
+    : t.aTempoIndeterminato;
+  const reason = state.reason ? t.motivo(state.reason) : "";
+  return t.sospeso(when, reason);
 }

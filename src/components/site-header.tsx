@@ -1,8 +1,38 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
-import { can, ROLE_LABELS } from "@/lib/auth/permissions";
+import { can, roleLabel } from "@/lib/auth/permissions";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { unreadCount } from "@/lib/social/actions";
+import { LanguageSwitch } from "./language-switch";
 import { buttonClass, cx, Tag } from "./ui";
+
+const TESTI = testi({
+  it: {
+    cerca: "Cerca",
+    giochi: "Giochi",
+    coda: "Coda",
+    admin: "Admin",
+    notifiche: "Notifiche",
+    daLeggere: (n: number) => `Notifiche: ${n} da leggere`,
+    personalizza: "Personalizza",
+    esci: "Esci",
+    entra: "Entra",
+    iscriviti: "Iscriviti",
+  },
+  en: {
+    cerca: "Search",
+    giochi: "Games",
+    coda: "Queue",
+    admin: "Admin",
+    notifiche: "Notifications",
+    daLeggere: (n: number) => `Notifications: ${n} unread`,
+    personalizza: "Customize",
+    esci: "Log out",
+    entra: "Log in",
+    iscriviti: "Sign up",
+  },
+});
 
 /**
  * L'intestazione conosce lo stato della sessione, quindi e' un componente
@@ -13,6 +43,8 @@ export async function SiteHeader() {
   const session = await safeSession();
   const user = session?.user;
   const unread = user ? await safeUnread() : 0;
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   return (
     <header className="sticky top-0 z-20 border-b-2 border-ink bg-paper">
@@ -27,8 +59,8 @@ export async function SiteHeader() {
         <form action="/cerca" className="ml-auto hidden md:block">
           <input
             name="q"
-            placeholder="Cerca"
-            aria-label="Cerca"
+            placeholder={t.cerca}
+            aria-label={t.cerca}
             className="h-8 w-44 rounded-card border border-rule bg-paper px-3 text-[13px] focus:border-brand focus:outline-none"
           />
         </form>
@@ -44,8 +76,10 @@ export async function SiteHeader() {
         */}
         <nav className="ml-auto flex min-w-0 items-center gap-3 overflow-x-auto py-1 text-sm font-medium whitespace-nowrap [scrollbar-width:none] sm:gap-5 md:ml-0">
           <Link href="/" className="hidden text-ink-2 hover:text-brand sm:inline">
-            Giochi
+            {t.giochi}
           </Link>
+
+          <LanguageSwitch />
 
           <span className="flex items-center gap-2.5 sm:border-l sm:border-rule sm:pl-5">
             {user ? (
@@ -57,7 +91,7 @@ export async function SiteHeader() {
                     href="/moderazione"
                     className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot hover:underline"
                   >
-                    Coda
+                    {t.coda}
                   </Link>
                 ) : null}
                 {can(user.role, "administer") ? (
@@ -65,16 +99,16 @@ export async function SiteHeader() {
                     href="/admin"
                     className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
                   >
-                    Admin
+                    {t.admin}
                   </Link>
                 ) : null}
 
                 <Link
                   href="/notifiche"
                   className={cx(buttonClass("ghost", "sm"), "relative")}
-                  aria-label={unread > 0 ? `Notifiche: ${unread} da leggere` : "Notifiche"}
+                  aria-label={unread > 0 ? t.daLeggere(unread) : t.notifiche}
                 >
-                  Notifiche
+                  {t.notifiche}
                   {unread > 0 ? (
                     <span className="grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
                       {unread > 9 ? "9+" : unread}
@@ -82,11 +116,11 @@ export async function SiteHeader() {
                   ) : null}
                 </Link>
                 <Link href="/impostazioni/profilo" className={buttonClass("ghost", "sm")}>
-                  Personalizza
+                  {t.personalizza}
                 </Link>
                 <Link href={`/u/${user.username}`} className={buttonClass("ghost", "sm")}>
                   {user.username}
-                  <Tag>{ROLE_LABELS[user.role] ?? "Utente"}</Tag>
+                  <Tag>{roleLabel(user.role, locale)}</Tag>
                 </Link>
                 <form
                   action={async () => {
@@ -95,17 +129,17 @@ export async function SiteHeader() {
                   }}
                 >
                   <button type="submit" className={buttonClass("ghost", "sm")}>
-                    Esci
+                    {t.esci}
                   </button>
                 </form>
               </>
             ) : (
               <>
                 <Link href="/entra" className={buttonClass("ghost", "sm")}>
-                  Entra
+                  {t.entra}
                 </Link>
                 <Link href="/registrati" className={buttonClass("primary", "sm")}>
-                  Iscriviti
+                  {t.iscriviti}
                 </Link>
               </>
             )}

@@ -10,43 +10,59 @@
  * non si compra e non si sblocca pagando: si puo' solo incorniciare meglio.
  */
 
+import type { Bilingual } from "@/lib/i18n/locale";
+
 export interface CosmeticOption {
   id: string;
+  /** Nome in italiano, per chi non passa ancora la lingua: nelle pagine usa `labels`. */
   label: string;
+  /** Descrizione in italiano, per compatibilita': nelle pagine usa `descriptions`. */
   description: string;
+  labels: Bilingual;
+  descriptions: Bilingual;
   premium: boolean;
+}
+
+/** Un'opzione nasce nelle due lingue; `label` e `description` restano l'italiano. */
+function option(
+  id: string,
+  labels: Bilingual,
+  descriptions: Bilingual,
+  premium: boolean,
+): CosmeticOption {
+  return { id, label: labels.it, description: descriptions.it, labels, descriptions, premium };
 }
 
 /** Colore d'accento: la scelta piu' visibile, quindi la prima nell'editor. */
 export const ACCENTS: readonly CosmeticOption[] = [
-  { id: "brand", label: "Viola", description: "Il colore di sistema", premium: false },
-  { id: "magenta", label: "Magenta", description: "Caldo e molto acceso", premium: false },
-  { id: "ocean", label: "Oceano", description: "Blu profondo, sobrio", premium: false },
-  { id: "forest", label: "Bosco", description: "Verde scuro, riposante", premium: false },
-  { id: "sunset", label: "Tramonto", description: "Arancio bruciato", premium: true },
-  { id: "gold", label: "Oro", description: "Il colore del cinque stelle", premium: true },
+  option("brand", { it: "Viola", en: "Violet" }, { it: "Il colore di sistema", en: "The system color" }, false),
+  option("magenta", { it: "Magenta", en: "Magenta" }, { it: "Caldo e molto acceso", en: "Warm and very bright" }, false),
+  option("ocean", { it: "Oceano", en: "Ocean" }, { it: "Blu profondo, sobrio", en: "Deep blue, understated" }, false),
+  option("forest", { it: "Bosco", en: "Forest" }, { it: "Verde scuro, riposante", en: "Dark green, restful" }, false),
+  option("sunset", { it: "Tramonto", en: "Sunset" }, { it: "Arancio bruciato", en: "Burnt orange" }, true),
+  option("gold", { it: "Oro", en: "Gold" }, { it: "Il colore del cinque stelle", en: "The color of five stars" }, true),
 ];
 
 export const FRAMES: readonly CosmeticOption[] = [
-  { id: "none", label: "Nessuna", description: "Solo il blocco pieno", premium: false },
-  { id: "hairline", label: "Filo", description: "Un tratto sottile a distanza", premium: false },
-  { id: "double", label: "Doppia", description: "Due tratti concentrici", premium: false },
-  { id: "notched", label: "Tagliata", description: "Angoli smussati", premium: false },
-  { id: "glow", label: "Alone", description: "Ombra colorata sotto l'avatar", premium: true },
+  option("none", { it: "Nessuna", en: "None" }, { it: "Solo il blocco pieno", en: "Just the solid block" }, false),
+  option("hairline", { it: "Filo", en: "Hairline" }, { it: "Un tratto sottile a distanza", en: "A thin line set slightly apart" }, false),
+  option("double", { it: "Doppia", en: "Double" }, { it: "Due tratti concentrici", en: "Two concentric lines" }, false),
+  option("notched", { it: "Tagliata", en: "Notched" }, { it: "Angoli smussati", en: "Beveled corners" }, false),
+  option("glow", { it: "Alone", en: "Glow" }, { it: "Ombra colorata sotto l'avatar", en: "Colored shadow under the avatar" }, true),
 ];
 
 export const BACKGROUNDS: readonly CosmeticOption[] = [
-  { id: "plain", label: "Liscio", description: "Nessuna trama", premium: false },
-  { id: "grid", label: "Griglia", description: "Reticolo tecnico", premium: false },
-  { id: "dots", label: "Punti", description: "Trama a pois radi", premium: false },
-  { id: "wash", label: "Velatura", description: "Sfumatura diagonale nel tuo colore", premium: true },
-  { id: "stripes", label: "Diagonali", description: "Righe inclinate", premium: true },
+  option("plain", { it: "Liscio", en: "Plain" }, { it: "Nessuna trama", en: "No pattern" }, false),
+  option("grid", { it: "Griglia", en: "Grid" }, { it: "Reticolo tecnico", en: "Technical grid" }, false),
+  option("dots", { it: "Punti", en: "Dots" }, { it: "Trama a pois radi", en: "Sparse polka dots" }, false),
+  option("wash", { it: "Velatura", en: "Wash" }, { it: "Sfumatura diagonale nel tuo colore", en: "Diagonal gradient in your color" }, true),
+  option("stripes", { it: "Diagonali", en: "Stripes" }, { it: "Righe inclinate", en: "Slanted lines" }, true),
 ];
 
 export const LAYOUTS: readonly CosmeticOption[] = [
-  { id: "standard", label: "Standard", description: "Intestazione ampia", premium: false },
-  { id: "compact", label: "Compatto", description: "Tutto piu' stretto e denso", premium: false },
-  { id: "editorial", label: "Editoriale", description: "Nome grande, testo largo", premium: false },
+  option("standard", { it: "Standard", en: "Standard" }, { it: "Intestazione ampia", en: "Wide header" }, false),
+  option("compact", { it: "Compatto", en: "Compact" }, { it: "Tutto più stretto e denso", en: "Everything tighter and denser" }, false),
+  option("editorial", { it: "Editoriale", en: "Editorial" }, { it: "Nome grande, testo largo", en: "Large name, wide text" }, false),
 ];
 
 export const BADGE_SHOWCASE_LIMIT = 6;
@@ -74,16 +90,31 @@ const GROUPS = {
 
 export type CustomizationKey = keyof typeof GROUPS;
 
-export const CUSTOMIZATION_GROUPS: readonly {
+export interface CustomizationGroup {
   key: CustomizationKey;
+  /** In italiano, per compatibilita': nelle pagine usa `labels`. */
   label: string;
+  /** In italiano, per compatibilita': nelle pagine usa `hints`. */
   hint: string;
+  labels: Bilingual;
+  hints: Bilingual;
   options: readonly CosmeticOption[];
-}[] = [
-  { key: "accent", label: "Accento", hint: "Colora livello, badge e dettagli", options: ACCENTS },
-  { key: "frame", label: "Cornice", hint: "Attorno all'avatar", options: FRAMES },
-  { key: "background", label: "Sfondo", hint: "Trama dietro al profilo", options: BACKGROUNDS },
-  { key: "layout", label: "Impaginazione", hint: "Densita' e proporzioni", options: LAYOUTS },
+}
+
+function group(
+  key: CustomizationKey,
+  labels: Bilingual,
+  hints: Bilingual,
+  options: readonly CosmeticOption[],
+): CustomizationGroup {
+  return { key, label: labels.it, hint: hints.it, labels, hints, options };
+}
+
+export const CUSTOMIZATION_GROUPS: readonly CustomizationGroup[] = [
+  group("accent", { it: "Accento", en: "Accent" }, { it: "Colora livello, badge e dettagli", en: "Colors your level, badges and details" }, ACCENTS),
+  group("frame", { it: "Cornice", en: "Frame" }, { it: "Attorno all'avatar", en: "Around the avatar" }, FRAMES),
+  group("background", { it: "Sfondo", en: "Background" }, { it: "Trama dietro al profilo", en: "Pattern behind the profile" }, BACKGROUNDS),
+  group("layout", { it: "Impaginazione", en: "Layout" }, { it: "Densità e proporzioni", en: "Density and proportions" }, LAYOUTS),
 ];
 
 export function optionsFor(key: CustomizationKey): readonly CosmeticOption[] {

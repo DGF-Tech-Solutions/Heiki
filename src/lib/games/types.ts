@@ -72,6 +72,17 @@ export interface HeroEntry {
   obtainedAs: string;
   /** attributo o elemento; corrisponde a un HeroAffinity.id */
   affinity: string;
+  /**
+   * Il nome in italiano, com'e' scritto nel gioco in italiano.
+   *
+   * `name` resta l'inglese, e non per preferenza: e' il nome che la pipeline
+   * scrive in eroi.json, e cambiarlo sposterebbe ordinamenti, collegamenti e
+   * ricerche di chi c'era gia'. L'italiano si aggiunge accanto, e sceglie chi
+   * rende. Opzionale perche' un modulo senza la fonte italiana resta valido.
+   */
+  nameIt?: string;
+  /** l'epiteto in italiano, gia' ripulito come `epithet` */
+  epithetIt?: string;
 }
 
 /** Attributo di un eroe, col colore con cui il gioco lo identifica. */
@@ -112,6 +123,22 @@ export interface HeroText {
   title?: string;
   epithet?: string;
   description?: string;
+  /**
+   * Gli stessi quattro testi nelle due lingue.
+   *
+   * I campi qui sopra sono l'italiano col ripiego sull'inglese, scelto una
+   * volta per tutte dall'importazione: bastavano finche' il sito era solo in
+   * italiano. Questi tengono le due lingue separate, e la pagina sceglie con
+   * `inLingua`. L'italiano viene dal client e, dove il client non lo porta,
+   * da 7dshub in italiano; l'inglese dal client, tranne dove la decifratura
+   * l'ha rovinato ("5biNasc&" per "Snatch") e 7dshub lo scrive pulito.
+   */
+  i18n?: {
+    name: HeroLabel;
+    title: HeroLabel;
+    epithet: HeroLabel;
+    description: HeroLabel;
+  };
 }
 
 /**
@@ -173,7 +200,19 @@ export interface HeroCard {
    * stessa garanzia.
    */
   spriteSource?: string;
-  ranks: readonly { rank: number; text: string }[];
+  /**
+   * Il nome nelle due lingue. `name` resta l'italiano col ripiego
+   * sull'inglese; qui l'inglese e' sempre inglese, e l'italiano c'e' anche per
+   * le carte che il client non ha tradotto, preso da 7dshub in italiano.
+   */
+  nameI18n?: HeroLabel;
+  /**
+   * Il testo di ogni rango. `text` e' quello inglese di 7dshub, `textIt` lo
+   * stesso rango come 7dshub lo scrive in italiano: stessi valori, stesso
+   * markup, gia' risolti dal server del gioco. Manca dove la fonte italiana
+   * ha un segnaposto invece del testo.
+   */
+  ranks: readonly { rank: number; text: string; textIt?: string }[];
 }
 
 /**
@@ -193,8 +232,12 @@ export interface HeroAbilities {
   ultimate?: HeroCard;
   passive?: {
     name?: string;
+    /** il nome nelle due lingue, come `HeroCard.nameI18n` */
+    nameI18n?: HeroLabel;
     /** il testo al rango 1 dell'ultimate; per 331 eroi su 373 e' l'unico */
     text?: string;
+    /** lo stesso testo in italiano, da 7dshub in italiano */
+    textIt?: string;
     /**
      * Come cambia la passiva salendo di rango l'ultimate. Ogni voce vale dal suo
      * rango fino a quello prima della voce seguente, e sotto la prima vale
@@ -204,20 +247,27 @@ export interface HeroAbilities {
      * colore i testi non si ricostruiscono: ogni versione e' un testo risolto
      * della fonte. Assente quando la passiva non cambia; c'e' per 42 eroi.
      */
-    ultimateSteps?: readonly { fromUltimateRank: number; text: string }[];
+    ultimateSteps?: readonly { fromUltimateRank: number; text: string; textIt?: string }[];
   };
   /** da dove arriva il testo, es. "7dshub.com" */
   source: string;
   /**
-   * I testi dei ranghi sono in inglese.
+   * `text` - dei ranghi, della passiva, dei suoi passi - e' in inglese.
    *
-   * Non e' una scelta: il client spedisce 285 descrizioni di abilita' in tutto,
-   * e sono MODELLI - "damage equal to {melee_val} of Attack" - che il server
-   * riempie. I valori per rango esistono solo risolti, e risolti li ha solo la
-   * fonte inglese. Il nome della carta invece e' in italiano dove il gioco
-   * l'ha tradotto, quindi le due cose vanno dichiarate separate.
+   * Lo e' sempre stato, e resta vero: il client spedisce 285 descrizioni di
+   * abilita' in tutto, e sono MODELLI - "damage equal to {melee_val} of
+   * Attack" - che il server riempie, quindi i valori per rango esistono solo
+   * risolti da 7dshub. Il nome della carta invece e' in italiano dove il gioco
+   * l'ha tradotto, e le due cose vanno dichiarate separate.
    */
   textsInEnglish?: boolean;
+  /**
+   * C'e' anche l'italiano: `textIt` accanto a ogni `text` che 7dshub scrive in
+   * italiano. Non e' una traduzione nostra: 7dshub legge lo stesso server del
+   * gioco nelle due lingue, e i valori sono gli stessi. Con questo flag la
+   * pagina in italiano non ha piu' niente da avvertire.
+   */
+  textsInItalian?: boolean;
 }
 
 /**
@@ -378,11 +428,18 @@ export interface HeroContextIndex {
 export interface HeroSpecialAbility {
   /** "comandamento" | "grazia" | "unita" | "talento": chiave di `kinds` */
   kind: string;
+  /**
+   * Il nome nelle due lingue. L'italiano viene dal client e, dove il client
+   * non lo legge (i sette Talenti, due Unita', una Grazia), da 7dshub in
+   * italiano.
+   */
   name: HeroLabel;
-  /** l'effetto al rango 1 dell'ultimate, in inglese come le altre abilita' */
+  /** l'effetto al rango 1 dell'ultimate, in inglese come `text` delle altre abilita' */
   text: string;
+  /** lo stesso effetto in italiano, da 7dshub in italiano */
+  textIt?: string;
   /** come per la passiva: un Talento puo' cambiare col rango dell'ultimate */
-  ultimateSteps?: readonly { fromUltimateRank: number; text: string }[];
+  ultimateSteps?: readonly { fromUltimateRank: number; text: string; textIt?: string }[];
   /** dove si attiva: codici di HeroContextIndex.passiveConditions */
   conditions: readonly number[];
   /** c'e' l'immagine incorniciata in public/eroi/<gioco>/speciali/<id>.png */

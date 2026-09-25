@@ -17,11 +17,30 @@ import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { databaseReachable, db } from "@/lib/db";
 import { comments, follows, notifications, posts, users } from "@/lib/db/schema";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
 export interface SocialResult {
   ok: boolean;
   error?: string;
 }
+
+// Le frasi delle notifiche non stanno qui: si compongono nella pagina
+// /notifiche, nella lingua di chi le legge. Qui solo gli esiti delle azioni.
+const TESTI = testi({
+  it: {
+    entraPerSeguire: "Entra per seguire qualcuno.",
+    profiloInesistente: "Profilo inesistente.",
+    nonTeStesso: "Non puoi seguire te stesso.",
+    sessioneScaduta: "Sessione scaduta.",
+  },
+  en: {
+    entraPerSeguire: "Log in to follow someone.",
+    profiloInesistente: "This profile doesn't exist.",
+    nonTeStesso: "You can't follow yourself.",
+    sessioneScaduta: "Your session has expired.",
+  },
+});
 
 async function currentUserId(): Promise<string | null> {
   if (!(await databaseReachable())) return null;
@@ -32,18 +51,20 @@ async function currentUserId(): Promise<string | null> {
 /* ------------------------------------------------------------- seguire -- */
 
 export async function toggleFollowAction(targetUsername: string): Promise<SocialResult> {
+  const t = TESTI[await getLocale()];
+
   const followerId = await currentUserId();
-  if (!followerId) return { ok: false, error: "Entra per seguire qualcuno." };
+  if (!followerId) return { ok: false, error: t.entraPerSeguire };
 
   const target = await db.query.users.findFirst({
     where: eq(users.username, targetUsername.toLowerCase()),
     columns: { id: true },
   });
-  if (!target) return { ok: false, error: "Profilo inesistente." };
+  if (!target) return { ok: false, error: t.profiloInesistente };
 
   // Seguire se stessi non e' un errore da spiegare: e' un pulsante che non
   // dovrebbe esistere, e qui si limita a non fare niente.
-  if (target.id === followerId) return { ok: false, error: "Non puoi seguire te stesso." };
+  if (target.id === followerId) return { ok: false, error: t.nonTeStesso };
 
   const existing = await db.query.follows.findFirst({
     where: and(eq(follows.followerId, followerId), eq(follows.followingId, target.id)),
@@ -178,7 +199,7 @@ export async function unreadCount(): Promise<number> {
 
 export async function markAllReadAction(): Promise<SocialResult> {
   const userId = await currentUserId();
-  if (!userId) return { ok: false, error: "Sessione scaduta." };
+  if (!userId) return { ok: false, error: TESTI[await getLocale()].sessioneScaduta };
 
   await db
     .update(notifications)

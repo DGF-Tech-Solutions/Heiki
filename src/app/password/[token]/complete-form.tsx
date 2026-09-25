@@ -4,10 +4,34 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { completeResetAction, type ResetState } from "@/lib/auth/password-reset";
 import { Button, buttonClass, Field, Input, Notice } from "@/components/ui";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: {
+    entra: "Entra",
+    nuovaPassword: "Nuova password",
+    almenoDieci: "almeno 10 caratteri",
+    ripetila: "Ripetila",
+    imposto: "Imposto…",
+    impostaPassword: "Imposta la password",
+    chiudiamoSessioni: "Impostandola chiudiamo tutte le sessioni aperte su questo account.",
+  },
+  en: {
+    entra: "Log in",
+    nuovaPassword: "New password",
+    almenoDieci: "at least 10 characters",
+    ripetila: "Repeat it",
+    imposto: "Setting…",
+    impostaPassword: "Set password",
+    chiudiamoSessioni: "Setting it closes every open session on this account.",
+  },
+});
 
 const INITIAL: ResetState = {};
 
 export function CompleteResetForm({ token }: { token: string }) {
+  const t = TESTI[useLocale()];
   const [state, action, pending] = useActionState(completeResetAction, INITIAL);
 
   // A operazione riuscita il modulo sparisce: lasciarlo lascerebbe credere che
@@ -17,7 +41,7 @@ export function CompleteResetForm({ token }: { token: string }) {
       <>
         <Notice className="mb-5">{state.success}</Notice>
         <Link href="/entra" className={buttonClass("primary")}>
-          Entra
+          {t.entra}
         </Link>
       </>
     );
@@ -33,7 +57,7 @@ export function CompleteResetForm({ token }: { token: string }) {
         </Notice>
       ) : null}
 
-      <Field label="Nuova password" hint="almeno 10 caratteri">
+      <Field label={t.nuovaPassword} hint={t.almenoDieci}>
         <Input
           type="password"
           name="password"
@@ -44,17 +68,15 @@ export function CompleteResetForm({ token }: { token: string }) {
         />
       </Field>
 
-      <Field label="Ripetila">
+      <Field label={t.ripetila}>
         <Input type="password" name="repeat" autoComplete="new-password" required />
       </Field>
 
       <Button type="submit" variant="primary" className="w-full" disabled={pending}>
-        {pending ? "Imposto…" : "Imposta la password"}
+        {pending ? t.imposto : t.impostaPassword}
       </Button>
 
-      <p className="mt-3 text-[11px] text-ink-3">
-        Impostandola chiudiamo tutte le sessioni aperte su questo account.
-      </p>
+      <p className="mt-3 text-[11px] text-ink-3">{t.chiudiamoSessioni}</p>
     </form>
   );
 }

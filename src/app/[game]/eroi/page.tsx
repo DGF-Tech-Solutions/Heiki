@@ -4,7 +4,10 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { RosterBrowser } from "@/components/heroes/roster-browser";
 import { cx, display, eyebrow } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
+import { affinityLabel } from "@/lib/games/grand-cross/roster";
 import { requireGameModule } from "@/lib/games/registry";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
 /**
  * Eroi.
@@ -17,6 +20,31 @@ import { requireGameModule } from "@/lib/games/registry";
  * Le due sezioni convergeranno man mano che il dataset cresce.
  */
 
+const TESTI = testi({
+  it: {
+    titoloPagina: (gioco: string) => `Eroi di ${gioco} · GachaZone`,
+    descrizione: (gioco: string) => `Roster completo di ${gioco}, filtrabile per rarità e attributo.`,
+    gioco: "gioco",
+    questoGioco: "questo gioco",
+    eroi: "Eroi",
+    introduzione: (eroi: number, contati: number, grado: string) =>
+      `${eroi} eroi, ${contati} di grado ${grado}. Le card sono quelle del gioco, ricostruite dagli asset del client: cornice, sfondo di rarità e bollino dell'attributo.`,
+    diritti: (editore: string) =>
+      `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
+  },
+  en: {
+    titoloPagina: (gioco: string) => `${gioco} Heroes · GachaZone`,
+    descrizione: (gioco: string) => `Full ${gioco} roster, filterable by rarity and attribute.`,
+    gioco: "game",
+    questoGioco: "this game",
+    eroi: "Heroes",
+    introduzione: (eroi: number, contati: number, grado: string) =>
+      `${eroi} heroes, ${contati} of them ${grado}. The cards are the game's own, rebuilt from the client assets: frame, rarity background and attribute badge.`,
+    diritti: (editore: string) =>
+      `Images and names belong to ${editore} and are shown here for reference.`,
+  },
+});
+
 interface Props {
   params: Promise<{ game: string }>;
   searchParams: Promise<{ cerca?: string }>;
@@ -25,9 +53,10 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game } = await params;
   const entry = findGame(game);
+  const t = TESTI[await getLocale()];
   return {
-    title: `Eroi di ${entry?.shortName ?? "gioco"} · GachaZone`,
-    description: `Roster completo di ${entry?.name ?? "questo gioco"}, filtrabile per rarità e attributo.`,
+    title: t.titoloPagina(entry?.shortName ?? t.gioco),
+    description: t.descrizione(entry?.name ?? t.questoGioco),
   };
 }
 
@@ -42,26 +71,44 @@ export default async function HeroesPage({ params, searchParams }: Props) {
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
+  // I nomi degli attributi si traducono qui, sul server: il componente client
+  // riceve il roster gia' nella lingua giusta e non deve importare i nomi.
+  //
+  // I nomi e gli epiteti degli eroi NO, e non per dimenticanza: la ricerca deve
+  // trovare un eroe in tutte e due le lingue, quindi ogni voce arriva al browser
+  // con `name` inglese e `nameIt` italiano. Sostituire qui `name` con l'italiano
+  // toglierebbe l'inglese dalla ricerca. Quale dei due mostrare lo sceglie
+  // heroName nella griglia: una riga, su dati che la voce ha gia'.
+  const localized = {
+    ...roster,
+    affinities: roster.affinities.map((affinity) => ({
+      ...affinity,
+      label: affinityLabel(affinity.id, locale),
+    })),
+  };
+
   const rarest = roster.rarities[0];
   const counted = roster.heroes.filter((hero) => hero.rarity === rarest).length;
 
   return (
     <main className="pt-6 pb-20">
-      <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: "Eroi" }]} />
+      <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.eroi }]} />
 
       <header className="mb-5 border-b border-rule pb-5">
         <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>Eroi</h1>
+        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.eroi}</h1>
         <p className="mt-2.5 max-w-[68ch] text-sm text-ink-2">
-          {roster.heroes.length} eroi, {counted} di grado {rarest}. Le card sono quelle del gioco,
-          ricostruite dagli asset del client: cornice, sfondo di rarità e bollino dell&apos;attributo.
+          {t.introduzione(roster.heroes.length, counted, rarest ?? "")}
         </p>
       </header>
 
-      <RosterBrowser game={game} roster={roster} icons={icons} initialSearch={cerca ?? ""} />
+      <RosterBrowser game={game} roster={localized} icons={icons} initialSearch={cerca ?? ""} />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
-        Immagini e nomi appartengono a {entry.publisher} e sono qui a scopo di consultazione.
+        {t.diritti(entry.publisher)}
       </p>
     </main>
   );

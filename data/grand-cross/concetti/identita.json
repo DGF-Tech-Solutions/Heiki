@@ -6,7 +6,7 @@
     "RatingType": "enum del client: C UC R SR SSR UR LR",
     "UI_text_hero_kind_NN / UI_attribute_filter_<colore> / DB_hero_job_group_NN": "testi del client coi nomi",
     "etichette_manuali.json": "le etichette che il client non consegna in nessuna lingua, scritte dall'utente; vincono sempre",
-    "7dshub": "razza, fazioni, attributo e rarita' di ogni eroe"
+    "DB_hero_base / DB_skin_base": "razza, fazioni, attributo e rarita' di ogni eroe, dalle tabelle del client (scheda_client.py)"
   },
   "note": {
     "rarita": "rating e' il TETTO raggiungibile, non la rarita' di adesso: startRating e' come l'eroe esce dal gacha (eroi_escono), rating fin dove arriva (eroi_arrivano)",
@@ -78,7 +78,7 @@
         "en": "etichette_manuali.json"
       },
       "enum": "FAIRY",
-      "eroi": 29,
+      "eroi": 30,
       "forme_nel_testo_en": [
         "fairies",
         "fairy",
@@ -136,7 +136,7 @@
         "en": "etichette_manuali.json"
       },
       "enum": "RED",
-      "eroi": 114,
+      "eroi": 115,
       "certezza": "dichiarato",
       "prove": [],
       "colore_nel_client": "red",
@@ -331,7 +331,7 @@
         "en": "DB_hero_job_group_06"
       },
       "enum": "SEVENSIN",
-      "eroi": 77,
+      "eroi": 78,
       "forme_nel_testo_en": [
         "the seven deadly sins"
       ],
@@ -466,7 +466,7 @@
       },
       "etichetta_da": "RatingType",
       "enum": "SSR",
-      "eroi_escono": 314,
+      "eroi_escono": 315,
       "eroi_arrivano": 0,
       "certezza": "dichiarato",
       "prove": []
@@ -479,7 +479,7 @@
       "etichetta_da": "RatingType",
       "enum": "UR",
       "eroi_escono": 18,
-      "eroi_arrivano": 341,
+      "eroi_arrivano": 342,
       "certezza": "dichiarato",
       "prove": []
     },

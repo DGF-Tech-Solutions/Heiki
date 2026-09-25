@@ -9,6 +9,7 @@
  */
 
 import type { Role } from "@/lib/auth/permissions";
+import type { Bilingual, Locale } from "@/lib/i18n/locale";
 
 export interface Author {
   username: string;
@@ -110,6 +111,26 @@ export const HUBS: readonly Hub[] = [
 
 export function hubName(slug: string): string {
   return HUBS.find((hub) => hub.slug === slug)?.name ?? "Generale";
+}
+
+/**
+ * I nomi delle sezioni nelle due lingue. `hubName` resta in italiano perche'
+ * e' il nome scritto sul database quando la sezione nasce; a video si usa
+ * questo, per slug.
+ */
+const HUB_LABELS: Readonly<Record<string, Bilingual>> = {
+  build: { it: "Build e numeri", en: "Builds and numbers" },
+  rotazioni: { it: "Rotazioni", en: "Rotations" },
+  aiuto: { it: "Aiuto", en: "Help" },
+  generale: { it: "Generale", en: "General" },
+};
+
+/**
+ * Il nome di una sezione nella lingua del sito. Una sezione sconosciuta tiene
+ * il nome che arriva dai dati, se c'e'.
+ */
+export function hubLabel(slug: string, locale: Locale, fallback?: string): string {
+  return HUB_LABELS[slug]?.[locale] ?? fallback ?? HUB_LABELS.generale![locale];
 }
 
 export interface CreatePostInput {

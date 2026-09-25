@@ -1,6 +1,21 @@
 import Link from "next/link";
 import { listGames } from "@/lib/games/catalog";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { cx } from "./ui";
+
+const TESTI = testi({
+  it: {
+    gioco: "Gioco",
+    nonPronto: (nome: string) => `${nome} — modulo non ancora pronto`,
+    inArrivo: "in arrivo",
+  },
+  en: {
+    gioco: "Game",
+    nonPronto: (nome: string) => `${nome} — module not ready yet`,
+    inArrivo: "coming soon",
+  },
+});
 
 /**
  * Selettore del gioco.
@@ -11,13 +26,14 @@ import { cx } from "./ui";
  * I giochi non ancora pronti restano visibili ma non cliccabili: nasconderli
  * farebbe sembrare il sito monogioco, mostrarli come attivi sarebbe una bugia.
  */
-export function GameSwitcher({ game }: { game: string }) {
+export async function GameSwitcher({ game }: { game: string }) {
   const games = listGames();
+  const t = TESTI[await getLocale()];
 
   return (
     <div className="border-b border-rule bg-paper-2">
       <nav
-        aria-label="Gioco"
+        aria-label={t.gioco}
         className="mx-auto flex w-full max-w-shell flex-wrap items-center gap-1 px-6 py-2"
       >
         {games.map((entry) =>
@@ -38,12 +54,12 @@ export function GameSwitcher({ game }: { game: string }) {
           ) : (
             <span
               key={entry.slug}
-              title={`${entry.name} — modulo non ancora pronto`}
+              title={t.nonPronto(entry.name)}
               className="cursor-not-allowed rounded-sm px-2.5 py-1 text-[13px] text-ink-3/60"
             >
               {entry.shortName}
               <span className="ml-1.5 font-mono text-[9px] uppercase tracking-wider">
-                in arrivo
+                {t.inArrivo}
               </span>
             </span>
           ),

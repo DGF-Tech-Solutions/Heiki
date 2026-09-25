@@ -10,6 +10,7 @@
  * risultati devono essere riproducibili a distanza di mesi.
  */
 
+import type { Bilingual } from "@/lib/i18n/locale";
 import type { Rng } from "./rng";
 
 export type StatKey = string;
@@ -27,6 +28,12 @@ export type CombatParadigm = "timeline" | "turn" | "stochastic";
 export interface StatDefinition {
   key: StatKey;
   label: string;
+  /**
+   * L'etichetta nelle due lingue, dove il modulo la dichiara. `label` resta
+   * quella di sempre: e' facoltativa perche' il motore non ne ha bisogno, la
+   * leggono solo le pagine.
+   */
+  labels?: Bilingual;
   kind: "flat" | "percent";
   defaultValue: number;
 }
@@ -34,6 +41,8 @@ export interface StatDefinition {
 export interface Target {
   id: string;
   name: string;
+  /** il nome nelle due lingue, dove il dataset lo ha; se manca vale `name` */
+  names?: Bilingual;
   level: number;
   maxHp: number;
   defense: number;
@@ -54,6 +63,8 @@ export interface StatModifier {
 export interface BuffDefinition {
   id: string;
   name: string;
+  /** il nome nelle due lingue, dove il dataset lo ha; se manca vale `name` */
+  names?: Bilingual;
   /** durata nell'unita' di tempo del paradigma: secondi o turni */
   duration: number;
   maxStacks: number;
@@ -87,6 +98,8 @@ export interface HitDefinition {
 export interface ActionDefinition {
   id: string;
   name: string;
+  /** il nome nelle due lingue, dove il dataset lo ha; se manca vale `name` */
+  names?: Bilingual;
   /** quanto avanza la timeline dopo l'esecuzione */
   duration: number;
   cooldown: number;

@@ -24,8 +24,47 @@ import { z } from "zod";
 import { auth, signOut } from "@/lib/auth";
 import { databaseReachable, db } from "@/lib/db";
 import { comments, posts, profiles, sessions, users } from "@/lib/db/schema";
+import { testi, type Locale } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
-import { DELETE_PHRASE, PASSWORD_MIN } from "./account";
+import { DELETE_PHRASES, deletePhrase, PASSWORD_MIN } from "./account";
+
+const TESTI = testi({
+  it: {
+    senzaPasswordLocale:
+      "Questo account è stato creato con un accesso esterno e non ha una password locale. Imposta prima una password dal recupero.",
+    passwordAttualeErrata: "La password attuale non è corretta.",
+    emailNonValida: "Inserisci un indirizzo email valido",
+    servePasswordAttuale: "Serve la password attuale",
+    sessioneScaduta: "Sessione scaduta. Rientra e riprova.",
+    datiNonValidi: "Dati non validi.",
+    indirizzoGiaQuesto: "L'indirizzo è già questo.",
+    indirizzoUsato: "Questo indirizzo è già usato da un altro account.",
+    indirizzoAggiornato: "Indirizzo aggiornato.",
+    nuovaPasswordCorta: (min: number) => `La nuova password deve avere almeno ${min} caratteri`,
+    passwordDiverse: "Le due password non coincidono",
+    passwordIdentica: "La nuova password è identica a quella attuale.",
+    passwordAggiornata: "Password aggiornata. Le altre sessioni sono state chiuse.",
+    scriviPerConfermare: (parola: string) => `Scrivi ${parola} per confermare.`,
+  },
+  en: {
+    senzaPasswordLocale:
+      "This account was created with an external sign-in and has no local password. Set a password through password recovery first.",
+    passwordAttualeErrata: "The current password is incorrect.",
+    emailNonValida: "Enter a valid email address",
+    servePasswordAttuale: "Your current password is required",
+    sessioneScaduta: "Session expired. Log in again and retry.",
+    datiNonValidi: "Invalid data.",
+    indirizzoGiaQuesto: "That's already your address.",
+    indirizzoUsato: "This address is already used by another account.",
+    indirizzoAggiornato: "Address updated.",
+    nuovaPasswordCorta: (min: number) => `The new password must be at least ${min} characters`,
+    passwordDiverse: "The two passwords don't match",
+    passwordIdentica: "The new password is the same as the current one.",
+    passwordAggiornata: "Password updated. Your other sessions have been closed.",
+    scriviPerConfermare: (parola: string) => `Type ${parola} to confirm.`,
+  },
+});
 
 export interface AccountState {
   error?: string;
@@ -54,57 +93,59 @@ async function confirmPassword(
   userId: string,
   hash: string | null,
   supplied: string,
+  locale: Locale,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const t = TESTI[locale];
+
   // Il modulo "cambia password" e' un modo per provare la password attuale a
   // raffica: chi si e' impossessato di una sessione potrebbe indovinarla e poi
   // prendersi l'account. Il tetto vale su tutte e tre le operazioni.
   const limit = rateLimit("login", `account:${userId}`);
-  if (!limit.allowed) return { ok: false, error: retryMessage(limit) };
+  if (!limit.allowed) return { ok: false, error: retryMessage(limit, locale) };
 
   if (!hash) {
-    return {
-      ok: false,
-      error:
-        "Questo account è stato creato con un accesso esterno e non ha una password locale. Imposta prima una password dal recupero.",
-    };
+    return { ok: false, error: t.senzaPasswordLocale };
   }
 
   const valid = await bcrypt.compare(supplied, hash);
-  return valid ? { ok: true } : { ok: false, error: "La password attuale non è corretta." };
+  return valid ? { ok: true } : { ok: false, error: t.passwordAttualeErrata };
 }
 
 /* ------------------------------------------------------------- email ---- */
-
-const emailSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Inserisci un indirizzo email valido"),
-  password: z.string().min(1, "Serve la password attuale"),
-});
 
 export async function changeEmailAction(
   _previous: AccountState,
   formData: FormData,
 ): Promise<AccountState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   const user = await currentUser();
-  if (!user) return { error: "Sessione scaduta. Rientra e riprova." };
+  if (!user) return { error: t.sessioneScaduta };
+
+  const emailSchema = z.object({
+    email: z.string().trim().toLowerCase().email(t.emailNonValida),
+    password: z.string().min(1, t.servePasswordAttuale),
+  });
 
   const parsed = emailSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
 
-  const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.password);
+  const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.password, locale);
   if (!confirmed.ok) return { error: confirmed.error };
 
   if (parsed.data.email === user.email) {
-    return { success: "L'indirizzo è già questo." };
+    return { success: t.indirizzoGiaQuesto };
   }
 
   const taken = await db.query.users.findFirst({
     where: and(eq(users.email, parsed.data.email), ne(users.id, user.id)),
     columns: { id: true },
   });
-  if (taken) return { error: "Questo indirizzo è già usato da un altro account." };
+  if (taken) return { error: t.indirizzoUsato };
 
   // emailVerified torna a null: il nuovo indirizzo non e' ancora provato, e
   // lasciarlo verificato sarebbe una bugia registrata nel database.
@@ -114,44 +155,44 @@ export async function changeEmailAction(
     .where(eq(users.id, user.id));
 
   revalidatePath("/impostazioni/account");
-  return { success: "Indirizzo aggiornato." };
+  return { success: t.indirizzoAggiornato };
 }
 
 /* ---------------------------------------------------------- password ---- */
-
-const passwordSchema = z
-  .object({
-    current: z.string().min(1, "Serve la password attuale"),
-    next: z
-      .string()
-      .min(PASSWORD_MIN, `La nuova password deve avere almeno ${PASSWORD_MIN} caratteri`)
-      .max(200),
-    repeat: z.string(),
-  })
-  .refine((data) => data.next === data.repeat, {
-    message: "Le due password non coincidono",
-    path: ["repeat"],
-  });
 
 export async function changePasswordAction(
   _previous: AccountState,
   formData: FormData,
 ): Promise<AccountState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   const user = await currentUser();
-  if (!user) return { error: "Sessione scaduta. Rientra e riprova." };
+  if (!user) return { error: t.sessioneScaduta };
+
+  const passwordSchema = z
+    .object({
+      current: z.string().min(1, t.servePasswordAttuale),
+      next: z.string().min(PASSWORD_MIN, t.nuovaPasswordCorta(PASSWORD_MIN)).max(200),
+      repeat: z.string(),
+    })
+    .refine((data) => data.next === data.repeat, {
+      message: t.passwordDiverse,
+      path: ["repeat"],
+    });
 
   const parsed = passwordSchema.safeParse({
     current: formData.get("current"),
     next: formData.get("next"),
     repeat: formData.get("repeat"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
 
-  const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.current);
+  const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.current, locale);
   if (!confirmed.ok) return { error: confirmed.error };
 
   if (parsed.data.current === parsed.data.next) {
-    return { error: "La nuova password è identica a quella attuale." };
+    return { error: t.passwordIdentica };
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.next, 12);
@@ -165,36 +206,41 @@ export async function changePasswordAction(
   });
 
   revalidatePath("/impostazioni/account");
-  return { success: "Password aggiornata. Le altre sessioni sono state chiuse." };
+  return { success: t.passwordAggiornata };
 }
 
 /* ------------------------------------------------------ eliminazione ---- */
-
-const deleteSchema = z.object({
-  password: z.string().min(1, "Serve la password attuale"),
-  confirm: z.string(),
-});
 
 export async function deleteAccountAction(
   _previous: AccountState,
   formData: FormData,
 ): Promise<AccountState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   const user = await currentUser();
-  if (!user) return { error: "Sessione scaduta. Rientra e riprova." };
+  if (!user) return { error: t.sessioneScaduta };
+
+  const deleteSchema = z.object({
+    password: z.string().min(1, t.servePasswordAttuale),
+    confirm: z.string(),
+  });
 
   const parsed = deleteSchema.safeParse({
     password: formData.get("password"),
     confirm: formData.get("confirm"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
 
   // Digitare una parola non e' burocrazia: e' l'unico modo per distinguere una
-  // decisione da un clic sbagliato su un'azione irreversibile.
-  if (parsed.data.confirm.trim().toUpperCase() !== DELETE_PHRASE) {
-    return { error: `Scrivi ${DELETE_PHRASE} per confermare.` };
+  // decisione da un clic sbagliato su un'azione irreversibile. Vale la parola di
+  // una delle due lingue: il modulo puo' essere stato disegnato nell'altra.
+  const typed = parsed.data.confirm.trim().toUpperCase();
+  if (!Object.values(DELETE_PHRASES).includes(typed)) {
+    return { error: t.scriviPerConfermare(deletePhrase(locale)) };
   }
 
-  const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.password);
+  const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.password, locale);
   if (!confirmed.ok) return { error: confirmed.error };
 
   const anonymousSuffix = user.id.slice(0, 8);

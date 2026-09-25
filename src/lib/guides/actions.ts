@@ -22,6 +22,8 @@ import { auth } from "@/lib/auth";
 import { can, type Role } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { suspensionFor, suspensionMessage } from "@/lib/moderation/suspension";
 import { getGuideStore, type GuideWriter } from "./store";
@@ -31,6 +33,53 @@ export interface GuideActionState {
   error?: string;
   success?: string;
 }
+
+const TESTI = testi({
+  it: {
+    titoloCorto: "Il titolo deve avere almeno 10 caratteri",
+    titoloLungo: "Il titolo non può superare i 140 caratteri",
+    testoCorto: "Una guida sotto i 200 caratteri è un commento: scrivila nella community",
+    testoLungo: "Il testo è troppo lungo",
+    entraPerScrivere: "Entra per scrivere una guida.",
+    serveRuolo:
+      "Per proporre una guida serve il ruolo di collaboratore. Scrivi nella community: è da lì che si assegna.",
+    datiNonValidi: "Dati non validi.",
+    entraPerModificare: "Entra per modificare la guida.",
+    nonEsiste: "Questa guida non esiste più.",
+    soloTue: "Puoi modificare solo le tue guide.",
+    modificheSalvate: "Modifiche salvate. La versione precedente è nella cronologia.",
+    entraPerFarlo: "Entra per farlo.",
+    statoNonValido: "Stato non valido.",
+    senzaPermessi: "Non hai i permessi per questo passaggio.",
+    statoAggiornato: "Stato aggiornato.",
+    soloRedattore: "Solo un redattore può dichiarare la patch di verifica.",
+    verificataPer: (patch: string) => `Verificata per la patch ${patch}.`,
+    dichiarazioneRimossa: "Dichiarazione rimossa: la guida risulta da rivedere.",
+  },
+  en: {
+    titoloCorto: "The title must be at least 10 characters long",
+    titoloLungo: "The title can't be longer than 140 characters",
+    testoCorto: "A guide under 200 characters is a comment: post it in the community",
+    testoLungo: "The text is too long",
+    entraPerScrivere: "Log in to write a guide.",
+    serveRuolo:
+      "Proposing a guide requires the contributor role. Post in the community: that's where it's granted.",
+    datiNonValidi: "Invalid data.",
+    entraPerModificare: "Log in to edit the guide.",
+    nonEsiste: "This guide no longer exists.",
+    soloTue: "You can only edit your own guides.",
+    modificheSalvate: "Changes saved. The previous version is in the history.",
+    entraPerFarlo: "Log in to do this.",
+    statoNonValido: "Invalid status.",
+    senzaPermessi: "You don't have permission for this step.",
+    statoAggiornato: "Status updated.",
+    soloRedattore: "Only an editor can declare the verification patch.",
+    verificataPer: (patch: string) => `Verified for patch ${patch}.`,
+    dichiarazioneRimossa: "Declaration removed: the guide is now flagged for review.",
+  },
+});
+
+type Testi = (typeof TESTI)["it"];
 
 const DEMO_WRITER: GuideWriter = {
   id: "demo",
@@ -74,48 +123,47 @@ async function writer(): Promise<{ writer: GuideWriter; role: Role } | null> {
   };
 }
 
-const createSchema = z.object({
-  game: z.string().min(1),
-  title: z
-    .string()
-    .trim()
-    .min(10, "Il titolo deve avere almeno 10 caratteri")
-    .max(140, "Il titolo non può superare i 140 caratteri"),
-  body: z
-    .string()
-    .trim()
-    .min(200, "Una guida sotto i 200 caratteri è un commento: scrivila nella community")
-    .max(60000, "Il testo è troppo lungo"),
-  characterId: z.string().trim().max(80).optional(),
-});
+// Gli schemi si costruiscono con i testi della lingua di chi scrive: i
+// messaggi di validazione arrivano a video cosi' come sono.
+const titleField = (t: Testi) => z.string().trim().min(10, t.titoloCorto).max(140, t.titoloLungo);
+
+const bodyField = (t: Testi) => z.string().trim().min(200, t.testoCorto).max(60000, t.testoLungo);
+
+const createSchema = (t: Testi) =>
+  z.object({
+    game: z.string().min(1),
+    title: titleField(t),
+    body: bodyField(t),
+    characterId: z.string().trim().max(80).optional(),
+  });
 
 export async function createGuideAction(
   _previous: GuideActionState,
   formData: FormData,
 ): Promise<GuideActionState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   const current = await writer();
-  if (!current) return { error: "Entra per scrivere una guida." };
+  if (!current) return { error: t.entraPerScrivere };
 
   if (!can(current.role, "submitGuide")) {
-    return {
-      error:
-        "Per proporre una guida serve il ruolo di collaboratore. Scrivi nella community: è da lì che si assegna.",
-    };
+    return { error: t.serveRuolo };
   }
 
-  const parsed = createSchema.safeParse({
+  const parsed = createSchema(t).safeParse({
     game: formData.get("game"),
     title: formData.get("title"),
     body: formData.get("body"),
     characterId: formData.get("characterId") ?? undefined,
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+    return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
   if (await databaseReachable()) {
     const suspension = await suspensionFor(current.writer.id);
-    if (suspension.active) return { error: suspensionMessage(suspension) };
+    if (suspension.active) return { error: suspensionMessage(suspension, locale) };
   }
 
   const store = await getGuideStore();
@@ -133,23 +181,26 @@ export async function createGuideAction(
   redirect(`/${parsed.data.game}/guide/${slug}`);
 }
 
-const updateSchema = z.object({
-  id: z.string().min(1),
-  game: z.string().min(1),
-  slug: z.string().min(1),
-  title: z.string().trim().min(10).max(140),
-  body: z.string().trim().min(200).max(60000),
-  note: z.string().trim().max(300).optional(),
-});
+const updateSchema = (t: Testi) =>
+  z.object({
+    id: z.string().min(1),
+    game: z.string().min(1),
+    slug: z.string().min(1),
+    title: titleField(t),
+    body: bodyField(t),
+    note: z.string().trim().max(300).optional(),
+  });
 
 export async function updateGuideAction(
   _previous: GuideActionState,
   formData: FormData,
 ): Promise<GuideActionState> {
-  const current = await writer();
-  if (!current) return { error: "Entra per modificare la guida." };
+  const t = TESTI[await getLocale()];
 
-  const parsed = updateSchema.safeParse({
+  const current = await writer();
+  if (!current) return { error: t.entraPerModificare };
+
+  const parsed = updateSchema(t).safeParse({
     id: formData.get("id"),
     game: formData.get("game"),
     slug: formData.get("slug"),
@@ -158,19 +209,19 @@ export async function updateGuideAction(
     note: formData.get("note") ?? undefined,
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+    return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
   const store = await getGuideStore();
   const authorId = await store.authorOf(parsed.data.id);
-  if (authorId === null) return { error: "Questa guida non esiste più." };
+  if (authorId === null) return { error: t.nonEsiste };
 
   // Il proprio contenuto si modifica sempre; quello di altri solo da redattore
   // in su. Il controllo sta qui e non nell'interfaccia: il modulo nel browser
   // si puo' ricostruire a mano.
   const own = authorId === current.writer.id;
   if (!own && !can(current.role, "publishGuide")) {
-    return { error: "Puoi modificare solo le tue guide." };
+    return { error: t.soloTue };
   }
 
   await store.update(
@@ -182,7 +233,7 @@ export async function updateGuideAction(
 
   revalidatePath(`/${parsed.data.game}/guide/${parsed.data.slug}`);
   revalidatePath(`/${parsed.data.game}/guide`);
-  return { success: "Modifiche salvate. La versione precedente è nella cronologia." };
+  return { success: t.modificheSalvate };
 }
 
 const statusSchema = z.object({
@@ -196,15 +247,17 @@ export async function setGuideStatusAction(
   game: string,
   status: string,
 ): Promise<GuideActionState> {
+  const t = TESTI[await getLocale()];
+
   const current = await writer();
-  if (!current) return { error: "Entra per farlo." };
+  if (!current) return { error: t.entraPerFarlo };
 
   const parsed = statusSchema.safeParse({ id, game, status });
-  if (!parsed.success) return { error: "Stato non valido." };
+  if (!parsed.success) return { error: t.statoNonValido };
 
   const store = await getGuideStore();
   const authorId = await store.authorOf(id);
-  if (authorId === null) return { error: "Questa guida non esiste più." };
+  if (authorId === null) return { error: t.nonEsiste };
 
   const own = authorId === current.writer.id;
 
@@ -216,13 +269,13 @@ export async function setGuideStatusAction(
       ? own || can(current.role, "publishGuide")
       : can(current.role, "publishGuide");
 
-  if (!allowed) return { error: "Non hai i permessi per questo passaggio." };
+  if (!allowed) return { error: t.senzaPermessi };
 
   await store.setStatus(id, parsed.data.status);
 
   revalidatePath(`/${game}/guide`);
   revalidatePath("/", "layout");
-  return { success: "Stato aggiornato." };
+  return { success: t.statoAggiornato };
 }
 
 const patchSchema = z.object({
@@ -243,11 +296,13 @@ export async function setVerifiedPatchAction(
   _previous: GuideActionState,
   formData: FormData,
 ): Promise<GuideActionState> {
+  const t = TESTI[await getLocale()];
+
   const current = await writer();
-  if (!current) return { error: "Entra per farlo." };
+  if (!current) return { error: t.entraPerFarlo };
 
   if (!can(current.role, "publishGuide")) {
-    return { error: "Solo un redattore può dichiarare la patch di verifica." };
+    return { error: t.soloRedattore };
   }
 
   const parsed = patchSchema.safeParse({
@@ -256,7 +311,7 @@ export async function setVerifiedPatchAction(
     slug: formData.get("slug"),
     patch: formData.get("patch") ?? "",
   });
-  if (!parsed.success) return { error: "Dati non validi." };
+  if (!parsed.success) return { error: t.datiNonValidi };
 
   const store = await getGuideStore();
   await store.setVerifiedPatch(
@@ -270,7 +325,7 @@ export async function setVerifiedPatchAction(
   return {
     success:
       parsed.data.patch.length > 0
-        ? `Verificata per la patch ${parsed.data.patch}.`
-        : "Dichiarazione rimossa: la guida risulta da rivedere.",
+        ? t.verificataPer(parsed.data.patch)
+        : t.dichiarazioneRimossa,
   };
 }

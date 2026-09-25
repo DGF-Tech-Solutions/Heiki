@@ -15,12 +15,35 @@ import { ReportButton } from "./report-button";
 import { ModControls } from "../moderation/mod-controls";
 import { createCommentAction, type ActionState } from "@/lib/community/actions";
 import { relativeTime } from "@/lib/community/ranking";
-import { ROLE_LABELS } from "@/lib/auth/permissions";
+import { roleLabel } from "@/lib/auth/permissions";
 import type { CommentNode } from "@/lib/community/types";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
 import { Button, Empty, Textarea } from "../ui";
 
 const INITIAL: ActionState = {};
 const MAX_DEPTH = 2;
+
+const TESTI = testi({
+  it: {
+    nessunaRisposta: "Nessuno ha ancora risposto. La prima risposta fa partire la discussione.",
+    annulla: "Annulla",
+    rispondi: "Rispondi",
+    tuaRisposta: "La tua risposta",
+    aggiungi: "Aggiungi qualcosa alla discussione",
+    invio: "Invio…",
+    commenta: "Commenta",
+  },
+  en: {
+    nessunaRisposta: "No one has replied yet. The first reply gets the discussion going.",
+    annulla: "Cancel",
+    rispondi: "Reply",
+    tuaRisposta: "Your reply",
+    aggiungi: "Add something to the discussion",
+    invio: "Sending…",
+    commenta: "Comment",
+  },
+});
 
 export function CommentThread({
   postId,
@@ -33,13 +56,15 @@ export function CommentThread({
   canWrite: boolean;
   canModerate?: boolean;
 }) {
+  const t = TESTI[useLocale()];
+
   return (
     <div>
       {canWrite ? <CommentForm postId={postId} parentId={null} autoFocus={false} /> : null}
 
       {comments.length === 0 ? (
         <div className="mt-5">
-          <Empty>Nessuno ha ancora risposto. La prima risposta fa partire la discussione.</Empty>
+          <Empty>{t.nessunaRisposta}</Empty>
         </div>
       ) : (
         <ul className="m-0 mt-5 grid list-none gap-4 p-0">
@@ -72,6 +97,8 @@ function CommentItem({
   canWrite: boolean;
   canModerate: boolean;
 }) {
+  const locale = useLocale();
+  const t = TESTI[locale];
   const [replying, setReplying] = useState(false);
 
   return (
@@ -96,10 +123,10 @@ function CommentItem({
             </Link>
             {comment.author.role !== "USER" ? (
               <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--accent)]">
-                {ROLE_LABELS[comment.author.role]}
+                {roleLabel(comment.author.role, locale)}
               </span>
             ) : null}
-            <span className="font-mono">{relativeTime(comment.createdAt)}</span>
+            <span className="font-mono">{relativeTime(comment.createdAt, new Date(), locale)}</span>
           </p>
 
           <p className="m-0 text-sm leading-relaxed">{comment.body}</p>
@@ -111,7 +138,7 @@ function CommentItem({
                 className="cursor-pointer border-0 bg-transparent p-0 text-xs text-ink-3 hover:text-ink"
                 onClick={() => setReplying((open) => !open)}
               >
-                {replying ? "Annulla" : "Rispondi"}
+                {replying ? t.annulla : t.rispondi}
               </button>
             ) : null}
 
@@ -162,6 +189,7 @@ function CommentForm({
   autoFocus: boolean;
   onDone?: () => void;
 }) {
+  const t = TESTI[useLocale()];
   const [state, action, pending] = useActionState(
     async (previous: ActionState, formData: FormData) => {
       const result = await createCommentAction(previous, formData);
@@ -188,12 +216,12 @@ function CommentForm({
         maxLength={4000}
         required
         autoFocus={autoFocus}
-        placeholder={parentId ? "La tua risposta" : "Aggiungi qualcosa alla discussione"}
+        placeholder={parentId ? t.tuaRisposta : t.aggiungi}
       />
 
       <div className="mt-2 flex gap-2.5">
         <Button type="submit" variant="primary" size="sm" disabled={pending}>
-          {pending ? "Invio…" : parentId ? "Rispondi" : "Commenta"}
+          {pending ? t.invio : parentId ? t.rispondi : t.commenta}
         </Button>
       </div>
     </form>

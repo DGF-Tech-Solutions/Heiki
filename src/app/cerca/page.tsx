@@ -7,10 +7,40 @@ import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
 import { listGames } from "@/lib/games/catalog";
 import { getGameModule } from "@/lib/games/registry";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Cerca · GachaZone",
-};
+const TESTI = testi({
+  it: {
+    titoloPagina: "Cerca · GachaZone",
+    ricerca: "Ricerca",
+    cerca: "Cerca",
+    segnaposto: "Nome di un personaggio o parole di un post",
+    termini: "Termini di ricerca",
+    dueCaratteri: "Scrivi almeno due caratteri.",
+    personaggi: "Personaggi",
+    nessunPersonaggio: "Nessun personaggio con questo nome.",
+    discussioni: "Discussioni",
+    nessunaDiscussione: "Nessuna discussione con queste parole.",
+  },
+  en: {
+    titoloPagina: "Search · GachaZone",
+    ricerca: "Search",
+    cerca: "Search",
+    segnaposto: "A character's name or words from a post",
+    termini: "Search terms",
+    dueCaratteri: "Type at least two characters.",
+    personaggi: "Characters",
+    nessunPersonaggio: "No characters with this name.",
+    discussioni: "Discussions",
+    nessunaDiscussione: "No discussions with these words.",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return { title: t.titoloPagina };
+}
 
 interface Props {
   searchParams: Promise<{ q?: string }>;
@@ -28,6 +58,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
   const needle = query.toLowerCase();
+  const t = TESTI[await getLocale()];
 
   const viewer = await currentViewer();
   const store = await getStore();
@@ -59,31 +90,26 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <main className="mx-auto w-full max-w-[900px] px-6 pt-8 pb-20">
-      <p className={eyebrow}>Ricerca</p>
+      <p className={eyebrow}>{t.ricerca}</p>
       <h1 className={cx(display, "mt-2 mb-5 text-[32px]")}>
-        {query ? `“${query}”` : "Cerca"}
+        {query ? `“${query}”` : t.cerca}
       </h1>
 
       <form action="/cerca" className="mb-8">
-        <Input
-          name="q"
-          defaultValue={query}
-          placeholder="Nome di un personaggio o parole di un post"
-          aria-label="Termini di ricerca"
-        />
+        <Input name="q" defaultValue={query} placeholder={t.segnaposto} aria-label={t.termini} />
       </form>
 
       {needle.length < 2 ? (
-        <Empty>Scrivi almeno due caratteri.</Empty>
+        <Empty>{t.dueCaratteri}</Empty>
       ) : (
         <>
           <section className="mb-9">
             <SectionHead
-              title="Personaggi"
+              title={t.personaggi}
               aside={<span className={eyebrow}>{characters.length}</span>}
             />
             {characters.length === 0 ? (
-              <Empty>Nessun personaggio con questo nome.</Empty>
+              <Empty>{t.nessunPersonaggio}</Empty>
             ) : (
               <ul className="m-0 grid list-none gap-2 p-0">
                 {characters.map(({ game, character }) => (
@@ -104,11 +130,11 @@ export default async function SearchPage({ searchParams }: Props) {
 
           <section>
             <SectionHead
-              title="Discussioni"
+              title={t.discussioni}
               aside={<span className={eyebrow}>{posts.length}</span>}
             />
             {posts.length === 0 ? (
-              <Empty>Nessuna discussione con queste parole.</Empty>
+              <Empty>{t.nessunaDiscussione}</Empty>
             ) : (
               <div className="grid gap-3.5">
                 {posts.map((post) => (

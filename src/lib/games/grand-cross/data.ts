@@ -14,6 +14,7 @@
  */
 
 import type { StatDefinition, Target } from "@/lib/engine";
+import type { Bilingual } from "@/lib/i18n/locale";
 import type { CharacterSummary, DatasetInfo } from "../types";
 
 export const DATASET: DatasetInfo = {
@@ -47,20 +48,22 @@ export const GAUGE_PER_CARD = 1;
 export const ULTIMATE_GAUGE_COST = 4;
 
 export const STAT_MODEL: readonly StatDefinition[] = [
-  { key: "attack", label: "Attacco", kind: "flat", defaultValue: 0 },
-  { key: "defense", label: "Difesa", kind: "flat", defaultValue: 0 },
-  { key: "hp", label: "Punti vita", kind: "flat", defaultValue: 0 },
-  { key: "crit_rate", label: "Prob. critico", kind: "percent", defaultValue: 0 },
-  { key: "crit_damage", label: "Danno critico", kind: "percent", defaultValue: 0.5 },
-  { key: "pierce_rate", label: "Perforazione", kind: "percent", defaultValue: 0 },
-  { key: "dmg_bonus_all", label: "Bonus danno", kind: "percent", defaultValue: 0 },
-  { key: "def_reduction", label: "Riduzione difesa", kind: "percent", defaultValue: 0 },
-  { key: "def_ignore", label: "Ignora difesa", kind: "percent", defaultValue: 0 },
+  { key: "attack", label: "Attacco", labels: { it: "Attacco", en: "Attack" }, kind: "flat", defaultValue: 0 },
+  { key: "defense", label: "Difesa", labels: { it: "Difesa", en: "Defense" }, kind: "flat", defaultValue: 0 },
+  { key: "hp", label: "Punti vita", labels: { it: "Punti vita", en: "HP" }, kind: "flat", defaultValue: 0 },
+  { key: "crit_rate", label: "Prob. critico", labels: { it: "Prob. critico", en: "Crit Chance" }, kind: "percent", defaultValue: 0 },
+  { key: "crit_damage", label: "Danno critico", labels: { it: "Danno critico", en: "Crit Damage" }, kind: "percent", defaultValue: 0.5 },
+  { key: "pierce_rate", label: "Perforazione", labels: { it: "Perforazione", en: "Pierce Rate" }, kind: "percent", defaultValue: 0 },
+  { key: "dmg_bonus_all", label: "Bonus danno", labels: { it: "Bonus danno", en: "Damage Bonus" }, kind: "percent", defaultValue: 0 },
+  { key: "def_reduction", label: "Riduzione difesa", labels: { it: "Riduzione difesa", en: "Defense Reduction" }, kind: "percent", defaultValue: 0 },
+  { key: "def_ignore", label: "Ignora difesa", labels: { it: "Ignora difesa", en: "Ignore Defense" }, kind: "percent", defaultValue: 0 },
 ];
 
 export interface SkillData {
   id: string;
   name: string;
+  /** il nome nelle due lingue: `name` resta l'italiano di sempre */
+  names?: Bilingual;
   /** moltiplicatore percentuale a rango 1 */
   motionValue: number;
   category: "attack" | "buff" | "debuff" | "ultimate";
@@ -71,6 +74,8 @@ export interface SkillData {
 export interface BuffData {
   id: string;
   name: string;
+  /** il nome nelle due lingue: `name` resta l'italiano di sempre */
+  names?: Bilingual;
   /** durata in turni */
   duration: number;
   maxStacks: number;
@@ -112,6 +117,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "str-slash",
         name: "Fendente",
+        names: { it: "Fendente", en: "Slash" },
         motionValue: 210,
         category: "attack",
         grantsBuffs: [],
@@ -119,6 +125,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "str-heavy",
         name: "Colpo pesante",
+        names: { it: "Colpo pesante", en: "Heavy Blow" },
         motionValue: 320,
         category: "attack",
         grantsBuffs: ["str-rage"],
@@ -126,6 +133,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "str-break",
         name: "Spezza guardia",
+        names: { it: "Spezza guardia", en: "Guard Break" },
         motionValue: 150,
         category: "debuff",
         grantsBuffs: ["str-def-break"],
@@ -134,6 +142,7 @@ export const UNITS: readonly UnitData[] = [
     ultimate: {
       id: "str-ultimate",
       name: "Colpo decisivo",
+      names: { it: "Colpo decisivo", en: "Decisive Strike" },
       motionValue: 780,
       category: "ultimate",
       grantsBuffs: [],
@@ -142,6 +151,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "str-rage",
         name: "Furia",
+        names: { it: "Furia", en: "Fury" },
         duration: 2,
         maxStacks: 3,
         appliesTo: "self",
@@ -150,6 +160,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "str-def-break",
         name: "Difesa infranta",
+        names: { it: "Difesa infranta", en: "Broken Defense" },
         duration: 3,
         maxStacks: 1,
         appliesTo: "target",
@@ -176,6 +187,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "dex-strike",
         name: "Affondo",
+        names: { it: "Affondo", en: "Thrust" },
         motionValue: 180,
         category: "attack",
         grantsBuffs: [],
@@ -183,6 +195,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "dex-rally",
         name: "Incitamento",
+        names: { it: "Incitamento", en: "Rally" },
         motionValue: 60,
         category: "buff",
         grantsBuffs: ["dex-attack-up"],
@@ -190,6 +203,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "dex-focus",
         name: "Concentrazione",
+        names: { it: "Concentrazione", en: "Focus" },
         motionValue: 80,
         category: "buff",
         grantsBuffs: ["dex-crit-up"],
@@ -198,6 +212,7 @@ export const UNITS: readonly UnitData[] = [
     ultimate: {
       id: "dex-ultimate",
       name: "Danza delle lame",
+      names: { it: "Danza delle lame", en: "Blade Dance" },
       motionValue: 520,
       category: "ultimate",
       grantsBuffs: ["dex-attack-up"],
@@ -206,6 +221,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "dex-attack-up",
         name: "Attacco aumentato",
+        names: { it: "Attacco aumentato", en: "Attack Up" },
         duration: 3,
         maxStacks: 2,
         appliesTo: "party",
@@ -214,6 +230,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "dex-crit-up",
         name: "Critico aumentato",
+        names: { it: "Critico aumentato", en: "Crit Up" },
         duration: 3,
         maxStacks: 2,
         appliesTo: "party",
@@ -240,6 +257,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "hp-bash",
         name: "Scudata",
+        names: { it: "Scudata", en: "Shield Bash" },
         motionValue: 140,
         category: "attack",
         grantsBuffs: [],
@@ -247,6 +265,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "hp-guard",
         name: "Guardia",
+        names: { it: "Guardia", en: "Guard" },
         motionValue: 40,
         category: "buff",
         grantsBuffs: ["hp-shield"],
@@ -254,6 +273,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "hp-taunt",
         name: "Provocazione",
+        names: { it: "Provocazione", en: "Taunt" },
         motionValue: 90,
         category: "debuff",
         grantsBuffs: ["hp-weaken"],
@@ -262,6 +282,7 @@ export const UNITS: readonly UnitData[] = [
     ultimate: {
       id: "hp-ultimate",
       name: "Baluardo",
+      names: { it: "Baluardo", en: "Bulwark" },
       motionValue: 400,
       category: "ultimate",
       grantsBuffs: ["hp-shield"],
@@ -270,6 +291,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "hp-shield",
         name: "Barriera",
+        names: { it: "Barriera", en: "Barrier" },
         duration: 2,
         maxStacks: 1,
         appliesTo: "party",
@@ -278,6 +300,7 @@ export const UNITS: readonly UnitData[] = [
       {
         id: "hp-weaken",
         name: "Indebolimento",
+        names: { it: "Indebolimento", en: "Weaken" },
         duration: 3,
         maxStacks: 1,
         appliesTo: "target",
@@ -291,6 +314,7 @@ export const TARGETS: readonly Target[] = [
   {
     id: "training-dummy",
     name: "Manichino da allenamento",
+    names: { it: "Manichino da allenamento", en: "Training Dummy" },
     level: 80,
     maxHp: 1_000_000,
     defense: 1500,
@@ -300,6 +324,7 @@ export const TARGETS: readonly Target[] = [
   {
     id: "boss-strength",
     name: "Boss - attributo Forza",
+    names: { it: "Boss - attributo Forza", en: "Boss - Strength attribute" },
     level: 85,
     maxHp: 4_500_000,
     defense: 2600,
@@ -309,6 +334,7 @@ export const TARGETS: readonly Target[] = [
   {
     id: "boss-dexterity",
     name: "Boss - attributo Destrezza",
+    names: { it: "Boss - attributo Destrezza", en: "Boss - Dexterity attribute" },
     level: 85,
     maxHp: 4_500_000,
     defense: 2600,

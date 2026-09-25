@@ -11,6 +11,7 @@
  * una bugia. Dichiarare il piano e' l'unica opzione onesta delle tre.
  */
 
+import type { Bilingual, Locale } from "@/lib/i18n/locale";
 import { getGameModule, listGameModules } from "./registry";
 
 export interface GameEntry {
@@ -118,37 +119,83 @@ export interface GameSectionGroup {
   items: readonly GameSection[];
 }
 
-export const GAME_GROUPS: readonly GameSectionGroup[] = [
+interface SectionNames extends Omit<GameSection, "label" | "hint"> {
+  label: Bilingual;
+  hint: Bilingual;
+}
+
+/** Le sezioni con i nomi nelle due lingue: le risolve `sections(locale)`. */
+const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = [
   {
-    label: "Database",
-    items: [
-      { path: "/eroi", label: "Eroi", hint: "Roster completo, per rarita' e attributo", needs: "roster" },
-      { path: "/personaggi", label: "Personaggi", hint: "Statistiche, abilita' e danno simulato" },
-      { path: "/nemici", label: "Nemici", hint: "Bersagli usati nei calcoli" },
-    ],
-  },
-  {
-    label: "Strumenti",
-    items: [
-      { path: "/strumenti", label: "Simulatore squadra", hint: "Componi e calcola" },
-      { path: "/classifica", label: "Classifica danno", hint: "Ordinata dal motore, non a giudizio" },
-    ],
-  },
-  {
-    label: "Guide",
+    label: { it: "Database", en: "Database" },
     items: [
       {
-        path: "/guide",
-        label: "Guide e rotazioni",
-        hint: "Con la patch in cui i numeri sono stati verificati",
+        path: "/eroi",
+        label: { it: "Eroi", en: "Heroes" },
+        hint: { it: "Roster completo, per rarità e attributo", en: "Full roster, by rarity and attribute" },
+        needs: "roster",
+      },
+      {
+        path: "/personaggi",
+        label: { it: "Personaggi", en: "Characters" },
+        hint: { it: "Statistiche, abilità e danno simulato", en: "Stats, skills and simulated damage" },
+      },
+      {
+        path: "/nemici",
+        label: { it: "Nemici", en: "Enemies" },
+        hint: { it: "Bersagli usati nei calcoli", en: "Targets used in the calculations" },
       },
     ],
   },
   {
-    label: "Community",
-    items: [{ path: "", label: "Discussioni", hint: "Build e rotazioni condivise" }],
+    label: { it: "Strumenti", en: "Tools" },
+    items: [
+      {
+        path: "/strumenti",
+        label: { it: "Simulatore squadra", en: "Team simulator" },
+        hint: { it: "Componi e calcola", en: "Build a team and calculate" },
+      },
+      {
+        path: "/classifica",
+        label: { it: "Classifica danno", en: "Damage ranking" },
+        hint: { it: "Ordinata dal motore, non a giudizio", en: "Ordered by the engine, not by opinion" },
+      },
+    ],
+  },
+  {
+    label: { it: "Guide", en: "Guides" },
+    items: [
+      {
+        path: "/guide",
+        label: { it: "Guide e rotazioni", en: "Guides and rotations" },
+        hint: {
+          it: "Con la patch in cui i numeri sono stati verificati",
+          en: "With the patch in which the numbers were verified",
+        },
+      },
+    ],
+  },
+  {
+    label: { it: "Community", en: "Community" },
+    items: [
+      {
+        path: "",
+        label: { it: "Discussioni", en: "Discussions" },
+        hint: { it: "Build e rotazioni condivise", en: "Shared builds and rotations" },
+      },
+    ],
   },
 ];
+
+function sections(locale: Locale): GameSectionGroup[] {
+  return GROUPS.map((group) => ({
+    label: group.label[locale],
+    items: group.items.map((item) => ({ ...item, label: item.label[locale], hint: item.hint[locale] })),
+  }));
+}
+
+/** Le sezioni in italiano. Per chi non passa ancora la lingua: usa gameGroups. */
+export const GAME_GROUPS: readonly GameSectionGroup[] = sections("it");
 
 /** Tutte le sezioni in fila, per chi ha bisogno dell'elenco piatto. */
 export const GAME_SECTIONS: readonly GameSection[] = GAME_GROUPS.flatMap((group) => group.items);
@@ -163,10 +210,10 @@ export const GAME_SECTIONS: readonly GameSection[] = GAME_GROUPS.flatMap((group)
  * client, e con esso il motore di calcolo e ogni dataset, dentro il bundle del
  * browser. Un elenco di voci non vale quel prezzo.
  */
-export function gameGroups(slug: string): GameSectionGroup[] {
+export function gameGroups(slug: string, locale: Locale = "it"): GameSectionGroup[] {
   const gameModule = getGameModule(slug);
 
-  return GAME_GROUPS.map((group) => ({
+  return sections(locale).map((group) => ({
     ...group,
     items: group.items.filter((item) => item.needs === undefined || gameModule?.[item.needs]),
   })).filter((group) => group.items.length > 0);

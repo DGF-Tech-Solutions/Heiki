@@ -15,6 +15,8 @@
  * tentativi automatici, l'assenza di limite non ne ferma nessuno.
  */
 
+import type { Locale } from "@/lib/i18n/locale";
+
 interface Window {
   /** istanti dei tentativi, in millisecondi */
   hits: number[];
@@ -105,13 +107,17 @@ function sweep(now: number): void {
   }
 }
 
-/** Messaggio pronto da mostrare, in italiano e senza gergo. */
-export function retryMessage(result: RateLimitResult): string {
+/** Messaggio pronto da mostrare, nella lingua del sito e senza gergo. */
+export function retryMessage(result: RateLimitResult, locale: Locale = "it"): string {
   if (result.retryAfter >= 60) {
     const minutes = Math.ceil(result.retryAfter / 60);
-    return `Troppi tentativi. Riprova fra ${minutes} ${minutes === 1 ? "minuto" : "minuti"}.`;
+    return locale === "en"
+      ? `Too many attempts. Try again in ${minutes} ${minutes === 1 ? "minute" : "minutes"}.`
+      : `Troppi tentativi. Riprova fra ${minutes} ${minutes === 1 ? "minuto" : "minuti"}.`;
   }
-  return `Troppi tentativi. Riprova fra ${result.retryAfter} secondi.`;
+  return locale === "en"
+    ? `Too many attempts. Try again in ${result.retryAfter} seconds.`
+    : `Troppi tentativi. Riprova fra ${result.retryAfter} secondi.`;
 }
 
 /** Azzera i contatori. Solo per i test. */

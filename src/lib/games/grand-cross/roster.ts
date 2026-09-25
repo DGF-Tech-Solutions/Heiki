@@ -8,6 +8,7 @@
  * file generato significherebbe riscriverle ogni volta.
  */
 
+import type { Bilingual, Locale } from "@/lib/i18n/locale";
 import type { HeroAffinity, HeroRoster } from "../types";
 import { HEROES } from "./heroes.generated";
 
@@ -30,6 +31,24 @@ export const AFFINITIES: readonly HeroAffinity[] = [
   // gioco non gli da' un'icona: resta il quadrato bicolore.
   { id: "Luce/Oscurita", label: "Luce/Oscurità", color: "#C9A227", colorAlt: "#8B5CC7" },
 ];
+
+/**
+ * Il nome di un attributo nelle due lingue. `label` in AFFINITIES resta
+ * l'italiano per chi non passa ancora la lingua; in inglese i nomi sono quelli
+ * del gioco (Strength, HP, Speed, Light, Dark).
+ */
+const AFFINITY_NAMES: Readonly<Record<string, Bilingual>> = {
+  Forza: { it: "Forza", en: "Strength" },
+  PS: { it: "PS", en: "HP" },
+  Velocita: { it: "Velocità", en: "Speed" },
+  Luce: { it: "Luce", en: "Light" },
+  Oscurita: { it: "Oscurità", en: "Dark" },
+  "Luce/Oscurita": { it: "Luce/Oscurità", en: "Light/Dark" },
+};
+
+export function affinityLabel(id: string, locale: Locale): string {
+  return AFFINITY_NAMES[id]?.[locale] ?? AFFINITIES.find((affinity) => affinity.id === id)?.label ?? id;
+}
 
 export const ROSTER: HeroRoster = {
   heroes: HEROES,

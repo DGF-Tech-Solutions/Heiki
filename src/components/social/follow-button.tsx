@@ -9,8 +9,23 @@
  */
 
 import { useState, useTransition } from "react";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
 import { toggleFollowAction } from "@/lib/social/actions";
 import { Button } from "../ui";
+
+const TESTI = testi({
+  it: {
+    nonRiuscito: "Non è stato possibile completare l'operazione.",
+    seguiGia: "Segui già",
+    segui: "Segui",
+  },
+  en: {
+    nonRiuscito: "The operation couldn't be completed.",
+    seguiGia: "Following",
+    segui: "Follow",
+  },
+});
 
 export function FollowButton({
   username,
@@ -21,6 +36,7 @@ export function FollowButton({
   initialFollowing: boolean;
   initialFollowers: number;
 }) {
+  const t = TESTI[useLocale()];
   const [following, setFollowing] = useState(initialFollowing);
   const [followers, setFollowers] = useState(initialFollowers);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +55,7 @@ export function FollowButton({
       if (!result.ok) {
         setFollowing(previous);
         setFollowers(previousCount);
-        setError(result.error ?? "Non è stato possibile completare l'operazione.");
+        setError(result.error ?? t.nonRiuscito);
       }
     });
   }
@@ -47,7 +63,7 @@ export function FollowButton({
   return (
     <span className="inline-flex flex-col items-start gap-1">
       <Button variant={following ? "outline" : "primary"} onClick={toggle} disabled={pending}>
-        {following ? "Segui già" : "Segui"}
+        {following ? t.seguiGia : t.segui}
         <span className="font-mono text-[11px] opacity-70">{followers}</span>
       </Button>
       {error ? <span className="text-[11px] text-hot">{error}</span> : null}

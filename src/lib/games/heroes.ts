@@ -9,6 +9,7 @@
  * Il Core non sa niente di Grand Cross: legge solo HeroEntry.
  */
 
+import { intlLocale, type Locale } from "@/lib/i18n/locale";
 import type { HeroEntry } from "./types";
 
 export interface HeroFilter {
@@ -22,11 +23,27 @@ export interface HeroFilter {
 export type HeroFacet = "rarity" | "affinity" | "obtainedAs";
 
 /**
+ * Il nome da mostrare, nella lingua di chi legge.
+ *
+ * `name` e' il nome inglese del roster e `nameIt` l'italiano accanto: in
+ * italiano si mostra il secondo, e dove manca il primo. Un modulo senza la
+ * fonte italiana resta leggibile, solo in inglese.
+ */
+export function heroName(hero: HeroEntry, locale: Locale): string {
+  return locale === "it" ? (hero.nameIt ?? hero.name) : hero.name;
+}
+
+/** L'epiteto da mostrare, con la stessa regola del nome. */
+export function heroEpithet(hero: HeroEntry, locale: Locale): string {
+  return locale === "it" ? (hero.epithetIt ?? hero.epithet) : hero.epithet;
+}
+
+/**
  * Forma confrontabile di un testo.
  *
- * Gli accenti vanno tolti perche' i nomi arrivano dal gioco in inglese ma chi
- * cerca scrive all'italiana, e le parentesi quadre perche' sono nel dato ma
- * nessuno le digita: senza, cercare "free wind" non troverebbe "[Free Wind]".
+ * Gli accenti vanno tolti perche' chi cerca non li digita - "velocita" deve
+ * trovare "Velocit\u00e0" - e le parentesi quadre perche' sono nel dato ma nessuno
+ * le digita: senza, cercare "free wind" non troverebbe "[Free Wind]".
  */
 function normalize(text: string): string {
   return text
@@ -38,9 +55,19 @@ function normalize(text: string): string {
     .trim();
 }
 
-/** Testo su cui cerca l'utente: tutto quello che ha in mano guardando la card. */
+/**
+ * Testo su cui cerca l'utente: tutto quello che ha in mano guardando la card.
+ *
+ * Nome ed epiteto ci sono IN TUTTE E DUE LE LINGUE, qualunque sia quella della
+ * pagina: chi gioca col client in inglese cerca "Brawler Ban" anche sul sito in
+ * italiano, e chi arriva da un video italiano cerca "Ban attaccabrighe" anche
+ * sul sito in inglese. Mostrare una lingua sola non deve voler dire trovarne
+ * una sola.
+ */
 function haystack(hero: HeroEntry): string {
-  return normalize(`${hero.name} ${hero.epithet} ${hero.group} ${hero.id}`);
+  return normalize(
+    `${hero.name} ${hero.epithet} ${hero.nameIt ?? ""} ${hero.epithetIt ?? ""} ${hero.group} ${hero.id}`,
+  );
 }
 
 /**
@@ -95,14 +122,25 @@ export type HeroOrder = "roster" | "name" | "group";
  * "roster" e' l'ordine in cui il modulo li dichiara - per Grand Cross e'
  * l'ordine di uscita, dal piu' recente - ed e' il default perche' e' l'unico
  * che risponde alla domanda "cosa e' uscito ultimamente".
+ *
+ * "name" ordina per il nome MOSTRATO, nella lingua della pagina: in italiano
+ * "Ban attaccabrighe" sta fra le B, anche se in inglese e' "Brawler Ban".
+ * Ordinare per il nome inglese mettendo in pagina quello italiano darebbe un
+ * elenco che sembra mescolato.
  */
-export function sortHeroes(heroes: readonly HeroEntry[], order: HeroOrder): HeroEntry[] {
+export function sortHeroes(
+  heroes: readonly HeroEntry[],
+  order: HeroOrder,
+  locale: Locale = "it",
+): HeroEntry[] {
   const sorted = [...heroes];
-  const byName = (a: HeroEntry, b: HeroEntry) => a.name.localeCompare(b.name, "it");
+  const collation = intlLocale(locale);
+  const byName = (a: HeroEntry, b: HeroEntry) =>
+    heroName(a, locale).localeCompare(heroName(b, locale), collation);
 
   if (order === "name") return sorted.sort(byName);
   if (order === "group") {
-    return sorted.sort((a, b) => a.group.localeCompare(b.group, "it") || byName(a, b));
+    return sorted.sort((a, b) => a.group.localeCompare(b.group, collation) || byName(a, b));
   }
   return sorted;
 }

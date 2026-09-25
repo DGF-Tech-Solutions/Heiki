@@ -4,11 +4,30 @@ import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
 import { cx, display, eyebrow } from "@/components/ui";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    impostazioni: "Impostazioni",
+    ilTuoAccount: "Il tuo account",
+    sezioni: "Sezioni delle impostazioni",
+    profilo: "Profilo",
+    account: "Account",
+  },
+  en: {
+    impostazioni: "Settings",
+    ilTuoAccount: "Your account",
+    sezioni: "Settings sections",
+    profilo: "Profile",
+    account: "Account",
+  },
+});
 
 const TABS = [
-  { href: "/impostazioni/profilo", label: "Profilo" },
-  { href: "/impostazioni/account", label: "Account" },
-];
+  { href: "/impostazioni/profilo", key: "profilo" },
+  { href: "/impostazioni/account", key: "account" },
+] as const;
 
 /**
  * Guscio delle impostazioni.
@@ -34,21 +53,23 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   const session = await auth();
   if (!session?.user?.id) redirect("/entra");
 
+  const t = TESTI[await getLocale()];
+
   return (
     <main className="mx-auto w-full max-w-[980px] px-6 pt-9 pb-24">
       <header className="mb-6">
-        <p className={eyebrow}>Impostazioni</p>
-        <h1 className={cx(display, "mt-2.5 text-[32px]")}>Il tuo account</h1>
+        <p className={eyebrow}>{t.impostazioni}</p>
+        <h1 className={cx(display, "mt-2.5 text-[32px]")}>{t.ilTuoAccount}</h1>
       </header>
 
-      <nav aria-label="Sezioni delle impostazioni" className="mb-8 flex gap-5 border-b border-rule">
+      <nav aria-label={t.sezioni} className="mb-8 flex gap-5 border-b border-rule">
         {TABS.map((tab) => (
           <Link
             key={tab.href}
             href={tab.href}
             className="-mb-px border-b-2 border-transparent pb-2.5 text-sm text-ink-2 hover:border-ink-3 hover:text-ink"
           >
-            {tab.label}
+            {t[tab.key]}
           </Link>
         ))}
       </nav>

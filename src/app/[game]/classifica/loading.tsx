@@ -1,4 +1,17 @@
 import { eyebrow } from "@/components/ui";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    inCorso: "Simulazione in corso",
+    calcolo: "Calcolo della classifica in corso",
+  },
+  en: {
+    inCorso: "Simulation running",
+    calcolo: "Calculating the ranking",
+  },
+});
 
 /**
  * Attesa della classifica.
@@ -12,16 +25,18 @@ import { eyebrow } from "@/components/ui";
  * restituire 404, e un motore di ricerca indicizzerebbe le pagine inesistenti
  * come valide. Qui il layout ha gia' deciso, quindi lo stato e' salvo.
  */
-export default function Loading() {
+export default async function Loading() {
+  const t = TESTI[await getLocale()];
+
   return (
     <div className="pt-6 pb-20">
-      <p className={eyebrow}>Simulazione in corso</p>
+      <p className={eyebrow}>{t.inCorso}</p>
       <div className="mt-4 grid gap-2" aria-hidden>
         {[0, 1, 2].map((row) => (
           <span key={row} className="h-12 w-full animate-pulse rounded-card bg-paper-2" />
         ))}
       </div>
-      <span className="sr-only">Calcolo della classifica in corso</span>
+      <span className="sr-only">{t.calcolo}</span>
     </div>
   );
 }

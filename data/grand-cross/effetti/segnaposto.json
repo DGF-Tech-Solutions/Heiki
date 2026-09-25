@@ -25,15 +25,15 @@
         "atk_per_add"
       ],
       "uso": {
-        "descrizioni_client": 725,
-        "ranghi_col_modello": 3194
+        "descrizioni_client": 747,
+        "ranghi_col_modello": 3202
       },
       "certezza": "dedotto",
       "prove": [
-        "«{melee_val}» e' il nome del tag in minuscolo: compare in 725 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 3.194",
+        "«{melee_val}» e' il nome del tag in minuscolo: compare in 747 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 3.202",
         "DBSkillCardBaseRow: il valore d'attacco della carta: atk_per_add ha il suffisso degli incrementi, come effect_value_add accanto a effect_value",
-        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.137 volte su 3.194"
+        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.145 volte su 3.202"
       ]
     },
     "TARGET_VALUE": {
@@ -50,13 +50,13 @@
         "target"
       ],
       "uso": {
-        "descrizioni_client": 854,
-        "ranghi_col_modello": 3393
+        "descrizioni_client": 876,
+        "ranghi_col_modello": 3401
       },
       "certezza": "dedotto",
       "prove": [
-        "«{target_val}» e' il nome del tag in minuscolo: compare in 854 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' bersaglio 3.393",
+        "«{target_val}» e' il nome del tag in minuscolo: compare in 876 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' bersaglio 3.401",
         "DBSkillCardBaseRow: stesso nome della colonna"
       ]
     },
@@ -75,13 +75,13 @@
         "effect_value"
       ],
       "uso": {
-        "descrizioni_client": 218,
-        "ranghi_col_modello": 814
+        "descrizioni_client": 222,
+        "ranghi_col_modello": 811
       },
       "certezza": "dedotto",
       "prove": [
-        "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 218 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 586, intero 228",
+        "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 222 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 583, intero 228",
         "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
       ]
     },
@@ -100,13 +100,13 @@
         "effect_value"
       ],
       "uso": {
-        "descrizioni_client": 45,
-        "ranghi_col_modello": 105
+        "descrizioni_client": 53,
+        "ranghi_col_modello": 110
       },
       "certezza": "dedotto",
       "prove": [
-        "«{opt_2_val}» e' il nome del tag in minuscolo: compare in 45 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 67, intero 34, altro 4",
+        "«{opt_2_val}» e' il nome del tag in minuscolo: compare in 53 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 72, intero 34, altro 4",
         "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
       ]
     },
@@ -125,12 +125,12 @@
         "effect_value"
       ],
       "uso": {
-        "descrizioni_client": 6,
+        "descrizioni_client": 7,
         "ranghi_col_modello": 0
       },
       "certezza": "dedotto",
       "prove": [
-        "«{opt_3_val}» e' il nome del tag in minuscolo: compare in 6 descrizioni di abilita' del client",
+        "«{opt_3_val}» e' il nome del tag in minuscolo: compare in 7 descrizioni di abilita' del client",
         "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
       ]
     },
@@ -195,13 +195,13 @@
         "effect_value"
       ],
       "uso": {
-        "descrizioni_client": 305,
-        "ranghi_col_modello": 634
+        "descrizioni_client": 310,
+        "ranghi_col_modello": 631
       },
       "certezza": "dedotto",
       "prove": [
-        "«{buff_1_val}» e' il nome del tag in minuscolo: compare in 305 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 607, intero 27",
+        "«{buff_1_val}» e' il nome del tag in minuscolo: compare in 310 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 604, intero 27",
         "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
       ]
     },
@@ -220,12 +220,12 @@
         "effect_value"
       ],
       "uso": {
-        "descrizioni_client": 65,
+        "descrizioni_client": 67,
         "ranghi_col_modello": 108
       },
       "certezza": "dedotto",
       "prove": [
-        "«{buff_2_val}» e' il nome del tag in minuscolo: compare in 65 descrizioni di abilita' del client",
+        "«{buff_2_val}» e' il nome del tag in minuscolo: compare in 67 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' percentuale 96, intero 12",
         "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
       ]
@@ -319,13 +319,13 @@
         "buff_turn"
       ],
       "uso": {
-        "descrizioni_client": 397,
-        "ranghi_col_modello": 1028
+        "descrizioni_client": 401,
+        "ranghi_col_modello": 1027
       },
       "certezza": "dedotto",
       "prove": [
-        "«{turn_1_val}» e' il nome del tag in minuscolo: compare in 397 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' turni 1.028",
+        "«{turn_1_val}» e' il nome del tag in minuscolo: compare in 401 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' turni 1.027",
         "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
       ]
     },
@@ -343,12 +343,12 @@
         "buff_turn"
       ],
       "uso": {
-        "descrizioni_client": 10,
+        "descrizioni_client": 12,
         "ranghi_col_modello": 27
       },
       "certezza": "dedotto",
       "prove": [
-        "«{turn_2_val}» e' il nome del tag in minuscolo: compare in 10 descrizioni di abilita' del client",
+        "«{turn_2_val}» e' il nome del tag in minuscolo: compare in 12 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' turni 27",
         "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
       ]
@@ -895,13 +895,13 @@
         "buff_turn"
       ],
       "uso": {
-        "descrizioni_client": 12,
-        "ranghi_col_modello": 20
+        "descrizioni_client": 17,
+        "ranghi_col_modello": 23
       },
       "certezza": "dedotto",
       "prove": [
-        "«{buff_data_turn}» e' il nome del tag in minuscolo: compare in 12 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' intero 20",
+        "«{buff_data_turn}» e' il nome del tag in minuscolo: compare in 17 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' intero 23",
         "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag"
       ]
     },
@@ -920,13 +920,13 @@
         "effect_value"
       ],
       "uso": {
-        "descrizioni_client": 5,
-        "ranghi_col_modello": 6
+        "descrizioni_client": 8,
+        "ranghi_col_modello": 9
       },
       "certezza": "dedotto",
       "prove": [
-        "«{buff_data_value}» e' il nome del tag in minuscolo: compare in 5 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' intero 6",
+        "«{buff_data_value}» e' il nome del tag in minuscolo: compare in 8 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' intero 9",
         "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag; due colonne di valore possibili"
       ]
     },
@@ -1106,7 +1106,7 @@
       "cosa": "tag nei testi senza un membro dell'enum",
       "stato": "si scrivono nelle descrizioni ma nessun nome dell'enum, portato in minuscolo, li da': quante volte compaiono",
       "tag": {
-        "effect_val": 3,
+        "effect_val": 4,
         "level": 2
       }
     }

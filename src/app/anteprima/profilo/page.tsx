@@ -4,6 +4,27 @@ import { ProfileWorkspace } from "@/components/profile-workspace";
 import type { ProfileViewData } from "@/components/profile-view";
 import { buttonClass } from "@/components/ui";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/profile/customization";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    titoloPagina: "Personalizza il profilo · GachaZone",
+    anteprima: "Anteprima",
+    esempioPrima: "Dati di esempio, nessun account vero. Premi",
+    modificaProfilo: "Modifica profilo",
+    esempioDopo: "e cambia quello che vuoi: si salva in questo browser finché non accendi il database.",
+    creaIlTuo: "Crea il tuo",
+  },
+  en: {
+    titoloPagina: "Customize your profile · GachaZone",
+    anteprima: "Preview",
+    esempioPrima: "Sample data, no real account. Press",
+    modificaProfilo: "Edit profile",
+    esempioDopo: "and change whatever you like: it's saved in this browser until you turn on the database.",
+    creaIlTuo: "Create yours",
+  },
+});
 
 /**
  * Editor del profilo in modalita' dimostrativa.
@@ -16,10 +37,13 @@ import { DEFAULT_CUSTOMIZATION } from "@/lib/profile/customization";
  * capire cosa comprerebbe. Il controllo vero resta lato server, nel salvataggio.
  */
 
-export const metadata: Metadata = {
-  title: "Personalizza il profilo · GachaZone",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return {
+    title: t.titoloPagina,
+    robots: { index: false, follow: false },
+  };
+}
 
 const SAMPLE: ProfileViewData = {
   username: "franz",
@@ -87,17 +111,18 @@ const SAMPLE: ProfileViewData = {
   ],
 };
 
-export default function ProfilePreviewPage() {
+export default async function ProfilePreviewPage() {
+  const t = TESTI[await getLocale()];
+
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 pt-8">
       <div className="mb-6 flex flex-wrap items-center gap-3.5 rounded-card border border-rule border-l-4 border-l-brand bg-brand-soft px-4 py-3.5 text-[13px] text-ink-2">
-        <strong className="text-brand">Anteprima</strong>
+        <strong className="text-brand">{t.anteprima}</strong>
         <span className="flex-1 basis-72">
-          Dati di esempio, nessun account vero. Premi <strong>Modifica profilo</strong> e cambia
-          quello che vuoi: si salva in questo browser finché non accendi il database.
+          {t.esempioPrima} <strong>{t.modificaProfilo}</strong> {t.esempioDopo}
         </span>
         <Link href="/registrati" className={buttonClass("outline", "sm")}>
-          Crea il tuo
+          {t.creaIlTuo}
         </Link>
       </div>
 

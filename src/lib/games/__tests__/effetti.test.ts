@@ -244,7 +244,8 @@ describe("righe d'effetto delle carte: colonne, fonti e dizionari", () => {
           expect(riga[campo], `${id}.${campo}`).toBeDefined();
           if (fonte.startsWith("modello:")) expect(segnati.has(fonte.slice(8)), `${id}: ${fonte}`).toBe(true);
           else if (fonte.startsWith("lettura:")) expect(forme[fonte.slice(8)]?.lettura, `${id}: ${fonte}`).toBeTruthy();
-          else expect(["7dshub", "testo"], `${id}: ${fonte}`).toContain(fonte);
+          // "client": gittata e tipo d'attacco dalla tabella della carta (fino al 24/09 da 7dshub)
+          else expect(["client", "testo"], `${id}: ${fonte}`).toContain(fonte);
         }
       }
     }

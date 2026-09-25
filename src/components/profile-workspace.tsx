@@ -17,6 +17,47 @@ import { ProfileView } from "./profile-view";
 import type { ProfileViewData } from "./profile-view";
 import { ProfileEditorPanel, toDraft, type ProfileDraft } from "./profile-editor";
 import { Button, cx, eyebrow, numeric } from "./ui";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: {
+    salvatoNelBrowser: "Salvato in questo browser. Col database acceso finirà sul tuo account.",
+    browserNonConsente: "Il browser non consente il salvataggio locale.",
+    profiloAggiornato: "Profilo aggiornato.",
+    salvataggioNonRiuscito: "Salvataggio non riuscito.",
+    modificheAnnullate: "Modifiche annullate.",
+    chiudereComunque: "Ci sono modifiche non salvate. Chiudere comunque?",
+    staiModificando: "Stai modificando",
+    ilTuoProfilo: "Il tuo profilo",
+    modificheNonSalvate: "Modifiche non salvate",
+    nessunaModifica: "Nessuna modifica",
+    annulla: "Annulla",
+    salvo: "Salvo…",
+    salva: "Salva",
+    chiudi: "Chiudi",
+    modificaProfilo: "Modifica profilo",
+    anteprimaDalVivo: "Anteprima dal vivo",
+  },
+  en: {
+    salvatoNelBrowser: "Saved in this browser. Once the database is on, it will go to your account.",
+    browserNonConsente: "This browser doesn't allow local saving.",
+    profiloAggiornato: "Profile updated.",
+    salvataggioNonRiuscito: "Save failed.",
+    modificheAnnullate: "Changes discarded.",
+    chiudereComunque: "You have unsaved changes. Close anyway?",
+    staiModificando: "Editing",
+    ilTuoProfilo: "Your profile",
+    modificheNonSalvate: "Unsaved changes",
+    nessunaModifica: "No changes",
+    annulla: "Discard",
+    salvo: "Saving…",
+    salva: "Save",
+    chiudi: "Close",
+    modificaProfilo: "Edit profile",
+    anteprimaDalVivo: "Live preview",
+  },
+});
 
 const DRAFT_KEY = "gachazone:profile-draft";
 
@@ -46,6 +87,8 @@ export function ProfileWorkspace({
   startEditing = false,
   saveAction,
 }: Props) {
+  const locale = useLocale();
+  const t = TESTI[locale];
   const baseline = useMemo(() => toDraft(initial), [initial]);
   const [draft, setDraft] = useState<ProfileDraft>(baseline);
   const [editing, setEditing] = useState(canEdit && startEditing);
@@ -66,29 +109,29 @@ export function ProfileWorkspace({
     if (demoMode || !saveAction) {
       try {
         window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        setStatus("Salvato in questo browser. Col database acceso finirà sul tuo account.");
+        setStatus(t.salvatoNelBrowser);
       } catch {
-        setStatus("Il browser non consente il salvataggio locale.");
+        setStatus(t.browserNonConsente);
       }
       return;
     }
 
     startTransition(async () => {
       const result = await saveAction(draft);
-      setStatus(result.ok ? "Profilo aggiornato." : (result.error ?? "Salvataggio non riuscito."));
+      setStatus(result.ok ? t.profiloAggiornato : (result.error ?? t.salvataggioNonRiuscito));
       if (result.ok) setEditing(false);
     });
   }
 
   function discard() {
     setDraft(baseline);
-    setStatus("Modifiche annullate.");
+    setStatus(t.modificheAnnullate);
   }
 
   function close() {
     // Perdere il lavoro senza avvisare e' il modo piu' rapido per far smettere
     // qualcuno di personalizzare il proprio profilo.
-    if (dirty && !window.confirm("Ci sono modifiche non salvate. Chiudere comunque?")) return;
+    if (dirty && !window.confirm(t.chiudereComunque)) return;
     setDraft(baseline);
     setEditing(false);
     setStatus(null);
@@ -99,7 +142,7 @@ export function ProfileWorkspace({
       {canEdit ? (
         <div className="sticky top-[58px] z-15 mb-1 flex flex-wrap items-center gap-3.5 border-b border-rule bg-paper py-3.5">
           <span className="grid gap-0.5">
-            <span className={eyebrow}>{editing ? "Stai modificando" : "Il tuo profilo"}</span>
+            <span className={eyebrow}>{editing ? t.staiModificando : t.ilTuoProfilo}</span>
             <span className={cx(numeric, "text-xs text-ink-3")}>/u/{draft.username || "…"}</span>
           </span>
 
@@ -107,16 +150,16 @@ export function ProfileWorkspace({
             {editing ? (
               <>
                 <span className={cx(numeric, "text-[11px] text-ink-3")}>
-                  {status ?? (dirty ? "Modifiche non salvate" : "Nessuna modifica")}
+                  {status ?? (dirty ? t.modificheNonSalvate : t.nessunaModifica)}
                 </span>
                 <Button onClick={discard} disabled={!dirty}>
-                  Annulla
+                  {t.annulla}
                 </Button>
                 <Button variant="primary" onClick={save} disabled={pending || !dirty}>
-                  {pending ? "Salvo…" : "Salva"}
+                  {pending ? t.salvo : t.salva}
                 </Button>
                 <Button variant="ghost" onClick={close}>
-                  Chiudi
+                  {t.chiudi}
                 </Button>
               </>
             ) : (
@@ -131,7 +174,7 @@ export function ProfileWorkspace({
                     setEditing(true);
                   }}
                 >
-                  Modifica profilo
+                  {t.modificaProfilo}
                 </Button>
               </>
             )}
@@ -145,17 +188,17 @@ export function ProfileWorkspace({
 
           <div className="overflow-hidden rounded-card border border-rule bg-paper px-7 pt-6 pb-8 lg:sticky lg:top-[124px]">
             <div className="mb-5 flex items-center justify-between gap-3 border-b border-rule-2 pb-3.5">
-              <span className={eyebrow}>Anteprima dal vivo</span>
+              <span className={eyebrow}>{t.anteprimaDalVivo}</span>
               <span className={cx(numeric, "text-[11px] text-ink-3")}>
                 /u/{draft.username || "…"}
               </span>
             </div>
-            <ProfileView data={draft} />
+            <ProfileView data={draft} locale={locale} />
           </div>
         </div>
       ) : (
         <div className="pt-6 pb-16">
-          <ProfileView data={draft} />
+          <ProfileView data={draft} locale={locale} />
         </div>
       )}
     </>

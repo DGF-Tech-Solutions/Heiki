@@ -11,7 +11,57 @@ import { currentViewer } from "@/lib/community/actions";
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
 import { getGuideStore } from "@/lib/guides/store";
-import { isStale, STATUS_LABELS } from "@/lib/guides/types";
+import { isStale, statusLabel } from "@/lib/guides/types";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    guidaTitolo: "Guida · GachaZone",
+    guide: "Guide",
+    nonPubblicata: (stato: string) =>
+      `Questa guida è ${stato}: la vedi perché è tua o perché la stai revisionando. Non compare nell'elenco pubblico.`,
+    pubblicataIl: (data: string) => `pubblicata il ${data}`,
+    aggiornataIl: (data: string) => `aggiornata il ${data}`,
+    modifica: "Modifica",
+    datiVerificati: "Dati verificati",
+    nonDichiarato: "non dichiarato",
+    datasetInUso: "Dataset in uso",
+    rilascioDataset: "Rilascio dataset",
+    nessunaPatch: "Nessuno ha dichiarato in quale patch questi numeri sono stati controllati.",
+    patchVecchia: (verificata: string, corrente: string) =>
+      `I numeri di questa guida sono stati controllati sulla patch ${verificata}, il dataset attuale è ${corrente}.`,
+    metodoValido:
+      "Le indicazioni di metodo restano valide, i valori potrebbero non esserlo più. Il",
+    simulatore: "simulatore",
+    usaDataset: "usa sempre il dataset corrente.",
+    agganciata: "Questa guida è agganciata a",
+    numeriMotore: ": lì trovi i numeri calcolati dal motore sul dataset corrente.",
+    cronologia: "Cronologia",
+  },
+  en: {
+    guidaTitolo: "Guide · GachaZone",
+    guide: "Guides",
+    nonPubblicata: (stato: string) =>
+      `Status of this guide: ${stato}. You can see it because it's yours or because you're reviewing it. It doesn't appear in the public list.`,
+    pubblicataIl: (data: string) => `published ${data}`,
+    aggiornataIl: (data: string) => `updated ${data}`,
+    modifica: "Edit",
+    datiVerificati: "Verified data",
+    nonDichiarato: "not declared",
+    datasetInUso: "Dataset in use",
+    rilascioDataset: "Dataset release",
+    nessunaPatch: "Nobody has declared which patch these numbers were checked on.",
+    patchVecchia: (verificata: string, corrente: string) =>
+      `The numbers in this guide were checked on patch ${verificata}; the current dataset is ${corrente}.`,
+    metodoValido: "The method advice still holds, but the values may not. The",
+    simulatore: "simulator",
+    usaDataset: "always uses the current dataset.",
+    agganciata: "This guide is linked to",
+    numeriMotore: ": there you'll find the numbers the engine computed on the current dataset.",
+    cronologia: "History",
+  },
+});
 
 interface Props {
   params: Promise<{ game: string; slug: string }>;
@@ -22,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const store = await getGuideStore();
   const guide = await store.get(game, slug);
 
-  if (!guide) return { title: "Guida · GachaZone" };
+  if (!guide) return { title: TESTI[await getLocale()].guidaTitolo };
 
   return {
     title: `${guide.title} · GachaZone`,
@@ -42,6 +92,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function GuidePage({ params }: Props) {
   const { game, slug } = await params;
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const entry = findGame(game);
   if (!entry) notFound();
@@ -72,15 +124,14 @@ export default async function GuidePage({ params }: Props) {
       <Breadcrumb
         items={[
           { label: entry.shortName, href: `/${game}` },
-          { label: "Guide", href: `/${game}/guide` },
+          { label: t.guide, href: `/${game}/guide` },
           { label: guide.title },
         ]}
       />
 
       {guide.status !== "PUBLISHED" ? (
         <Notice tone="warn" className="mb-5">
-          Questa guida è {STATUS_LABELS[guide.status].toLowerCase()}: la vedi perché è tua o perché
-          la stai revisionando. Non compare nell&apos;elenco pubblico.
+          {t.nonPubblicata(statusLabel(guide.status, locale).toLowerCase())}
         </Notice>
       ) : null}
 
@@ -101,14 +152,16 @@ export default async function GuidePage({ params }: Props) {
               {guide.author.displayName}
             </Link>
           </span>
-          {guide.publishedAt ? <span>pubblicata il {formatDate(guide.publishedAt)}</span> : null}
-          <span>aggiornata il {formatDate(guide.updatedAt)}</span>
+          {guide.publishedAt ? (
+            <span>{t.pubblicataIl(formatDate(guide.publishedAt, locale))}</span>
+          ) : null}
+          <span>{t.aggiornataIl(formatDate(guide.updatedAt, locale))}</span>
           {(own || canReview) && !store.volatile ? (
             <Link
               href={`/${game}/guide/${guide.slug}/modifica`}
               className={cx(buttonClass("ghost", "sm"), "ml-auto")}
             >
-              Modifica
+              {t.modifica}
             </Link>
           ) : null}
         </div>
@@ -118,12 +171,12 @@ export default async function GuidePage({ params }: Props) {
         className="mb-8"
         entries={[
           {
-            label: "Dati verificati",
-            value: guide.verifiedPatch ?? "non dichiarato",
+            label: t.datiVerificati,
+            value: guide.verifiedPatch ?? t.nonDichiarato,
             stale,
           },
-          { label: "Dataset in uso", value: `patch ${currentPatch}` },
-          { label: "Rilascio dataset", value: formatDate(gameModule.dataset.releasedAt) },
+          { label: t.datasetInUso, value: `patch ${currentPatch}` },
+          { label: t.rilascioDataset, value: formatDate(gameModule.dataset.releasedAt, locale) },
         ]}
       />
 
@@ -131,13 +184,13 @@ export default async function GuidePage({ params }: Props) {
         <Notice tone="warn" className="mb-8">
           <span>
             {guide.verifiedPatch === null
-              ? "Nessuno ha dichiarato in quale patch questi numeri sono stati controllati."
-              : `I numeri di questa guida sono stati controllati sulla patch ${guide.verifiedPatch}, il dataset attuale è ${currentPatch}.`}{" "}
-            Le indicazioni di metodo restano valide, i valori potrebbero non esserlo più. Il{" "}
+              ? t.nessunaPatch
+              : t.patchVecchia(guide.verifiedPatch, currentPatch)}{" "}
+            {t.metodoValido}{" "}
             <Link href={`/${game}/strumenti`} className="font-semibold text-brand hover:underline">
-              simulatore
+              {t.simulatore}
             </Link>{" "}
-            usa sempre il dataset corrente.
+            {t.usaDataset}
           </span>
         </Notice>
       ) : null}
@@ -148,25 +201,25 @@ export default async function GuidePage({ params }: Props) {
 
           {character ? (
             <p className="mt-9 rounded-card border border-rule bg-paper-2 p-4 text-sm text-ink-2">
-              Questa guida è agganciata a{" "}
+              {t.agganciata}{" "}
               <Link
                 href={`/${game}/personaggi/${character.id}`}
                 className="font-semibold text-brand hover:underline"
               >
                 {character.name}
               </Link>
-              : lì trovi i numeri calcolati dal motore sul dataset corrente.
+              {t.numeriMotore}
             </p>
           ) : null}
 
           {guide.revisions.length > 0 ? (
             <section className="mt-10 border-t border-rule pt-6">
-              <h2 className={cx(display, "mb-3 text-lg")}>Cronologia</h2>
+              <h2 className={cx(display, "mb-3 text-lg")}>{t.cronologia}</h2>
               <ol className="m-0 grid list-none gap-1.5 p-0 text-[13px] text-ink-2">
                 {guide.revisions.map((revision) => (
                   <li key={revision.id} className="flex flex-wrap gap-2.5">
                     <span className="font-mono text-[11px] text-ink-3">
-                      {formatDate(revision.createdAt)}
+                      {formatDate(revision.createdAt, locale)}
                     </span>
                     <span>{revision.editor}</span>
                     {revision.patch ? <Tag>{revision.patch}</Tag> : null}
@@ -179,7 +232,7 @@ export default async function GuidePage({ params }: Props) {
         </article>
 
         <aside className="lg:sticky lg:top-[110px]">
-          <TableOfContents headings={headings} />
+          <TableOfContents headings={headings} locale={locale} />
 
           {own || canReview ? (
             <div className="mt-6 rounded-card border border-dashed border-rule bg-paper-2 p-4">

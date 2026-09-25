@@ -7,6 +7,8 @@ import { sortFeed } from "@/lib/community/ranking";
 import { listGames } from "@/lib/games/catalog";
 import { getGameModule } from "@/lib/games/registry";
 import { rankCharacters } from "@/lib/games/preview";
+import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
 /**
  * Radice del sito: si sceglie il gioco.
@@ -17,14 +19,52 @@ import { rankCharacters } from "@/lib/games/preview";
  * agli strumenti che si usano.
  */
 
-export const metadata: Metadata = {
-  title: "GachaZone — build, calcoli e community per i giochi gacha",
-  description:
-    "Schede personaggio, simulazioni di danno verificabili e community per Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero e Wuthering Waves.",
-};
+const TESTI = testi({
+  it: {
+    titoloPagina: "GachaZone — build, calcoli e community per i giochi gacha",
+    descrizione:
+      "Schede personaggio, simulazioni di danno verificabili e community per Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero e Wuthering Waves.",
+    giochi: "Giochi",
+    previsti: (n: number) => `${n} previsti`,
+    inArrivo: "in arrivo",
+    attivo: "attivo",
+    personaggiDati: (n: number, patch: string) => `${n} personaggi · dati ${patch}`,
+    ultimiPost: "Ultimi post",
+    community: "Community →",
+    nessunaDiscussione: "Ancora nessuna discussione.",
+    classifica: (gioco: string) => `Classifica ${gioco}`,
+    classificaCompleta: "Classifica completa →",
+  },
+  en: {
+    titoloPagina: "GachaZone — builds, calculations and community for gacha games",
+    descrizione:
+      "Character pages, verifiable damage simulations and community for Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero and Wuthering Waves.",
+    giochi: "Games",
+    previsti: (n: number) => `${n} planned`,
+    inArrivo: "coming soon",
+    attivo: "active",
+    personaggiDati: (n: number, patch: string) =>
+      `${n} ${n === 1 ? "character" : "characters"} · data ${patch}`,
+    ultimiPost: "Latest posts",
+    community: "Community →",
+    nessunaDiscussione: "No discussions yet.",
+    classifica: (gioco: string) => `${gioco} ranking`,
+    classificaCompleta: "Full ranking →",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = TESTI[await getLocale()];
+  return {
+    title: t.titoloPagina,
+    description: t.descrizione,
+  };
+}
 
 export default async function Home() {
   const games = listGames();
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const store = await getStore();
   const latest = sortFeed(await store.listPosts(null, null, null), "hot").slice(0, 4);
@@ -32,7 +72,7 @@ export default async function Home() {
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 pt-8 pb-20">
       <section>
-        <SectionHead title="Giochi" aside={<span className={eyebrow}>{games.length} previsti</span>} />
+        <SectionHead title={t.giochi} aside={<span className={eyebrow}>{t.previsti(games.length)}</span>} />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((game) => {
@@ -51,7 +91,7 @@ export default async function Home() {
                     >
                       {game.shortName}
                     </h3>
-                    <Tag>in arrivo</Tag>
+                    <Tag>{t.inArrivo}</Tag>
                   </div>
                   <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
                 </div>
@@ -68,11 +108,11 @@ export default async function Home() {
                   <h3 className={cx(display, "text-base [font-variation-settings:'wdth'_92]")}>
                     {game.shortName}
                   </h3>
-                  <Tag tone="brand">attivo</Tag>
+                  <Tag tone="brand">{t.attivo}</Tag>
                 </div>
                 <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
                 <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>
-                  {characters} personaggi · dati {gameModule?.dataset.patch}
+                  {t.personaggiDati(characters, gameModule?.dataset.patch ?? "")}
                 </p>
               </Link>
             );
@@ -82,19 +122,19 @@ export default async function Home() {
 
       <section className="mt-11 border-t border-rule pt-9">
         <SectionHead
-          title="Ultimi post"
+          title={t.ultimiPost}
           aside={
             <Link
               href={`/${games.find((game) => game.available)?.slug ?? ""}`}
               className={cx(eyebrow, "text-brand hover:underline")}
             >
-              Community →
+              {t.community}
             </Link>
           }
         />
 
         {latest.length === 0 ? (
-          <Empty>Ancora nessuna discussione.</Empty>
+          <Empty>{t.nessunaDiscussione}</Empty>
         ) : (
           <div className="grid gap-3.5">
             {latest.map((post) => (
@@ -104,13 +144,13 @@ export default async function Home() {
         )}
       </section>
 
-      <TopCharacters />
+      <TopCharacters locale={locale} />
     </main>
   );
 }
 
 /** Estratto della classifica: e' la porta d'ingresso alle schede personaggio. */
-function TopCharacters() {
+function TopCharacters({ locale }: { locale: Locale }) {
   const game = listGames().find((entry) => entry.available);
   const gameModule = game ? getGameModule(game.slug) : undefined;
   if (!game || !gameModule) return null;
@@ -118,16 +158,18 @@ function TopCharacters() {
   const ranked = rankCharacters(gameModule).slice(0, 5);
   if (ranked.length === 0) return null;
 
+  const t = TESTI[locale];
+
   return (
     <section className="mt-11 border-t border-rule pt-9">
       <SectionHead
-        title={`Classifica ${game.shortName}`}
+        title={t.classifica(game.shortName)}
         aside={
           <Link
             href={`/${game.slug}/classifica`}
             className={cx(eyebrow, "text-brand hover:underline")}
           >
-            Classifica completa →
+            {t.classificaCompleta}
           </Link>
         }
       />
@@ -147,7 +189,7 @@ function TopCharacters() {
             </Link>
             <Tag>{row.character.role}</Tag>
             <span className={cx(numeric, "ml-auto font-medium")}>
-              {Math.round(row.result.damage.median).toLocaleString("it-IT")}
+              {Math.round(row.result.damage.median).toLocaleString(intlLocale(locale))}
             </span>
           </li>
         ))}

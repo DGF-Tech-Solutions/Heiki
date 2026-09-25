@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
-import { rankCharacters, REFERENCE_LEVEL } from "@/lib/games/preview";
+import { localName, rankCharacters, REFERENCE_LEVEL } from "@/lib/games/preview";
 import { requireGameModule } from "@/lib/games/registry";
+import { intlLocale, testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 
 /**
  * Classifica per danno simulato.
@@ -17,6 +19,45 @@ import { requireGameModule } from "@/lib/games/registry";
  * l'elenco.
  */
 
+const TESTI = testi({
+  it: {
+    titoloPagina: (gioco: string) => `Classifica danno — ${gioco} · GachaZone`,
+    descrizione: (gioco: string) =>
+      `Personaggi di ${gioco} ordinati per danno mediano simulato, a parità di condizioni.`,
+    gioco: "gioco",
+    questoGioco: "questo gioco",
+    classifica: "Classifica",
+    classificaDanno: "Classifica danno",
+    introduzione: (simulazioni: string, livello: number) =>
+      `Ordinata per danno mediano su ${simulazioni} simulazioni. Stesso livello (${livello}), stesso bersaglio, stesso seed per tutti: cambia solo il personaggio.`,
+    avvisoPrima: "Questi numeri escono da",
+    avvisoEvidenza: "dati segnaposto",
+    avvisoDopo:
+      ": il motore è corretto, i valori dei personaggi no. Servono a mostrare come funziona la classifica, non a decidere chi potenziare.",
+    bersaglio: "Bersaglio",
+    turni: "turni",
+    nessunKo: "nessun KO",
+  },
+  en: {
+    titoloPagina: (gioco: string) => `Damage ranking — ${gioco} · GachaZone`,
+    descrizione: (gioco: string) =>
+      `${gioco} characters ranked by simulated median damage, under the same conditions.`,
+    gioco: "game",
+    questoGioco: "this game",
+    classifica: "Ranking",
+    classificaDanno: "Damage ranking",
+    introduzione: (simulazioni: string, livello: number) =>
+      `Ranked by median damage over ${simulazioni} simulations. Same level (${livello}), same target, same seed for everyone: only the character changes.`,
+    avvisoPrima: "These numbers come from",
+    avvisoEvidenza: "placeholder data",
+    avvisoDopo:
+      ": the engine is correct, the character values are not. They show how the ranking works, not who to invest in.",
+    bersaglio: "Target",
+    turni: "turns",
+    nessunKo: "no KO",
+  },
+});
+
 interface Props {
   params: Promise<{ game: string }>;
   searchParams: Promise<{ bersaglio?: string }>;
@@ -25,9 +66,10 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game } = await params;
   const entry = findGame(game);
+  const t = TESTI[await getLocale()];
   return {
-    title: `Classifica danno — ${entry?.shortName ?? "gioco"} · GachaZone`,
-    description: `Personaggi di ${entry?.name ?? "questo gioco"} ordinati per danno mediano simulato, a parità di condizioni.`,
+    title: t.titoloPagina(entry?.shortName ?? t.gioco),
+    description: t.descrizione(entry?.name ?? t.questoGioco),
   };
 }
 
@@ -38,41 +80,45 @@ export default async function RankingPage({ params, searchParams }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
+  const locale = await getLocale();
+  const t = TESTI[locale];
+  const numbers = intlLocale(locale);
+
   const gameModule = requireGameModule(game);
   const target =
     gameModule.targets.find((item) => item.id === bersaglio) ?? gameModule.targets[0];
   const ranked = rankCharacters(gameModule, target?.id);
   const best = ranked[0]?.result.damage.median ?? 1;
-  const unit = gameModule.timeUnit === "turns" ? "turni" : "s";
+  const unit = gameModule.timeUnit === "turns" ? t.turni : "s";
 
   return (
     <>
       <main className="pt-6 pb-20">
         <Breadcrumb
-          items={[{ label: entry.shortName, href: `/${game}` }, { label: "Classifica" }]}
+          items={[{ label: entry.shortName, href: `/${game}` }, { label: t.classifica }]}
         />
 
         <header className="mb-5 border-b border-rule pb-5">
           <p className={eyebrow}>{entry.shortName}</p>
-          <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>Classifica danno</h1>
+          <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.classificaDanno}</h1>
           <p className="mt-2.5 max-w-[68ch] text-sm text-ink-2">
-            Ordinata per danno mediano su {ranked[0]?.result.iterations.toLocaleString("it-IT") ?? 0}{" "}
-            simulazioni. Stesso livello ({REFERENCE_LEVEL}), stesso bersaglio, stesso seed per tutti:
-            cambia solo il personaggio.
+            {t.introduzione(
+              ranked[0]?.result.iterations.toLocaleString(numbers) ?? "0",
+              REFERENCE_LEVEL,
+            )}
           </p>
         </header>
 
         <Notice className="mb-5">
           <span>
-            Questi numeri escono da <strong>dati segnaposto</strong>: il motore è corretto, i valori
-            dei personaggi no. Servono a mostrare come funziona la classifica, non a decidere chi
-            potenziare.
+            {t.avvisoPrima} <strong>{t.avvisoEvidenza}</strong>
+            {t.avvisoDopo}
           </span>
         </Notice>
 
         {gameModule.targets.length > 1 ? (
-          <nav className="mb-4 flex flex-wrap items-center gap-2" aria-label="Bersaglio">
-            <span className={cx(eyebrow, "mr-1")}>Bersaglio</span>
+          <nav className="mb-4 flex flex-wrap items-center gap-2" aria-label={t.bersaglio}>
+            <span className={cx(eyebrow, "mr-1")}>{t.bersaglio}</span>
             {gameModule.targets.map((item) => (
               <Link
                 key={item.id}
@@ -84,7 +130,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
                     : "border-rule text-ink-2 hover:border-ink-3 hover:text-ink",
                 )}
               >
-                {item.name}
+                {localName(item, locale)}
               </Link>
             ))}
           </nav>
@@ -120,11 +166,11 @@ export default async function RankingPage({ params, searchParams }: Props) {
 
                   <span className="ml-auto flex flex-wrap items-baseline gap-4">
                     <span className={cx(numeric, "text-lg font-medium")}>
-                      {Math.round(row.result.damage.median).toLocaleString("it-IT")}
+                      {Math.round(row.result.damage.median).toLocaleString(numbers)}
                     </span>
                     <span className={cx(numeric, "text-xs text-ink-3")}>
                       {row.result.timeToKill === null
-                        ? "nessun KO"
+                        ? t.nessunKo
                         : `${row.result.timeToKill.median} ${unit}`}
                     </span>
                   </span>

@@ -1,7 +1,24 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
 import { setHiddenAction } from "@/lib/moderation/actions";
+
+const TESTI = testi({
+  it: {
+    azioneNonRiuscita: "Non è stato possibile completare l’azione.",
+    ripristina: "Ripristina",
+    nascondi: "Nascondi",
+    nascosto: "nascosto",
+  },
+  en: {
+    azioneNonRiuscita: "The action couldn’t be completed.",
+    ripristina: "Restore",
+    nascondi: "Hide",
+    nascosto: "hidden",
+  },
+});
 
 /**
  * Comandi di moderazione in linea.
@@ -22,6 +39,7 @@ export function ModControls({
   targetId: string;
   hidden: boolean;
 }) {
+  const t = TESTI[useLocale()];
   const [isHidden, setIsHidden] = useState(hidden);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -32,7 +50,7 @@ export function ModControls({
       const next = !isHidden;
       const result = await setHiddenAction(targetType, targetId, next);
       if (result.ok) setIsHidden(next);
-      else setError(result.error ?? "Non è stato possibile completare l’azione.");
+      else setError(result.error ?? t.azioneNonRiuscita);
     });
   }
 
@@ -44,11 +62,11 @@ export function ModControls({
         disabled={pending}
         className="rounded-[2px] border border-dashed border-hot px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-hot hover:bg-hot-soft disabled:opacity-50"
       >
-        {pending ? "…" : isHidden ? "Ripristina" : "Nascondi"}
+        {pending ? "…" : isHidden ? t.ripristina : t.nascondi}
       </button>
       {isHidden ? (
         <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-ink-3">
-          nascosto
+          {t.nascosto}
         </span>
       ) : null}
       {error ? <span className="text-[11px] text-hot">{error}</span> : null}

@@ -12,8 +12,20 @@
  */
 
 import type { ResolvedActor, SimulationResult, Target } from "@/lib/engine";
+import { inLingua, type Bilingual, type Locale } from "@/lib/i18n/locale";
 import { simulate } from "./registry";
 import type { CharacterSummary, GameModule } from "./types";
+
+/**
+ * Il nome di un bersaglio, di un'azione o di un buff nella lingua chiesta.
+ *
+ * `names` c'e' dove il dataset lo dichiara; se manca resta `name`, che e' anche
+ * la chiave con cui i post della community si agganciano ai personaggi e per
+ * questo non si traduce al suo posto.
+ */
+export function localName(item: { name: string; names?: Bilingual }, locale: Locale): string {
+  return inLingua(item.names, locale) ?? item.name;
+}
 
 /** Livello di riferimento per i confronti. Uguale per tutti, altrimenti la
  *  classifica misurerebbe gli investimenti e non i personaggi. */

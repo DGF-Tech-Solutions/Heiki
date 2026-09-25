@@ -5,13 +5,78 @@ import { Composer } from "@/components/community/composer";
 import { SponsorSlot } from "@/components/community/sponsor-slot";
 import { buttonClass, Card, cx, display, Empty, Notice } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
-import { FEED_SORTS, isFeedSort, sortFeed, type FeedSort } from "@/lib/community/ranking";
+import {
+  FEED_SORTS,
+  feedSortLabel,
+  isFeedSort,
+  sortFeed,
+  type FeedSort,
+} from "@/lib/community/ranking";
 import { getStore } from "@/lib/community/store";
-import { HUBS } from "@/lib/community/types";
+import { HUBS, hubLabel } from "@/lib/community/types";
 import { findGame } from "@/lib/games/catalog";
 import { auth } from "@/lib/auth";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
 import { followedUserIds, suggestedUsers } from "@/lib/social/actions";
 import { databaseReachable } from "@/lib/db";
+
+const TESTI = testi({
+  it: {
+    titoloPagina: (gioco: string) => `${gioco} — community · GachaZone`,
+    descrizione: (gioco: string) =>
+      `Build, rotazioni e risultati di simulazione condivisi dai giocatori di ${gioco}.`,
+    questoGioco: "questo gioco",
+    demoTitolo: "Modalità dimostrativa.",
+    demoTesto:
+      "Puoi pubblicare, commentare e votare, ma i contenuti stanno nella memoria del server e spariscono al riavvio.",
+    vista: "Vista",
+    tutti: "Tutti",
+    seguiti: "Seguiti",
+    sezioni: "Sezioni",
+    tutto: "Tutto",
+    nonSegui: "Non segui ancora nessuno",
+    soloSeguiti: "Questa vista mostra solo i post di chi segui. Comincia da qui:",
+    nessunSuggerimento: "Nessun profilo da suggerire per ora.",
+    seguaci: (n: number) => `${n} seguaci`,
+    sezioneVuota: "Ancora niente in questa sezione.",
+    regole: "Regole della sezione",
+    regolaNumeri: "Porta i numeri: mediana e intervallo, non aggettivi.",
+    regolaSeed: "Allega il seed, così chiunque rifà il calcolo.",
+    regolaPatch: "Indica la patch su cui hai provato.",
+    regolaRispetto: "Si smonta la build, non chi l'ha costruita.",
+    serveProfilo: "Serve un profilo",
+    leggereLibero: "Leggere è libero. Per pubblicare e votare no.",
+    creaProfilo: "Crea il profilo",
+  },
+  en: {
+    titoloPagina: (gioco: string) => `${gioco} — community · GachaZone`,
+    descrizione: (gioco: string) =>
+      `Builds, rotations and simulation results shared by ${gioco} players.`,
+    questoGioco: "this game",
+    demoTitolo: "Demo mode.",
+    demoTesto:
+      "You can post, comment and vote, but content lives in the server's memory and disappears on restart.",
+    vista: "View",
+    tutti: "All",
+    seguiti: "Following",
+    sezioni: "Sections",
+    tutto: "All",
+    nonSegui: "You're not following anyone yet",
+    soloSeguiti: "This view only shows posts from people you follow. Start here:",
+    nessunSuggerimento: "No profiles to suggest for now.",
+    seguaci: (n: number) => `${n} ${n === 1 ? "follower" : "followers"}`,
+    sezioneVuota: "Nothing in this section yet.",
+    regole: "Section rules",
+    regolaNumeri: "Bring numbers: median and range, not adjectives.",
+    regolaSeed: "Attach the seed, so anyone can redo the calculation.",
+    regolaPatch: "State the patch you tested on.",
+    regolaRispetto: "Take apart the build, not the person who made it.",
+    serveProfilo: "You need a profile",
+    leggereLibero: "Reading is free. Posting and voting aren't.",
+    creaProfilo: "Create your profile",
+  },
+});
 
 interface Props {
   params: Promise<{ game: string }>;
@@ -21,9 +86,10 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game } = await params;
   const entry = findGame(game);
+  const t = TESTI[await getLocale()];
   return {
-    title: `${entry?.shortName ?? "Community"} — community · GachaZone`,
-    description: `Build, rotazioni e risultati di simulazione condivisi dai giocatori di ${entry?.name ?? "questo gioco"}.`,
+    title: t.titoloPagina(entry?.shortName ?? "Community"),
+    description: t.descrizione(entry?.name ?? t.questoGioco),
   };
 }
 
@@ -35,6 +101,8 @@ const CHIP_OFF = "border-rule text-ink-2 hover:border-ink-3 hover:text-ink";
 export default async function GameFeedPage({ params, searchParams }: Props) {
   const { game } = await params;
   const query = await searchParams;
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const hub = HUBS.some((item) => item.slug === query.hub) ? (query.hub ?? null) : null;
   const sort: FeedSort = isFeedSort(query.sort) ? query.sort : "hot";
@@ -73,14 +141,13 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
         {store.volatile ? (
           <Notice className="mb-4">
             <span>
-              <strong>Modalità dimostrativa.</strong> Puoi pubblicare, commentare e votare, ma i
-              contenuti stanno nella memoria del server e spariscono al riavvio.
+              <strong>{t.demoTitolo}</strong> {t.demoTesto}
             </span>
           </Notice>
         ) : null}
 
         {session?.user ? (
-          <nav className="mb-4 flex gap-5 border-b border-rule" aria-label="Vista">
+          <nav className="mb-4 flex gap-5 border-b border-rule" aria-label={t.vista}>
             <Link
               href={link(hub, sort, false)}
               aria-current={!onlyFollowed ? "page" : undefined}
@@ -91,7 +158,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
                   : "border-brand font-semibold text-ink",
               )}
             >
-              Tutti
+              {t.tutti}
             </Link>
             <Link
               href={link(hub, sort, true)}
@@ -103,7 +170,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
                   : "border-transparent text-ink-2 hover:text-ink",
               )}
             >
-              Seguiti
+              {t.seguiti}
             </Link>
           </nav>
         ) : null}
@@ -111,9 +178,9 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
         <Composer game={game} defaultHub={hub ?? "build"} />
 
         <div className="my-4 flex flex-wrap items-center justify-between gap-3">
-          <nav className="flex flex-wrap gap-2" aria-label="Sezioni">
+          <nav className="flex flex-wrap gap-2" aria-label={t.sezioni}>
             <Link href={link(null, sort)} className={cx(CHIP, hub === null ? CHIP_ON : CHIP_OFF)}>
-              Tutto
+              {t.tutto}
             </Link>
             {HUBS.map((item) => (
               <Link
@@ -121,7 +188,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
                 href={link(item.slug, sort)}
                 className={cx(CHIP, hub === item.slug ? CHIP_ON : CHIP_OFF)}
               >
-                {item.name}
+                {hubLabel(item.slug, locale, item.name)}
               </Link>
             ))}
           </nav>
@@ -133,7 +200,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
                 href={link(hub, option.id)}
                 className={cx(CHIP, sort === option.id ? CHIP_ON : CHIP_OFF)}
               >
-                {option.label}
+                {feedSortLabel(option.id, locale)}
               </Link>
             ))}
           </span>
@@ -145,15 +212,11 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
               onlyFollowed ? (
                 <Card>
                   <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
-                    Non segui ancora nessuno
+                    {t.nonSegui}
                   </h2>
-                  <p className="mt-2 text-[13px] text-ink-2">
-                    Questa vista mostra solo i post di chi segui. Comincia da qui:
-                  </p>
+                  <p className="mt-2 text-[13px] text-ink-2">{t.soloSeguiti}</p>
                   {suggestions.length === 0 ? (
-                    <p className="mt-2 text-[13px] text-ink-3">
-                      Nessun profilo da suggerire per ora.
-                    </p>
+                    <p className="mt-2 text-[13px] text-ink-3">{t.nessunSuggerimento}</p>
                   ) : (
                     <ul className="mt-3 grid list-none gap-1.5 p-0">
                       {suggestions.map((person) => (
@@ -167,7 +230,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
                               @{person.username}
                             </span>
                             <span className="ml-auto font-mono text-[11px] text-ink-3">
-                              {person.followers} seguaci
+                              {t.seguaci(person.followers)}
                             </span>
                           </Link>
                         </li>
@@ -176,7 +239,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
                   )}
                 </Card>
               ) : (
-                <Empty>Ancora niente in questa sezione.</Empty>
+                <Empty>{t.sezioneVuota}</Empty>
               )
             ) : (
               posts.map((post) => <PostCard key={post.id} post={post} />)
@@ -188,26 +251,24 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
 
             <Card>
               <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
-                Regole della sezione
+                {t.regole}
               </h2>
               <ul className="mt-2.5 grid list-disc gap-1.5 pl-4.5 text-[13px] text-ink-2">
-                <li>Porta i numeri: mediana e intervallo, non aggettivi.</li>
-                <li>Allega il seed, così chiunque rifà il calcolo.</li>
-                <li>Indica la patch su cui hai provato.</li>
-                <li>Si smonta la build, non chi l&apos;ha costruita.</li>
+                <li>{t.regolaNumeri}</li>
+                <li>{t.regolaSeed}</li>
+                <li>{t.regolaPatch}</li>
+                <li>{t.regolaRispetto}</li>
               </ul>
             </Card>
 
             {viewer === null ? (
               <Card accent>
                 <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
-                  Serve un profilo
+                  {t.serveProfilo}
                 </h2>
-                <p className="mt-2 text-[13px] text-ink-2">
-                  Leggere è libero. Per pubblicare e votare no.
-                </p>
+                <p className="mt-2 text-[13px] text-ink-2">{t.leggereLibero}</p>
                 <Link href="/registrati" className={cx(buttonClass("primary", "sm"), "mt-3")}>
-                  Crea il profilo
+                  {t.creaProfilo}
                 </Link>
               </Card>
             ) : null}

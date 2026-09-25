@@ -9,12 +9,45 @@
 
 import { useActionState, useState } from "react";
 import { createPostAction, type ActionState } from "@/lib/community/actions";
-import { HUBS } from "@/lib/community/types";
+import { HUBS, hubLabel } from "@/lib/community/types";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
 import { Button, buttonClass, Field, Input, Notice, Select, Textarea } from "../ui";
 
 const INITIAL: ActionState = {};
 
+const TESTI = testi({
+  it: {
+    invito: "Hai trovato qualcosa che funziona? Raccontalo.",
+    scrivi: "Scrivi",
+    sezione: "Sezione",
+    titolo: "Titolo",
+    titoloPlaceholder: "Cosa hai scoperto, in una riga",
+    testo: "Testo",
+    testoHint: "i numeri battono le opinioni",
+    testoPlaceholder: "Che squadra hai provato, contro cosa, e cosa è cambiato nei risultati.",
+    pubblico: "Pubblico…",
+    pubblica: "Pubblica",
+    annulla: "Annulla",
+  },
+  en: {
+    invito: "Found something that works? Tell everyone.",
+    scrivi: "Write",
+    sezione: "Section",
+    titolo: "Title",
+    titoloPlaceholder: "What you found, in one line",
+    testo: "Text",
+    testoHint: "numbers beat opinions",
+    testoPlaceholder: "Which team you tried, against what, and what changed in the results.",
+    pubblico: "Publishing…",
+    pubblica: "Publish",
+    annulla: "Cancel",
+  },
+});
+
 export function Composer({ game, defaultHub }: { game: string; defaultHub: string }) {
+  const locale = useLocale();
+  const t = TESTI[locale];
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState(createPostAction, INITIAL);
 
@@ -25,11 +58,9 @@ export function Composer({ game, defaultHub }: { game: string; defaultHub: strin
         onClick={() => setOpen(true)}
         className="flex w-full cursor-pointer items-center gap-3.5 rounded-card border border-rule bg-paper px-3.5 py-3 text-left transition-colors hover:border-brand"
       >
-        <span className="flex-1 text-sm text-ink-3">
-          Hai trovato qualcosa che funziona? Raccontalo.
-        </span>
+        <span className="flex-1 text-sm text-ink-3">{t.invito}</span>
         <span className={buttonClass("primary", "sm")} aria-hidden>
-          Scrivi
+          {t.scrivi}
         </span>
       </button>
     );
@@ -45,41 +76,31 @@ export function Composer({ game, defaultHub }: { game: string; defaultHub: strin
       ) : null}
 
       <div className="flex flex-wrap gap-3.5">
-        <Field label="Sezione" className="mb-0 basis-[190px]">
+        <Field label={t.sezione} className="mb-0 basis-[190px]">
           <Select name="hub" defaultValue={defaultHub}>
             {HUBS.map((hub) => (
               <option key={hub.slug} value={hub.slug}>
-                {hub.name}
+                {hubLabel(hub.slug, locale, hub.name)}
               </option>
             ))}
           </Select>
         </Field>
 
-        <Field label="Titolo" className="mb-0 flex-1">
-          <Input name="title" maxLength={140} required placeholder="Cosa hai scoperto, in una riga" />
+        <Field label={t.titolo} className="mb-0 flex-1">
+          <Input name="title" maxLength={140} required placeholder={t.titoloPlaceholder} />
         </Field>
       </div>
 
-      <Field
-        label="Testo"
-        hint="i numeri battono le opinioni"
-        className="mt-3.5"
-      >
-        <Textarea
-          name="body"
-          rows={6}
-          maxLength={8000}
-          required
-          placeholder="Che squadra hai provato, contro cosa, e cosa è cambiato nei risultati."
-        />
+      <Field label={t.testo} hint={t.testoHint} className="mt-3.5">
+        <Textarea name="body" rows={6} maxLength={8000} required placeholder={t.testoPlaceholder} />
       </Field>
 
       <div className="mt-3.5 flex gap-2.5">
         <Button type="submit" variant="primary" disabled={pending}>
-          {pending ? "Pubblico…" : "Pubblica"}
+          {pending ? t.pubblico : t.pubblica}
         </Button>
         <Button type="button" onClick={() => setOpen(false)} disabled={pending}>
-          Annulla
+          {t.annulla}
         </Button>
       </div>
     </form>

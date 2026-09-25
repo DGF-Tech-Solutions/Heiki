@@ -12,8 +12,33 @@ import { cx, display, Notice, SectionHead } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import { relativeTime } from "@/lib/community/ranking";
 import { getStore } from "@/lib/community/store";
+import { hubLabel } from "@/lib/community/types";
 import { cachedCheck } from "@/lib/community/verify";
-import { can, ROLE_LABELS } from "@/lib/auth/permissions";
+import { can, roleLabel } from "@/lib/auth/permissions";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+const TESTI = testi({
+  it: {
+    discussioneTitolo: "Discussione · GachaZone",
+    gioco: "Gioco",
+    nascosto:
+      "Questo contenuto è nascosto: lo vedi perché moderi. Chi non modera trova una pagina inesistente.",
+    risposte: (n: number) =>
+      n === 0 ? "Risposte" : `${n} ${n === 1 ? "risposta" : "risposte"}`,
+    serveProfilo: "Per rispondere e votare serve un profilo:",
+    creaneUno: "creane uno",
+  },
+  en: {
+    discussioneTitolo: "Discussion · GachaZone",
+    gioco: "Game",
+    nascosto:
+      "This content is hidden: you can see it because you moderate. Everyone else gets a page that doesn't exist.",
+    risposte: (n: number) => (n === 0 ? "Replies" : `${n} ${n === 1 ? "reply" : "replies"}`),
+    serveProfilo: "You need a profile to reply and vote:",
+    creaneUno: "create one",
+  },
+});
 
 interface Props {
   params: Promise<{ game: string; postId: string }>;
@@ -23,14 +48,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { postId } = await params;
   const store = await getStore();
   const post = await store.getPost(postId, null);
+  const t = TESTI[await getLocale()];
   return {
-    title: post ? `${post.title} · GachaZone` : "Discussione · GachaZone",
+    title: post ? `${post.title} · GachaZone` : t.discussioneTitolo,
     description: post?.excerpt,
   };
 }
 
 export default async function PostPage({ params }: Props) {
   const { game, postId } = await params;
+  const locale = await getLocale();
+  const t = TESTI[locale];
   const viewer = await currentViewer();
   const store = await getStore();
   const post = await store.getPost(postId, viewer);
@@ -55,16 +83,15 @@ export default async function PostPage({ params }: Props) {
       <main className="max-w-[820px] pt-6 pb-20">
         <Breadcrumb
           items={[
-            { label: findGame(game)?.shortName ?? "Gioco", href: `/${game}` },
-            { label: post.hubName, href: `/${game}?hub=${post.hub}` },
+            { label: findGame(game)?.shortName ?? t.gioco, href: `/${game}` },
+            { label: hubLabel(post.hub, locale, post.hubName), href: `/${game}?hub=${post.hub}` },
             { label: post.title },
           ]}
         />
 
         {post.hidden ? (
           <Notice tone="warn" className="mb-5">
-            Questo contenuto è nascosto: lo vedi perché moderi. Chi non modera trova una pagina
-            inesistente.
+            {t.nascosto}
           </Notice>
         ) : null}
 
@@ -87,10 +114,12 @@ export default async function PostPage({ params }: Props) {
               </Link>
               {post.author.role !== "USER" ? (
                 <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--accent)]">
-                  {ROLE_LABELS[post.author.role]}
+                  {roleLabel(post.author.role, locale)}
                 </span>
               ) : null}
-              <span className="font-mono text-[11px]">{relativeTime(post.createdAt)}</span>
+              <span className="font-mono text-[11px]">
+                {relativeTime(post.createdAt, new Date(), locale)}
+              </span>
             </div>
 
             <h1 className={cx(display, "mb-3.5 text-[clamp(24px,3.4vw,34px)]")}>{post.title}</h1>
@@ -115,20 +144,14 @@ export default async function PostPage({ params }: Props) {
         </article>
 
         <section className="pt-9">
-          <SectionHead
-            title={
-              post.commentCount === 0
-                ? "Risposte"
-                : `${post.commentCount} ${post.commentCount === 1 ? "risposta" : "risposte"}`
-            }
-          />
+          <SectionHead title={t.risposte(post.commentCount)} />
 
           {viewer === null ? (
             <Notice className="mb-4">
               <span>
-                Per rispondere e votare serve un profilo:{" "}
+                {t.serveProfilo}{" "}
                 <Link href="/registrati" className="font-semibold text-brand hover:underline">
-                  creane uno
+                  {t.creaneUno}
                 </Link>
                 .
               </span>

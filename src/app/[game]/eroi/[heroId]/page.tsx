@@ -13,6 +13,8 @@ import {
   heroCardSrc,
   heroSkillIconSrc,
   heroSpecialIconSrc,
+  heroEpithet,
+  heroName,
   heroSplashSrc,
   type IconFamily,
 } from "@/lib/games/heroes";
@@ -30,6 +32,126 @@ import type {
   HeroSpecialsIndex,
   HeroStats,
 } from "@/lib/games/types";
+import { affinityLabel } from "@/lib/games/grand-cross/roster";
+import { inLingua, intlLocale, testi, type Bilingual, type Locale } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+
+/**
+ * L'articolo davanti al tipo, nella riga "... segue il rango scelto": l'Unita', la Grazia.
+ * Solo italiano: in inglese l'articolo e' sempre "the".
+ */
+const ARTICOLO_SPECIALE: Readonly<Record<string, string>> = {
+  comandamento: "il ",
+  grazia: "la ",
+  unita: "l'",
+  talento: "il ",
+};
+
+const TESTI = testi({
+  it: {
+    eroeNonTrovato: "Eroe non trovato · GachaZone",
+    titoloPagina: (eroe: string, gioco: string) => `${eroe} · Eroi di ${gioco} · GachaZone`,
+    descrizionePagina: (eroe: string, rarita: string, attributo: string, gioco: string) =>
+      `${eroe}, eroe ${rarita} di attributo ${attributo} in ${gioco}.`,
+    eroi: "Eroi",
+    altCard: (eroe: string) => `Card di ${eroe}`,
+    nelGioco: "Nel gioco:",
+    altIllustrazione: (eroe: string) => `Illustrazione di ${eroe}`,
+    descrizione: "Descrizione",
+    senzaDescrizione:
+      "Di questo eroe il client non porta una descrizione. Restano nome, rarità e attributo.",
+    carteAttacco: "Carte d’attacco",
+    illustrazioniAltreVersioni: (illustrazioni: number, carte: number) =>
+      `La cartella di questo personaggio contiene ${illustrazioni} illustrazioni, ma l’eroe ha ${carte} carte: le altre sono delle sue altre versioni. Quali siano le sue non si ricava dal client`,
+    illustrazioniCarte: (illustrazioni: number) =>
+      `Le ${illustrazioni} illustrazioni delle carte di quest’eroe. Quale appartenga a quale carta non si ricava dal client`,
+    gradoNonCombacia: ", e il grado di uscita non combacia",
+    gradoDaVerificare: "(stesso personaggio, grado di uscita diverso: da verificare)",
+    fonteCarte:
+      "Quali carte ha l’eroe e cosa fanno a ogni rango vengono da una fonte esterna: il client tiene le descrizioni ma non il legame con l’eroe, che sta sul server del gioco.",
+    // Solo in italiano: in inglese i testi dei ranghi sono semplicemente nella
+    // lingua della pagina, e non c'e' niente da avvertire.
+    testiInInglese: " I testi restano in inglese — il client ne ha solo i modelli, senza i valori." as
+      | string
+      | null,
+    ultimate: "Ultimate",
+    passiva: "Passiva",
+    passivaSenzaTesto: "Di questa passiva abbiamo l’icona dal client, non ancora il testo.",
+    identificativo: "Identificativo",
+    spiegaId: "è l’id del gioco: nomina anche il file della card e le sue voci di testo.",
+    altreVersioni: (personaggio: string, quante: number) =>
+      `Altre versioni di ${personaggio} · ${quante}`,
+    crediti: (gioco: string, editore: string) =>
+      `Testi e immagini provengono dal client di ${gioco} e appartengono a ${editore}.`,
+    rarita: (rarita: string) => `rarità ${rarita}`,
+    percorsoRarita: (da: string, a: string, puoArrivare: boolean) =>
+      `esce come ${da}, ${puoArrivare ? "può arrivare a" : "arriva a"} ${a}`,
+    accostamentoDedotto: "(accostamento dedotto dal vocabolario del client)",
+    iconaFonte: (breve: string) => `icona ${breve}`,
+    cornice: (spiega: string, cornice: string) => `${spiega} Cornice: ${cornice}.`,
+    soggettoSpeciale: (tipo: string, etichetta: HeroLabel | undefined) =>
+      etichetta?.it ? `${ARTICOLO_SPECIALE[tipo] ?? "l'abilità: "}${etichetta.it}` : "l'abilità",
+    soggettoPassiva: "la passiva",
+    ultimateAlRango: (rango: number) => `Ultimate al rango ${rango}`,
+    segueRango: (soggetto: string) => `· ${soggetto} segue il rango scelto qui sopra`,
+    valoriArancione: ": i valori in arancione sono quelli legati al rango",
+    rango: (rango: number) => `Rango ${rango}`,
+    carta: (slot: string) => `carta ${slot}`,
+    illustrazioneFonte: (breve: string) => `· illustrazione ${breve}`,
+    statisticheTitolo: "Statistiche al massimo, senza equipaggiamento",
+    statisticheFonte: "Nel client non ci sono: le tiene il server del gioco.",
+  },
+  en: {
+    eroeNonTrovato: "Hero not found · GachaZone",
+    titoloPagina: (eroe: string, gioco: string) => `${eroe} · ${gioco} Heroes · GachaZone`,
+    descrizionePagina: (eroe: string, rarita: string, attributo: string, gioco: string) =>
+      `${eroe}, ${rarita} hero with the ${attributo} attribute in ${gioco}.`,
+    eroi: "Heroes",
+    altCard: (eroe: string) => `${eroe} card`,
+    nelGioco: "In game:",
+    altIllustrazione: (eroe: string) => `Illustration of ${eroe}`,
+    descrizione: "Description",
+    senzaDescrizione:
+      "The client has no description for this hero. Name, rarity and attribute remain.",
+    carteAttacco: "Skill cards",
+    illustrazioniAltreVersioni: (illustrazioni: number, carte: number) =>
+      `This character's folder holds ${illustrazioni} illustrations, but the hero has ${carte} ${carte === 1 ? "card" : "cards"}: the others belong to its other versions. Which ones are its own can't be told from the client`,
+    illustrazioniCarte: (illustrazioni: number) =>
+      `The ${illustrazioni} card ${illustrazioni === 1 ? "illustration" : "illustrations"} of this hero. Which one belongs to which card can't be told from the client`,
+    gradoNonCombacia: ", and the starting rarity doesn't match",
+    gradoDaVerificare: "(same character, different starting rarity: to be verified)",
+    fonteCarte:
+      "Which cards the hero has and what they do at each rank come from an external source: the client holds the descriptions but not their link to the hero, which lives on the game's server.",
+    testiInInglese: null,
+    ultimate: "Ultimate Move",
+    passiva: "Passive",
+    passivaSenzaTesto: "For this passive we have the icon from the client, not the text yet.",
+    identificativo: "ID",
+    spiegaId: "is the game's id: it also names the card file and its text entries.",
+    altreVersioni: (personaggio: string, quante: number) =>
+      `Other versions of ${personaggio} · ${quante}`,
+    crediti: (gioco: string, editore: string) =>
+      `Texts and images come from the ${gioco} client and belong to ${editore}.`,
+    rarita: (rarita: string) => `rarity ${rarita}`,
+    percorsoRarita: (da: string, a: string, puoArrivare: boolean) =>
+      `starts as ${da}, ${puoArrivare ? "can reach" : "reaches"} ${a}`,
+    accostamentoDedotto: "(match inferred from the client's vocabulary)",
+    iconaFonte: (breve: string) => `icon: ${breve}`,
+    cornice: (spiega: string, cornice: string) => `${spiega} Frame: ${cornice}.`,
+    // In inglese l'articolo e' uno solo, e il nome del tipo e' quello del gioco.
+    soggettoSpeciale: (_tipo: string, etichetta: HeroLabel | undefined) =>
+      etichetta?.en ? `the ${etichetta.en}` : "the ability",
+    soggettoPassiva: "the passive",
+    ultimateAlRango: (rango: number) => `Ultimate Move at rank ${rango}`,
+    segueRango: (soggetto: string) => `· ${soggetto} follows the rank chosen above`,
+    valoriArancione: ": values in orange are the ones tied to the rank",
+    rango: (rango: number) => `Rank ${rango}`,
+    carta: (slot: string) => `card ${slot}`,
+    illustrazioneFonte: (breve: string) => `· illustration: ${breve}`,
+    statisticheTitolo: "Max stats, without gear",
+    statisticheFonte: "They aren't in the client: the game's server holds them.",
+  },
+});
 
 /**
  * Scheda del singolo eroe.
@@ -40,9 +162,12 @@ import type {
  * non le ha - le tiene il server del gioco - e la pagina lo dichiara invece di
  * far sembrare tutto ugualmente certo.
  *
- * I testi delle carte sono in inglese perche' il client ne spedisce 285 in
- * tutto, e sono modelli coi segnaposto che il server riempie. Il nome della
- * carta invece e' in italiano dove il gioco l'ha tradotto.
+ * I TESTI SEGUONO LA LINGUA DELLA PAGINA. Il dataset li porta in due lingue -
+ * `text` inglese e `textIt` italiano per ranghi, passiva e abilita' speciali,
+ * `nameI18n` per i nomi, `i18n` per i testi dell'eroe - e la scelta si fa qui,
+ * sul server, con le funzioni qui sotto. Dove l'italiano manca resta l'inglese,
+ * e la nota "i testi restano in inglese" compare solo quando serve davvero:
+ * quando l'eroe non ha `textsInItalian`.
  *
  * Renderizzata sul server: e' l'unico posto che legge i testi lunghi, e cosi'
  * non finiscono nel bundle di chi sfoglia soltanto la griglia.
@@ -50,6 +175,38 @@ import type {
 
 interface Props {
   params: Promise<{ game: string; heroId: string }>;
+}
+
+/**
+ * Un testo del dataset nella lingua della pagina.
+ *
+ * `label` e' la coppia italiano-inglese, `current` il valore di sempre - che
+ * e' l'italiano col ripiego sull'inglese, scelto dall'importazione. Senza la
+ * coppia (un dataset importato senza la fonte italiana) resta `current`.
+ */
+function localized(
+  label: HeroLabel | undefined,
+  current: string | undefined,
+  locale: Locale,
+): string | undefined {
+  return (label ? inLingua(label, locale) : null) ?? current;
+}
+
+/**
+ * Il testo di un rango, di una passiva o di un'abilita' speciale nella lingua
+ * della pagina. `text` e' l'inglese di 7dshub e c'e' sempre; `textIt` l'italiano,
+ * che manca solo dove la fonte italiana ha un segnaposto.
+ */
+function textIn(item: { text: string; textIt?: string }, locale: Locale): string {
+  return locale === "it" ? (item.textIt ?? item.text) : item.text;
+}
+
+/** I passi che seguono l'ultimate, col testo gia' nella lingua della pagina. */
+function stepsIn(
+  steps: readonly { fromUltimateRank: number; text: string; textIt?: string }[] | undefined,
+  locale: Locale,
+): { fromUltimateRank: number; text: string }[] | undefined {
+  return steps?.map((step) => ({ fromUltimateRank: step.fromUltimateRank, text: textIn(step, locale) }));
 }
 
 /** Le abilita' speciali dell'eroe, risolte dall'indice: l'id serve per l'icona. */
@@ -125,16 +282,20 @@ function lookup(game: string, heroId: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game, heroId } = await params;
+  const locale = await getLocale();
+  const t = TESTI[locale];
   const found = lookup(game, heroId);
-  if (!found) return { title: "Eroe non trovato · GachaZone" };
+  if (!found) return { title: t.eroeNonTrovato };
 
   const { hero, entry, text } = found;
-  const description = text?.description
-    ? plainHeroText(text.description)
-    : `${hero.name}, eroe ${hero.rarity} di attributo ${hero.affinity} in ${entry.name}.`;
+  const name = heroName(hero, locale);
+  const heroDescription = localized(text?.i18n?.description, text?.description, locale);
+  const description = heroDescription
+    ? plainHeroText(heroDescription)
+    : t.descrizionePagina(name, hero.rarity, affinityLabel(hero.affinity, locale), entry.name);
 
   return {
-    title: `${hero.name} · Eroi di ${entry.shortName} · GachaZone`,
+    title: t.titoloPagina(name, entry.shortName),
     description: description.slice(0, 180),
   };
 }
@@ -144,6 +305,9 @@ export default async function HeroPage({ params }: Props) {
 
   const found = lookup(game, heroId);
   if (!found) notFound();
+
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const {
     entry,
@@ -174,7 +338,7 @@ export default async function HeroPage({ params }: Props) {
    * "razza 5" non dice niente a nessuno, e inventare "Dea" perche' l'enum si
    * chiama GODDESS sarebbe una traduzione nostra spacciata per dato del gioco.
    */
-  const label = (value: HeroLabel | undefined) => value?.it ?? value?.en ?? null;
+  const label = (value: HeroLabel | undefined) => inLingua(value, locale);
   const raceLabel = context?.race != null ? label(codes?.race[String(context.race)]) : null;
   const factionLabels = (context?.factions ?? [])
     .map((code) => label(codes?.faction[String(code)]))
@@ -193,13 +357,20 @@ export default async function HeroPage({ params }: Props) {
     (candidate) => candidate.group === hero.group && candidate.id !== hero.id,
   );
 
+  // Nome, epiteto e testi dell'eroe nella lingua della pagina: nome ed epiteto
+  // dal roster, titolo e descrizione dal client, e dove una lingua manca l'altra.
+  const name = heroName(hero, locale);
+  const epithet = heroEpithet(hero, locale);
+  const title = localized(text?.i18n?.title, text?.title, locale);
+  const description = localized(text?.i18n?.description, text?.description, locale);
+
   return (
     <main className="pt-6 pb-20">
       <Breadcrumb
         items={[
           { label: entry.shortName, href: `/${game}` },
-          { label: "Eroi", href: `/${game}/eroi` },
-          { label: hero.name },
+          { label: t.eroi, href: `/${game}/eroi` },
+          { label: name },
         ]}
       />
 
@@ -213,7 +384,7 @@ export default async function HeroPage({ params }: Props) {
           <img
             src={heroCardSrc(game, hero.id)}
             srcSet={`${heroCardSrc(game, hero.id)} 1x, ${heroCardSrc(game, hero.id, 2)} 2x`}
-            alt={`Card di ${hero.name}`}
+            alt={t.altCard(name)}
             width={128}
             height={128}
             className="w-32 rounded-card bg-paper-2"
@@ -221,9 +392,9 @@ export default async function HeroPage({ params }: Props) {
 
           <div className="min-w-0">
             <p className={eyebrow} style={affinity ? { color: affinity.color } : undefined}>
-              {hero.epithet}
+              {epithet}
             </p>
-            <h1 className={cx(display, "mt-2 text-[clamp(24px,3.4vw,34px)]")}>{hero.name}</h1>
+            <h1 className={cx(display, "mt-2 text-[clamp(24px,3.4vw,34px)]")}>{name}</h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {/*
@@ -246,15 +417,16 @@ export default async function HeroPage({ params }: Props) {
                   game={game}
                   family="attributo"
                   iconKey={affinity.iconKey}
-                  label={affinity.label}
+                  label={affinityLabel(affinity.id, locale)}
                   size={34}
                 />
               ) : (
-                <AffinityTag affinity={affinity} fallback={hero.affinity} />
+                <AffinityTag affinity={affinity} fallback={hero.affinity} locale={locale} />
               )}
 
               <RarityPath
                 game={game}
+                locale={locale}
                 icons={icons}
                 from={hero.obtainedAs}
                 to={hero.rarity}
@@ -299,14 +471,14 @@ export default async function HeroPage({ params }: Props) {
               </Link>
             </div>
 
-            {text?.title && text.title !== hero.name ? (
+            {title && title !== name ? (
               // Un <div> e non un <p>: GameText disegna un <div> di <p>, e un <p>
               // dentro un <p> non e' HTML valido. Il browser chiudeva il primo in
               // anticipo, l'albero non combaciava piu' con quello del server e
               // ogni scheda con un titolo nel gioco dava un errore di hydration:
               // le "5 Issues" del pallino di Next.
               <div className="mt-3 text-sm text-ink-2">
-                Nel gioco: <GameText text={text.title} className="inline [&>p]:inline" />
+                {t.nelGioco} <GameText text={title} className="inline [&>p]:inline" />
               </div>
             ) : null}
           </div>
@@ -324,18 +496,18 @@ export default async function HeroPage({ params }: Props) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={heroSplashSrc(game, hero.id)}
-              alt={`Illustrazione di ${hero.name}`}
+              alt={t.altIllustrazione(name)}
               width={1024}
               height={1024}
               className="w-full rounded-card border border-rule bg-paper-2"
             />
 
             <div className="min-w-0">
-              {text?.description ? (
+              {description ? (
                 <>
-                  <h2 className={cx(eyebrow, "mb-2.5")}>Descrizione</h2>
+                  <h2 className={cx(eyebrow, "mb-2.5")}>{t.descrizione}</h2>
                   <GameText
-                    text={text.description}
+                    text={description}
                     className="max-w-[70ch] text-[15px] leading-relaxed"
                   />
                 </>
@@ -350,20 +522,20 @@ export default async function HeroPage({ params }: Props) {
               */}
             </div>
           </section>
-        ) : text?.description ? (
+        ) : description ? (
           <section className="mb-7">
-            <h2 className={cx(eyebrow, "mb-2.5")}>Descrizione</h2>
-            <GameText text={text.description} className="max-w-[70ch] text-[15px] leading-relaxed" />
+            <h2 className={cx(eyebrow, "mb-2.5")}>{t.descrizione}</h2>
+            <GameText text={description} className="max-w-[70ch] text-[15px] leading-relaxed" />
           </section>
         ) : (
-          <Notice className="mb-7">
-            Di questo eroe il client non porta una descrizione. Restano nome, rarità e attributo.
-          </Notice>
+          <Notice className="mb-7">{t.senzaDescrizione}</Notice>
         )}
 
         {abilities && abilities.cards.length > 0 ? (
           <section className="mb-7">
-            <h2 className={cx(eyebrow, "mb-2.5")}>Carte d’attacco · {abilities.cards.length}</h2>
+            <h2 className={cx(eyebrow, "mb-2.5")}>
+              {t.carteAttacco} · {abilities.cards.length}
+            </h2>
 
             {/*
               Una riga per carta, con la sua illustrazione. L'accostamento non
@@ -376,6 +548,7 @@ export default async function HeroPage({ params }: Props) {
                 <li key={index}>
                   <CardRow
                     game={game}
+                    locale={locale}
                     heroId={hero.id}
                     card={card}
                     context={card.slot ? context?.cards[card.slot] : undefined}
@@ -412,19 +585,10 @@ export default async function HeroPage({ params }: Props) {
             {cardCount > 0 && abilities.cards.every((card) => card.sprite === undefined) ? (
               <div className="mt-3">
                 <p className="m-0 mb-2 text-[13px] text-ink-3">
-                  {cardCount > abilities.cards.length ? (
-                    <>
-                      La cartella di questo personaggio contiene {cardCount} illustrazioni, ma
-                      l’eroe ha {abilities.cards.length} carte: le altre sono delle sue altre
-                      versioni. Quali siano le sue non si ricava dal client
-                    </>
-                  ) : (
-                    <>
-                      Le {cardCount} illustrazioni delle carte di quest’eroe. Quale appartenga a
-                      quale carta non si ricava dal client
-                    </>
-                  )}
-                  {assets?.cardsApprox ? ", e il grado di uscita non combacia" : null}.
+                  {cardCount > abilities.cards.length
+                    ? t.illustrazioniAltreVersioni(cardCount, abilities.cards.length)
+                    : t.illustrazioniCarte(cardCount)}
+                  {assets?.cardsApprox ? t.gradoNonCombacia : null}.
                 </p>
                 <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
                   {Array.from({ length: cardCount }, (_, index) => (
@@ -445,12 +609,13 @@ export default async function HeroPage({ params }: Props) {
             ) : null}
 
             <p className="mt-3 text-[13px] text-ink-3">
-              Quali carte ha l’eroe e cosa fanno a ogni rango vengono da una fonte esterna: il
-              client tiene le descrizioni ma non il legame con l’eroe, che sta sul server del
-              gioco.
-              {abilities.textsInEnglish ? (
-                <> I testi restano in inglese — il client ne ha solo i modelli, senza i valori.</>
-              ) : null}
+              {t.fonteCarte}
+              {/*
+                L'avviso vale solo se qualche testo resta davvero in inglese:
+                con `textsInItalian` la pagina in italiano li mostra tutti in
+                italiano, e in inglese l'avviso non esiste.
+              */}
+              {abilities.textsInEnglish && !abilities.textsInItalian ? t.testiInInglese : null}
             </p>
           </section>
         ) : cardCount > 0 ? (
@@ -458,10 +623,10 @@ export default async function HeroPage({ params }: Props) {
              abbia le immagini e non ancora il database delle abilita'. */
           <section className="mb-7">
             <h2 className={cx(eyebrow, "mb-2.5")}>
-              Carte d’attacco · {cardCount}
+              {t.carteAttacco} · {cardCount}
               {assets?.cardsApprox ? (
                 <span className="ml-2 normal-case tracking-normal text-ink-3">
-                  (stesso personaggio, grado di uscita diverso: da verificare)
+                  {t.gradoDaVerificare}
                 </span>
               ) : null}
             </h2>
@@ -485,7 +650,7 @@ export default async function HeroPage({ params }: Props) {
 
         {abilities?.ultimate ? (
           <section className="mb-7">
-            <h2 className={cx(eyebrow, "mb-2.5")}>Ultimate</h2>
+            <h2 className={cx(eyebrow, "mb-2.5")}>{t.ultimate}</h2>
             {/*
               La carta dell'ultimate accanto al testo, come per le carte
               d'attacco. Un'ultimate per eroe, quindi niente accostamento per
@@ -494,6 +659,7 @@ export default async function HeroPage({ params }: Props) {
             */}
             <CardRow
               game={game}
+              locale={locale}
               heroId={hero.id}
               card={abilities.ultimate}
               context={context?.cards["ultimate"]}
@@ -506,7 +672,7 @@ export default async function HeroPage({ params }: Props) {
 
         {abilities?.passive?.text || assets?.skill ? (
           <section className="mb-7">
-            <h2 className={cx(eyebrow, "mb-2.5")}>Passiva</h2>
+            <h2 className={cx(eyebrow, "mb-2.5")}>{t.passiva}</h2>
             {/*
               L'icona e' l'unico pezzo di passiva che il client dia con certezza:
               il file si chiama col proprio heroId (`icon_exclusive_skill_<id>`),
@@ -532,10 +698,13 @@ export default async function HeroPage({ params }: Props) {
 
               <div className="min-w-0">
                 {abilities?.passive?.name ? (
-                  <p className="m-0 mb-1 font-semibold">{abilities.passive.name}</p>
+                  <p className="m-0 mb-1 font-semibold">
+                    {localized(abilities.passive.nameI18n, abilities.passive.name, locale)}
+                  </p>
                 ) : null}
                 <PassiveConditions
                   game={game}
+                  locale={locale}
                   codes={context?.passiveConditions}
                   conditions={passiveConditions}
                   icons={icons}
@@ -543,12 +712,16 @@ export default async function HeroPage({ params }: Props) {
                 {abilities?.passive?.text ? (
                   <PassiveText
                     game={game}
-                    text={abilities.passive.text}
+                    locale={locale}
+                    text={textIn(
+                      { text: abilities.passive.text, textIt: abilities.passive.textIt },
+                      locale,
+                    )}
                     // Senza i pulsanti dell'ultimate non c'e' un rango da seguire:
                     // resta il testo del rango 1, e nessun pannello resta spento.
                     steps={
                       (abilities.ultimate?.ranks.length ?? 0) > 1
-                        ? abilities.passive.ultimateSteps
+                        ? stepsIn(abilities.passive.ultimateSteps, locale)
                         : undefined
                     }
                     context={context?.cards["passiva"]}
@@ -556,9 +729,7 @@ export default async function HeroPage({ params }: Props) {
                     icons={icons}
                   />
                 ) : (
-                  <p className="m-0 text-sm text-ink-3">
-                    Di questa passiva abbiamo l’icona dal client, non ancora il testo.
-                  </p>
+                  <p className="m-0 text-sm text-ink-3">{t.passivaSenzaTesto}</p>
                 )}
               </div>
             </div>
@@ -576,10 +747,11 @@ export default async function HeroPage({ params }: Props) {
           return (
             <section key={id} className="mb-7">
               <h2 className={cx(eyebrow, "mb-2.5")}>
-                {kind?.label.it ?? kind?.label.en ?? ability.kind}
+                {inLingua(kind?.label, locale) ?? ability.kind}
               </h2>
               <SpecialAbility
                 game={game}
+                locale={locale}
                 id={id}
                 ability={ability}
                 kind={kind}
@@ -592,35 +764,31 @@ export default async function HeroPage({ params }: Props) {
         })}
 
         <section className="mb-7">
-          <h2 className={cx(eyebrow, "mb-2.5")}>Identificativo</h2>
+          <h2 className={cx(eyebrow, "mb-2.5")}>{t.identificativo}</h2>
           <p className={cx(numeric, "m-0 text-sm text-ink-2")}>
             {hero.id}
-            <span className="ml-2 font-body text-[13px] text-ink-3">
-              è l’id del gioco: nomina anche il file della card e le sue voci di testo.
-            </span>
+            <span className="ml-2 font-body text-[13px] text-ink-3">{t.spiegaId}</span>
           </p>
         </section>
 
         {others.length > 0 ? (
           <section className="border-t border-rule-2 pt-5">
-            <h2 className={cx(eyebrow, "mb-3")}>
-              Altre versioni di {hero.group} · {others.length}
-            </h2>
+            <h2 className={cx(eyebrow, "mb-3")}>{t.altreVersioni(hero.group, others.length)}</h2>
             <ul
               className="m-0 grid list-none gap-x-3 gap-y-4 p-0"
               style={{ gridTemplateColumns: "repeat(auto-fill, minmax(96px, 116px))" }}
             >
               {others.map((other) => (
-                <Sibling key={other.id} game={game} hero={other} />
+                <Sibling key={other.id} game={game} locale={locale} hero={other} />
               ))}
             </ul>
           </section>
         ) : null}
-        <Stats stats={stats} />
+        <Stats stats={stats} locale={locale} />
       </article>
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
-        Testi e immagini provengono dal client di {entry.name} e appartengono a {entry.publisher}.
+        {t.crediti(entry.name, entry.publisher)}
       </p>
     </main>
   );
@@ -714,21 +882,22 @@ function Rarity({
  */
 function RarityPath({
   game,
+  locale,
   icons,
   from,
   to,
   canReachLr,
 }: {
   game: string;
+  locale: Locale;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   from: string;
   to: string;
   canReachLr: boolean;
 }) {
+  const t = TESTI[locale];
   const same = from === to;
-  const label = same
-    ? `rarità ${from}`
-    : `esce come ${from}, ${canReachLr ? "può arrivare a" : "arriva a"} ${to}`;
+  const label = same ? t.rarita(from) : t.percorsoRarita(from, to, canReachLr);
 
   return (
     <span
@@ -753,11 +922,13 @@ function RarityPath({
 function AffinityTag({
   affinity,
   fallback,
+  locale,
 }: {
   affinity: HeroAffinity | undefined;
   fallback: string;
+  locale: Locale;
 }) {
-  if (!affinity) return <Tag>{fallback}</Tag>;
+  if (!affinity) return <Tag>{affinityLabel(fallback, locale)}</Tag>;
 
   return (
     <span
@@ -771,7 +942,7 @@ function AffinityTag({
           : affinity.color,
       }}
     >
-      {affinity.label}
+      {affinityLabel(affinity.id, locale)}
     </span>
   );
 }
@@ -779,8 +950,8 @@ function AffinityTag({
 /**
  * Cosa fa una carta, detto con i termini del gioco.
  *
- * Il testo del rango e' inglese e pieno di meccaniche evidenziate che non si
- * spiegano da sole. Qui ci sono le stesse meccaniche come termini, con la
+ * Il testo del rango, in una lingua o nell'altra, e' pieno di meccaniche
+ * evidenziate che non si spiegano da sole. Qui ci sono le stesse meccaniche come termini, con la
  * definizione che il GIOCO ne da': quelle che si scrive nelle note dentro
  * l'abilita', il suo dizionario dei buff, la tassonomia con cui filtra gli
  * effetti.
@@ -793,9 +964,11 @@ function AffinityTag({
 function Effects({
   context,
   glossary,
+  locale,
 }: {
   context: HeroCardContext | undefined;
   glossary: Readonly<Record<string, HeroEffect>> | undefined;
+  locale: Locale;
 }) {
   if (!context || !glossary) return null;
 
@@ -817,20 +990,28 @@ function Effects({
   return (
     <ul className="m-0 mt-2.5 flex list-none flex-wrap gap-1.5 p-0">
       {common.map((effect, index) => (
-        <EffectTag key={`c${index}`} effect={effect} />
+        <EffectTag key={`c${index}`} effect={effect} locale={locale} />
       ))}
       {later.map((item, index) => (
-        <EffectTag key={`l${index}`} effect={item.effect} rank={item.rank} />
+        <EffectTag key={`l${index}`} effect={item.effect} rank={item.rank} locale={locale} />
       ))}
     </ul>
   );
 }
 
-function EffectTag({ effect, rank }: { effect: HeroEffect; rank?: string }) {
-  const label = effect.label.it ?? effect.label.en;
+function EffectTag({
+  effect,
+  rank,
+  locale,
+}: {
+  effect: HeroEffect;
+  rank?: string;
+  locale: Locale;
+}) {
+  const label = inLingua(effect.label, locale);
   if (!label) return null;
 
-  const definition = effect.definition.it ?? effect.definition.en;
+  const definition = inLingua(effect.definition, locale);
   const dedotto = effect.certainty === "dedotto";
 
   return (
@@ -843,7 +1024,7 @@ function EffectTag({ effect, rank }: { effect: HeroEffect; rank?: string }) {
         // Il titolo porta la definizione del gioco e, quando serve, il fatto
         // che l'accostamento sia dedotto. Non e' il posto ideale per una
         // spiegazione, ma e' quello che non allunga la scheda di 30 righe.
-        [definition, dedotto ? "(accostamento dedotto dal vocabolario del client)" : null]
+        [definition, dedotto ? TESTI[locale].accostamentoDedotto : null]
           .filter(Boolean)
           .join(" ") || undefined
       }
@@ -861,32 +1042,63 @@ function EffectTag({ effect, rank }: { effect: HeroEffect; rank?: string }) {
  * In pagina la parola breve, al passaggio del puntatore la regola con la sua
  * misura: le misure sono contro gli accostamenti che il wiki dichiara.
  */
-const FONTE_SPRITE: Readonly<Record<string, { breve: string; spiega: string }>> = {
-  wiki: {
-    breve: "dal wiki",
-    spiega: "Il wiki di community cita il file dell'illustrazione accanto a questa carta.",
+const FONTE_SPRITE = testi({
+  it: {
+    wiki: {
+      breve: "dal wiki",
+      spiega: "Il wiki di community cita il file dell'illustrazione accanto a questa carta.",
+    },
+    manuale: {
+      breve: "verificata a mano",
+      spiega:
+        "Scelta a mano confrontando le carte del gioco. Dove il wiki la dichiara anche, coincide 25 volte su 25.",
+    },
+    cartella_propria: {
+      breve: "dedotta",
+      spiega:
+        "L'eroe è l'unico della sua cartella di carte: le prime due, ordinate per id d'abilità. Esatta 53 volte su 53 sulle carte che il wiki dichiara.",
+    },
+    ordine_uscita: {
+      breve: "dedotta",
+      spiega:
+        "Le versioni del personaggio, in ordine di uscita, prendono le carte a coppie. Esatta 55 volte su 57 sulle carte che il wiki dichiara.",
+    },
+    famiglia: {
+      breve: "dedotta",
+      spiega:
+        "Le versioni di un personaggio condividono la carta dell'ultimate. Esatta 139 volte su 145 sulle ultimate che il wiki dichiara.",
+    },
   },
-  manuale: {
-    breve: "verificata a mano",
-    spiega:
-      "Scelta a mano confrontando le carte del gioco. Dove il wiki la dichiara anche, coincide 25 volte su 25.",
+  en: {
+    wiki: {
+      breve: "from the wiki",
+      spiega: "The community wiki cites the illustration file next to this card.",
+    },
+    manuale: {
+      breve: "checked by hand",
+      spiega:
+        "Picked by hand by comparing the game's cards. Where the wiki states it too, it matches 25 times out of 25.",
+    },
+    cartella_propria: {
+      breve: "inferred",
+      spiega:
+        "The hero is the only one in its card folder: the first two, sorted by skill id. Correct 53 times out of 53 on the cards the wiki states.",
+    },
+    ordine_uscita: {
+      breve: "inferred",
+      spiega:
+        "The character's versions, in release order, take the cards in pairs. Correct 55 times out of 57 on the cards the wiki states.",
+    },
+    famiglia: {
+      breve: "inferred",
+      spiega:
+        "A character's versions share the Ultimate Move card. Correct 139 times out of 145 on the Ultimate Moves the wiki states.",
+    },
   },
-  cartella_propria: {
-    breve: "dedotta",
-    spiega:
-      "L'eroe è l'unico della sua cartella di carte: le prime due, ordinate per id d'abilità. Esatta 53 volte su 53 sulle carte che il wiki dichiara.",
-  },
-  ordine_uscita: {
-    breve: "dedotta",
-    spiega:
-      "Le versioni del personaggio, in ordine di uscita, prendono le carte a coppie. Esatta 55 volte su 57 sulle carte che il wiki dichiara.",
-  },
-  famiglia: {
-    breve: "dedotta",
-    spiega:
-      "Le versioni di un personaggio condividono la carta dell'ultimate. Esatta 139 volte su 145 sulle ultimate che il wiki dichiara.",
-  },
-};
+});
+
+/** La forma di una voce di FONTE_SPRITE e FONTE_ICONA_SPECIALE, per cercarle con la chiave del dato. */
+type Fonte = { breve: string; spiega: string };
 
 /**
  * Le classi dei sei ranghi, scritte per esteso una per una.
@@ -978,39 +1190,75 @@ const ULTIMATE_LINK = [
   },
 ] as const;
 
-/** L'articolo davanti al tipo, nella riga "... segue il rango scelto": l'Unita', la Grazia. */
-const ARTICOLO_SPECIALE: Readonly<Record<string, string>> = {
-  comandamento: "il ",
-  grazia: "la ",
-  unita: "l'",
-  talento: "il ",
-};
-
 /** Come si sa che l'icona di un'abilita' speciale e' sua: la parola breve e la spiegazione. */
-const FONTE_ICONA_SPECIALE: Readonly<Record<string, { breve: string; spiega: string }>> = {
-  wiki: {
-    breve: "dal wiki",
-    spiega: "Il wiki di community cita questo file nella pagina dell'eroe, accanto all'abilità.",
+const FONTE_ICONA_SPECIALE = testi({
+  it: {
+    wiki: {
+      breve: "dal wiki",
+      spiega: "Il wiki di community cita questo file nella pagina dell'eroe, accanto all'abilità.",
+    },
+    schema: {
+      breve: "dedotta",
+      spiega:
+        "Nessuna fonte la cita, ma segue lo schema dei nomi delle icone dichiarate per le altre abilità dello stesso tipo.",
+    },
+    "a vista": {
+      breve: "riconosciuta a vista",
+      spiega:
+        "Un'icona del personaggio che nessun'altra abilità reclama, riconosciuta dal disegno: le sfere contano i comandamenti, il volto dice la versione.",
+    },
+    "id nel nome": {
+      breve: "dal client",
+      spiega: "Il file dell'icona porta l'id dell'eroe nel nome: nessun accostamento da indovinare.",
+    },
+    generica: {
+      breve: "generica",
+      spiega: "L'icona propria non si trova fra quelle estratte: resta il simbolo del tipo.",
+    },
   },
-  schema: {
-    breve: "dedotta",
-    spiega:
-      "Nessuna fonte la cita, ma segue lo schema dei nomi delle icone dichiarate per le altre abilità dello stesso tipo.",
+  en: {
+    wiki: {
+      breve: "from the wiki",
+      spiega: "The community wiki cites this file on the hero's page, next to the ability.",
+    },
+    schema: {
+      breve: "inferred",
+      spiega:
+        "No source cites it, but it follows the naming pattern of the icons stated for the other abilities of the same type.",
+    },
+    "a vista": {
+      breve: "recognized by eye",
+      spiega:
+        "An icon of the character that no other ability claims, recognized from the artwork: the orbs count the Commandments, the face tells the version.",
+    },
+    "id nel nome": {
+      breve: "from the client",
+      spiega: "The icon file carries the hero's id in its name: no match to guess.",
+    },
+    generica: {
+      breve: "generic",
+      spiega: "The ability's own icon isn't among the extracted ones: the type's symbol stands in.",
+    },
   },
-  "a vista": {
-    breve: "riconosciuta a vista",
-    spiega:
-      "Un'icona del personaggio che nessun'altra abilità reclama, riconosciuta dal disegno: le sfere contano i comandamenti, il volto dice la versione.",
+});
+
+/**
+ * Come si sa la cornice dell'icona: `frameSource` arriva dalla pipeline come
+ * parola italiana, e in inglese va detta in inglese. Un valore nuovo che qui
+ * manca si mostra com'e'.
+ */
+const FONTE_CORNICE = testi({
+  it: {
+    "dal tipo": "dal tipo",
+    "dedotta dal tipo di effetto": "dedotta dal tipo di effetto",
+    "dedotta: comandamento multiplo": "dedotta: comandamento multiplo",
   },
-  "id nel nome": {
-    breve: "dal client",
-    spiega: "Il file dell'icona porta l'id dell'eroe nel nome: nessun accostamento da indovinare.",
+  en: {
+    "dal tipo": "from the type",
+    "dedotta dal tipo di effetto": "inferred from the effect type",
+    "dedotta: comandamento multiplo": "inferred: multiple Commandments",
   },
-  generica: {
-    breve: "generica",
-    spiega: "L'icona propria non si trova fra quelle estratte: resta il simbolo del tipo.",
-  },
-};
+});
 
 /**
  * Un Comandamento, una Grazia, un'Unita' o un Talento.
@@ -1023,6 +1271,7 @@ const FONTE_ICONA_SPECIALE: Readonly<Record<string, { breve: string; spiega: str
  */
 function SpecialAbility({
   game,
+  locale,
   id,
   ability,
   kind,
@@ -1031,6 +1280,7 @@ function SpecialAbility({
   reactive,
 }: {
   game: string;
+  locale: Locale;
   id: string;
   ability: HeroSpecialAbility;
   kind: HeroSpecialKind | undefined;
@@ -1039,10 +1289,13 @@ function SpecialAbility({
   /** c'e' un rango dell'ultimate da seguire */
   reactive: boolean;
 }) {
-  const name = ability.name.it ?? ability.name.en;
-  const source = FONTE_ICONA_SPECIALE[ability.iconSource];
+  const t = TESTI[locale];
+  const fonti: Readonly<Record<string, Fonte | undefined>> = FONTE_ICONA_SPECIALE[locale];
+  const cornici: Readonly<Record<string, string | undefined>> = FONTE_CORNICE[locale];
+  const name = inLingua(ability.name, locale);
+  const source = fonti[ability.iconSource];
   const rules = (kind?.rules ?? [])
-    .map((rule) => rule.it ?? rule.en)
+    .map((rule) => inLingua(rule, locale))
     .filter((rule): rule is string => rule !== null);
 
   return (
@@ -1069,19 +1322,26 @@ function SpecialAbility({
         {ability.icon && source ? (
           <p
             className="m-0 mb-1.5 text-[12px] text-ink-3"
-            title={`${source.spiega} Cornice: ${ability.frameSource}.`}
+            title={t.cornice(source.spiega, cornici[ability.frameSource] ?? ability.frameSource)}
           >
-            icona {source.breve}
+            {t.iconaFonte(source.breve)}
           </p>
         ) : null}
 
-        <PassiveConditions game={game} codes={ability.conditions} conditions={conditions} icons={icons} />
+        <PassiveConditions
+          game={game}
+          locale={locale}
+          codes={ability.conditions}
+          conditions={conditions}
+          icons={icons}
+        />
         <PassiveText
           game={game}
-          text={ability.text}
-          steps={reactive ? ability.ultimateSteps : undefined}
+          locale={locale}
+          text={textIn(ability, locale)}
+          steps={reactive ? stepsIn(ability.ultimateSteps, locale) : undefined}
           icons={icons}
-          subject={kind?.label.it ? `${ARTICOLO_SPECIALE[ability.kind] ?? "l'abilità: "}${kind.label.it}` : "l'abilità"}
+          subject={t.soggettoSpeciale(ability.kind, kind?.label)}
         />
 
         {rules.length > 0 ? (
@@ -1113,11 +1373,13 @@ function SpecialAbility({
  */
 function PassiveConditions({
   game,
+  locale,
   codes,
   conditions,
   icons,
 }: {
   game: string;
+  locale: Locale;
   codes: readonly number[] | undefined;
   conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
@@ -1127,7 +1389,7 @@ function PassiveConditions({
     .filter((condition): condition is { icon: string; description: HeroLabel } => !!condition)
     .map((condition) => ({
       icon: condition.icon,
-      text: condition.description.it ?? condition.description.en,
+      text: inLingua(condition.description, locale),
     }))
     .filter((row): row is { icon: string; text: string } => row.text !== null);
 
@@ -1172,16 +1434,18 @@ function PassiveConditions({
  */
 function PassiveText({
   game,
+  locale,
   text,
   steps,
   context,
   glossary,
   icons,
-  subject = "la passiva",
+  subject,
 }: {
   game: string;
+  locale: Locale;
   text: string;
-  /** chi segue il rango, nella riga sopra il testo: "la passiva", "il Talento" */
+  /** chi segue il rango, nella riga sopra il testo: "la passiva", "il Talento"; se manca, la passiva */
   subject?: string;
   /** assenti quando la passiva non cambia, o quando non c'e' un rango da scegliere */
   steps?: readonly { fromUltimateRank: number; text: string }[];
@@ -1189,13 +1453,14 @@ function PassiveText({
   glossary?: Readonly<Record<string, HeroEffect>>;
   icons?: Readonly<Record<string, readonly string[]>>;
 }) {
+  const t = TESTI[locale];
   const body = "text-sm leading-relaxed text-ink-2";
 
   if (!steps || steps.length === 0) {
     return (
       <>
         <GameText text={text} omitNotes className={body} />
-        <Effects context={context} glossary={glossary} />
+        <Effects context={context} glossary={glossary} locale={locale} />
         <GameNotes texts={[text]} className="mt-2.5" />
       </>
     );
@@ -1228,12 +1493,12 @@ function PassiveText({
                 className="h-3.5 w-3.5 object-contain"
               />
             ) : null}
-            Ultimate al rango {index + 1}
+            {t.ultimateAlRango(index + 1)}
           </span>
         ))}
         <span>
-          · {subject} segue il rango scelto qui sopra
-          {orange ? ": i valori in arancione sono quelli legati al rango" : ""}
+          {t.segueRango(subject ?? t.soggettoPassiva)}
+          {orange ? t.valoriArancione : ""}
         </span>
       </p>
 
@@ -1243,7 +1508,7 @@ function PassiveText({
         </div>
       ))}
 
-      <Effects context={context} glossary={glossary} />
+      <Effects context={context} glossary={glossary} locale={locale} />
 
       {versions.map((version, index) => (
         <div key={`note-${version.fromUltimateRank}`} className={cx("hidden", ...shows[index]!)}>
@@ -1283,18 +1548,21 @@ function PassiveText({
  */
 function RankButtons({
   game,
+  locale,
   group,
   card,
   mark,
   fill,
 }: {
   game: string;
+  locale: Locale;
   group: string;
   card: HeroCard;
   mark: RankMark;
   /** sotto l'illustrazione: la riga e' larga quanto la carta, e i pulsanti crescono fino ai bordi */
   fill: boolean;
 }) {
+  const t = TESTI[locale];
   // Sotto la carta i pulsanti stanno in una riga sola. I tre a stelle crescono
   // fino ai bordi. Le sei pietre le mette in fila la griglia, a 18px l'una -
   // 120 meno cinque spazi da 2px, diviso sei - e la pietra ne occupa 14. Le sei
@@ -1329,7 +1597,7 @@ function RankButtons({
         <label
           key={`label-${rank.rank}`}
           htmlFor={`${group}-${rank.rank}`}
-          title={`Rango ${rank.rank}`}
+          title={t.rango(rank.rank)}
           className={cx(
             numeric,
             "flex cursor-pointer items-center justify-center rounded-[2px] border border-rule bg-paper-2",
@@ -1359,7 +1627,7 @@ function RankButtons({
                 />
               ))}
               {/* le stelle sono immagini decorative: il nome del radio sta qui */}
-              <span className="sr-only">Rango {rank.rank}</span>
+              <span className="sr-only">{t.rango(rank.rank)}</span>
             </>
           ) : mark === "pietre" ? (
             <>
@@ -1378,7 +1646,7 @@ function RankButtons({
                 loading="lazy"
                 className="h-3.5 w-3.5 object-contain"
               />
-              <span className="sr-only">Rango {rank.rank}</span>
+              <span className="sr-only">{t.rango(rank.rank)}</span>
             </>
           ) : (
             `R${rank.rank}`
@@ -1390,7 +1658,7 @@ function RankButtons({
 }
 
 /** Il testo del rango scelto: uno solo alla volta, e lo decide il radio. */
-function RankPanels({ card }: { card: HeroCard }) {
+function RankPanels({ card, locale }: { card: HeroCard; locale: Locale }) {
   const ranks = card.ranks;
   if (ranks.length === 0) return null;
 
@@ -1398,7 +1666,7 @@ function RankPanels({ card }: { card: HeroCard }) {
   if (ranks.length === 1) {
     return (
       <div className="mt-2 text-[13px] leading-snug">
-        <GameText text={ranks[0]!.text} omitNotes className="[&>p]:m-0" />
+        <GameText text={textIn(ranks[0]!, locale)} omitNotes className="[&>p]:m-0" />
       </div>
     );
   }
@@ -1407,7 +1675,7 @@ function RankPanels({ card }: { card: HeroCard }) {
     <div className="mt-2 text-[13px] leading-snug">
       {ranks.map((rank, index) => (
         <div key={`panel-${rank.rank}`} className={cx("hidden", RANK_CLASSES[index]?.show)}>
-          <GameText text={rank.text} omitNotes className="[&>p]:m-0" />
+          <GameText text={textIn(rank, locale)} omitNotes className="[&>p]:m-0" />
         </div>
       ))}
     </div>
@@ -1423,6 +1691,7 @@ function RankPanels({ card }: { card: HeroCard }) {
  */
 function CardRow({
   game,
+  locale,
   heroId,
   card,
   context,
@@ -1431,6 +1700,7 @@ function CardRow({
   artSrc,
 }: {
   game: string;
+  locale: Locale;
   heroId: string;
   card: HeroCard;
   context?: HeroCardContext;
@@ -1439,6 +1709,8 @@ function CardRow({
   /** l'illustrazione quando non e' uno sprite numerato: l'ultimate ha la sua cartella */
   artSrc?: string;
 }) {
+  const t = TESTI[locale];
+  const fontiSprite: Readonly<Record<string, Fonte | undefined>> = FONTE_SPRITE[locale];
   const art =
     artSrc ?? (card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null);
 
@@ -1483,30 +1755,37 @@ function CardRow({
           />
 
           {picker ? (
-            <RankButtons game={game} group={group} card={card} mark={mark} fill />
+            <RankButtons game={game} locale={locale} group={group} card={card} mark={mark} fill />
           ) : null}
         </div>
       ) : null}
 
       <div className="min-w-0">
         <p className={cx(eyebrow, "m-0")}>
-          {card.name}
+          {localized(card.nameI18n, card.name, locale)}
           {card.slot === "A" || card.slot === "B" ? (
-            <span className="ml-2 text-ink-3">carta {card.slot}</span>
+            <span className="ml-2 text-ink-3">{t.carta(card.slot)}</span>
           ) : null}
           {art && card.spriteSource ? (
-            <span className="ml-2 text-ink-3" title={FONTE_SPRITE[card.spriteSource]?.spiega}>
-              · illustrazione {FONTE_SPRITE[card.spriteSource]?.breve ?? card.spriteSource}
+            <span className="ml-2 text-ink-3" title={fontiSprite[card.spriteSource]?.spiega}>
+              {t.illustrazioneFonte(fontiSprite[card.spriteSource]?.breve ?? card.spriteSource)}
             </span>
           ) : null}
         </p>
 
         {/* Senza illustrazione non c'e' una carta sotto cui metterli: stanno sopra il testo. */}
         {art === null && picker ? (
-          <RankButtons game={game} group={group} card={card} mark={mark} fill={false} />
+          <RankButtons
+            game={game}
+            locale={locale}
+            group={group}
+            card={card}
+            mark={mark}
+            fill={false}
+          />
         ) : null}
 
-        <RankPanels card={card} />
+        <RankPanels card={card} locale={locale} />
 
         {/*
           Le definizioni dei termini stanno in fondo, una volta per carta. Il
@@ -1514,9 +1793,9 @@ function CardRow({
           stampare tre volte la stessa spiegazione sotto tre righe che
           differiscono per una percentuale.
         */}
-        <Effects context={context} glossary={glossary} />
+        <Effects context={context} glossary={glossary} locale={locale} />
 
-        <GameNotes texts={card.ranks.map((rank) => rank.text)} className="mt-2.5" />
+        <GameNotes texts={card.ranks.map((rank) => textIn(rank, locale))} className="mt-2.5" />
       </div>
     </div>
   );
@@ -1537,13 +1816,13 @@ function CardRow({
  * Sta in fondo alla scheda: carte, ultimate e passiva sono il motivo per cui la
  * si apre.
  */
-const STAT_ROWS: readonly { key: string; label: string; percent?: boolean }[] = [
-  { key: "atk", label: "Attacco" },
-  { key: "def", label: "Difesa" },
-  { key: "hp", label: "Salute" },
-  { key: "critPer", label: "Tasso critico", percent: true },
-  { key: "critAtkPer", label: "Danno critico", percent: true },
-  { key: "fPower", label: "Potenza combattimento" },
+const STAT_ROWS: readonly { key: string; label: Bilingual; percent?: boolean }[] = [
+  { key: "atk", label: { it: "Attacco", en: "Attack" } },
+  { key: "def", label: { it: "Difesa", en: "Defense" } },
+  { key: "hp", label: { it: "Salute", en: "HP" } },
+  { key: "critPer", label: { it: "Tasso critico", en: "Crit Chance" }, percent: true },
+  { key: "critAtkPer", label: { it: "Danno critico", en: "Crit Damage" }, percent: true },
+  { key: "fPower", label: { it: "Potenza combattimento", en: "Combat Class" } },
 ];
 
 /**
@@ -1553,14 +1832,16 @@ const STAT_ROWS: readonly { key: string; label: string; percent?: boolean }[] = 
  * nella stessa colonna uscivano `7412` e `10.002`, e due migliaia scritte in
  * due modi diversi si leggono come due unita' di misura diverse.
  */
-const numero = (n: number) => n.toLocaleString("it-IT", { useGrouping: "always" });
+const numero = (n: number, locale: Locale) =>
+  n.toLocaleString(intlLocale(locale), { useGrouping: "always" });
 
-function Stats({ stats }: { stats: HeroStats | undefined }) {
+function Stats({ stats, locale }: { stats: HeroStats | undefined; locale: Locale }) {
   if (!stats) return null;
+  const t = TESTI[locale];
 
   return (
     <section className="mb-7">
-      <h2 className={cx(eyebrow, "mb-2.5")}>Statistiche al massimo, senza equipaggiamento</h2>
+      <h2 className={cx(eyebrow, "mb-2.5")}>{t.statisticheTitolo}</h2>
 
       {/* Una colonna di numeri: stretta, perche' larga quanto la scheda il
           valore finirebbe a mille pixel dalla sua etichetta. */}
@@ -1568,9 +1849,9 @@ function Stats({ stats }: { stats: HeroStats | undefined }) {
         <tbody>
           {STAT_ROWS.filter((row) => stats.max[row.key] !== undefined).map((row) => (
             <tr key={row.key} className="border-b border-rule/60">
-              <td className="py-1.5 pr-3 text-ink-2">{row.label}</td>
+              <td className="py-1.5 pr-3 text-ink-2">{row.label[locale]}</td>
               <td className={cx(numeric, "py-1.5 text-right font-medium")}>
-                {numero(stats.max[row.key]!)}
+                {numero(stats.max[row.key]!, locale)}
                 {row.percent ? "%" : ""}
               </td>
             </tr>
@@ -1578,14 +1859,12 @@ function Stats({ stats }: { stats: HeroStats | undefined }) {
         </tbody>
       </table>
 
-      <p className="mt-3 text-[13px] text-ink-3">
-        Nel client non ci sono: le tiene il server del gioco.
-      </p>
+      <p className="mt-3 text-[13px] text-ink-3">{t.statisticheFonte}</p>
     </section>
   );
 }
 
-function Sibling({ game, hero }: { game: string; hero: HeroEntry }) {
+function Sibling({ game, locale, hero }: { game: string; locale: Locale; hero: HeroEntry }) {
   return (
     <li className="min-w-0">
       <Link href={`/${game}/eroi/${hero.id}`} className="group block">
@@ -1600,7 +1879,7 @@ function Sibling({ game, hero }: { game: string; hero: HeroEntry }) {
           className="block w-full rounded-[3px] bg-paper-2"
         />
         <p className="m-0 mt-1.5 text-[12px] font-semibold leading-tight group-hover:text-brand">
-          {hero.name}
+          {heroName(hero, locale)}
         </p>
       </Link>
     </li>

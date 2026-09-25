@@ -156,6 +156,22 @@ export function plainHeroText(raw: string): string {
 /** Il carattere con cui il gioco apre una nota che spiega un termine. */
 const NOTE_MARK = "※";
 
+/**
+ * La stessa nota aperta con l'asterisco: "*Evasione: immune ad Attacco...".
+ *
+ * Succede nei testi italiani di 7dshub, in 16 ranghi su 4.812, dove gli stessi
+ * ranghi in inglese portano ※. Vale solo in testa alla riga e seguito da un
+ * nome e dai due punti: un asterisco in mezzo alla frase, o una riga che parte
+ * con l'asterisco senza nominare un termine, resta testo. Il nome ha un tetto
+ * di lunghezza perche' i termini sono nomi, non frasi: "*" seguito da due righe
+ * di prosa con dei due punti in fondo non e' una definizione.
+ *
+ * Restano fuori le 15 note italiane che il gioco scrive senza nessuna marca
+ * ("Solidificazione: +30% Resistenza..."): senza marca non si distinguono da un
+ * effetto che nomina un termine, e restano nel corpo.
+ */
+const ASTERISK_NOTE = /^\*[^\s*:][^:]{0,60}:/;
+
 export interface SplitHeroText {
   /** l'effetto vero e proprio */
   body: TextLine[];
@@ -198,7 +214,7 @@ export function splitHeroNotes(raw: string): SplitHeroText {
       dentroLaNota = false;
       continue;
     }
-    if (plain.startsWith(NOTE_MARK)) {
+    if (plain.startsWith(NOTE_MARK) || ASTERISK_NOTE.test(plain)) {
       dentroLaNota = true;
     } else if (!dentroLaNota) {
       body.push(line);

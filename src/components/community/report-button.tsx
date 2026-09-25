@@ -1,11 +1,42 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useLocale } from "@/lib/i18n/client";
+import { testi } from "@/lib/i18n/locale";
 import { reportAction, type ModResult } from "@/lib/moderation/actions";
 import { REPORT_REASONS } from "@/lib/moderation/reasons";
 import { Button, Field, Notice, Select, Textarea } from "../ui";
 
 const INITIAL: ModResult = { ok: false };
+
+const TESTI = testi({
+  it: {
+    segnala: "Segnala",
+    entraPerSegnalare: "Entra per segnalare un contenuto.",
+    chiudi: "Chiudi",
+    perche: "Perché lo segnali",
+    dettagli: "Dettagli",
+    dettagliHint: "opzionale, ma aiuta chi legge",
+    invio: "Invio…",
+    invia: "Invia",
+    annulla: "Annulla",
+    nonAnonime:
+      "Le segnalazioni non sono anonime per i moderatori. Non è un pulsante «non sono d'accordo»: per quello c'è il voto.",
+  },
+  en: {
+    segnala: "Report",
+    entraPerSegnalare: "Log in to report content.",
+    chiudi: "Close",
+    perche: "Why are you reporting it",
+    dettagli: "Details",
+    dettagliHint: "optional, but it helps whoever reads it",
+    invio: "Sending…",
+    invia: "Send",
+    annulla: "Cancel",
+    nonAnonime:
+      "Reports are not anonymous to moderators. This isn't an “I disagree” button: that's what votes are for.",
+  },
+});
 
 /**
  * Segnala.
@@ -28,6 +59,8 @@ export function ReportButton({
   /** false per chi non ha una sessione: si mostra il perche', non si nasconde */
   canReport: boolean;
 }) {
+  const locale = useLocale();
+  const t = TESTI[locale];
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState(reportAction, INITIAL);
 
@@ -42,7 +75,7 @@ export function ReportButton({
         onClick={() => setOpen(true)}
         className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-hot"
       >
-        Segnala
+        {t.segnala}
       </button>
     );
   }
@@ -51,13 +84,13 @@ export function ReportButton({
     <div className="mt-2 rounded-card border border-rule-2 bg-paper-2 p-3.5">
       {!canReport ? (
         <>
-          <Notice tone="warn">Entra per segnalare un contenuto.</Notice>
+          <Notice tone="warn">{t.entraPerSegnalare}</Notice>
           <button
             type="button"
             onClick={() => setOpen(false)}
             className="mt-2 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
           >
-            Chiudi
+            {t.chiudi}
           </button>
         </>
       ) : (
@@ -71,37 +104,34 @@ export function ReportButton({
             </Notice>
           ) : null}
 
-          <Field label="Perché lo segnali">
+          <Field label={t.perche}>
             <Select name="reason" defaultValue="spam" required>
               {REPORT_REASONS.map((reason) => (
                 <option key={reason.id} value={reason.id}>
-                  {reason.label}
+                  {reason.labels[locale]}
                 </option>
               ))}
             </Select>
           </Field>
 
-          <Field label="Dettagli" hint="opzionale, ma aiuta chi legge">
+          <Field label={t.dettagli} hint={t.dettagliHint}>
             <Textarea name="details" rows={3} maxLength={1000} />
           </Field>
 
           <div className="flex items-center gap-2">
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Invio…" : "Invia"}
+              {pending ? t.invio : t.invia}
             </Button>
             <button
               type="button"
               onClick={() => setOpen(false)}
               className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
             >
-              Annulla
+              {t.annulla}
             </button>
           </div>
 
-          <p className="mt-2.5 text-[11px] text-ink-3">
-            Le segnalazioni non sono anonime per i moderatori. Non è un pulsante «non sono
-            d&apos;accordo»: per quello c&apos;è il voto.
-          </p>
+          <p className="mt-2.5 text-[11px] text-ink-3">{t.nonAnonime}</p>
         </form>
       )}
     </div>

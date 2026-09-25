@@ -1,5 +1,5 @@
 {
-  "descrizione": "La tassonomia con cui il client filtra gli effetti delle abilita': 238 voci con nome e descrizione, e i gruppi della ricerca.",
+  "descrizione": "La tassonomia con cui il client filtra gli effetti delle abilita': 242 voci con nome e descrizione, e i gruppi della ricerca.",
   "generato_da": "concetti.py, nella pipeline _7dsgc",
   "fonti": {
     "DB_skill_search_name/desc_*": "testi del client",
@@ -8,7 +8,7 @@
   },
   "note": {
     "certezza": "nome e descrizione sono testi del client con il loro codice: dichiarati. Dove un testo non si legge vale null",
-    "leggibili": "nomi leggibili: it 237, en 230 su 238"
+    "leggibili": "nomi leggibili: it 242, en 242 su 242"
   },
   "voci": {
     "001": {
@@ -1180,7 +1180,7 @@
     "109": {
       "nome": {
         "it": "Fuoco",
-        "en": null
+        "en": "Burn"
       },
       "descrizione": {
         "it": "Danni aggiuntivi in proporzione ai PS alla fine di ogni turno.",
@@ -1202,7 +1202,7 @@
     "115": {
       "nome": {
         "it": "Bruciatura",
-        "en": null
+        "en": "Scorch"
       },
       "descrizione": {
         "it": "Aumenta i danni inflitti in proporzione ai PS rimanenti dell'eroe.\nDanni aggiuntivi in proporzione ai danni inflitti dall'eroe.",
@@ -1290,7 +1290,7 @@
     "123": {
       "nome": {
         "it": "Frenesia",
-        "en": null
+        "en": "Frenzy"
       },
       "descrizione": {
         "it": "Aumenta i danni inflitti in proporzione ai PS rimanenti del nemico a ogni colpo, Aumento della Perforazione x2.",
@@ -1403,8 +1403,8 @@
         "en": "Extermination"
       },
       "descrizione": {
-        "it": "Ignora il 50% della Resistenza critico, x2 aumento Danno critico.",
-        "en": "Ignores 50% of Crit Resistance, 2x Crit Damage Increase."
+        "it": "Ignora il 50% della Resistenza critico, x2 aumento Danno critico, danni inflitti +50%.",
+        "en": "Ignores 50% of Crit Resistance, 2x Crit Damage Increase, damage dealt +50%."
       },
       "rimanda_a": null
     },
@@ -1458,8 +1458,8 @@
         "en": "Pain"
       },
       "descrizione": {
-        "it": "Aumenta le statistiche relative all'attacco del 12% per ogni effetto Fonte di dolore sul bersaglio.",
-        "en": "Increases Attack-related stats by 12% for every Source of Pain effect on the target."
+        "it": "x2 aumento Possibilità critico e x3 aumento Danno critico. Statistiche relative all'Attacco +12% per ogni Fonte di dolore sul bersaglio quando usa un'abilità.",
+        "en": "2x Crit Chance and 3x Crit Damage Increase. Attack-related stats +12% for each Source of Pain on the target when using skill."
       },
       "rimanda_a": null
     },
@@ -1707,7 +1707,7 @@
     },
     "177": {
       "nome": {
-        "it": null,
+        "it": "Fiamme brucianti",
         "en": "Scorching Flame"
       },
       "descrizione": {
@@ -1719,7 +1719,7 @@
     "178": {
       "nome": {
         "it": "Lampo",
-        "en": null
+        "en": "Rush"
       },
       "descrizione": {
         "it": "x2 Aumento Possibilità critico. Aumenta i danni inflitti contro i nemici colpiti da Attacco focalizzato.",
@@ -2148,7 +2148,7 @@
     "242": {
       "nome": {
         "it": "Strappo",
-        "en": null
+        "en": "Rend"
       },
       "descrizione": {
         "it": "x2 aumento Perforazione. Danni aggiuntivi pari al 100% di (Danno critico - 100%).",
@@ -2247,7 +2247,7 @@
     "256": {
       "nome": {
         "it": "Tramonto",
-        "en": null
+        "en": "Dusk"
       },
       "descrizione": {
         "it": "x5 aumento Perforazione. Aumenta i danni inflitti per ogni Benedizione dell'alba e Dominio dell'ombra.",
@@ -2445,7 +2445,7 @@
     "293": {
       "nome": {
         "it": "Fuoco",
-        "en": null
+        "en": "Burn"
       },
       "descrizione": {
         "it": "Danni subiti aumentati, danni aggiuntivi in proporzione ai PS rimanenti alla fine di ogni turno.",
@@ -2610,7 +2610,7 @@
     "317": {
       "nome": {
         "it": "Spada volante",
-        "en": null
+        "en": "Flying Sword"
       },
       "descrizione": {
         "it": "x5 aumento Perforazione. Statistiche relative all'Attacco aumentate per ogni Lama sull'eroe quando usa un'abilità.",
@@ -2626,6 +2626,50 @@
       "descrizione": {
         "it": "Aumento statistiche relative ai PS e aumento Perforazione",
         "en": "HP-related Stats Increase and Pierce Rate Increase"
+      },
+      "rimanda_a": null
+    },
+    "319": {
+      "nome": {
+        "it": "Potenza divina",
+        "en": "Divine Might"
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x5 aumento Danno critico. Danni inflitti aumentati ai nemici colpiti da Huginn e Muninn quando usa un'abilità. Danni aggiuntivi in proporzione ai danni finali.",
+        "en": "3x Crit Chance and 5x Crit Damage Increase. Increased damage dealt to enemies afflicted with Huginn and Muninn when using a skill. Additional damage proportional to final damage."
+      },
+      "rimanda_a": null
+    },
+    "320": {
+      "nome": {
+        "it": "Volontà celeste",
+        "en": "Heaven's Will"
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x2 aumento Danno critico. Ogni eroe sul campo di battaglia aumenta l'Attacco.",
+        "en": "3x Crit Chance and 2x Crit Damage Increase. Each hero on the battlefield increases Attack."
+      },
+      "rimanda_a": null
+    },
+    "321": {
+      "nome": {
+        "it": "Marchio di Gungnir",
+        "en": "Mark of Gungnir"
+      },
+      "descrizione": {
+        "it": "Sopprime i danni inflitti a Odino.",
+        "en": "Suppresses damage dealt to Odin."
+      },
+      "rimanda_a": null
+    },
+    "999": {
+      "nome": {
+        "it": "Varie",
+        "en": "Misc."
+      },
+      "descrizione": {
+        "it": "Varie",
+        "en": "Misc."
       },
       "rimanda_a": null
     }
