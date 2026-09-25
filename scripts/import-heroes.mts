@@ -21,6 +21,10 @@
 
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+// La stessa somma dello slider della scheda: il controllo dei pezzi si fa con
+// la funzione che poi li usera', non con una copia.
+import { maxSelection, statsAt } from "../src/lib/games/hero-stats";
+import type { HeroStatSteps } from "../src/lib/games/types";
 
 /** Cartella della pipeline di estrazione. Fuori dal repo: e' materiale di lavoro. */
 const SOURCE = process.env.GC_ASSETS ?? "C:/Users/franc/Desktop/All/Ougi/Video/GC/_7dsgc";
@@ -35,6 +39,7 @@ const DEST_ABILITIES = resolve(ROOT, "src/lib/games", GAME, "hero-abilities.gene
 const DEST_STATS = resolve(ROOT, "src/lib/games", GAME, "hero-stats.generated.ts");
 const DEST_CONTEXT = resolve(ROOT, "src/lib/games", GAME, "hero-context.generated.ts");
 const DEST_SPECIALS = resolve(ROOT, "src/lib/games", GAME, "hero-specials.generated.ts");
+const DEST_RELICS = resolve(ROOT, "src/lib/games", GAME, "hero-relics.generated.ts");
 const DEST_ICONS = resolve(ROOT, "src/lib/games", GAME, "game-icons.generated.ts");
 
 /** Forma delle voci in eroi.json, come le scrive la pipeline. */
@@ -590,7 +595,71 @@ interface SourceDbHero {
     modello?: SourceDbText;
     livelli?: { testo_en?: string; livello_speciale?: number | null }[];
   };
-  statistiche?: { max?: Record<string, number>; max_con_equipaggiamento?: Record<string, number> };
+  statistiche?: {
+    max?: Record<string, number>;
+    max_con_equipaggiamento?: Record<string, number>;
+    /** livello 1, con `atkAdd`/`defAdd`/`hpAdd` = la crescita per livello */
+    base?: Record<string, number>;
+    risveglio?: Record<string, number>[];
+    trascendenza?: Record<string, number>[];
+    costumi?: Record<string, number>;
+    eccesso?: Record<string, number>;
+  };
+  /** la reliquia delle statistiche massime (`craft` della scheda) */
+  reliquia?: { status?: Record<string, number>; upgrades?: Record<string, number>[] } | null;
+}
+
+/**
+ * I pezzi delle statistiche (HeroStatSteps), dal database della pipeline.
+ *
+ * Si ricompongono e si confrontano col massimo, che la pipeline calcola per
+ * conto suo: se una sola cifra non torna ci si ferma, perche' lo slider della
+ * scheda mostrerebbe numeri che il massimo smentisce. Il Vero risveglio
+ * (`eccesso`) entra nel controllo ma non nei pezzi: tocca solo resistenza ai
+ * danni e classe di combattimento, che la scheda non mostra.
+ */
+function statSteps(
+  stats: NonNullable<SourceDbHero["statistiche"]>,
+  relic: SourceDbHero["reliquia"],
+  hid: string,
+): HeroStatSteps | null {
+  const { base: source, risveglio, trascendenza, costumi, max } = stats;
+  if (!source || !risveglio || !trascendenza || !costumi || !max) return null;
+
+  const growth = { atk: source.atkAdd ?? 0, def: source.defAdd ?? 0, hp: source.hpAdd ?? 0 };
+  // Gli `*IncPer` sono il 100% di partenza, uguale per tutti: non si sommano.
+  const base = Object.fromEntries(
+    Object.entries(source).filter(([key]) => !key.endsWith("Add") && !key.endsWith("IncPer")),
+  );
+  let relicStats: Record<string, number> | undefined;
+  if (relic?.status) {
+    relicStats = { ...relic.status };
+    for (const upgrade of relic.upgrades ?? []) {
+      for (const [key, value] of Object.entries(upgrade)) relicStats[key] = (relicStats[key] ?? 0) + value;
+    }
+  }
+  const steps: HeroStatSteps = {
+    base,
+    perLevel: growth,
+    maxLevel: 100,
+    awaken: risveglio,
+    superAwaken: trascendenza,
+    ...(relicStats ? { relic: relicStats } : {}),
+    costumes: costumi,
+  };
+
+  const full = statsAt(steps, maxSelection(steps));
+  for (const [key, value] of Object.entries(stats.eccesso ?? {})) full[key] = (full[key] ?? 0) + value;
+  for (const [key, expected] of Object.entries(max)) {
+    if (key.endsWith("IncPer") || key === "dmgInc") continue;
+    if (Math.abs((full[key] ?? 0) - expected) > 1e-6) {
+      fail(
+        `${hid}: le statistiche ricomposte non ridanno il massimo (${key}: ${full[key]} invece di ${expected})`,
+        "Rilancia scheda_client.py e costruisci_database.py: i pezzi e il massimo vengono dalla stessa passata.",
+      );
+    }
+  }
+  return steps;
 }
 
 const databaseJson = resolve(SOURCE, "eroi/database_eroi.json");
@@ -612,6 +681,7 @@ if (!existsSync(databaseJson)) {
   let withPassive = 0;
   let withPassiveSteps = 0;
   let withStats = 0;
+  let withStatSteps = 0;
   let italianCardNames = 0;
   let pairedSprites = 0;
   const bySource: Record<string, number> = {};
@@ -787,9 +857,13 @@ if (!existsSync(databaseJson)) {
     const max = voce.statistiche?.max;
     const geared = voce.statistiche?.max_con_equipaggiamento;
     if (max && geared && Object.keys(max).length > 0) {
+      const steps = statSteps(voce.statistiche!, voce.reliquia, hid);
+      if (steps) withStatSteps++;
       statRows.push(
         `  ${JSON.stringify(hid)}: { max: ${JSON.stringify(max)}, ` +
-          `maxGeared: ${JSON.stringify(geared)} },`,
+          `maxGeared: ${JSON.stringify(geared)}` +
+          (steps ? `, steps: ${JSON.stringify(steps)}` : "") +
+          ` },`,
       );
       withStats++;
     }
@@ -839,6 +913,11 @@ ${abilityRows.join("\n")}
  *
  * Due colonne: l'eroe nudo e l'eroe equipaggiato. Mostrarne una sola
  * nasconderebbe quanto pesa l'equipaggiamento, che e' meta' del gioco.
+ *
+ * \`steps\` sono i pezzi di cui \`max\` e' la somma - base, crescita per livello,
+ * i sei Risvegli, i sei Super risvegli, la Reliquia sacra, i costumi - per le
+ * statistiche a un livello qualunque (lo slider della scheda). L'import li
+ * ricompone e si ferma se non ridanno \`max\`.
  */
 
 import type { HeroStats } from "../types";
@@ -869,7 +948,9 @@ ${statRows.join("\n")}
           : ""),
     );
   }
-  console.log(`  statistiche: ${withStats}/${heroes.length} eroi`);
+  console.log(
+    `  statistiche: ${withStats}/${heroes.length} eroi, ${withStatSteps} coi pezzi per lo slider (ricomposti = massimo)`,
+  );
 }
 
 /* ------------------------------------------------------------ contesto -- */
@@ -1227,6 +1308,160 @@ ${specialRows.join("\n")}
         (specialsWithoutItalian.length > 0 ? `; senza: ${specialsWithoutItalian.join(", ")}` : ""),
     );
   }
+}
+
+/* ------------------------------------------------------ reliquie sacre -- */
+
+/**
+ * Le Reliquie sacre.
+ *
+ * Le prepara `python scheda_client.py` in eroi/client/reliquie.json, nelle due
+ * lingue e tutte dal client: nome, descrizione ed effetto; statistiche e i tre
+ * potenziamenti; la Bestia demoniaca da cui si fabbrica e i materiali; l'icona
+ * grande (<arma>_c, 256px) e le icone degli oggetti. Qui si copiano le immagini
+ * e si traducono i nomi dei campi.
+ *
+ * `reliquie/` e `oggetti/` si svuotano prima di copiare, come `speciali/`.
+ */
+interface SourceAmount {
+  id: number;
+  quantita: number;
+}
+
+interface SourceRelics {
+  bestie: Record<string, SourceLabel | null>;
+  oggetti: Record<string, { nome: SourceLabel; icona: { file: string | null } }>;
+  reliquie: Record<
+    string,
+    {
+      classica: boolean;
+      nome: SourceLabel;
+      descrizione: SourceLabel;
+      icona: { file: string | null } | null;
+      statistiche: Record<string, number>;
+      potenziamenti: { statistiche: Record<string, number>; materiali: SourceAmount[]; costo: SourceAmount | null }[];
+      passiva: { nome: SourceLabel; testo: SourceLabel; condizioni: number[] } | null;
+      bestie: number[];
+      materiali: SourceAmount[];
+      costo: SourceAmount | null;
+    }
+  >;
+  eroi: Record<string, number[]>;
+}
+
+const relicsJson = resolve(SOURCE, "eroi/client/reliquie.json");
+const relicsSource = existsSync(relicsJson)
+  ? (JSON.parse(readFileSync(relicsJson, "utf8")) as SourceRelics)
+  : null;
+
+if (!relicsSource) {
+  console.log(`  reliquie.json non trovato: salto le Reliquie sacre.`);
+  console.log(`  (si genera con: python scheda_client.py, dentro _7dsgc)`);
+} else {
+  const relicDir = resolve(DEST_IMAGES, "reliquie");
+  const itemDir = resolve(DEST_IMAGES, "oggetti");
+  for (const dir of [relicDir, itemDir]) {
+    rmSync(dir, { recursive: true, force: true });
+    mkdirSync(dir, { recursive: true });
+  }
+  const extracted = (file: string | null | undefined) =>
+    file ? resolve(SOURCE, "7dsgc_estratti", file) : null;
+
+  const rosterIds = new Set(heroes.map((hero) => String(hero.heroId)));
+  const relicHeroes = Object.fromEntries(
+    Object.entries(relicsSource.eroi)
+      .filter(([hid]) => rosterIds.has(hid))
+      .map(([hid, ids]) => [hid, ids.map(String)]),
+  );
+  const cited = new Set(Object.values(relicHeroes).flat());
+
+  const amount = (a: SourceAmount | null | undefined) =>
+    a ? { id: String(a.id), count: a.quantita } : undefined;
+  const amounts = (list: SourceAmount[]) => list.map((a) => amount(a)!);
+
+  let relicImages = 0;
+  const relicRows: string[] = [];
+  const usedItems = new Set<string>();
+  for (const [id, relic] of Object.entries(relicsSource.reliquie)) {
+    if (!cited.has(id)) continue;
+    const from = extracted(relic.icona?.file);
+    const image = from !== null && existsSync(from);
+    if (image) {
+      copyFileSync(from, resolve(relicDir, `${id}.png`));
+      relicImages++;
+    }
+    const upgrades = relic.potenziamenti.map((u) => ({
+      stats: u.statistiche,
+      materials: amounts(u.materiali),
+      ...(u.costo ? { cost: amount(u.costo) } : {}),
+    }));
+    const row = {
+      name: relic.nome,
+      description: relic.descrizione,
+      image,
+      classic: relic.classica,
+      stats: relic.statistiche,
+      upgrades,
+      ...(relic.passiva
+        ? { passive: { name: relic.passiva.nome, text: relic.passiva.testo, conditions: relic.passiva.condizioni } }
+        : {}),
+      beasts: relic.bestie.map(String),
+      materials: amounts(relic.materiali),
+      ...(relic.costo ? { cost: amount(relic.costo) } : {}),
+    };
+    for (const a of [...row.materials, row.cost, ...upgrades.flatMap((u) => [...u.materials, u.cost])]) {
+      if (a) usedItems.add(a.id);
+    }
+    relicRows.push(`    ${JSON.stringify(id)}: ${JSON.stringify(row)},`);
+  }
+
+  let itemIcons = 0;
+  const items: Record<string, { name: SourceLabel; icon: boolean }> = {};
+  for (const id of [...usedItems].sort()) {
+    const source = relicsSource.oggetti[id];
+    const from = extracted(source?.icona.file);
+    const icon = from !== null && existsSync(from);
+    if (icon) {
+      copyFileSync(from, resolve(itemDir, `${id}.png`));
+      itemIcons++;
+    }
+    items[id] = { name: source?.nome ?? { it: null, en: null }, icon };
+  }
+  const beasts = Object.fromEntries(
+    Object.entries(relicsSource.bestie).flatMap(([id, label]) => (label ? [[id, label]] : [])),
+  );
+
+  writeFileSync(
+    DEST_RELICS,
+    `/**
+ * Le Reliquie sacre degli eroi di Grand Cross.
+ *
+ * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
+ *
+ * FONTE: il client (scheda_client.py -> eroi/client/reliquie.json). Una
+ * reliquia e' un costume d'arma: DB_costume_base (statistiche, effetto),
+ * DB_costume_craft (bestia e materiali), DB_craft_costume_upgrade (i tre
+ * potenziamenti), DB_item_info (icone e nomi degli oggetti). Scritta una volta,
+ * e gli eroi la citano: le versioni di un personaggio spesso la condividono.
+ */
+
+import type { HeroRelicsIndex } from "../types";
+
+export const HERO_RELICS: HeroRelicsIndex = {
+  beasts: ${JSON.stringify(beasts)},
+  items: ${JSON.stringify(items)},
+  relics: {
+${relicRows.join("\n")}
+  },
+  heroes: ${JSON.stringify(relicHeroes)},
+};
+`,
+    "utf8",
+  );
+  console.log(
+    `  reliquie sacre: ${relicRows.length} per ${Object.keys(relicHeroes).length} eroi, ` +
+      `${relicImages} immagini, ${itemIcons}/${usedItems.size} icone di oggetti`,
+  );
 }
 
 /* --------------------------------------------------------------- asset -- */

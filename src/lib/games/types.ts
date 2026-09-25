@@ -287,6 +287,84 @@ export interface HeroStats {
   readonly max: Readonly<Record<string, number>>;
   /** eroe al massimo, con l'equipaggiamento migliore */
   readonly maxGeared: Readonly<Record<string, number>>;
+  /** i pezzi di cui `max` e' la somma, per le statistiche a un livello qualunque */
+  readonly steps?: HeroStatSteps;
+}
+
+/**
+ * I pezzi delle statistiche, come li somma il gioco.
+ *
+ * SkinData.GetTotalStatWithoutPassive: base + crescita x (livello - 1) + i
+ * Risvegli fatti + i Super risvegli fatti + la Reliquia sacra + i costumi. Con
+ * tutto al massimo la somma ridà `max` esatta (l'import si ferma se no): lo
+ * slider della scheda somma questi numeri, non una stima fatta a parte.
+ *
+ * Mancano il Vero risveglio (il gioco lo chiama cosi'; nelle tabelle e'
+ * `exceed`) e l'equipaggiamento: il primo aggiunge resistenza ai danni e classe
+ * di combattimento, non le statistiche che la scheda mostra; il secondo e' lo
+ * stesso pacchetto per ogni eroe.
+ */
+export interface HeroStatSteps {
+  /** al livello 1, senza nient'altro */
+  readonly base: Readonly<Record<string, number>>;
+  /** quanto aggiunge ogni livello dopo il primo: attacco, difesa, PS */
+  readonly perLevel: Readonly<Record<string, number>>;
+  readonly maxLevel: number;
+  /** i sei Risvegli, in ordine: ognuno aggiunge il suo */
+  readonly awaken: readonly Readonly<Record<string, number>>[];
+  /** i sei Super risvegli (nelle tabelle, `transcend`) */
+  readonly superAwaken: readonly Readonly<Record<string, number>>[];
+  /** la Reliquia sacra con i tre potenziamenti; assente se l'eroe non ne ha */
+  readonly relic?: Readonly<Record<string, number>>;
+  /** i cinque costumi migliori per tipo, al massimo potenziamento */
+  readonly costumes: Readonly<Record<string, number>>;
+}
+
+/** Un oggetto con la sua quantita': un materiale, o il costo in oro. */
+export interface HeroRelicAmount {
+  readonly id: string;
+  readonly count: number;
+}
+
+/**
+ * Una Reliquia sacra.
+ *
+ * Nel client e' un costume d'arma (DB_costume_base, `craft_costume_check` 1 o
+ * 2): si fabbrica coi materiali di una Bestia demoniaca (DB_costume_craft) e si
+ * potenzia tre volte (DB_craft_costume_upgrade). Scritta una volta, e gli eroi
+ * la citano: le versioni di un personaggio spesso la condividono.
+ */
+export interface HeroRelic {
+  readonly name: HeroLabel;
+  /** col markup del gioco, come le descrizioni degli eroi */
+  readonly description: HeroLabel;
+  /** c'e' l'immagine in public/eroi/<gioco>/reliquie/<id>.png */
+  readonly image: boolean;
+  /** false per le reliquie di Surtr: un eroe con due ne attiva una alla volta */
+  readonly classic: boolean;
+  readonly stats: Readonly<Record<string, number>>;
+  /** i tre potenziamenti, ognuno con quanto aggiunge e cosa costa */
+  readonly upgrades: readonly {
+    readonly stats: Readonly<Record<string, number>>;
+    readonly materials: readonly HeroRelicAmount[];
+    readonly cost?: HeroRelicAmount;
+  }[];
+  /** l'effetto della reliquia: una passiva, con le condizioni come la passiva dell'eroe */
+  readonly passive?: { readonly name: HeroLabel; readonly text: HeroLabel; readonly conditions: readonly number[] };
+  /** le Bestie demoniache da cui si fabbrica (chiavi di HeroRelicsIndex.beasts); vuoto per 65 reliquie */
+  readonly beasts: readonly string[];
+  readonly materials: readonly HeroRelicAmount[];
+  readonly cost?: HeroRelicAmount;
+}
+
+/** Le reliquie, gli oggetti che servono a farle e le bestie da cui vengono. */
+export interface HeroRelicsIndex {
+  readonly beasts: Readonly<Record<string, HeroLabel>>;
+  /** gli oggetti citati: nome e se c'e' l'icona in public/eroi/<gioco>/oggetti/<id>.png */
+  readonly items: Readonly<Record<string, { readonly name: HeroLabel; readonly icon: boolean }>>;
+  readonly relics: Readonly<Record<string, HeroRelic>>;
+  /** heroId -> id delle sue reliquie, quella delle statistiche massime per prima */
+  readonly heroes: Readonly<Record<string, readonly string[]>>;
 }
 
 /**
@@ -569,6 +647,9 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
 
   /** Comandamenti, Grazie, Unita' e Talenti: le abilita' che si aggiungono all'unica. */
   readonly heroSpecials?: HeroSpecialsIndex;
+
+  /** Le Reliquie sacre: immagine, effetto, potenziamenti, bestia e materiali. */
+  readonly heroRelics?: HeroRelicsIndex;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

@@ -191,6 +191,19 @@ export function heroSpecialIconSrc(gameSlug: string, abilityId: string): string 
   return `/eroi/${gameSlug}/speciali/${abilityId}.png`;
 }
 
+/**
+ * Immagine di una Reliquia sacra: `public/eroi/<gioco>/reliquie/<id reliquia>.png`,
+ * 256px. Per id della reliquia: le versioni di un personaggio la condividono.
+ */
+export function heroRelicSrc(gameSlug: string, relicId: string): string {
+  return `/eroi/${gameSlug}/reliquie/${relicId}.png`;
+}
+
+/** Icona di un oggetto del gioco (materiali, oro): `public/eroi/<gioco>/oggetti/<id>.png`. */
+export function gameItemSrc(gameSlug: string, itemId: string): string {
+  return `/eroi/${gameSlug}/oggetti/${itemId}.png`;
+}
+
 /** Le famiglie di icone che il gioco usa per etichettare un eroe. */
 export type IconFamily = "razza" | "attributo" | "rarita" | "carta" | "condizione";
 
