@@ -26,7 +26,7 @@
       ],
       "ranghi_nel_client": 3,
       "chiave_7dshub": "skillsA",
-      "ranghi_nei_dati": 1122,
+      "ranghi_nei_dati": 1125,
       "certezza": "dichiarato",
       "prove": [],
       "campi_collegati": [
@@ -48,7 +48,7 @@
       ],
       "ranghi_nel_client": 3,
       "chiave_7dshub": "skillsB",
-      "ranghi_nei_dati": 1122,
+      "ranghi_nei_dati": 1125,
       "certezza": "dichiarato",
       "prove": [],
       "campi_collegati": [
@@ -73,7 +73,7 @@
       ],
       "ranghi_nel_client": 6,
       "chiave_7dshub": "skillsSpecial",
-      "ranghi_nei_dati": 2244,
+      "ranghi_nei_dati": 2250,
       "certezza": "dichiarato",
       "prove": []
     },
@@ -105,7 +105,7 @@
       ],
       "ranghi_nel_client": null,
       "chiave_7dshub": "passive",
-      "ranghi_nei_dati": 503,
+      "ranghi_nei_dati": 509,
       "certezza": "dichiarato",
       "prove": []
     },
@@ -154,9 +154,9 @@
       },
       "enum": "atk",
       "uso": {
-        "A": 864,
-        "ultimate": 1740,
-        "B": 493,
+        "A": 867,
+        "ultimate": 1746,
+        "B": 496,
         "coop": 216
       },
       "certezza": "dedotto",
@@ -429,14 +429,14 @@
       "etichetta_da": null,
       "enum": "melee",
       "uso": {
-        "A": 600,
+        "A": 603,
         "B": 249,
         "ultimate": 859,
         "coop": 336
       },
       "certezza": "dichiarato",
       "prove": [
-        "ranghi con il bersaglio letto nel testo: single_enemy 1.462 (72%), global_enemy 489 (24%), nessuno 75 (4%), global_ally 18 (1%)",
+        "ranghi con il bersaglio letto nel testo: single_enemy 1.465 (72%), global_enemy 489 (24%), nessuno 75 (4%), global_ally 18 (1%)",
         "il gioco nomina le abilita' «melee» in 3 nomi di effetto, es. DB_skill_buff_name_3551: «Evade Melee Skill»"
       ]
     },
@@ -449,12 +449,12 @@
       "enum": "range",
       "uso": {
         "A": 522,
-        "B": 873,
-        "ultimate": 1385
+        "B": 876,
+        "ultimate": 1391
       },
       "certezza": "dichiarato",
       "prove": [
-        "ranghi con il bersaglio letto nel testo: global_enemy 1.338 (48%), single_enemy 979 (35%), global_ally 256 (9%), nessuno 190 (7%), single_ally 17 (1%)"
+        "ranghi con il bersaglio letto nel testo: global_enemy 1.347 (48%), single_enemy 979 (35%), global_ally 256 (9%), nessuno 190 (7%), single_ally 17 (1%)"
       ]
     }
   },
@@ -498,7 +498,7 @@
         "one enemy"
       ],
       "uso": {
-        "A": 921,
+        "A": 924,
         "ultimate": 1026,
         "coop": 210,
         "B": 284
@@ -535,9 +535,9 @@
         "all enemies"
       ],
       "uso": {
-        "B": 531,
+        "B": 534,
         "A": 192,
-        "ultimate": 1008,
+        "ultimate": 1014,
         "coop": 96
       },
       "certezza": "dichiarato",

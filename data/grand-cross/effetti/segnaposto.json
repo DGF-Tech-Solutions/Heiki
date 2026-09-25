@@ -26,14 +26,14 @@
       ],
       "uso": {
         "descrizioni_client": 747,
-        "ranghi_col_modello": 3202
+        "ranghi_col_modello": 3214
       },
       "certezza": "dedotto",
       "prove": [
         "«{melee_val}» e' il nome del tag in minuscolo: compare in 747 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 3.202",
+        "nei ranghi col modello il valore e' percentuale 3.214",
         "DBSkillCardBaseRow: il valore d'attacco della carta: atk_per_add ha il suffisso degli incrementi, come effect_value_add accanto a effect_value",
-        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.145 volte su 3.202"
+        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.157 volte su 3.214"
       ]
     },
     "TARGET_VALUE": {
@@ -51,12 +51,12 @@
       ],
       "uso": {
         "descrizioni_client": 876,
-        "ranghi_col_modello": 3401
+        "ranghi_col_modello": 3413
       },
       "certezza": "dedotto",
       "prove": [
         "«{target_val}» e' il nome del tag in minuscolo: compare in 876 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' bersaglio 3.401",
+        "nei ranghi col modello il valore e' bersaglio 3.413",
         "DBSkillCardBaseRow: stesso nome della colonna"
       ]
     },
@@ -76,12 +76,12 @@
       ],
       "uso": {
         "descrizioni_client": 222,
-        "ranghi_col_modello": 811
+        "ranghi_col_modello": 823
       },
       "certezza": "dedotto",
       "prove": [
         "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 222 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 583, intero 228",
+        "nei ranghi col modello il valore e' percentuale 595, intero 228",
         "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
       ]
     },
@@ -101,12 +101,12 @@
       ],
       "uso": {
         "descrizioni_client": 53,
-        "ranghi_col_modello": 110
+        "ranghi_col_modello": 113
       },
       "certezza": "dedotto",
       "prove": [
         "«{opt_2_val}» e' il nome del tag in minuscolo: compare in 53 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 72, intero 34, altro 4",
+        "nei ranghi col modello il valore e' percentuale 75, intero 34, altro 4",
         "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
       ]
     },
@@ -896,12 +896,12 @@
       ],
       "uso": {
         "descrizioni_client": 17,
-        "ranghi_col_modello": 23
+        "ranghi_col_modello": 28
       },
       "certezza": "dedotto",
       "prove": [
         "«{buff_data_turn}» e' il nome del tag in minuscolo: compare in 17 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' intero 23",
+        "nei ranghi col modello il valore e' intero 28",
         "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag"
       ]
     },

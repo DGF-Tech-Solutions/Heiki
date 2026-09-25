@@ -6,10 +6,10 @@
  * Sta in un file separato dal roster perche' ha un destinatario diverso: il
  * roster viaggia fino al browser per far funzionare i filtri, questi testi no.
  * Li legge solo la scheda del singolo eroe, che e' renderizzata sul server, e
- * tenerli qui evita di spedire 374 descrizioni a chi sta solo sfogliando
+ * tenerli qui evita di spedire 375 descrizioni a chi sta solo sfogliando
  * la griglia.
  *
- * Sono 374 eroi su 374: agli altri il gioco assegna i testi dal
+ * Sono 375 eroi su 375: agli altri il gioco assegna i testi dal
  * server, e nel client non ci sono.
  */
 
@@ -2633,5 +2633,12 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     epithet: "[Magia color oro]",
     description: "Una dei [quattro Cavalieri dell'Apocalisse] che Tristan ha portato con sé. La sua imponente corporatura sprigiona una forza fisica straordinaria, ed è altrettanto abile nell'uso della magia di alto livello.",
     i18n: {"name":{"it":"Gawain cavaliere del sole","en":"Knight of the Sun Gawain"},"title":{"it":"[Magia color oro] Gawain cavaliere del sole","en":"[Gold-Colored Magic] Knight of the Sun Gawain"},"epithet":{"it":"[Magia color oro]","en":"[Gold-Colored Magic]"},"description":{"it":"Una dei [quattro Cavalieri dell'Apocalisse] che Tristan ha portato con sé. La sua imponente corporatura sprigiona una forza fisica straordinaria, ed è altrettanto abile nell'uso della magia di alto livello.","en":"One of the [Four Knights of the Apocalypse] that Tristan brought along. Her massive frame projects raw physical power, and she's equally skilled in high-tier magic."}},
+  },
+  "2016501": {
+    name: "Dio supremo Odino",
+    title: "[Onnipotente] Dio supremo Odino",
+    epithet: "[Onnipotente]",
+    description: "Il dio supremo di Asgard, la città degli dei, sovrano di ogni cosa, che predice il futuro attraverso il proprio potere, \"Onniscienza\".",
+    i18n: {"name":{"it":"Dio supremo Odino","en":"Supreme God Odin"},"title":{"it":"[Onnipotente] Dio supremo Odino","en":"[Almighty] Supreme God Odin"},"epithet":{"it":"[Onnipotente]","en":"[Almighty]"},"description":{"it":"Il dio supremo di Asgard, la città degli dei, sovrano di ogni cosa, che predice il futuro attraverso il proprio potere, \"Onniscienza\".","en":"The Supreme God of Asgard, the city of the gods, and ruler of all things who foretells the future through his own power, \"Omniscience.\""}},
   },
 };

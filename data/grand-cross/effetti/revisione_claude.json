@@ -1455,6 +1455,20 @@
     }
    ]
   },
+  "p471d8ba2": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "cura",
+     "condizione": "of recovered HP at the beginning of the turn",
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
   "p26985e88": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -1881,6 +1895,32 @@
     }
    ]
   },
+  "p3d1932a7": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "cura",
+     "in_base_a": "statistiche.atk",
+     "colonne": {
+      "atk_per": 1
+     },
+     "a_chi": "bersaglio",
+     "tassonomia": [
+      "069"
+     ]
+    },
+    {
+     "tabella": "buff",
+     "effetto": "termine",
+     "termine": 2,
+     "colonne": {
+      "buff_turn": 3
+     }
+    }
+   ]
+  },
   "pfdfc41b2": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -2175,6 +2215,19 @@
       "statistiche.atk"
      ],
      "condizione": "when using skill",
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "pf238c564": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "danni_inflitti",
      "colonne": {
       "valore": 1
      }
@@ -2594,20 +2647,6 @@
     }
    ]
   },
-  "p471d8ba2": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "buff",
-     "effetto": "cura",
-     "condizione": "of recovered HP at the beginning of the turn",
-     "colonne": {
-      "valore": 1
-     }
-    }
-   ]
-  },
   "p49bbe495": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -2619,6 +2658,21 @@
       "valore": 1
      },
      "condizione": "on all enemies at the start of the enemy's turn"
+    }
+   ]
+  },
+  "pb03db3dc": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "the final damage"
     }
    ]
   },
@@ -3098,6 +3152,29 @@
      "a_chi": "bersaglio",
      "colonne": {
       "valore": 2
+     },
+     "bersaglio": 1,
+     "tassonomia": [
+      "045"
+     ]
+    }
+   ]
+  },
+  "pbbb31bfd": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 2,
+      "buff_turn": 3
      },
      "bersaglio": 1,
      "tassonomia": [
@@ -3619,32 +3696,6 @@
     }
    ],
    "nota": "la condizione della cura ora è l'inglese della frase («of damage dealt»), con l'italiano del gioco accanto: prima era scritta in italiano, «in proporzione al danno inflitto», in un campo inglese. Il resto della lettura è quello rivisto prima"
-  },
-  "p3d1932a7": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "base",
-     "effetto": "cura",
-     "in_base_a": "statistiche.atk",
-     "colonne": {
-      "atk_per": 1
-     },
-     "a_chi": "bersaglio",
-     "tassonomia": [
-      "069"
-     ]
-    },
-    {
-     "tabella": "buff",
-     "effetto": "termine",
-     "termine": 2,
-     "colonne": {
-      "buff_turn": 3
-     }
-    }
-   ]
   },
   "p35a676c3": {
    "esito": "giusta",
@@ -5056,6 +5107,24 @@
     }
    ]
   },
+  "p18b445c4": {
+   "esito": "giusta",
+   "quando": "2026-09-25",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "321"
+     ],
+     "colonne": {
+      "buff_turn": 2
+     },
+     "bersaglio": 1,
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
   "p6e93a857": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -5070,19 +5139,6 @@
       "buff_turn": 1
      },
      "a_chi": "self"
-    }
-   ]
-  },
-  "pf238c564": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "buff",
-     "effetto": "danni_inflitti",
-     "colonne": {
-      "valore": 1
-     }
     }
    ]
   },
@@ -5694,30 +5750,6 @@
     }
    ]
   },
-  "p631fd9c1": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "effetto": "definizione",
-     "tassonomia": [
-      "145"
-     ]
-    }
-   ]
-  },
-  "pf600c1f4": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "effetto": "definizione",
-     "tassonomia": [
-      "145"
-     ]
-    }
-   ]
-  },
   "peabb3775": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -6240,21 +6272,6 @@
     }
    ]
   },
-  "pb03db3dc": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "opzione",
-     "effetto": "danni_inflitti",
-     "verso": "aumento",
-     "colonne": {
-      "valore": 1
-     },
-     "condizione": "the final damage"
-    }
-   ]
-  },
   "p538c2e08": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -6691,9 +6708,9 @@
     }
    ]
   },
-  "pe9127b1f": {
+  "p305b5382": {
    "esito": "giusta",
-   "quando": "2026-09-15",
+   "quando": "2026-09-25",
    "lettura_vista": [
     {
      "tabella": "opzione",
@@ -6701,7 +6718,7 @@
      "statistiche": [
       "gruppi.attacco"
      ],
-     "condizione": "for every Source of Pain on the target",
+     "condizione": "for each Source of Pain on the target when using skill",
      "colonne": {
       "valore": 1
      }
@@ -7043,6 +7060,20 @@
     }
    ]
   },
+  "p0942e020": {
+   "esito": "giusta",
+   "quando": "2026-09-25",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "to enemies afflicted with Huginn and Muninn"
+    }
+   ]
+  },
   "p72529533": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -7216,48 +7247,6 @@
      "tassonomia": [
       "078"
      ]
-    }
-   ]
-  },
-  "pbbb31bfd": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "buff",
-     "effetto": "statistiche",
-     "verso": "riduzione",
-     "statistiche": [
-      "gruppi.attacco"
-     ],
-     "a_chi": "bersaglio",
-     "colonne": {
-      "valore": 2,
-      "buff_turn": 3
-     },
-     "bersaglio": 1,
-     "tassonomia": [
-      "045"
-     ]
-    }
-   ]
-  },
-  "pd365c94d": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "buff",
-     "effetto": "statistiche",
-     "verso": "riduzione",
-     "statistiche": [
-      "statistiche.crit_per",
-      "statistiche.crit_atk_per"
-     ],
-     "colonne": {
-      "valore": 1,
-      "buff_turn": 2
-     }
     }
    ]
   },
@@ -8167,18 +8156,6 @@
     }
    ]
   },
-  "p7e052c58": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "effetto": "definizione",
-     "tassonomia": [
-      "145"
-     ]
-    }
-   ]
-  },
   "p1b8d5057": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -8190,17 +8167,6 @@
      "colonne": {
       "valore": 1
      }
-    }
-   ]
-  },
-  "p71a7b279": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "effetto": "precisazione",
-     "precisa": "cumulabile",
-     "numero": 1
     }
    ]
   },
@@ -9281,6 +9247,89 @@
      "colonne": {
       "buff_turn": 2
      }
+    }
+   ]
+  },
+  "p631fd9c1": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "145"
+     ]
+    }
+   ]
+  },
+  "pf600c1f4": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "145"
+     ]
+    }
+   ]
+  },
+  "pe9127b1f": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "statistiche",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "condizione": "for every Source of Pain on the target",
+     "colonne": {
+      "valore": 1
+     }
+    }
+   ]
+  },
+  "pd365c94d": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "statistiche.crit_per",
+      "statistiche.crit_atk_per"
+     ],
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     }
+    }
+   ]
+  },
+  "p7e052c58": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "145"
+     ]
+    }
+   ]
+  },
+  "p71a7b279": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "precisazione",
+     "precisa": "cumulabile",
+     "numero": 1
     }
    ]
   }

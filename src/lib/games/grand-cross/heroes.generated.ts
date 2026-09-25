@@ -4,8 +4,8 @@
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  * Si rigenera con `npm run eroi:import` dopo ogni aggiornamento del gioco.
  *
- * Le voci sono tuple e non oggetti perche' sono 374: una riga per eroe si
- * legge e si confronta in diff, 374 oggetti su otto righe l'uno no. Il tipo
+ * Le voci sono tuple e non oggetti perche' sono 375: una riga per eroe si
+ * legge e si confronta in diff, 375 oggetti su otto righe l'uno no. Il tipo
  * Row le tiene comunque controllate dal compilatore.
  *
  * L'ordine e' quello della fonte: dal piu' recente.
@@ -395,6 +395,7 @@ const ROWS: readonly Row[] = [
   ["2009501", "IF Meliodas", "Another Meliodas", "A Twisted World", "UR", "SSR", "Oscurita", "Meliodas alter ego", "Un mondo distorto"],
   ["2010501", "IF Ban", "Another Ban", "A Twisted World", "UR", "SSR", "Luce", "Ban alter ego", "Un mondo distorto"],
   ["2015501", "Gawain", "Knight of the Sun Gawain", "Gold-Colored Magic", "UR", "UR", "Luce", "Gawain cavaliere del sole", "Magia color oro"],
+  ["2016501", "Odin", "Supreme God Odin", "Almighty", "UR", "UR", "Luce", "Dio supremo Odino", "Onnipotente"],
 ];
 
 export const HEROES: readonly HeroEntry[] = ROWS.map(

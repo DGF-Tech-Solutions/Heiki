@@ -68,7 +68,7 @@ const TESTI = testi({
     gradoNonCombacia: ", e il grado di uscita non combacia",
     gradoDaVerificare: "(stesso personaggio, grado di uscita diverso: da verificare)",
     fonteCarte:
-      "Quali carte ha l’eroe e cosa fanno a ogni rango vengono da una fonte esterna: il client tiene le descrizioni ma non il legame con l’eroe, che sta sul server del gioco.",
+      "Quali carte ha l’eroe e cosa fanno a ogni rango vengono dalle tabelle del client del gioco.",
     // Solo in italiano: in inglese i testi dei ranghi sono semplicemente nella
     // lingua della pagina, e non c'e' niente da avvertire.
     testiInInglese: " I testi restano in inglese — il client ne ha solo i modelli, senza i valori." as
@@ -99,7 +99,8 @@ const TESTI = testi({
     carta: (slot: string) => `carta ${slot}`,
     illustrazioneFonte: (breve: string) => `· illustrazione ${breve}`,
     statisticheTitolo: "Statistiche al massimo, senza equipaggiamento",
-    statisticheFonte: "Nel client non ci sono: le tiene il server del gioco.",
+    statisticheFonte:
+      "Calcolate dalle tabelle del client: livello massimo, risvegli, trascendenze, Vero risveglio, reliquia e i cinque costumi migliori per tipo.",
   },
   en: {
     eroeNonTrovato: "Hero not found · GachaZone",
@@ -120,8 +121,7 @@ const TESTI = testi({
       `The ${illustrazioni} card ${illustrazioni === 1 ? "illustration" : "illustrations"} of this hero. Which one belongs to which card can't be told from the client`,
     gradoNonCombacia: ", and the starting rarity doesn't match",
     gradoDaVerificare: "(same character, different starting rarity: to be verified)",
-    fonteCarte:
-      "Which cards the hero has and what they do at each rank come from an external source: the client holds the descriptions but not their link to the hero, which lives on the game's server.",
+    fonteCarte: "Which cards the hero has and what they do at each rank come from the game client's tables.",
     testiInInglese: null,
     ultimate: "Ultimate Move",
     passiva: "Passive",
@@ -149,18 +149,20 @@ const TESTI = testi({
     carta: (slot: string) => `card ${slot}`,
     illustrazioneFonte: (breve: string) => `· illustration: ${breve}`,
     statisticheTitolo: "Max stats, without gear",
-    statisticheFonte: "They aren't in the client: the game's server holds them.",
+    statisticheFonte:
+      "Computed from the client's tables: max level, awakenings, transcendences, True Awakening, relic and the five best costumes of each type.",
   },
 });
 
 /**
  * Scheda del singolo eroe.
  *
- * Mostra due cose con garanzie diverse, e la differenza resta visibile fino
- * qui: dal client vengono nome, epiteto, attributo e i testi: sono estratti dal
- * gioco. Da 7dshub vengono statistiche, carte, ultimate e passiva: il client
- * non le ha - le tiene il server del gioco - e la pagina lo dichiara invece di
- * far sembrare tutto ugualmente certo.
+ * Dal 25/09 tutto viene dal client del gioco: nome, epiteto, attributo e testi,
+ * ma anche carte, ultimate, passiva e statistiche, che prima venivano da 7dshub
+ * perche' il legame eroe-abilita' stava nelle tabelle cifrate. Le statistiche
+ * massime sono calcolate, e la pagina dice come. Quello che resta dedotto (quale
+ * illustrazione e' di quale carta, la cornice di un Comandamento multiplo) lo
+ * dice accanto alla cosa, invece di far sembrare tutto ugualmente certo.
  *
  * I TESTI SEGUONO LA LINGUA DELLA PAGINA. Il dataset li porta in due lingue -
  * `text` inglese e `textIt` italiano per ranghi, passiva e abilita' speciali,
@@ -1250,12 +1252,12 @@ const FONTE_ICONA_SPECIALE = testi({
 const FONTE_CORNICE = testi({
   it: {
     "dal tipo": "dal tipo",
-    "dedotta dal tipo di effetto": "dedotta dal tipo di effetto",
+    "dal tipo della sua carta": "dal tipo della sua carta",
     "dedotta: comandamento multiplo": "dedotta: comandamento multiplo",
   },
   en: {
     "dal tipo": "from the type",
-    "dedotta dal tipo di effetto": "inferred from the effect type",
+    "dal tipo della sua carta": "from its card's type",
     "dedotta: comandamento multiplo": "inferred: multiple Commandments",
   },
 });

@@ -13,7 +13,7 @@
  *   dichiarato   il gioco quell'effetto lo definisce da se'
  *   dedotto      il gioco non lo definisce da nessuna parte in chiaro, e la
  *                corrispondenza viene dal suo vocabolario interno
- *                (SkillEffectEnum). Sono 36 voci su 467.
+ *                (SkillEffectEnum). Sono 36 voci su 473.
  *
  * Le etichette sono BILINGUI anche dove oggi il sito mostra solo l'italiano:
  * la decifratura del client fallisce su righe diverse in lingue diverse, e
@@ -496,6 +496,12 @@ const GLOSSARY: Readonly<Record<string, HeroEffect>> = {
   "brilliance": {"label":{"it":"Lucentezza","en":"Brilliance"},"definition":{"it":null,"en":"3x Crit Chance and 3x Crit Damage Increase"},"source":"tassonomia del client + nota del gioco","kind":"categoria","certainty":"dichiarato"},
   "light_of_judgment": {"label":{"it":null,"en":"Light of Judgment"},"definition":{"it":null,"en":"All stats +20%, damage dealt +80%"},"source":"nota del gioco","kind":"nota","certainty":"dichiarato"},
   "sun_s_blessing": {"label":{"it":null,"en":"Sun's Blessing"},"definition":{"it":null,"en":"Applicable Allies' damage dealt or taken accumulate up to 300,000, inflicting additional damage equal to 60% of the accumulated damage when the hero uses a skill"},"source":"nota del gioco","kind":"nota","certainty":"dichiarato"},
+  "divine_might": {"label":{"it":"Potenza divina","en":"Divine Might"},"definition":{"it":null,"en":"3x Crit Chance and 5x Crit Damage Increase"},"source":"tassonomia del client + nota del gioco","kind":"categoria","certainty":"dichiarato"},
+  "heaven_s_will": {"label":{"it":"Volontà celeste","en":"Heaven's Will"},"definition":{"it":null,"en":"3x Crit Chance and 2x Crit Damage Increase"},"source":"tassonomia del client + nota del gioco","kind":"categoria","certainty":"dichiarato"},
+  "mark_of_gungnir": {"label":{"it":"Marchio di Gungnir","en":"Mark of Gungnir"},"definition":{"it":null,"en":"Suppresses damage dealt to Odin to 40%"},"source":"tassonomia del client + nota del gioco","kind":"categoria","certainty":"dichiarato"},
+  "eye_of_wisdom": {"label":{"it":"Occhio della saggezza","en":"Eye of Wisdom"},"definition":{"it":null,"en":"Decreases Applicable Allies' final damage taken by 40%"},"source":"dizionario buff del client + nota del gioco","kind":"buff","certainty":"dichiarato"},
+  "huginn_and_muninn": {"label":{"it":"Huginn e Muninn","en":"Huginn and Muninn"},"definition":{"it":null,"en":"Damage dealt -50%, damage taken +50%"},"source":"dizionario buff del client + nota del gioco","kind":"buff","certainty":"dichiarato"},
+  "reckoning": {"label":{"it":"Sentenza finale","en":"Reckoning"},"definition":{"it":"Rimuove tutti gli effetti Buff al momento dell'applicazione. L'eroe è immune a Sentenza finale.","en":"Removes all Buff effects when applied. The hero is immune to Reckoning."},"source":"dizionario buff del client","kind":"buff","certainty":"dichiarato"},
 };
 
 const RACE: Readonly<Record<string, HeroLabel>> = {"1":{"it":"Demone","en":"Demon"},"2":{"it":"Gigante","en":"Giant"},"3":{"it":"Umano","en":"Human"},"4":{"it":"Fata","en":"Fairy"},"5":{"it":"Dea","en":"Goddess"},"6":{"it":"Sconosciuta","en":"Unknown"}};
@@ -881,6 +887,7 @@ const HEROES: Readonly<Record<string, HeroContext>> = {
   "2009501": {"rarity":{"obtainedAs":"SSR","max":"UR","canReachLr":false},"attribute":5,"race":1,"factions":[6,10],"cards":{"A":{"slot":"A","effects":["stance_cancel","transgression"],"onlyAtRanks":{"2":["stun"],"3":["stun"]}},"B":{"slot":"B","effects":["dark_brand","infect"]},"ultimate":{"slot":"ultimate","effects":["transgression"]},"passiva":{"slot":"passiva","effects":["applicable_allies","applicable_ally","arbiter_of_transgression","taunt","transgression"],"appliesTo":{"races":[1],"factions":[6]}}},"passiveConditions":[1,7]},
   "2010501": {"rarity":{"obtainedAs":"SSR","max":"UR","canReachLr":false},"attribute":4,"race":3,"factions":[6,10],"cards":{"A":{"slot":"A","effects":["craving","mark_of_craving"]},"B":{"slot":"B","effects":["voracity"]},"ultimate":{"slot":"ultimate","effects":["craving","mark_of_craving"]},"passiva":{"slot":"passiva","effects":["applicable_allies","applicable_ally","counter","craving","crit_damage_increase","damage_dealt_increase","damage_taken_decrease","mark_of_craving","reflect","stealth"],"appliesTo":{"races":[3],"factions":[6]}}},"passiveConditions":[1,7]},
   "2015501": {"rarity":{"obtainedAs":"UR","max":"UR","canReachLr":false},"attribute":4,"race":6,"factions":[8],"cards":{"A":{"slot":"A","effects":["sunfire"]},"B":{"slot":"B","effects":["brilliance","stance_cancel"]},"ultimate":{"slot":"ultimate","effects":["sunfire"],"onlyAtRanks":{"2":["light_of_judgment"],"3":["light_of_judgment"],"4":["light_of_judgment"],"5":["light_of_judgment"],"6":["light_of_judgment"]}},"passiva":{"slot":"passiva","effects":["applicable_allies","applicable_ally","brilliance","light_of_judgment","pass_immune_all_stat_dec","sun_s_blessing"],"appliesTo":{"races":[6],"factions":[8]}}},"passiveConditions":[1,7]},
+  "2016501": {"rarity":{"obtainedAs":"UR","max":"UR","canReachLr":false},"attribute":4,"race":6,"factions":[4,7],"cards":{"A":{"slot":"A","effects":["divine_might","stance_cancel"]},"B":{"slot":"B","effects":["heaven_s_will"]},"ultimate":{"slot":"ultimate","effects":["heaven_s_will"],"onlyAtRanks":{"2":["mark_of_gungnir"],"3":["mark_of_gungnir"],"4":["mark_of_gungnir"],"5":["mark_of_gungnir"],"6":["mark_of_gungnir"]}},"passiva":{"slot":"passiva","effects":["applicable_allies","applicable_ally","damage_taken_decrease","divine_might","expel","eye_of_wisdom","heaven_s_will","huginn_and_muninn","mark_of_gungnir","reckoning"],"appliesTo":{"races":[6],"factions":[4,7]}}},"passiveConditions":[1,7]},
 };
 
 export const HERO_CONTEXT: HeroContextIndex = {

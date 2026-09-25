@@ -26,8 +26,8 @@
       "ruolo": "ingresso in battaglia",
       "contenuto": null,
       "uso": {
-        "eroi": 275,
-        "abilita_speciali": 33
+        "eroi": 276,
+        "abilita_speciali": 34
       },
       "certezza": "dedotto",
       "prove": [
@@ -157,7 +157,7 @@
       "contenuto": "destroy",
       "uso": {
         "eroi": 31,
-        "abilita_speciali": 14
+        "abilita_speciali": 15
       },
       "certezza": "dedotto",
       "prove": [
@@ -182,7 +182,7 @@
       "ruolo": "tutti i contenuti",
       "contenuto": null,
       "uso": {
-        "eroi": 294,
+        "eroi": 295,
         "abilita_speciali": 11
       },
       "certezza": "dedotto",

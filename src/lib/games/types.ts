@@ -273,8 +273,8 @@ export interface HeroAbilities {
 /**
  * Statistiche di un eroe al massimo livello.
  *
- * Vengono da fonte esterna: il client non le ha, stanno sul server del gioco.
- * Due colonne perche' sono due domande diverse - quanto vale l'eroe nudo, e
+ * Calcolate dalle tabelle del client (scheda_client.py): fino al 24/09
+ * venivano da 7dshub, perche' le tabelle stavano nei bundle cifrati. Due colonne perche' sono due domande diverse - quanto vale l'eroe nudo, e
  * quanto vale equipaggiato - e mostrarne una sola nasconde quanto pesa
  * l'equipaggiamento, che e' met&agrave; del gioco.
  *
@@ -542,14 +542,14 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
   readonly heroAssets?: Readonly<Record<string, HeroAssets>>;
 
   /**
-   * Carte e passiva, da fonte esterna. Separati da heroAssets perche' hanno
-   * una provenienza diversa, e la provenienza va tenuta visibile fino in
-   * pagina.
+   * Carte e passiva, dalle tabelle del client (fino al 24/09 da 7dshub).
+   * Separati da heroAssets perche' hanno una provenienza diversa, e la
+   * provenienza va tenuta visibile fino in pagina.
    */
   readonly heroAbilities?: Readonly<Record<string, HeroAbilities>>;
 
   /**
-   * Statistiche al massimo livello, da fonte esterna.
+   * Statistiche al massimo livello, calcolate dalle tabelle del client.
    *
    * Separate dalle altre per lo stesso motivo di sempre - le legge solo la
    * scheda, renderizzata sul server - ma anche perche' sono la cosa che il

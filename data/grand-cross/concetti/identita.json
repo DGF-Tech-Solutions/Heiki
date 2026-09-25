@@ -116,7 +116,7 @@
         "en": "etichette_manuali.json"
       },
       "enum": "UNKNOWN",
-      "eroi": 77,
+      "eroi": 78,
       "forme_nel_testo_en": [
         "unknown",
         "unknowns"
@@ -190,7 +190,7 @@
         "en": "UI_attribute_filter_yellow"
       },
       "enum": "YELLOW",
-      "eroi": 13,
+      "eroi": 14,
       "certezza": "dichiarato",
       "prove": [],
       "colore_nel_client": "yellow",
@@ -297,7 +297,7 @@
         "en": "DB_hero_job_group_04"
       },
       "enum": "RAGNAROK",
-      "eroi": 31,
+      "eroi": 32,
       "forme_nel_testo_en": [
         "ragnarok"
       ],
@@ -348,7 +348,7 @@
         "en": "DB_hero_job_group_07"
       },
       "enum": "GOD",
-      "eroi": 12,
+      "eroi": 13,
       "forme_nel_testo_en": [
         "god",
         "gods"
@@ -478,8 +478,8 @@
       },
       "etichetta_da": "RatingType",
       "enum": "UR",
-      "eroi_escono": 18,
-      "eroi_arrivano": 342,
+      "eroi_escono": 19,
+      "eroi_arrivano": 343,
       "certezza": "dichiarato",
       "prove": []
     },
