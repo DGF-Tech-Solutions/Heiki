@@ -51,7 +51,8 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi l'Endgame |
+| `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 
 ### Docker
@@ -132,20 +133,20 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 ### Navigazione a gruppi
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Eroi, Personaggi, Nemici) · **Strumenti** (Simulatore, Classifica) · **Guide**
-(Guide e rotazioni) · **Community** (Discussioni).
+(Eroi, Uscite, Personaggi, Nemici) · **Endgame** (Scontri finali, Bestie
+demoniache, Re Demone, Divinità Suprema) · **Strumenti** (Simulatore,
+Classifica) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
 
 Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
 ha un roster, dichiarato con `needs` in `GAME_GROUPS` e filtrato da
 `gameGroups(slug)`. Una voce di menu che porta a una pagina vuota è peggio di una
 voce che non c'è.
 
-Sono quattro e non cinque, e non è una svista. I siti di riferimento del settore
-ne usano cinque perché hanno anche *Endgame*; qui esisterà quando avrà contenuto.
-Un gruppo vuoto in navigazione promette qualcosa che non c'è, e chi ci clicca una
-volta non ci clicca più. *Guide* è entrato quando ha avuto pagine da mostrare,
-non prima: servono i dati dei nemici per modalità perché anche *Endgame* diventi
-qualcosa di diverso da un'invenzione.
+*Endgame* è entrato il 26/09/2026, quando ha avuto contenuto: le quattro
+modalità boss di Grand Cross, dalle tabelle del client. Fino ad allora non c'era
+apposta: un gruppo vuoto in navigazione promette qualcosa che non c'è, e chi ci
+clicca una volta non ci clicca più. *Guide* è entrato allo stesso modo, quando ha
+avuto pagine da mostrare.
 
 ### Il gioco è il primo segmento dell'URL
 
@@ -261,6 +262,21 @@ Il confine passa qui, e non è formale:
   globale il mercoledì prima) e quello di **Giappone e Corea**. Alimenta la sezione **Uscite** e l'ordine di partenza della griglia
   degli eroi, per uscita globale dal più recente. Il client PC non ha date
   d'uscita: la fonte è dichiarata in pagina
+- **l'Endgame** (Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema)
+  sta in `death-match`, `creature-nest`, `demon-king` e `supreme-deity.generated.ts`,
+  più `endgame-heroes.generated.ts` coi legami per la scheda eroe. Li scrive
+  `scripts/import-endgame.mts` dai JSON di `_7dsgc/script/scontri_finali.py`,
+  `creature_nest.py` e `re_demone_divinita.py`; il contratto è in
+  `src/lib/games/endgame-types.ts`, gli studi dei dati (letto e dedotto) in
+  `_7dsgc/SCONTRI_FINALI.md`, `CREATURE_NEST.md` e `RE_DEMONE_DIVINITA.md`. Le
+  statistiche dei boss sono una **stima** e la pagina lo dice: il client non le
+  scrive. Scontri finali e Bestie demoniache sono un indice con una pagina per boss
+  (`/scontri-finali/<boss>`, `/bestie-demoniache/<bestia>`), come gli eroi; Re
+  Demone e Divinità hanno un boss solo e una pagina. La difficoltà scelta sta
+  nell'indirizzo (`?difficolta=3`, `?piano=2`) e il server rende solo quel
+  pannello: con tutte le difficoltà nell'HTML gli Scontri finali pesavano 10,8 MB
+  in sviluppo. Lamek, lo Scontro finale d'evento, non c'è. Le immagini vanno in
+  `public/eroi/<gioco>/endgame/`
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

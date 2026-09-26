@@ -93,10 +93,11 @@ export function defaultGameSlug(): string {
  * senza che la navigazione debba essere ripensata - ed e' il motivo per cui
  * Prydwen la usa con cinque gruppi.
  *
- * I gruppi sono quattro, non cinque: "Endgame" esistera' quando avra' contenuto.
- * Un gruppo vuoto in navigazione promette qualcosa che non c'e', e chi ci clicca
- * una volta non ci clicca piu'. "Guide" e' entrato quando la sezione ha avuto
- * pagine da mostrare, non prima.
+ * "Endgame" e' entrato il 26/09, quando ha avuto contenuto: Scontri finali,
+ * Bestie demoniache, Re Demone e Divinita' Suprema. Prima non c'era apposta: un
+ * gruppo vuoto in navigazione promette qualcosa che non c'e', e chi ci clicca
+ * una volta non ci clicca piu'. "Guide" e' entrato allo stesso modo, quando la
+ * sezione ha avuto pagine da mostrare.
  */
 export interface GameSection {
   path: string;
@@ -111,7 +112,7 @@ export interface GameSection {
    * ancora. Dichiararlo qui evita l'alternativa peggiore, cioe' una voce di
    * menu che porta a una pagina vuota.
    */
-  needs?: "roster" | "releases";
+  needs?: "roster" | "releases" | "deathMatch" | "creatureNest" | "demonKing" | "supremeDeity";
 }
 
 export interface GameSectionGroup {
@@ -153,6 +154,47 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         path: "/nemici",
         label: { it: "Nemici", en: "Enemies" },
         hint: { it: "Bersagli usati nei calcoli", en: "Targets used in the calculations" },
+      },
+    ],
+  },
+  {
+    label: { it: "Endgame", en: "Endgame" },
+    items: [
+      {
+        path: "/scontri-finali",
+        label: { it: "Scontri finali", en: "Death Match" },
+        hint: {
+          it: "I boss che invadono i villaggi: fasi, abilità, restrizioni e ricompense",
+          en: "The bosses that invade the villages: phases, skills, restrictions and rewards",
+        },
+        needs: "deathMatch",
+      },
+      {
+        path: "/bestie-demoniache",
+        label: { it: "Bestie demoniache", en: "Demonic Beasts" },
+        hint: {
+          it: "Le sei bestie della Creature Nest, piano per piano",
+          en: "The six Creature Nest beasts, floor by floor",
+        },
+        needs: "creatureNest",
+      },
+      {
+        path: "/re-demone",
+        label: { it: "Re Demone", en: "Demon King" },
+        hint: {
+          it: "Le regole, il Verdetto e le quattro difficoltà",
+          en: "The rules, the Verdict and the four difficulties",
+        },
+        needs: "demonKing",
+      },
+      {
+        path: "/divinita-suprema",
+        label: { it: "Divinità Suprema", en: "Supreme Deity" },
+        hint: {
+          it: "Giudizi, magia, Editti e Arcangeli",
+          en: "Judgments, magic, Edicts and Archangels",
+        },
+        needs: "supremeDeity",
       },
     ],
   },

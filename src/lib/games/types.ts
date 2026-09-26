@@ -25,6 +25,13 @@ import type {
   StatDefinition,
   Target,
 } from "@/lib/engine";
+import type {
+  CreatureNestIndex,
+  DeathMatchIndex,
+  DemonKingIndex,
+  EndgameHeroLink,
+  SupremeDeityIndex,
+} from "./endgame-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
 export interface DatasetInfo {
@@ -786,6 +793,18 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * eroe. Come heroTexts lo legge solo il server: la sezione Uscite e la scheda.
    */
   readonly releases?: ReleaseCalendar;
+
+  /**
+   * Le modalita' di fine gioco, una per sezione del gruppo Endgame. Come
+   * heroTexts le legge solo il server: le loro pagine e la scheda dell'eroe.
+   * Il contratto sta in endgame-types.ts.
+   */
+  readonly deathMatch?: DeathMatchIndex;
+  readonly creatureNest?: CreatureNestIndex;
+  readonly demonKing?: DemonKingIndex;
+  readonly supremeDeity?: SupremeDeityIndex;
+  /** heroId -> i suoi legami con le quattro modalita', per la scheda */
+  readonly endgameHeroes?: Readonly<Record<string, readonly EndgameHeroLink[]>>;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

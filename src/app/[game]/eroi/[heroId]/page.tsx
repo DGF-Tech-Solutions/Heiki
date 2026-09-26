@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { HeroEndgameLine } from "@/components/endgame/hero-endgame";
 import { GameNotes, GameText } from "@/components/heroes/game-text";
 import { StatSlider } from "@/components/heroes/stat-slider";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
@@ -339,6 +340,10 @@ function lookup(game: string, heroId: string) {
     relics: relicsOf(gameModule.heroRelics, heroId),
     relicIndex: gameModule.heroRelics,
     release: gameModule.releases?.heroes[heroId],
+    endgame: gameModule.endgameHeroes?.[heroId],
+    // gruppo della bestia -> la chiave della sua pagina fra le Bestie demoniache,
+    // per il nome della bestia nelle Reliquie sacre
+    beastPages: Object.fromEntries((gameModule.creatureNest?.beasts ?? []).map((beast) => [beast.group, beast.key])),
     icons: gameModule.icons,
     context: gameModule.heroContext?.heroes[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
@@ -391,6 +396,8 @@ export default async function HeroPage({ params }: Props) {
     relics,
     relicIndex,
     release,
+    endgame,
+    beastPages,
     context,
     icons,
   } = found;
@@ -540,6 +547,7 @@ export default async function HeroPage({ params }: Props) {
             </div>
 
             {release ? <ReleaseLine game={game} release={release} locale={locale} /> : null}
+            <HeroEndgameLine game={game} locale={locale} links={endgame} icons={icons} />
 
             {title && title !== name ? (
               // Un <div> e non un <p>: GameText disegna un <div> di <p>, e un <p>
@@ -840,6 +848,7 @@ export default async function HeroPage({ params }: Props) {
           index={relicIndex}
           conditions={passiveConditions}
           icons={icons}
+          beastPages={beastPages}
         />
 
         <section className="mb-7">
@@ -2020,6 +2029,7 @@ function Relics({
   index,
   conditions,
   icons,
+  beastPages,
 }: {
   game: string;
   locale: Locale;
@@ -2027,6 +2037,7 @@ function Relics({
   index: HeroRelicsIndex | undefined;
   conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
+  beastPages: Readonly<Record<string, string>>;
 }) {
   if (relics.length === 0) return null;
   const t = TESTI[locale];
@@ -2046,6 +2057,7 @@ function Relics({
               index={index}
               conditions={conditions}
               icons={icons}
+              beastPages={beastPages}
             />
           </li>
         ))}
@@ -2071,6 +2083,7 @@ function RelicCard({
   index,
   conditions,
   icons,
+  beastPages,
 }: {
   game: string;
   locale: Locale;
@@ -2079,13 +2092,16 @@ function RelicCard({
   index: HeroRelicsIndex | undefined;
   conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
+  /** gruppo della bestia -> la chiave della sua pagina: /<gioco>/bestie-demoniache/<chiave> */
+  beastPages: Readonly<Record<string, string>>;
 }) {
   const t = TESTI[locale];
   const name = inLingua(relic.name, locale);
   const description = inLingua(relic.description, locale);
-  const beasts = relic.beasts
-    .map((beast) => inLingua(index?.beasts[beast], locale))
-    .filter((value): value is string => value !== null);
+  const beasts = relic.beasts.flatMap((beast) => {
+    const label = inLingua(index?.beasts[beast], locale);
+    return label ? [{ label, page: beastPages[beast] }] : [];
+  });
   const passiveName = relic.passive ? inLingua(relic.passive.name, locale) : null;
   const passiveText = relic.passive ? inLingua(relic.passive.text, locale) : null;
   const rows = RELIC_STATS.filter(
@@ -2118,7 +2134,20 @@ function RelicCard({
         {name ? <GameText text={name} className="m-0 font-semibold [&>p]:m-0" /> : null}
         {beasts.length > 0 ? (
           <p className="m-0 mt-0.5 text-[12px] text-ink-3">
-            {t.bestia} {beasts.join(", ")}
+            {t.bestia}{" "}
+            {beasts.map((beast, position) => (
+              <span key={beast.label}>
+                {position > 0 ? ", " : null}
+                {/* la bestia porta alla sua pagina, dove si vedono piani, drop e le altre reliquie */}
+                {beast.page ? (
+                  <Link href={`/${game}/bestie-demoniache/${beast.page}`} className="text-ink-2 hover:text-brand">
+                    {beast.label}
+                  </Link>
+                ) : (
+                  beast.label
+                )}
+              </span>
+            ))}
           </p>
         ) : null}
         {description ? (
