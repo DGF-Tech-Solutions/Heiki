@@ -18,11 +18,14 @@ pipeline `_7dsgc` (fuori dal repo), leggendo
 il client del gioco (enum e tabelle da `dump.cs`, testi decifrati) e 7dshub.
 **Non si modificano a mano**: si rigenerano.
 
-    python concetti.py                    # dentro _7dsgc, dopo contesto_eroi.py
-    python righe_carte.py                 # dopo concetti.py, di cui legge carte.json
-    python concetti.py --rileggi-dump     # dopo una patch del client
-    python righe_carte.py --rileggi-dump  # idem
-    python righe_carte.py --rapporto      # le misure per esteso
+    python script\concetti.py                    # dentro _7dsgc, dopo contesto_eroi.py
+    python script\righe_carte.py                 # dopo concetti.py, di cui legge carte.json
+    python script\concetti.py --rileggi-dump     # dopo una patch del client
+    python script\righe_carte.py --rileggi-dump  # idem
+    python script\righe_carte.py --rapporto      # le misure per esteso
+
+Dal 26/09 gli script della pipeline stanno in `_7dsgc\script\`; la radice di
+`_7dsgc` gliela dà `script\percorsi.py`.
 
 Se una prova che si può misurare non torna — un gruppo di statistiche che non
 corrisponde più ai costumi, due elenchi della tassonomia che non concordano —
@@ -38,6 +41,24 @@ lo script si ferma senza scrivere niente.
 | `condizioni.json` | dove si attiva una passiva (codici 1-9) |
 | `contenuti.json` | i contenuti che i dati degli eroi nominano |
 | `tassonomia.json` | le 238 voci con cui il gioco filtra gli effetti delle abilità |
+
+## I file scritti a mano (`manuali/`)
+
+Al contrario di tutto il resto di questa cartella, questi **si scrivono a mano**
+e **non si rigenerano** da niente: sono decisioni e fatti che il client non dà.
+Fino al 26/09 stavano solo in `_7dsgc\eroi\`, su un disco solo; qui sono
+versionati. La pipeline li legge (e in parte li scrive) da qui, col percorso
+`A_MANO` di `script\percorsi.py`.
+
+| file | cosa | chi lo scrive | chi lo legge |
+|---|---|---|---|
+| `accostamenti_manuali.json` | quale illustrazione è la carta A, la B e l'ultimate, per gli eroi che le regole non coprono: le scelte dell'utente | la pagina di `rivedi_carte.py` | `accosta_carte.py`, che la fa vincere su tutto |
+| `etichette_manuali.json` | i nomi dei codici che il client non consegna in nessuna lingua (la fazione 10 è Cross:IF, la 7 Dio) | l'utente; `contesto_eroi.py` semina solo le lacune e non sovrascrive | `contesto_eroi.py`, `concetti.py` |
+| `vocabolario_effetti.json` | le 598 voci del vocabolario degli effetti, con l'`asse` da compilare | l'utente; `estrai_effetti.py` aggiunge le voci nuove | `estrai_effetti.py` |
+| `uscite_storiche.json` | le date d'uscita dei 373 eroi noti al 16/09, prese una volta dall'archivio di 7dshub | congelato: nessuno lo riscrive | `date_uscita.py` |
+
+Dopo averli cambiati (anche dalla pagina di revisione) vanno committati come
+qualunque altro file.
 
 ## La forma di una voce
 

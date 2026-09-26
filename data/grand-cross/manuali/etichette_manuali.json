@@ -1,0 +1,97 @@
+{
+ "attributo": {
+  "1": {
+   "_enum": "RED",
+   "_eroi": 114,
+   "_gia_nel_gioco": {
+    "it": "Forza"
+   },
+   "en": "Strength"
+  },
+  "5": {
+   "_enum": "PURPLE",
+   "_eroi": 10,
+   "_gia_nel_gioco": {
+    "it": "Oscurità"
+   },
+   "en": "Darkness"
+  },
+  "6": {
+   "_enum": "YELLOW_PURPLE",
+   "_eroi": 1,
+   "en": "Light/Darkness",
+   "it": "Luce/Oscurità"
+  }
+ },
+ "fazione": {
+  "10": {
+   "_eroi": 2,
+   "en": "Cross:IF",
+   "it": "Cross:IF"
+  },
+  "2": {
+   "_enum": "TABOO",
+   "_eroi": 23,
+   "_gia_nel_gioco": {
+    "it": "Comandamenti"
+   },
+   "en": "The Ten Commandments"
+  },
+  "3": {
+   "_enum": "COLLABO",
+   "_eroi": 71,
+   "_gia_nel_gioco": {
+    "en": "Collab"
+   },
+   "it": "Collaborazione"
+  },
+  "7": {
+   "_enum": "GOD",
+   "_eroi": 12,
+   "_gia_nel_gioco": {
+    "en": "God"
+   },
+   "it": "Dio"
+  }
+ },
+ "razza": {
+  "1": {
+   "_enum": "DEMON",
+   "_eroi": 46,
+   "_gia_nel_gioco": {
+    "it": "Demone"
+   },
+   "en": "Demon"
+  },
+  "3": {
+   "_enum": "HUMAN",
+   "_eroi": 163,
+   "_gia_nel_gioco": {
+    "en": "Human"
+   },
+   "it": "Umano"
+  },
+  "4": {
+   "_enum": "FAIRY",
+   "_eroi": 29,
+   "_gia_nel_gioco": {
+    "it": "Fata"
+   },
+   "en": "Fairy"
+  },
+  "5": {
+   "_enum": "GODDESS",
+   "_eroi": 33,
+   "en": "Goddess",
+   "it": "Dea"
+  },
+  "6": {
+   "_enum": "UNKNOWN",
+   "_eroi": 77,
+   "_gia_nel_gioco": {
+    "it": "Sconosciuta"
+   },
+   "en": "Unknown"
+  }
+ }
+}

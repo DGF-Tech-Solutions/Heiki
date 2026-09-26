@@ -1,0 +1,3590 @@
+{
+ "depletes": {
+  "testo": "depletes",
+  "occorrenze": 234,
+  "definizione": "",
+  "asse": ""
+ },
+ "pierce": {
+  "testo": "Pierce",
+  "occorrenze": 211,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "spike": {
+  "testo": "Spike",
+  "occorrenze": 201,
+  "definizione": "2x Crit Damage Increase",
+  "asse": ""
+ },
+ "sever": {
+  "testo": "Sever",
+  "occorrenze": 195,
+  "definizione": "3x Crit Chance Increase",
+  "asse": ""
+ },
+ "cancels_buffs_and_stances": {
+  "testo": "Cancels Buffs and Stances",
+  "occorrenze": 175,
+  "definizione": "",
+  "asse": ""
+ },
+ "weak_point": {
+  "testo": "Weak Point",
+  "occorrenze": 162,
+  "definizione": "3x damage against Debuffed enemies",
+  "asse": ""
+ },
+ "applicable_allies": {
+  "testo": "Applicable allies'",
+  "occorrenze": 6,
+  "definizione": "Humans, Fairies, and [Four Knights of the Apocalypse]",
+  "asse": ""
+ },
+ "applicable_ally": {
+  "testo": "applicable ally",
+  "occorrenze": 15,
+  "definizione": "Fairies and Shadow",
+  "asse": ""
+ },
+ "damage_dealt": {
+  "testo": "damage dealt",
+  "occorrenze": 137,
+  "definizione": "",
+  "asse": ""
+ },
+ "stuns": {
+  "testo": "Stuns",
+  "occorrenze": 132,
+  "definizione": "",
+  "asse": ""
+ },
+ "defense_related_stats": {
+  "testo": "Defense-related stats",
+  "occorrenze": 128,
+  "definizione": "",
+  "asse": ""
+ },
+ "charge": {
+  "testo": "Charge",
+  "occorrenze": 126,
+  "definizione": "Ignores Defense",
+  "asse": ""
+ },
+ "damage_taken": {
+  "testo": "damage taken",
+  "occorrenze": 123,
+  "definizione": "",
+  "asse": ""
+ },
+ "shatter": {
+  "testo": "Shatter",
+  "occorrenze": 123,
+  "definizione": "Ignores Resistance",
+  "asse": ""
+ },
+ "taunts": {
+  "testo": "Taunts",
+  "occorrenze": 115,
+  "definizione": "",
+  "asse": ""
+ },
+ "flood": {
+  "testo": "Flood",
+  "occorrenze": 105,
+  "definizione": "0.8% additional damage for every percent of remaining HP on self",
+  "asse": ""
+ },
+ "power_strike": {
+  "testo": "Power Strike",
+  "occorrenze": 105,
+  "definizione": "Additional damage equal to enemy Resistance",
+  "asse": ""
+ },
+ "removes_debuffs": {
+  "testo": "removes Debuffs",
+  "occorrenze": 20,
+  "definizione": "",
+  "asse": ""
+ },
+ "decreases_skill_ranks": {
+  "testo": "decreases skill ranks",
+  "occorrenze": 90,
+  "definizione": "",
+  "asse": ""
+ },
+ "attack_related_stats": {
+  "testo": "Attack-related stats",
+  "occorrenze": 85,
+  "definizione": "",
+  "asse": ""
+ },
+ "rupture": {
+  "testo": "Rupture",
+  "occorrenze": 79,
+  "definizione": "2x damage against Buffed enemies",
+  "asse": ""
+ },
+ "amplify": {
+  "testo": "Amplify",
+  "occorrenze": 75,
+  "definizione": "Damage dealt +30% per active Buff on self",
+  "asse": ""
+ },
+ "disables_attack_skills": {
+  "testo": "Disables Attack Skills",
+  "occorrenze": 75,
+  "definizione": "",
+  "asse": ""
+ },
+ "infects": {
+  "testo": "Infects",
+  "occorrenze": 73,
+  "definizione": "",
+  "asse": ""
+ },
+ "removes_buffs": {
+  "testo": "Removes Buffs",
+  "occorrenze": 72,
+  "definizione": "",
+  "asse": ""
+ },
+ "ignite": {
+  "testo": "Ignite",
+  "occorrenze": 72,
+  "definizione": "Damage taken by target(s) +10% (Can be stacked)",
+  "asse": ""
+ },
+ "debuff_immunity": {
+  "testo": "Debuff Immunity",
+  "occorrenze": 67,
+  "definizione": "",
+  "asse": ""
+ },
+ "cancels_stances": {
+  "testo": "Cancels Stances",
+  "occorrenze": 66,
+  "definizione": "",
+  "asse": ""
+ },
+ "lifesteals": {
+  "testo": "Lifesteals",
+  "occorrenze": 66,
+  "definizione": "",
+  "asse": ""
+ },
+ "bleed": {
+  "testo": "Bleed",
+  "occorrenze": 64,
+  "definizione": "Additional damage equal to 90% of damage dealt at the end of every turn",
+  "asse": ""
+ },
+ "detonate": {
+  "testo": "Detonate",
+  "occorrenze": 64,
+  "definizione": "20% additional damage per orb in the target's Ultimate Move Gauge",
+  "asse": ""
+ },
+ "hp_related_stats": {
+  "testo": "HP-related stats",
+  "occorrenze": 60,
+  "definizione": "",
+  "asse": ""
+ },
+ "extorts": {
+  "testo": "Extorts",
+  "occorrenze": 54,
+  "definizione": "",
+  "asse": ""
+ },
+ "secret_technique": {
+  "testo": "Secret Technique",
+  "occorrenze": 51,
+  "definizione": "+20% additional damage per hero skill",
+  "asse": ""
+ },
+ "human_ally": {
+  "testo": "Human ally",
+  "occorrenze": 45,
+  "definizione": "",
+  "asse": ""
+ },
+ "fills": {
+  "testo": "fills",
+  "occorrenze": 40,
+  "definizione": "",
+  "asse": ""
+ },
+ "consume": {
+  "testo": "Consume",
+  "occorrenze": 39,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "participating_in_battle": {
+  "testo": "participating in battle",
+  "occorrenze": 39,
+  "definizione": "",
+  "asse": ""
+ },
+ "single_target_attack": {
+  "testo": "single-target attack",
+  "occorrenze": 36,
+  "definizione": "",
+  "asse": ""
+ },
+ "abyss": {
+  "testo": "Abyss",
+  "occorrenze": 34,
+  "definizione": "Inflicts additional damage equal to 30% of damage dealt on all enemies at the start of the enemy's turn",
+  "asse": ""
+ },
+ "disables_recovery_skills": {
+  "testo": "Disables Recovery Skills",
+  "occorrenze": 34,
+  "definizione": "",
+  "asse": ""
+ },
+ "removes_stances": {
+  "testo": "Removes Stances",
+  "occorrenze": 33,
+  "definizione": "",
+  "asse": ""
+ },
+ "quell": {
+  "testo": "Quell",
+  "occorrenze": 33,
+  "definizione": "Damage dealt +50% per active Stance on self",
+  "asse": ""
+ },
+ "poisons": {
+  "testo": "Poisons",
+  "occorrenze": 33,
+  "definizione": "",
+  "asse": ""
+ },
+ "bloodlust": {
+  "testo": "Bloodlust",
+  "occorrenze": 30,
+  "definizione": "All stats -10%, damage taken +15%",
+  "asse": ""
+ },
+ "cold_snap": {
+  "testo": "Cold Snap",
+  "occorrenze": 29,
+  "definizione": "Attack-related stats +12%, damage dealt +50%",
+  "asse": ""
+ },
+ "removes_stance_s": {
+  "testo": "Removes Stance(s)",
+  "occorrenze": 28,
+  "definizione": "",
+  "asse": ""
+ },
+ "shocks": {
+  "testo": "Shocks",
+  "occorrenze": 27,
+  "definizione": "",
+  "asse": ""
+ },
+ "transgression": {
+  "testo": "Transgression",
+  "occorrenze": 25,
+  "definizione": "5x Pierce Rate Increase. Ignores 100% of the enemy's Crit Defense. 2x damage against Debuffed enemies",
+  "asse": ""
+ },
+ "pitch_black_shield": {
+  "testo": "Pitch Black Shield",
+  "occorrenze": 25,
+  "definizione": "Grants a barrier equal to 700% of the target hero's initial Defense",
+  "asse": ""
+ },
+ "magic_control": {
+  "testo": "Magic Control",
+  "occorrenze": 25,
+  "definizione": "-15% All-target attack damage dealt",
+  "asse": ""
+ },
+ "rejuvenates": {
+  "testo": "Rejuvenates",
+  "occorrenze": 24,
+  "definizione": "",
+  "asse": ""
+ },
+ "frozen": {
+  "testo": "Frozen",
+  "occorrenze": 24,
+  "definizione": "",
+  "asse": ""
+ },
+ "ruin": {
+  "testo": "Ruin",
+  "occorrenze": 24,
+  "definizione": "Increases damage dealt by 30% per Debuff on the target and removes Debuffs",
+  "asse": ""
+ },
+ "wrath_of_the_earth": {
+  "testo": "Wrath of the Earth",
+  "occorrenze": 24,
+  "definizione": "Accumulates up to 400,000 of the target's damage taken",
+  "asse": ""
+ },
+ "cleave": {
+  "testo": "Cleave",
+  "occorrenze": 24,
+  "definizione": "Additional damage equal to 75% of (Crit Damage - 100%)",
+  "asse": ""
+ },
+ "releases": {
+  "testo": "Releases",
+  "occorrenze": 24,
+  "definizione": "",
+  "asse": ""
+ },
+ "solidify": {
+  "testo": "Solidify",
+  "occorrenze": 24,
+  "definizione": "+30% Resistance for 3 turns (Can be stacked)",
+  "asse": ""
+ },
+ "freezes": {
+  "testo": "Freezes",
+  "occorrenze": 23,
+  "definizione": "",
+  "asse": ""
+ },
+ "prevents_ultimate_move_gauge_s_from_filling_up": {
+  "testo": "Prevents Ultimate Move Gauge(s) from filling up",
+  "occorrenze": 23,
+  "definizione": "",
+  "asse": ""
+ },
+ "excludes_stance_and_recovery_skills": {
+  "testo": "(Excludes Stance and Recovery Skills)",
+  "occorrenze": 22,
+  "definizione": "",
+  "asse": ""
+ },
+ "decreases": {
+  "testo": "decreases",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "human_allies": {
+  "testo": "Human allies",
+  "occorrenze": 15,
+  "definizione": "",
+  "asse": ""
+ },
+ "twilight_covenant": {
+  "testo": "Twilight Covenant",
+  "occorrenze": 21,
+  "definizione": "All stats +20%, damage dealt +70%. Fixes damage taken from skills during the enemy's turn to 1. The effect is removed after taking damage",
+  "asse": ""
+ },
+ "crit_damage": {
+  "testo": "Crit Damage",
+  "occorrenze": 19,
+  "definizione": "",
+  "asse": ""
+ },
+ "corrosion": {
+  "testo": "Corrosion",
+  "occorrenze": 19,
+  "definizione": "Additional damage at the end of every turn",
+  "asse": ""
+ },
+ "demon_allies": {
+  "testo": "Demon allies",
+  "occorrenze": 10,
+  "definizione": "",
+  "asse": ""
+ },
+ "petrified": {
+  "testo": "Petrified",
+  "occorrenze": 18,
+  "definizione": "",
+  "asse": ""
+ },
+ "cursed_chains": {
+  "testo": "Cursed Chains",
+  "occorrenze": 18,
+  "definizione": "Attack-related stats -20% (Stacks 3 times)",
+  "asse": ""
+ },
+ "chains_of_the_covenant": {
+  "testo": "Chains of the Covenant",
+  "occorrenze": 18,
+  "definizione": "All stats +10%",
+  "asse": ""
+ },
+ "faster_than_light": {
+  "testo": "Faster Than Light",
+  "occorrenze": 18,
+  "definizione": "Additional damage equal to 50% of the hero's diminished HP",
+  "asse": ""
+ },
+ "infinite_space": {
+  "testo": "Infinite Space",
+  "occorrenze": 18,
+  "definizione": "Grants a barrier equal to 40% of the hero's initial HP",
+  "asse": ""
+ },
+ "deletes": {
+  "testo": "Deletes",
+  "occorrenze": 18,
+  "definizione": "",
+  "asse": ""
+ },
+ "death": {
+  "testo": "Death",
+  "occorrenze": 18,
+  "definizione": "20% of final damage as additional damage",
+  "asse": ""
+ },
+ "wrath_of_the_fairy_king": {
+  "testo": "Wrath of the Fairy King",
+  "occorrenze": 18,
+  "definizione": "Attack-related stats +7%, damage taken -40%",
+  "asse": ""
+ },
+ "suppress_damage_taken": {
+  "testo": "Suppress Damage Taken",
+  "occorrenze": 18,
+  "definizione": "Damage taken from enemy skills does not exceed 50% of Max HP",
+  "asse": ""
+ },
+ "mark_of_insight": {
+  "testo": "Mark of Insight",
+  "occorrenze": 18,
+  "definizione": "Crit Defense -50%",
+  "asse": ""
+ },
+ "transforms": {
+  "testo": "Transforms",
+  "occorrenze": 18,
+  "definizione": "",
+  "asse": ""
+ },
+ "removing_debuffs_from_allies_and_buffs_from_enemies": {
+  "testo": "removing Debuffs from allies and Buffs from enemies",
+  "occorrenze": 18,
+  "definizione": "",
+  "asse": ""
+ },
+ "expels": {
+  "testo": "Expels",
+  "occorrenze": 18,
+  "definizione": "",
+  "asse": ""
+ },
+ "reflects": {
+  "testo": "Reflects",
+  "occorrenze": 18,
+  "definizione": "",
+  "asse": ""
+ },
+ "craving": {
+  "testo": "Craving",
+  "occorrenze": 17,
+  "definizione": "3x Pierce Rate Increase. Damage dealt to enemies with Mark of Craving +150%",
+  "asse": ""
+ },
+ "demon_ally": {
+  "testo": "Demon ally",
+  "occorrenze": 16,
+  "definizione": "",
+  "asse": ""
+ },
+ "fluidity": {
+  "testo": "Fluidity",
+  "occorrenze": 16,
+  "definizione": "Inflicts additional damage equal to 20% of the hero's Max HP and increases Max HP by +20% when using a skill",
+  "asse": ""
+ },
+ "disables_stance_skills": {
+  "testo": "disables Stance Skills",
+  "occorrenze": 16,
+  "definizione": "",
+  "asse": ""
+ },
+ "blocks_all_skill_effects_including_those_of_ultimate_moves": {
+  "testo": "blocks all skill effects including those of Ultimate Moves",
+  "occorrenze": 15,
+  "definizione": "",
+  "asse": ""
+ },
+ "removes_buffs_and_stances": {
+  "testo": "Removes Buffs and Stances",
+  "occorrenze": 15,
+  "definizione": "",
+  "asse": ""
+ },
+ "removes": {
+  "testo": "removes",
+  "occorrenze": 15,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_3_times": {
+  "testo": "(Limit 3 times",
+  "occorrenze": 15,
+  "definizione": "",
+  "asse": ""
+ },
+ "fragment_of_glory": {
+  "testo": "Fragment of Glory",
+  "occorrenze": 15,
+  "definizione": "Crit Damage +60% (Stacks 4 times)",
+  "asse": ""
+ },
+ "break": {
+  "testo": "Break",
+  "occorrenze": 15,
+  "definizione": "2x damage against enemies assuming Stances",
+  "asse": ""
+ },
+ "elemental_explosion": {
+  "testo": "Elemental Explosion",
+  "occorrenze": 15,
+  "definizione": "+40% damage dealt for every elemental effect on the target",
+  "asse": ""
+ },
+ "pulverize": {
+  "testo": "Pulverize",
+  "occorrenze": 15,
+  "definizione": "20% additional damage for each orb in the hero's Ultimate Move Gauge",
+  "asse": ""
+ },
+ "wave": {
+  "testo": "Wave",
+  "occorrenze": 15,
+  "definizione": "-20% damage dealt for every enemy on the battlefield",
+  "asse": ""
+ },
+ "applies_when_entering_battle": {
+  "testo": "(Applies when entering battle.)",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "light_of_judgment": {
+  "testo": "Light of Judgment",
+  "occorrenze": 14,
+  "definizione": "All stats +20%, damage dealt +80%",
+  "asse": ""
+ },
+ "ice_brand_arts": {
+  "testo": "Ice Brand Arts",
+  "occorrenze": 14,
+  "definizione": "Attack-related stats +40%, Pierce Rate +150%",
+  "asse": ""
+ },
+ "pvp": {
+  "testo": "PVP",
+  "occorrenze": 14,
+  "definizione": "",
+  "asse": ""
+ },
+ "insight": {
+  "testo": "Insight",
+  "occorrenze": 14,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "flash_cut": {
+  "testo": "Flash Cut",
+  "occorrenze": 14,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "infect": {
+  "testo": "Infect",
+  "occorrenze": 13,
+  "definizione": "Restricts Recovery-related stats",
+  "asse": ""
+ },
+ "mark_of_craving": {
+  "testo": "Mark of Craving",
+  "occorrenze": 13,
+  "definizione": "Damage dealt -70%, damage taken +70%",
+  "asse": ""
+ },
+ "damage_taken_suppression": {
+  "testo": "Damage Taken Suppression",
+  "occorrenze": 13,
+  "definizione": "",
+  "asse": ""
+ },
+ "foresight": {
+  "testo": "Foresight",
+  "occorrenze": 13,
+  "definizione": "Counters before an enemy's attack. (Excludes Ultimate Moves)",
+  "asse": ""
+ },
+ "flying_sword": {
+  "testo": "Flying Sword",
+  "occorrenze": 12,
+  "definizione": "5x Pierce Rate Increase. Attack-related stats +20% for each Blade on the hero",
+  "asse": ""
+ },
+ "brilliance": {
+  "testo": "Brilliance",
+  "occorrenze": 12,
+  "definizione": "3x Crit Chance and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "extraordinary_luck": {
+  "testo": "Extraordinary Luck",
+  "occorrenze": 12,
+  "definizione": "50% Damage Suppression, Stat Decrease Immunity",
+  "asse": ""
+ },
+ "frostbite": {
+  "testo": "Frostbite",
+  "occorrenze": 12,
+  "definizione": "Blocks single-target skill effects. Attack-related stats -20%",
+  "asse": ""
+ },
+ "absorb_ability": {
+  "testo": "Absorb Ability",
+  "occorrenze": 12,
+  "definizione": "All stats +7%",
+  "asse": ""
+ },
+ "resonance": {
+  "testo": "Resonance",
+  "occorrenze": 12,
+  "definizione": "+5% damage dealt for every Buff, Debuff, and Stance on the target",
+  "asse": ""
+ },
+ "firm_volition": {
+  "testo": "Firm Volition",
+  "occorrenze": 12,
+  "definizione": "Attack-related stats +40%, damage dealt +80%",
+  "asse": ""
+ },
+ "unknown_race_ally": {
+  "testo": "Unknown race ally",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "elemental_effect_s": {
+  "testo": "Elemental Effect(s)",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "without_duplicates": {
+  "testo": "without duplicates",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "power_of_chaos": {
+  "testo": "Power of Chaos",
+  "occorrenze": 12,
+  "definizione": "All stats +5%, Ultimate Move damage taken -20%",
+  "asse": ""
+ },
+ "removes_debuffs_from_allies_and_buffs_from_enemies": {
+  "testo": "Removes Debuffs from allies and Buffs from enemies",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "if_there_are_debuffs_they_are_removed": {
+  "testo": "If there are Debuffs, they are removed",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "excludes_rupture": {
+  "testo": "(Excludes Rupture)",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "co_destruction": {
+  "testo": "Co-destruction",
+  "occorrenze": 12,
+  "definizione": "20% increased damage per Debuff on the target",
+  "asse": ""
+ },
+ "despair": {
+  "testo": "Despair",
+  "occorrenze": 12,
+  "definizione": "Recovers 15% of diminished HP upon successful critical strike",
+  "asse": ""
+ },
+ "explodes": {
+  "testo": "Explodes",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "preemptive_strike": {
+  "testo": "Preemptive Strike",
+  "occorrenze": 12,
+  "definizione": "Becomes immune to Ultimate Move Gauge depletion effects and attacks before the enemy does",
+  "asse": ""
+ },
+ "disabling_all_skills": {
+  "testo": "disabling all skills",
+  "occorrenze": 12,
+  "definizione": "",
+  "asse": ""
+ },
+ "remaining_hp": {
+  "testo": "remaining HP",
+  "occorrenze": 11,
+  "definizione": "",
+  "asse": ""
+ },
+ "demons": {
+  "testo": "Demons",
+  "occorrenze": 11,
+  "definizione": "",
+  "asse": ""
+ },
+ "spirit_s_contract": {
+  "testo": "Spirit's Contract",
+  "occorrenze": 11,
+  "definizione": "HP-related stats +20%, damage dealt +100%",
+  "asse": ""
+ },
+ "flames_of_obliteration": {
+  "testo": "Flames of Obliteration",
+  "occorrenze": 11,
+  "definizione": "Attack-related stats +50%, skill coefficients +80%",
+  "asse": ""
+ },
+ "threads_of_foresight": {
+  "testo": "Threads of Foresight",
+  "occorrenze": 11,
+  "definizione": "All stats +5%, Attack-related stats +15%, damage dealt +40% (Stacks 3 times)",
+  "asse": ""
+ },
+ "erosion": {
+  "testo": "Erosion",
+  "occorrenze": 11,
+  "definizione": "Ignores Defense and Resistance",
+  "asse": ""
+ },
+ "pitch_black_sword": {
+  "testo": "Pitch Black Sword",
+  "occorrenze": 11,
+  "definizione": "Attack-related stats +15%, Crit Damage +30%",
+  "asse": ""
+ },
+ "level_ups": {
+  "testo": "Level Ups",
+  "occorrenze": 11,
+  "definizione": "",
+  "asse": ""
+ },
+ "hellbrand": {
+  "testo": "Hellbrand",
+  "occorrenze": 11,
+  "definizione": "Damage taken +20%, damage dealt -20%",
+  "asse": ""
+ },
+ "piercing_arrow": {
+  "testo": "Piercing Arrow",
+  "occorrenze": 11,
+  "definizione": "Pierce Rate +100%. All removed when dealing damage with all-target attacks other than the Ultimate Move",
+  "asse": ""
+ },
+ "dragon_power": {
+  "testo": "Dragon Power",
+  "occorrenze": 11,
+  "definizione": "Applies Dragon Rage on self once all stacks are removed",
+  "asse": ""
+ },
+ "crit_chance": {
+  "testo": "Crit Chance",
+  "occorrenze": 11,
+  "definizione": "",
+  "asse": ""
+ },
+ "disables_buff_and_debuff_skills": {
+  "testo": "disables Buff and Debuff Skills",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "ignites": {
+  "testo": "Ignites",
+  "occorrenze": 11,
+  "definizione": "",
+  "asse": ""
+ },
+ "blade": {
+  "testo": "Blade",
+  "occorrenze": 10,
+  "definizione": "HP-related stats +20%, Pierce Rate +70%",
+  "asse": ""
+ },
+ "reflect": {
+  "testo": "Reflect",
+  "occorrenze": 10,
+  "definizione": "Returns a portion of damage taken back to the attacker",
+  "asse": ""
+ },
+ "enters_the_battle_from_the_secondary_slot": {
+  "testo": "enters the battle from the secondary slot",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "spirit_s_pride": {
+  "testo": "Spirit's Pride",
+  "occorrenze": 10,
+  "definizione": "HP-related stats +15%",
+  "asse": ""
+ },
+ "beacon_of_life": {
+  "testo": "Beacon of Life",
+  "occorrenze": 10,
+  "definizione": "HP does not fall below 1",
+  "asse": ""
+ },
+ "taunt": {
+  "testo": "Taunt",
+  "occorrenze": 10,
+  "definizione": "Directs all attacks to self",
+  "asse": ""
+ },
+ "mobility": {
+  "testo": "Mobility",
+  "occorrenze": 10,
+  "definizione": "Evades 1 enemy attack, then the effect is removed",
+  "asse": ""
+ },
+ "dawn_s_blessing": {
+  "testo": "Dawn's Blessing",
+  "occorrenze": 10,
+  "definizione": "Basic stats +20%. Applicable Allies' damage taken -70%. Applicable Allies' damage taken from skills during the enemy's turn does not exceed 60% of Max HP",
+  "asse": ""
+ },
+ "hand_of_oppression": {
+  "testo": "Hand of Oppression",
+  "occorrenze": 10,
+  "definizione": "All stats -10%",
+  "asse": ""
+ },
+ "goddess_allies": {
+  "testo": "Goddess allies'",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "sword_of_penetration": {
+  "testo": "Sword of Penetration",
+  "occorrenze": 10,
+  "definizione": "Pierce Rate +60%, damage dealt +40%",
+  "asse": ""
+ },
+ "mark_of_retribution": {
+  "testo": "Mark of Retribution",
+  "occorrenze": 10,
+  "definizione": "Attack-related stats -20%, Defense-related stats -20%",
+  "asse": ""
+ },
+ "soul_power": {
+  "testo": "Soul Power",
+  "occorrenze": 10,
+  "definizione": "Defense-related stats +10%. (Can be stacked up to 3 times.)",
+  "asse": ""
+ },
+ "goddess_s_protection": {
+  "testo": "Goddess's Protection",
+  "occorrenze": 10,
+  "definizione": "The hero revives with the same amount of HP they had before dying",
+  "asse": ""
+ },
+ "magic_orb": {
+  "testo": "Magic Orb",
+  "occorrenze": 10,
+  "definizione": "Hero's damage dealt with single-target attacks +20% (Can be stacked up to 5 time(s))",
+  "asse": ""
+ },
+ "sunfire": {
+  "testo": "Sunfire",
+  "occorrenze": 9,
+  "definizione": "5x Pierce Rate and 2x Crit Damage Increase",
+  "asse": ""
+ },
+ "barnacle": {
+  "testo": "Barnacle",
+  "occorrenze": 9,
+  "definizione": "Additional damage equal to 20% of remaining HP at the end of every turn",
+  "asse": ""
+ },
+ "reforge": {
+  "testo": "Reforge",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "recycle": {
+  "testo": "Recycle",
+  "occorrenze": 9,
+  "definizione": "Attack +50%, Crit Chance +100%",
+  "asse": ""
+ },
+ "revives": {
+  "testo": "revives",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "severance": {
+  "testo": "Severance",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate and 3x Crit Chance Increase",
+  "asse": ""
+ },
+ "suppression": {
+  "testo": "Suppression",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "alteration": {
+  "testo": "Alteration",
+  "occorrenze": 9,
+  "definizione": "4x Pierce Rate and 2x Crit Damage Increase",
+  "asse": ""
+ },
+ "uses_a_single_target_attack": {
+  "testo": "uses a single-target attack",
+  "occorrenze": 9,
+  "definizione": "",
+  "asse": ""
+ },
+ "dark_assault": {
+  "testo": "Dark Assault",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "shadow_engulfment": {
+  "testo": "Shadow Engulfment",
+  "occorrenze": 9,
+  "definizione": "All stats -50%",
+  "asse": ""
+ },
+ "skill_ranks_are_increased": {
+  "testo": "skill ranks are increased",
+  "occorrenze": 9,
+  "definizione": "",
+  "asse": ""
+ },
+ "revenant_strike": {
+  "testo": "Revenant Strike",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "frozen_slash": {
+  "testo": "Frozen Slash",
+  "occorrenze": 9,
+  "definizione": "5x Pierce Rate Increase",
+  "asse": ""
+ },
+ "scorching_strike": {
+  "testo": "Scorching Strike",
+  "occorrenze": 9,
+  "definizione": "Attack +250% while using this skill",
+  "asse": ""
+ },
+ "binding_chain": {
+  "testo": "Binding Chain",
+  "occorrenze": 9,
+  "definizione": "3x Crit Chance and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "all_target_attack": {
+  "testo": "all-target attack",
+  "occorrenze": 9,
+  "definizione": "",
+  "asse": ""
+ },
+ "infernal": {
+  "testo": "Infernal",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "frost_wave": {
+  "testo": "Frost Wave",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate Increase. 3x Crit Damage Increase. Attack +80% when using the skill while Cold Snap is active",
+  "asse": ""
+ },
+ "ablation": {
+  "testo": "Ablation",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase. 2x Crit Damage Increase. 3x damage against Debuffed enemies",
+  "asse": ""
+ },
+ "radiant_heat": {
+  "testo": "Radiant Heat",
+  "occorrenze": 9,
+  "definizione": "Increases damage dealt by 80% of the hero duo's Pierce Rate",
+  "asse": ""
+ },
+ "cold": {
+  "testo": "Cold",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "dawn": {
+  "testo": "Dawn",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "blood_clot": {
+  "testo": "Blood Clot",
+  "occorrenze": 9,
+  "definizione": "Damage dealt +1% per 1% of the target's remaining HP",
+  "asse": ""
+ },
+ "demon": {
+  "testo": "Demon",
+  "occorrenze": 9,
+  "definizione": "",
+  "asse": ""
+ },
+ "pitch_black": {
+  "testo": "Pitch Black",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "mutilate": {
+  "testo": "Mutilate",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "lightspeed": {
+  "testo": "Lightspeed",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "pyroclash": {
+  "testo": "Pyroclash",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance",
+  "asse": ""
+ },
+ "lightpoint": {
+  "testo": "Lightpoint",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance, 2x Crit Damage Increase",
+  "asse": ""
+ },
+ "goddess_ally": {
+  "testo": "Goddess ally",
+  "occorrenze": 9,
+  "definizione": "",
+  "asse": ""
+ },
+ "shadowrend": {
+  "testo": "Shadowrend",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "shadow": {
+  "testo": "Shadow",
+  "occorrenze": 9,
+  "definizione": "Pierce Rate +80%, damage taken -40%",
+  "asse": ""
+ },
+ "crit_defense": {
+  "testo": "Crit Defense",
+  "occorrenze": 9,
+  "definizione": "",
+  "asse": ""
+ },
+ "soul": {
+  "testo": "Soul",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "retrogression": {
+  "testo": "Retrogression",
+  "occorrenze": 9,
+  "definizione": "Attack-related stats +20%",
+  "asse": ""
+ },
+ "smite": {
+  "testo": "Smite",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "firestorm": {
+  "testo": "Firestorm",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "illumination": {
+  "testo": "Illumination",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "impact": {
+  "testo": "Impact",
+  "occorrenze": 9,
+  "definizione": "3x Pierce Rate Increase. Ignores Resistance",
+  "asse": ""
+ },
+ "raging_gale": {
+  "testo": "Raging Gale",
+  "occorrenze": 9,
+  "definizione": "2x Crit Damage Increase and ignores enemy Resistance. Skill damage +50% if the Dragon Rage effect is active on the hero",
+  "asse": ""
+ },
+ "shock": {
+  "testo": "Shock",
+  "occorrenze": 9,
+  "definizione": "Additional damage equal to 45% of damage dealt at the end of every turn",
+  "asse": ""
+ },
+ "thunderbolt": {
+  "testo": "Thunderbolt",
+  "occorrenze": 9,
+  "definizione": "2x Crit Damage Increase",
+  "asse": ""
+ },
+ "mind_break": {
+  "testo": "Mind Break",
+  "occorrenze": 9,
+  "definizione": "Attack-related stats -20%",
+  "asse": ""
+ },
+ "enhanced_mind_break": {
+  "testo": "Enhanced Mind Break",
+  "occorrenze": 9,
+  "definizione": "Attack-related stats -20%",
+  "asse": ""
+ },
+ "raging_fire": {
+  "testo": "Raging Fire",
+  "occorrenze": 9,
+  "definizione": "Ignores enemy Defense and Resistance",
+  "asse": ""
+ },
+ "increases_skill_ranks": {
+  "testo": "Increases Skill Ranks",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "power_of_the_thorn": {
+  "testo": "Power of the Thorn",
+  "occorrenze": 9,
+  "definizione": "Allies' damage dealt +20%, damage taken -20%",
+  "asse": ""
+ },
+ "doom": {
+  "testo": "Doom",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance",
+  "asse": ""
+ },
+ "ally_with_the_lowest_remaining_hp_percentage": {
+  "testo": "ally with the lowest remaining HP percentage",
+  "occorrenze": 9,
+  "definizione": "",
+  "asse": ""
+ },
+ "verdict": {
+  "testo": "Verdict",
+  "occorrenze": 9,
+  "definizione": "+50% damage dealt for every Deathbrand on the target",
+  "asse": ""
+ },
+ "sword_slash": {
+  "testo": "Sword Slash",
+  "occorrenze": 9,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "capture": {
+  "testo": "Capture",
+  "occorrenze": 9,
+  "definizione": "5x Pierce Rate and 3x Crit Chance Increase",
+  "asse": ""
+ },
+ "blast": {
+  "testo": "Blast",
+  "occorrenze": 9,
+  "definizione": "+40% damage dealt per Eternal Flame and Burn effect on target",
+  "asse": ""
+ },
+ "applicable_ally_s": {
+  "testo": "Applicable Ally's",
+  "occorrenze": 8,
+  "definizione": "",
+  "asse": ""
+ },
+ "lovely_assistaff": {
+  "testo": "Lovely Assistaff",
+  "occorrenze": 8,
+  "definizione": "Pierce Rate +100%",
+  "asse": ""
+ },
+ "fairy_ally": {
+  "testo": "Fairy ally",
+  "occorrenze": 8,
+  "definizione": "",
+  "asse": ""
+ },
+ "failing_grade": {
+  "testo": "Failing Grade",
+  "occorrenze": 8,
+  "definizione": "Attack-related stats -20%, damage taken +80%",
+  "asse": ""
+ },
+ "frost_shield": {
+  "testo": "Frost Shield",
+  "occorrenze": 8,
+  "definizione": "Damage taken -50%, Max HP +20%, Freeze Immunity, decreases damage dealt by enemies that used a skill to deal damage by 40% for 2 turns",
+  "asse": ""
+ },
+ "limit_5_times": {
+  "testo": "(Limit 5 times)",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "divine_purification": {
+  "testo": "Divine Purification",
+  "occorrenze": 8,
+  "definizione": "Revives with 50% of Max HP upon dying",
+  "asse": ""
+ },
+ "joker": {
+  "testo": "Joker",
+  "occorrenze": 8,
+  "definizione": "Increases Skill Ranks, damage dealt +100%",
+  "asse": ""
+ },
+ "shinsu_barrier": {
+  "testo": "Shinsu Barrier",
+  "occorrenze": 8,
+  "definizione": "Creates a barrier equal to 300% of the hero's initial Attack, damage taken -80%",
+  "asse": ""
+ },
+ "dragon_rage": {
+  "testo": "Dragon Rage",
+  "occorrenze": 8,
+  "definizione": "Attack-related stats +40%. Ignores 100% of the target's Crit Resistance. Inflicts additional damage equal to 40% of the final damage when using all-target attack skills (except Ultimate Moves)",
+  "asse": ""
+ },
+ "pve": {
+  "testo": "PVE",
+  "occorrenze": 8,
+  "definizione": "",
+  "asse": ""
+ },
+ "recovery_factor": {
+  "testo": "Recovery Factor",
+  "occorrenze": 8,
+  "definizione": "Max HP +20%. Restores 50% of damage taken when taking damage that is 30% of Max HP or more. When this effect is removed from an ally, their damage taken decreases by 40% for 1 turn(s)",
+  "asse": ""
+ },
+ "unity_s_strength": {
+  "testo": "Unity's Strength",
+  "occorrenze": 8,
+  "definizione": "Removed when the hero uses a skill (Stacks up to 4 times)",
+  "asse": ""
+ },
+ "sharp_talons": {
+  "testo": "Sharp Talons",
+  "occorrenze": 8,
+  "definizione": "The hero ignores 15% of their target's Crit Resistance. (Can be stacked up to 3 times)",
+  "asse": ""
+ },
+ "call_of_chaos": {
+  "testo": "Call of Chaos",
+  "occorrenze": 8,
+  "definizione": "Crit Defense +10%, Max HP +5%",
+  "asse": ""
+ },
+ "deathbrand": {
+  "testo": "Deathbrand",
+  "occorrenze": 8,
+  "definizione": "Decreases damage dealt and all-target Ultimate Move final damage in PVP (amount decreased varies based on Ultimate Move level, stacks up to 4 times)",
+  "asse": ""
+ },
+ "the_seven_catastrophes": {
+  "testo": "[The Seven Catastrophes]",
+  "occorrenze": 8,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_5_time_s": {
+  "testo": "(Limit 5% time(s))",
+  "occorrenze": 8,
+  "definizione": "",
+  "asse": ""
+ },
+ "disables_ultimate_moves": {
+  "testo": "disables Ultimate Moves",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "four_knights_of_the_apocalypse_ally": {
+  "testo": "[Four Knights of the Apocalypse] ally",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "attack_disable": {
+  "testo": "Attack Disable",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "allows_the_use_of_only_rank_1_skills": {
+  "testo": "allows the use of only Rank 1 skills",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "uses_a_buff_skill": {
+  "testo": "uses a Buff Skill",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "dispersion": {
+  "testo": "Dispersion",
+  "occorrenze": 7,
+  "definizione": "The skill results in a miss. (Ignores Block effect)",
+  "asse": ""
+ },
+ "human": {
+  "testo": "Human",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "applies_before_skill_activation": {
+  "testo": "(Applies before skill activation)",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "blade_of_judgment": {
+  "testo": "Blade of Judgment",
+  "occorrenze": 7,
+  "definizione": "Attack-related stats +20%",
+  "asse": ""
+ },
+ "blazing_inferno": {
+  "testo": "Blazing Inferno",
+  "occorrenze": 7,
+  "definizione": "Damage taken +15% (Can be stacked up to 8 times)",
+  "asse": ""
+ },
+ "unknown_race_allies": {
+  "testo": "Unknown race allies'",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "hallucination": {
+  "testo": "Hallucination",
+  "occorrenze": 7,
+  "definizione": "Applies Mind Break when removed",
+  "asse": ""
+ },
+ "enhanced_hallucination": {
+  "testo": "Enhanced Hallucination",
+  "occorrenze": 7,
+  "definizione": "Applies Enhanced Mind Break when removed",
+  "asse": ""
+ },
+ "1": {
+  "testo": "1",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "rose_shinsu": {
+  "testo": "Rose Shinsu",
+  "occorrenze": 7,
+  "definizione": "Damage dealt -10% (Stacks up to 3 times)",
+  "asse": ""
+ },
+ "immortality": {
+  "testo": "Immortality",
+  "occorrenze": 7,
+  "definizione": "HP does not fall below 1",
+  "asse": ""
+ },
+ "seed_of_the_end": {
+  "testo": "Seed of the End",
+  "occorrenze": 7,
+  "definizione": "Defense-related stats -10% (Removed when the hero uses a skill on an enemy at max stacks)",
+  "asse": ""
+ },
+ "protection_of_the_demon_king": {
+  "testo": "Protection of the Demon King",
+  "occorrenze": 7,
+  "definizione": "Removes 1 Debuff from each ally at the start of the allies' turn. The hero gains Dark Energy effects equal to the number of Debuffs removed",
+  "asse": ""
+ },
+ "intervention_of_light": {
+  "testo": "Intervention of Light",
+  "occorrenze": 7,
+  "definizione": "Attack-related stats -10%",
+  "asse": ""
+ },
+ "disables_everything_but_attack_skills": {
+  "testo": "disables everything but Attack Skills",
+  "occorrenze": 7,
+  "definizione": "",
+  "asse": ""
+ },
+ "excludes_rupture_effect": {
+  "testo": "(Excludes Rupture effect)",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "reduce": {
+  "testo": "Reduce",
+  "occorrenze": 6,
+  "definizione": "Allies other than the hero cannot be targeted",
+  "asse": ""
+ },
+ "reuse": {
+  "testo": "Reuse",
+  "occorrenze": 6,
+  "definizione": "Defense-related stats +50%, damage taken -70%",
+  "asse": ""
+ },
+ "drive": {
+  "testo": "Drive",
+  "occorrenze": 6,
+  "definizione": "Pierce Rate +80%. (Stacks 3 times)",
+  "asse": ""
+ },
+ "uses_a_recovery_skill": {
+  "testo": "uses a Recovery Skill",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "spirit_boost": {
+  "testo": "Spirit Boost",
+  "occorrenze": 6,
+  "definizione": "Fairy allies' HP-related stats +5%, damage taken -30%",
+  "asse": ""
+ },
+ "hp_diminished_from_max_hp": {
+  "testo": "HP diminished from max HP",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "sacrifice": {
+  "testo": "[Sacrifice]",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "the_seven_catastrophes_ally_with_the_highest_hp": {
+  "testo": "[The Seven Catastrophes] ally with the highest HP",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "cancels_their_stances": {
+  "testo": "cancels their Stances",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "the_seven_deadly_sins_allies": {
+  "testo": "[The Seven Deadly Sins] allies",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "60": {
+  "testo": "60%",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "defeat": {
+  "testo": "defeat",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "defeats_an_enemy": {
+  "testo": "defeats an enemy",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "applicable_ally_dies": {
+  "testo": "Applicable Ally dies",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "blessing_lake": {
+  "testo": "Blessing Lake",
+  "occorrenze": 6,
+  "definizione": "All stats +10%, damage taken -10%",
+  "asse": ""
+ },
+ "drained": {
+  "testo": "Drained",
+  "occorrenze": 6,
+  "definizione": "Disables skills other than the Ultimate Move",
+  "asse": ""
+ },
+ "crimson_demon_tradition": {
+  "testo": "Crimson Demon Tradition",
+  "occorrenze": 6,
+  "definizione": "Attack-related stats +10% with each elapsed turn",
+  "asse": ""
+ },
+ "magic_deployment": {
+  "testo": "Magic Deployment",
+  "occorrenze": 6,
+  "definizione": "Immune to Ultimate Move Gauge Decrease",
+  "asse": ""
+ },
+ "ultimate_move": {
+  "testo": "Ultimate Move",
+  "occorrenze": 6,
+  "definizione": "All stats +25%",
+  "asse": ""
+ },
+ "mighty_explosion": {
+  "testo": "Mighty Explosion",
+  "occorrenze": 6,
+  "definizione": "Attack-related stats +30%",
+  "asse": ""
+ },
+ "ultimate_moves": {
+  "testo": "Ultimate Moves",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "ultimate_move_gauge_orbs_are_consumed": {
+  "testo": "Ultimate Move Gauge orbs are consumed",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "hp_related_stats_increase": {
+  "testo": "HP-related Stats Increase",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "stacks_2_times": {
+  "testo": "(Stacks 2 times",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "blood_pact": {
+  "testo": "Blood Pact",
+  "occorrenze": 6,
+  "definizione": "Demon allies' damage taken -30%",
+  "asse": ""
+ },
+ "selfless_love": {
+  "testo": "Selfless Love",
+  "occorrenze": 6,
+  "definizione": "Immune to Recovery-related stat restriction",
+  "asse": ""
+ },
+ "mark_of_nightmare": {
+  "testo": "Mark of Nightmare",
+  "occorrenze": 6,
+  "definizione": "Only Berserk Meliodas can be targeted",
+  "asse": ""
+ },
+ "monarch_s_domain": {
+  "testo": "Monarch's Domain",
+  "occorrenze": 6,
+  "definizione": "Inflicts damage equal to 8% of the hero's Max HP on all enemies, increases Human allies' basic stats by +15%, and decreases their damage taken by -30% at the start of the allies' turn",
+  "asse": ""
+ },
+ "at_the_start_of_the_battle": {
+  "testo": "At the start of the battle",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "max_level_100": {
+  "testo": "(Max: Level 100",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "uses_an_attack_skill_other_than_the_ultimate_move": {
+  "testo": "uses an Attack Skill other than the Ultimate Move",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "sung_jinwoo": {
+  "testo": "Sung Jinwoo",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "fragments_of_glory": {
+  "testo": "Fragments of Glory",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "darkness_attribute_hero": {
+  "testo": "Darkness attribute hero",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "giant_queen_s_protection": {
+  "testo": "Giant Queen's Protection",
+  "occorrenze": 6,
+  "definizione": "HP-related stats +20%",
+  "asse": ""
+ },
+ "each_time_the_hero_duo_takes_damage": {
+  "testo": "each time the hero duo takes damage",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "crit_resistance": {
+  "testo": "Crit Resistance",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "hero_is_in_the_battle": {
+  "testo": "hero is in the battle",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "ally_hero_dies": {
+  "testo": "ally hero dies",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "enemy_skill_use": {
+  "testo": "enemy skill use",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "enemy_hero_dies": {
+  "testo": "enemy hero dies",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "the_effects_of_this_hero_s_skill": {
+  "testo": "the effects of this hero's skill",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "dragon_rampage": {
+  "testo": "Dragon Rampage",
+  "occorrenze": 6,
+  "definizione": "Single target skill damage +50%. Additional damage equal to 40% of the target's increased HP. (Does not stack.) Sets all incoming damage from attacks during the enemy's turn to 1. Stack count decreases by 1 each time this hero uses a skill or this hero takes damage from an enemy's skill use on the enemy's turn",
+  "asse": ""
+ },
+ "in_battle": {
+  "testo": "in battle",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "thundergod_s_protection": {
+  "testo": "Thundergod's Protection",
+  "occorrenze": 6,
+  "definizione": "Allies' damage taken -30%",
+  "asse": ""
+ },
+ "thundergod_s_judgment": {
+  "testo": "Thundergod's Judgment",
+  "occorrenze": 6,
+  "definizione": "Attack-related stats +30%",
+  "asse": ""
+ },
+ "element": {
+  "testo": "Element",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "elemental_effect": {
+  "testo": "Elemental Effect",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "hellfire": {
+  "testo": "Hellfire",
+  "occorrenze": 6,
+  "definizione": "Ignores 30% of Defense-related stats",
+  "asse": ""
+ },
+ "incinerates": {
+  "testo": "Incinerates",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "everlasting_flame": {
+  "testo": "Everlasting Flame",
+  "occorrenze": 6,
+  "definizione": "Damage taken from Raging Fire skills +50%",
+  "asse": ""
+ },
+ "enemies_that_reach_maximum_incineration": {
+  "testo": "enemies that reach maximum Incineration",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "the_queen_s_protection": {
+  "testo": "The Queen's Protection",
+  "occorrenze": 6,
+  "definizione": "Attack-related stats +5%, Defense-related stats +5%",
+  "asse": ""
+ },
+ "peaceful_protection": {
+  "testo": "Peaceful Protection",
+  "occorrenze": 6,
+  "definizione": "Basic stats +5%",
+  "asse": ""
+ },
+ "commandment_activates": {
+  "testo": "Commandment activates",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "final_damage_of_that_enemy_s_all_target_ultimate_move": {
+  "testo": "final damage of that enemy's all-target Ultimate Move",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "ragnarok_or_unknown_race_ally": {
+  "testo": "[Ragnarok] or Unknown race ally",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "undying_shepherd": {
+  "testo": "Undying Shepherd",
+  "occorrenze": 6,
+  "definizione": "The hero's immunity to Source of Pain is removed and revives with 1 HP when taking fatal damage by consuming all orbs in the Ultimate Move Gauge, removing the Undying Shepherd effect",
+  "asse": ""
+ },
+ "blackout_effect": {
+  "testo": "Blackout Effect",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "hero_s_attack_related_stats": {
+  "testo": "hero's Attack-related stats",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "only_the_effects_applied_by_the_hero_are_counted": {
+  "testo": "(Only the effects applied by the hero are counted).",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "sunspot": {
+  "testo": "Sunspot",
+  "occorrenze": 6,
+  "definizione": "Damage dealt -20% (Can be stacked up to 3 times)",
+  "asse": ""
+ },
+ "sunspot_explosion": {
+  "testo": "Sunspot Explosion",
+  "occorrenze": 6,
+  "definizione": "Damage dealt +5% for every Sunspot applied to the target",
+  "asse": ""
+ },
+ "magic_burst": {
+  "testo": "Magic Burst",
+  "occorrenze": 6,
+  "definizione": "Ignores 40% of Crit Resistance and 80% of Crit Defense",
+  "asse": ""
+ },
+ "evasion": {
+  "testo": "Evasion",
+  "occorrenze": 6,
+  "definizione": "Immune to Attack and Debuff Atk Skills",
+  "asse": ""
+ },
+ "immolation": {
+  "testo": "Immolation",
+  "occorrenze": 6,
+  "definizione": "0.2% additional damage for every percent of the hero's remaining HP",
+  "asse": ""
+ },
+ "removes_all_effects": {
+  "testo": "removes all effects",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "fully_depletes_the_ultimate_move_gauge": {
+  "testo": "fully depletes the Ultimate Move Gauge",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "final_flame": {
+  "testo": "Final Flame",
+  "occorrenze": 6,
+  "definizione": "The hero's HP is fixed at 1, becoming immune to all effects",
+  "asse": ""
+ },
+ "wrath": {
+  "testo": "Wrath",
+  "occorrenze": 6,
+  "definizione": "+5% damage dealt for every Mark of Wrath",
+  "asse": ""
+ },
+ "damage_dealt_50": {
+  "testo": "Damage dealt +50",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "resurrection": {
+  "testo": "Resurrection",
+  "occorrenze": 6,
+  "definizione": "Revives with 5% of Max HP when dying",
+  "asse": ""
+ },
+ "buffs_and_stances": {
+  "testo": "Buffs and Stances",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "removes_all_enemies_buffs": {
+  "testo": "Removes all enemies' Buffs",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "petrifies": {
+  "testo": "Petrifies",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "titan_transformation": {
+  "testo": "Titan Transformation",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "debuffs": {
+  "testo": "Debuffs",
+  "occorrenze": 6,
+  "definizione": "",
+  "asse": ""
+ },
+ "assault_mode": {
+  "testo": "\"Assault Mode\"",
+  "occorrenze": 5,
+  "definizione": "Attack-related stats +50%, damage dealt +70%",
+  "asse": ""
+ },
+ "trillion_revenge": {
+  "testo": "Trillion Revenge",
+  "occorrenze": 5,
+  "definizione": "Immune to Debuff effects",
+  "asse": ""
+ },
+ "hell_blaze": {
+  "testo": "\"Hell Blaze\"",
+  "occorrenze": 5,
+  "definizione": "Damage taken +70%",
+  "asse": ""
+ },
+ "halved": {
+  "testo": "halved",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "revived": {
+  "testo": "revived",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "removes_buff_effects": {
+  "testo": "removes Buff effects",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "single_target_attacks": {
+  "testo": "single-target attacks",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "shadow_s_dominion": {
+  "testo": "Shadow's Dominion",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "talent_turn_cooldown": {
+  "testo": "Talent turn cooldown",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "unbound_prophecy": {
+  "testo": "Unbound Prophecy (★★)",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "threads_of_fate": {
+  "testo": "Threads of Fate",
+  "occorrenze": 5,
+  "definizione": "HP-related stats +20%",
+  "asse": ""
+ },
+ "rampage": {
+  "testo": "Rampage",
+  "occorrenze": 5,
+  "definizione": "3x Pierce Rate Increase. Hero Attack +80% when using a skill",
+  "asse": ""
+ },
+ "lower_initial_defense_than_the_hero": {
+  "testo": "lower initial Defense than the hero",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "other_than_the_start_of_the_battle": {
+  "testo": "other than the start of the battle",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "50": {
+  "testo": "50%",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "evades": {
+  "testo": "Evades",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "moonlight": {
+  "testo": "Moonlight",
+  "occorrenze": 5,
+  "definizione": "Attack-related stats +30%, damage dealt +40%",
+  "asse": ""
+ },
+ "mistform": {
+  "testo": "Mistform",
+  "occorrenze": 5,
+  "definizione": "Only takes damage from basic stats when attacked. The effect is removed after 2 attacks",
+  "asse": ""
+ },
+ "guardians_of_harmony": {
+  "testo": "Guardians of Harmony",
+  "occorrenze": 5,
+  "definizione": "Taunts enemies, damage taken -20%",
+  "asse": ""
+ },
+ "attack_type_skill_the_enemy_has": {
+  "testo": "Attack type skill the enemy has",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "whispering_commandment": {
+  "testo": "Whispering Commandment",
+  "occorrenze": 5,
+  "definizione": "Immune to all Debuffs",
+  "asse": ""
+ },
+ "conflagration": {
+  "testo": "Conflagration",
+  "occorrenze": 5,
+  "definizione": "Ignores 30% of enemy Crit Defense and Crit Resistance when using skills",
+  "asse": ""
+ },
+ "scorching_flame": {
+  "testo": "Scorching Flame",
+  "occorrenze": 5,
+  "definizione": "Damage dealt -40%",
+  "asse": ""
+ },
+ "removes_all_debuffs": {
+  "testo": "removes all Debuffs",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "magic_orbs": {
+  "testo": "Magic Orbs",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "excludes_death_match": {
+  "testo": "(Excludes Death Match)",
+  "occorrenze": 5,
+  "definizione": "",
+  "asse": ""
+ },
+ "immune_to_stat_decrease_effects": {
+  "testo": "immune to stat decrease effects",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "including_the_secondary_slot": {
+  "testo": "including the Secondary Slot",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "the_seven_deadly_sins": {
+  "testo": "[The Seven Deadly Sins]",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "arbiter_of_transgression": {
+  "testo": "Arbiter of Transgression",
+  "occorrenze": 4,
+  "definizione": "Damage Taken Decrease value increases by the same amount as the Damage Dealt Increase of enemies that use skills on the hero",
+  "asse": ""
+ },
+ "taunting": {
+  "testo": "Taunting",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "stealth": {
+  "testo": "Stealth",
+  "occorrenze": 4,
+  "definizione": "Cannot be targeted while other allies remain",
+  "asse": ""
+ },
+ "counter": {
+  "testo": "Counter",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "evade": {
+  "testo": "Evade",
+  "occorrenze": 4,
+  "definizione": "Immune to Attack and Debuff Atk Skills",
+  "asse": ""
+ },
+ "entering_the_battle_from_the_secondary_slot": {
+  "testo": "entering the battle from the Secondary Slot",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "elastic_stem": {
+  "testo": "Elastic Stem",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "deleted": {
+  "testo": "Deleted",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_5": {
+  "testo": "(Limit 5",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "divine_flame": {
+  "testo": "Divine Flame",
+  "occorrenze": 4,
+  "definizione": "HP-related stats +30%. Immune to Recovery-related stat restriction",
+  "asse": ""
+ },
+ "ignited": {
+  "testo": "Ignited",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "using_an_all_target_attack": {
+  "testo": "using an all-target attack",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "expelled": {
+  "testo": "Expelled",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "extorted": {
+  "testo": "Extorted",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "stacks_5_times": {
+  "testo": "(Stacks 5 times)",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "decoy": {
+  "testo": "Decoy",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "noble_sacrifice": {
+  "testo": "Noble Sacrifice",
+  "occorrenze": 4,
+  "definizione": "Defense-related stats +30% and damage taken -40% for Applicable Allies other than self",
+  "asse": ""
+ },
+ "divine_pain": {
+  "testo": "Divine Pain",
+  "occorrenze": 4,
+  "definizione": "Increases the hero's Defense-related stats by 10%, up to a maximum of 50%, when taking damage from an enemy's skill",
+  "asse": ""
+ },
+ "knightly_oath": {
+  "testo": "Knightly Oath",
+  "occorrenze": 4,
+  "definizione": "Basic stats +10%",
+  "asse": ""
+ },
+ "king": {
+  "testo": "King",
+  "occorrenze": 4,
+  "definizione": "Basic stats +15%",
+  "asse": ""
+ },
+ "queen": {
+  "testo": "Queen",
+  "occorrenze": 4,
+  "definizione": "Max HP +10%, damage taken -30%",
+  "asse": ""
+ },
+ "jack": {
+  "testo": "Jack",
+  "occorrenze": 4,
+  "definizione": "Attack-related stats +10%",
+  "asse": ""
+ },
+ "allows_only_single_target_skills_to_be_used": {
+  "testo": "allows only single target skills to be used",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "includes_ultimate_moves": {
+  "testo": "(Includes Ultimate Moves)",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "humans": {
+  "testo": "Humans",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "degeneration": {
+  "testo": "Degeneration",
+  "occorrenze": 4,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "ripple_of_light": {
+  "testo": "Ripple of Light",
+  "occorrenze": 4,
+  "definizione": "Fixes skill damage dealt, including those of Ultimate Moves, to 1. (Limit once)",
+  "asse": ""
+ },
+ "punishing_wave": {
+  "testo": "Punishing Wave",
+  "occorrenze": 4,
+  "definizione": "Damage dealt -20%. (Stacks 3 times)",
+  "asse": ""
+ },
+ "darkness_unleashed": {
+  "testo": "Darkness Unleashed",
+  "occorrenze": 4,
+  "definizione": "All Stats -15%",
+  "asse": ""
+ },
+ "delusion": {
+  "testo": "Delusion",
+  "occorrenze": 4,
+  "definizione": "3x Crit Chance and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "dark_moon": {
+  "testo": "Dark Moon",
+  "occorrenze": 4,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "gale": {
+  "testo": "Gale",
+  "occorrenze": 4,
+  "definizione": "Ignores 30% of Defense-related stats",
+  "asse": ""
+ },
+ "hero_uses_a_skill": {
+  "testo": "hero uses a skill",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "basic_stats": {
+  "testo": "basic stats",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "those_allies": {
+  "testo": "those allies'",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "extermination": {
+  "testo": "Extermination",
+  "occorrenze": 4,
+  "definizione": "Ignores 50% of Crit Resistance",
+  "asse": ""
+ },
+ "mark_of_concentration": {
+  "testo": "Mark of Concentration",
+  "occorrenze": 4,
+  "definizione": "-100% Crit Chance",
+  "asse": ""
+ },
+ "hero": {
+  "testo": "hero",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "restricts_the_use_of_ultimate_moves": {
+  "testo": "restricts the use of Ultimate Moves",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_10_time_s": {
+  "testo": "(Limit 10% time(s))",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "brink": {
+  "testo": "Brink",
+  "occorrenze": 4,
+  "definizione": "Fixes HP to 1. (Effect is removed when the hero dies)",
+  "asse": ""
+ },
+ "disables_debuff_skills": {
+  "testo": "Disables Debuff Skills",
+  "occorrenze": 4,
+  "definizione": "",
+  "asse": ""
+ },
+ "cancels_the_enemy_s_stances": {
+  "testo": "cancels the enemy's Stances",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "stunned": {
+  "testo": "Stunned",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "sun_s_blessing": {
+  "testo": "Sun's Blessing",
+  "occorrenze": 3,
+  "definizione": "Applicable Allies' damage dealt or taken accumulate up to 300,000, inflicting additional damage equal to 60% of the accumulated damage when the hero uses a skill",
+  "asse": ""
+ },
+ "fulminates": {
+  "testo": "Fulminates",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "uses_a_talent": {
+  "testo": "uses a Talent",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "spray": {
+  "testo": "Spray",
+  "occorrenze": 3,
+  "definizione": "3x Crit Chance and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "dark_brand": {
+  "testo": "Dark Brand",
+  "occorrenze": 3,
+  "definizione": "Additional damage equal to 10% of the target's remaining HP",
+  "asse": ""
+ },
+ "voracity": {
+  "testo": "Voracity",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "ignition": {
+  "testo": "Ignition",
+  "occorrenze": 3,
+  "definizione": "5x Pierce Rate Increase",
+  "asse": ""
+ },
+ "umbreaker": {
+  "testo": "Umbreaker",
+  "occorrenze": 3,
+  "definizione": "Attack-related stats +30%, Pierce Rate +80%",
+  "asse": ""
+ },
+ "overheat": {
+  "testo": "Overheat",
+  "occorrenze": 3,
+  "definizione": "Inflicts additional damage equal to 70% of the hero's Attack on all enemies and decreases their Attack-related stats by -30% for 2 turns at the start of the enemy's turn",
+  "asse": ""
+ },
+ "cheat": {
+  "testo": "Cheat",
+  "occorrenze": 3,
+  "definizione": "Halves enemies' Damage Dealt Increase",
+  "asse": ""
+ },
+ "bane": {
+  "testo": "Bane",
+  "occorrenze": 3,
+  "definizione": "Attack +250% when using skill",
+  "asse": ""
+ },
+ "survival_instinct": {
+  "testo": "Survival Instinct",
+  "occorrenze": 3,
+  "definizione": "HP-related stats +20%",
+  "asse": ""
+ },
+ "the_ripper": {
+  "testo": "The Ripper",
+  "occorrenze": 3,
+  "definizione": "Human allies' Pierce Rate +50%",
+  "asse": ""
+ },
+ "ranks_are_increased": {
+  "testo": "ranks are increased",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "dark_destruction": {
+  "testo": "Dark Destruction",
+  "occorrenze": 3,
+  "definizione": "3x Crit Chance and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "enemy_enters_the_battle_from_the_secondary_slot": {
+  "testo": "enemy enters the battle from the Secondary Slot",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "40": {
+  "testo": "40%",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "spirit_strike": {
+  "testo": "Spirit Strike",
+  "occorrenze": 3,
+  "definizione": "3x Crit Chance and 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "snow_blast": {
+  "testo": "Snow Blast",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate and 3x Crit Chance Increase. Damage dealt +100% for each Ice Brand Arts on the hero",
+  "asse": ""
+ },
+ "arrogant_flame": {
+  "testo": "Arrogant Flame",
+  "occorrenze": 3,
+  "definizione": "Attack-related stats +5% when using skill",
+  "asse": ""
+ },
+ "earth_s_whisper": {
+  "testo": "Earth's Whisper",
+  "occorrenze": 3,
+  "definizione": "HP-related stats +10%",
+  "asse": ""
+ },
+ "all_target_attacks": {
+  "testo": "all-target attacks",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "chain": {
+  "testo": "Chain",
+  "occorrenze": 3,
+  "definizione": "5x Pierce Rate Increase",
+  "asse": ""
+ },
+ "dazzled": {
+  "testo": "Dazzled",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "combustion": {
+  "testo": "Combustion",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase. 2x Crit Damage Increase",
+  "asse": ""
+ },
+ "heat_strike": {
+  "testo": "Heat Strike",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase. Ignores enemy Defense and Resistance",
+  "asse": ""
+ },
+ "frost_current": {
+  "testo": "Frost Current",
+  "occorrenze": 3,
+  "definizione": "3x Crit Chance Increase",
+  "asse": ""
+ },
+ "ice_explosion": {
+  "testo": "Ice Explosion",
+  "occorrenze": 3,
+  "definizione": "5x Pierce Rate Increase",
+  "asse": ""
+ },
+ "limit_6": {
+  "testo": "(Limit 6",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "dusk": {
+  "testo": "Dusk",
+  "occorrenze": 3,
+  "definizione": "5x Pierce Rate Increase",
+  "asse": ""
+ },
+ "giant_ally": {
+  "testo": "Giant ally",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "clear_stream": {
+  "testo": "Clear Stream",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "dice_of_fate": {
+  "testo": "Dice of Fate",
+  "occorrenze": 3,
+  "definizione": "Uses Clear Stream skill according to the number from the dice (1-3), then the effect is removed",
+  "asse": ""
+ },
+ "blowout": {
+  "testo": "Blowout",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "explosion": {
+  "testo": "Explosion",
+  "occorrenze": 3,
+  "definizione": "Additional damage equal to 100% of damage dealt after a certain number of turns",
+  "asse": ""
+ },
+ "ally": {
+  "testo": "ally",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "final_damage_taken": {
+  "testo": "final damage taken",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "for_them": {
+  "testo": "for them",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "illusion": {
+  "testo": "Illusion",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "ethereal": {
+  "testo": "Ethereal",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance Increase. 2x Crit Damage Increase",
+  "asse": ""
+ },
+ "prevision": {
+  "testo": "Prevision",
+  "occorrenze": 3,
+  "definizione": "3x Crit Chance Increase, 3x Crit Damage Increase",
+  "asse": ""
+ },
+ "bloodstain": {
+  "testo": "Bloodstain",
+  "occorrenze": 3,
+  "definizione": "Additional damage equal to 35% of the target's remaining HP",
+  "asse": ""
+ },
+ "nightmare": {
+  "testo": "Nightmare",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "blade_of_glory": {
+  "testo": "Blade of Glory",
+  "occorrenze": 3,
+  "definizione": "Attack-related stats +30%",
+  "asse": ""
+ },
+ "hp_is_full": {
+  "testo": "HP is full",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "evading": {
+  "testo": "Evading",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_10_times": {
+  "testo": "(Limit 10 times",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "colossal_mountain": {
+  "testo": "Colossal Mountain",
+  "occorrenze": 3,
+  "definizione": "2x Pierce Rate Increase",
+  "asse": ""
+ },
+ "shadowgleam": {
+  "testo": "Shadowgleam",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance",
+  "asse": ""
+ },
+ "stab_wound": {
+  "testo": "Stab Wound",
+  "occorrenze": 3,
+  "definizione": "Damage taken +30%",
+  "asse": ""
+ },
+ "ripple": {
+  "testo": "Ripple",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "uses_a_skill": {
+  "testo": "uses a skill",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "skybreak": {
+  "testo": "Skybreak",
+  "occorrenze": 3,
+  "definizione": "+50% Attack when using skill",
+  "asse": ""
+ },
+ "burst": {
+  "testo": "Burst",
+  "occorrenze": 3,
+  "definizione": "2x Crit Damage Increase",
+  "asse": ""
+ },
+ "spark": {
+  "testo": "Spark",
+  "occorrenze": 3,
+  "definizione": "Damage dealt +1.5% and Crit Chance +2% per 1% of diminished HP when using skill",
+  "asse": ""
+ },
+ "flame_of_the_family": {
+  "testo": "Flame of the Family",
+  "occorrenze": 3,
+  "definizione": "Decreases the target's remaining HP by 5% at the end of the allies' turn",
+  "asse": ""
+ },
+ "shadowflare": {
+  "testo": "Shadowflare",
+  "occorrenze": 3,
+  "definizione": "2x Pierce Rate Increase, 2x Crit Damage Increase",
+  "asse": ""
+ },
+ "penetration": {
+  "testo": "Penetration",
+  "occorrenze": 3,
+  "definizione": "Attack +50% when using skill",
+  "asse": ""
+ },
+ "uses_an_all_target_attack_other_than_the_ultimate_move": {
+  "testo": "uses an all-target attack other than the Ultimate Move",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "corruption": {
+  "testo": "Corruption",
+  "occorrenze": 3,
+  "definizione": "Damage dealt +1.2% per 1% of remaining HP",
+  "asse": ""
+ },
+ "gram_s_curse": {
+  "testo": "Gram's Curse",
+  "occorrenze": 3,
+  "definizione": "HP-related stats -10% (Stacks up to 3 times)",
+  "asse": ""
+ },
+ "obliteration": {
+  "testo": "Obliteration",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase and ignores enemy Defense. Upon skill use, Crit Chance +50% per each stack of Dragon Power on self. Damage dealt increases by 30% for each stack of Dragon Power on self",
+  "asse": ""
+ },
+ "gloom": {
+  "testo": "Gloom",
+  "occorrenze": 3,
+  "definizione": "2x Crit Damage Increase",
+  "asse": ""
+ },
+ "ardent_support": {
+  "testo": "Ardent Support",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance Increase. Ignores enemy Defense and Resistance",
+  "asse": ""
+ },
+ "revive": {
+  "testo": "revive",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "black_fire": {
+  "testo": "Black Fire",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "inferno": {
+  "testo": "Inferno",
+  "occorrenze": 3,
+  "definizione": "3x damage against Debuffed enemies. Damage dealt increases by +50% on enemies affected by Mind Control",
+  "asse": ""
+ },
+ "electric_blast": {
+  "testo": "Electric Blast",
+  "occorrenze": 3,
+  "definizione": "Attack-related stats +25% for each Shock or Shock effect on enemies",
+  "asse": ""
+ },
+ "lightning_strike": {
+  "testo": "Lightning Strike",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "elements": {
+  "testo": "Elements",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "rush": {
+  "testo": "Rush",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "retribution": {
+  "testo": "Retribution",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance Increase",
+  "asse": ""
+ },
+ "stacks_up_to_5_times": {
+  "testo": "(Stacks up to 5 times)",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "soulsteal": {
+  "testo": "Soulsteal",
+  "occorrenze": 3,
+  "definizione": "Damage dealt +40% for each Soul Power on the hero",
+  "asse": ""
+ },
+ "flash": {
+  "testo": "Flash",
+  "occorrenze": 3,
+  "definizione": "2x Crit Chance",
+  "asse": ""
+ },
+ "seal_of_darkness": {
+  "testo": "Seal of Darkness",
+  "occorrenze": 3,
+  "definizione": "Restricts Recovery-related stats",
+  "asse": ""
+ },
+ "if_the_hero_uses_a_skill": {
+  "testo": "If the hero uses a skill",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "light_spear": {
+  "testo": "Light Spear",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase. Hero Attack +40% when using a skill",
+  "asse": ""
+ },
+ "extinction": {
+  "testo": "Extinction",
+  "occorrenze": 3,
+  "definizione": "2x Crit Damage",
+  "asse": ""
+ },
+ "punishment": {
+  "testo": "Punishment",
+  "occorrenze": 3,
+  "definizione": "3x Pierce Rate Increase",
+  "asse": ""
+ },
+ "fury": {
+  "testo": "Fury",
+  "occorrenze": 3,
+  "definizione": "1% additional damage for every percent of remaining HP on self",
+  "asse": ""
+ },
+ "goddess_s_wrath": {
+  "testo": "Goddess's Wrath",
+  "occorrenze": 3,
+  "definizione": "Attack-related stats +6% (Can be stacked up to 4 times)",
+  "asse": ""
+ },
+ "exploit": {
+  "testo": "Exploit",
+  "occorrenze": 3,
+  "definizione": "2x damage dealt and 2x Crit Damage against Bleeding targets",
+  "asse": ""
+ },
+ "pain": {
+  "testo": "Pain",
+  "occorrenze": 3,
+  "definizione": "Attack-related stats +12% for every Source of Pain on the target",
+  "asse": ""
+ },
+ "crit_chance_and_crit_damage": {
+  "testo": "Crit Chance and Crit Damage",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "crush": {
+  "testo": "Crush",
+  "occorrenze": 3,
+  "definizione": "2x damage and 2x Crit Damage Increase against Debuffed enemies",
+  "asse": ""
+ },
+ "sure_kill": {
+  "testo": "Sure Kill",
+  "occorrenze": 3,
+  "definizione": "2x Pierce Rate Increase",
+  "asse": ""
+ },
+ "before_the_skill_activates": {
+  "testo": "before the skill activates",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "eradication": {
+  "testo": "Eradication",
+  "occorrenze": 3,
+  "definizione": "+60% Attack when using a skill",
+  "asse": ""
+ },
+ "mark_of_death": {
+  "testo": "Mark of Death",
+  "occorrenze": 3,
+  "definizione": "Restricts Recovery-related stats",
+  "asse": ""
+ },
+ "snipe": {
+  "testo": "Snipe",
+  "occorrenze": 3,
+  "definizione": "+25% damage dealt per active Debuff on target. (Limit 7 times)",
+  "asse": ""
+ },
+ "marked": {
+  "testo": "Marked",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "cataclysm": {
+  "testo": "Cataclysm",
+  "occorrenze": 3,
+  "definizione": "+50% Attack and 2x Crit Damage Increase when using skill",
+  "asse": ""
+ },
+ "flare": {
+  "testo": "Flare",
+  "occorrenze": 3,
+  "definizione": "Damage dealt +30% for every Brilliance of the Sun effect on allies",
+  "asse": ""
+ },
+ "sunspots": {
+  "testo": "Sunspots",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "frenzy": {
+  "testo": "Frenzy",
+  "occorrenze": 3,
+  "definizione": "1% additional damage every hit for every percent of remaining HP on the enemy",
+  "asse": ""
+ },
+ "slash": {
+  "testo": "Slash",
+  "occorrenze": 3,
+  "definizione": "Additional damage equal to half of the hero's Pierce Rate",
+  "asse": ""
+ },
+ "shackles_of_purgatory": {
+  "testo": "Shackles of Purgatory",
+  "occorrenze": 3,
+  "definizione": "Demon allies' damage taken -20%",
+  "asse": ""
+ },
+ "scorch": {
+  "testo": "Scorch",
+  "occorrenze": 3,
+  "definizione": "1.3% additional damage for every percent of remaining HP on self",
+  "asse": ""
+ },
+ "overpower": {
+  "testo": "Overpower",
+  "occorrenze": 3,
+  "definizione": "0.8% additional damage for every percent of HP missing from self",
+  "asse": ""
+ },
+ "curse": {
+  "testo": "Curse",
+  "occorrenze": 3,
+  "definizione": "Prevents an enemy's Ultimate Move Gauge from filling up for 2 turns if they have not used a skill",
+  "asse": ""
+ },
+ "breakthrough": {
+  "testo": "Breakthrough",
+  "occorrenze": 3,
+  "definizione": "3x Crit Chance and 2x Crit Damage Increase",
+  "asse": ""
+ },
+ "covert_action": {
+  "testo": "Covert Action",
+  "occorrenze": 3,
+  "definizione": "+50% damage dealt per Darkness on target",
+  "asse": ""
+ },
+ "if_taking_damage_when_attacked": {
+  "testo": "if taking damage when attacked",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "can_be_stacked_up_to_3_times": {
+  "testo": "(Can be stacked up to 3 times)",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "oxidize": {
+  "testo": "Oxidize",
+  "occorrenze": 3,
+  "definizione": "Decreases skill ranks and inflicts damage equal to 10% of Max HP for every skill that had its rank decreased at the end of the enemy's turn",
+  "asse": ""
+ },
+ "rend": {
+  "testo": "Rend",
+  "occorrenze": 3,
+  "definizione": "2x Pierce Rate Increase",
+  "asse": ""
+ },
+ "applies_when_entering_battle_excludes_death_match": {
+  "testo": "(Applies when entering battle, excludes Death Match)",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "ultimate_move_damage": {
+  "testo": "Ultimate Move damage",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "immune_to_stun": {
+  "testo": "immune to Stun",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "the_final_damage_taken": {
+  "testo": "the final damage taken",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "an_ally": {
+  "testo": "an ally",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "immune_to_petrify": {
+  "testo": "immune to Petrify",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "attack": {
+  "testo": "Attack",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "blaze": {
+  "testo": "Blaze",
+  "occorrenze": 3,
+  "definizione": "+25% damage dealt per Ignite effect on target",
+  "asse": ""
+ },
+ "raid": {
+  "testo": "Raid",
+  "occorrenze": 3,
+  "definizione": "Attack +80% when using skill",
+  "asse": ""
+ },
+ "inhales": {
+  "testo": "Inhales",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_4_time_s": {
+  "testo": "(Limit 4% time(s))",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "burn": {
+  "testo": "Burn",
+  "occorrenze": 3,
+  "definizione": "Damage taken +10%",
+  "asse": ""
+ },
+ "eternal_flame": {
+  "testo": "Eternal Flame",
+  "occorrenze": 3,
+  "definizione": "Damage dealt -30%, damage taken +30%",
+  "asse": ""
+ },
+ "hunter_s_mark": {
+  "testo": "Hunter's Mark",
+  "occorrenze": 3,
+  "definizione": "All stats -10% (resets upon taking damage)",
+  "asse": ""
+ },
+ "hp": {
+  "testo": "HP",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "disables_ultimate_move_s": {
+  "testo": "Disables Ultimate Move(s)",
+  "occorrenze": 3,
+  "definizione": "",
+  "asse": ""
+ },
+ "chance_unwind": {
+  "testo": "Chance Unwind (★★)",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "enters_battle_from_the_secondary_slot": {
+  "testo": "enters battle from the Secondary Slot",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "sea_s_magic": {
+  "testo": "Sea's Magic",
+  "occorrenze": 2,
+  "definizione": "For every 4% of remaining HP when using a skill or counter, Attack-related stats increase by 2%",
+  "asse": ""
+ },
+ "cancels_an_enemy_s_stance": {
+  "testo": "cancels an enemy's Stance",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "quarantine": {
+  "testo": "Quarantine",
+  "occorrenze": 2,
+  "definizione": "All stats -10%",
+  "asse": ""
+ },
+ "allows_the_use_of_only_rank_2_skills": {
+  "testo": "allows the use of only Rank 2 skills",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "immune_to_debuff_effects": {
+  "testo": "immune to Debuff effects",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "the_seven_catastrophes_ally": {
+  "testo": "[The Seven Catastrophes] ally",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "nekomata": {
+  "testo": "Nekomata",
+  "occorrenze": 2,
+  "definizione": "Upon using a skill, the hero removes 1 Buff from the target and gains Mobility",
+  "asse": ""
+ },
+ "greed": {
+  "testo": "Greed",
+  "occorrenze": 2,
+  "definizione": "Increases Applicable Allies' basic stats by 30% of the basic stats of the enemy with the highest Combat Class at the start of the battle",
+  "asse": ""
+ },
+ "extorting": {
+  "testo": "Extorting",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "debuff_removed": {
+  "testo": "Debuff removed",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "ice_sword": {
+  "testo": "Ice Sword",
+  "occorrenze": 2,
+  "definizione": "Additional damage equal to 10% of remaining HP",
+  "asse": ""
+ },
+ "ally_with_the_highest_remaining_hp_percentage": {
+  "testo": "ally with the highest remaining HP percentage",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_once": {
+  "testo": "(Limit once",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "all_allies_are_alive": {
+  "testo": "all allies are alive",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "percival": {
+  "testo": "Percival",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "four_knights_of_the_apocalypse_allies": {
+  "testo": "[Four Knights of the Apocalypse] allies'",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "goddess": {
+  "testo": "Goddess",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "buff_and_debuff": {
+  "testo": "Buff and Debuff",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "mark_of_good_and_evil": {
+  "testo": "Mark of Good and Evil",
+  "occorrenze": 2,
+  "definizione": "Decreases damage taken by 30% of the final damage when an enemy's attack results in Crit Damage",
+  "asse": ""
+ },
+ "defeated": {
+  "testo": "defeated",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "goddesses": {
+  "testo": "Goddesses",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "revived_with_the_unique_effect": {
+  "testo": "revived with the Unique effect",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "including_the_secondary_slot_hero": {
+  "testo": "including the Secondary Slot hero",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "using_an_all_target_attack_other_than_the_ultimate_move": {
+  "testo": "using an all-target attack other than the Ultimate Move",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "while_participating_in_battle": {
+  "testo": "while participating in battle",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "max_hp_crit_resistance_and_crit_defense": {
+  "testo": "Max HP, Crit Resistance, and Crit Defense",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "attribute_advantage": {
+  "testo": "attribute advantage",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "divine_lightning": {
+  "testo": "Divine Lightning",
+  "occorrenze": 2,
+  "definizione": "Damage dealt and damage taken accumulate up to 300,000",
+  "asse": ""
+ },
+ "random": {
+  "testo": "random",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "rockslide_stun_combustion_50": {
+  "testo": "(Rockslide: Stun / Combustion: 50%",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "dark_moon_s_shield": {
+  "testo": "Dark Moon's Shield",
+  "occorrenze": 2,
+  "definizione": "Taunts enemies, Applicable Allies' damage taken -30%, hero's damage taken -50%",
+  "asse": ""
+ },
+ "focused_attack": {
+  "testo": "Focused Attack",
+  "occorrenze": 2,
+  "definizione": "Defense-related stats -10%, damage taken +30%",
+  "asse": ""
+ },
+ "burning_sun": {
+  "testo": "Burning Sun",
+  "occorrenze": 2,
+  "definizione": "Inflicts additional damage equal to 40% of the target's increased Max HP when using a single-target attack",
+  "asse": ""
+ },
+ "demonic_beast_battle": {
+  "testo": "Demonic Beast Battle",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "poisoned": {
+  "testo": "Poisoned",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "different_races": {
+  "testo": "different races",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "increases_the_hero_s_skill_ranks": {
+  "testo": "increases the hero's skill ranks",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "when_the_hero_uses_a_skill": {
+  "testo": "when the hero uses a skill",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "power_of_shinsu": {
+  "testo": "Power of Shinsu",
+  "occorrenze": 2,
+  "definizione": "HP does not fall below 1. Ignores the target's Crit Resistance and Crit Defense when using single-target attacks",
+  "asse": ""
+ },
+ "dark_energy": {
+  "testo": "Dark Energy",
+  "occorrenze": 2,
+  "definizione": "Defense-related stats +10%",
+  "asse": ""
+ },
+ "source_of_pain": {
+  "testo": "Source of Pain",
+  "occorrenze": 2,
+  "definizione": "+5% damage taken, additional damage equal to 10% of remaining HP at the end of the turn",
+  "asse": ""
+ },
+ "fairy_allies": {
+  "testo": "Fairy allies",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "mark_of_lethality": {
+  "testo": "Mark of Lethality",
+  "occorrenze": 2,
+  "definizione": "Crit Resistance -50% (Does not stack)",
+  "asse": ""
+ },
+ "if_there_are_any_debuffs_they_are_removed": {
+  "testo": "If there are any Debuffs, they are removed",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "retrocession": {
+  "testo": "Retrocession",
+  "occorrenze": 2,
+  "definizione": "-20% damage taken",
+  "asse": ""
+ },
+ "hero_s_skill_use": {
+  "testo": "hero's skill use",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "diminished_hp": {
+  "testo": "diminished HP",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "knighthood_boss_battle": {
+  "testo": "Knighthood Boss Battle",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "debuffed": {
+  "testo": "Debuffed",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "true_magic": {
+  "testo": "True Magic",
+  "occorrenze": 2,
+  "definizione": "Removes all Debuffs from self. Attack-related stats +50%",
+  "asse": ""
+ },
+ "mark_of_wrath": {
+  "testo": "Mark of Wrath",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "stacks_9_times": {
+  "testo": "(Stacks 9 times",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "allied_collab_hero": {
+  "testo": "allied collab hero",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "darkness": {
+  "testo": "Darkness",
+  "occorrenze": 2,
+  "definizione": "Damage taken +10% (Can be stacked up to 5 times)",
+  "asse": ""
+ },
+ "all_from_different_races": {
+  "testo": "all from different races",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "disables_buff_skills": {
+  "testo": "disables Buff Skills",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "single_target_attack_skills": {
+  "testo": "single-target attack skills",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "activates_when_entering_battle": {
+  "testo": "(Activates when entering battle)",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "disables_skills_which_are_rank_2_or_higher": {
+  "testo": "disables skills which are Rank 2 or higher",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "applies_when_entering_battle_excludes_pvp_and_death_match": {
+  "testo": "(Applies when entering battle, excludes PVP and Death Match)",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "unknown_race": {
+  "testo": "Unknown race",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "all_game_modes": {
+  "testo": "all game modes",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "blocks_ultimate_move_effects": {
+  "testo": "blocks Ultimate Move effects",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "ultimate_move_disable_effect": {
+  "testo": "Ultimate Move Disable effect",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "prevents_ultimate_move_gauges_from_filling_up": {
+  "testo": "prevents Ultimate Move Gauges from filling up",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "gift_of_life": {
+  "testo": "Gift of Life",
+  "occorrenze": 2,
+  "definizione": "HP-related stats +15%",
+  "asse": ""
+ },
+ "poison_bleed_shock_and_corrosion": {
+  "testo": "Poison, Bleed, Shock, and Corrosion",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "power_of_destruction": {
+  "testo": "Power of Destruction",
+  "occorrenze": 2,
+  "definizione": "Decreases Attack by 20%. Inflicts additional damage equal to 15% of remaining HP at the end of every turn",
+  "asse": ""
+ },
+ "disables_attack_and_buff_skills": {
+  "testo": "disables Attack and Buff Skills",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "detonator": {
+  "testo": "Detonator",
+  "occorrenze": 2,
+  "definizione": "Fixes Lifesteal at its initial value",
+  "asse": ""
+ },
+ "heals_an_ally": {
+  "testo": "heals an ally",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "dark_veil": {
+  "testo": "Dark Veil",
+  "occorrenze": 2,
+  "definizione": "Infects the target for 2 turns when landing a counter",
+  "asse": ""
+ },
+ "allows_the_use_of_only_attack_skills": {
+  "testo": "allows the use of only Attack skills",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "fairy": {
+  "testo": "Fairy",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "stone_needles": {
+  "testo": "Stone Needles",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "limit_5_time_s_resets_upon_taking_damage": {
+  "testo": "(Limit 5% time(s), resets upon taking damage)",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "resets_upon_taking_damage": {
+  "testo": "(Resets upon taking damage)",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ },
+ "removes_their_debuffs": {
+  "testo": "removes their Debuffs",
+  "occorrenze": 2,
+  "definizione": "",
+  "asse": ""
+ }
+}

@@ -1,0 +1,377 @@
+{
+ "_nota": "Scritto da rivedi_carte.py, e a mano se serve: heroId -> A, B, ultimate -> nome del file senza misura. Vince su wiki e regole, e accosta_carte.py non lo sovrascrive mai.",
+ "1404001": {
+  "B": "icon_arthur_sword_skill_02",
+  "A": "icon_arthur_sword_skill_03"
+ },
+ "1405001": {
+  "A": "icon_arthur_sword_skill_04",
+  "B": "icon_arthur_sword_skill_05"
+ },
+ "1405003": {
+  "A": "icon_arthur_sword_skill_08",
+  "B": "icon_arthur_sword_skill_09"
+ },
+ "1034001": {
+  "ultimate": "icon_elizabeth_sr_type01_special_01"
+ },
+ "1055001": {
+  "A": "icon_dianesmall_glove_skill_03",
+  "B": "icon_dianesmall_glove_skill_02",
+  "ultimate": "icon_dianesmall_glove_special_01"
+ },
+ "1055002": {
+  "A": "icon_dianesmall_glove_skill_01",
+  "B": "icon_dianesmall_glove_skill_05",
+  "ultimate": "icon_dianesmall_glove_special_01"
+ },
+ "1056502": {
+  "A": "icon_dianesmall_ssr_type01_skill_03",
+  "B": "icon_dianesmall_ssr_type01_skill_04"
+ },
+ "1056503": {
+  "A": "icon_dianesmall_ssr_type01_skill_05",
+  "B": "icon_dianesmall_ssr_type01_skill_06"
+ },
+ "1055004": {
+  "A": "icon_dianesmall_glove_skill_07",
+  "B": "icon_dianesmall_glove_skill_08"
+ },
+ "1004001": {
+  "ultimate": "icon_meliodas_sr_type01_special_01"
+ },
+ "1005001": {
+  "A": "icon_meliodas_sword_skill_02"
+ },
+ "1005002": {
+  "A": "icon_meliodas_sword_skill_08",
+  "B": "icon_meliodas_sword_skill_09",
+  "ultimate": "icon_meliodas_sword_special_01"
+ },
+ "1044001": {
+  "A": "icon_diane_glove_skill_01",
+  "B": "icon_diane_glove_skill_02",
+  "ultimate": "icon_diane_glove_special_01"
+ },
+ "1045501": {
+  "A": "icon_diane_ssr_type01_skill_01",
+  "B": "icon_diane_ssr_type01_skill_02"
+ },
+ "1024001": {
+  "A": "icon_elizabeth_hawk_glove_skill_02",
+  "B": "icon_elizabeth_hawk_glove_skill_04",
+  "ultimate": "icon_elizabeth_hawk_glove_special_01"
+ },
+ "1024002": {
+  "A": "icon_elizabeth_hawk_glove_skill_03",
+  "B": "icon_elizabeth_hawk_glove_skill_05",
+  "ultimate": "icon_elizabeth_hawk_glove_special_01"
+ },
+ "1795002": {
+  "A": "icon_hawk_ssr_type01_skill_03",
+  "B": "icon_hawk_ssr_type01_skill_04"
+ },
+ "1395001": {
+  "A": "icon_meliodas_lostvayne_ssr_type01_skill_01",
+  "B": "icon_meliodas_lostvayne_ssr_type01_skill_02"
+ },
+ "1184001": {
+  "A": "icon_jericho_sword_skill_02",
+  "B": "icon_jericho_sword_skill_06",
+  "ultimate": "icon_jericho_sword_special_01"
+ },
+ "1184002": {
+  "A": "icon_jericho_sword_skill_01",
+  "B": "icon_jericho_sword_skill_03",
+  "ultimate": "icon_jericho_sword_special_01"
+ },
+ "1064001": {
+  "B": "icon_ban_glove_skill_06",
+  "ultimate": "icon_ban_sr_type01_special_01"
+ },
+ "1065001": {
+  "A": "icon_ban_glove_skill_03",
+  "B": "icon_ban_sr_type01_skill_02",
+  "ultimate": "icon_ban_glove_special_01"
+ },
+ "1065002": {
+  "A": "icon_ban_glove_skill_01",
+  "B": "icon_ban_glove_skill_02",
+  "ultimate": "icon_ban_glove_special_01"
+ },
+ "1144001": {
+  "A": "icon_gil_thunder_sword_skill_03",
+  "B": "icon_gil_thunder_sword_skill_01",
+  "ultimate": "icon_gil_thunder_sword_special_01"
+ },
+ "1114001": {
+  "ultimate": "icon_gowther_sr_type01_special_01"
+ },
+ "1115001": {
+  "A": "icon_gowther_glove_skill_07",
+  "B": "icon_gowther_glove_skill_03"
+ },
+ "1174002": {
+  "A": "icon_griamore_sr_type01_skill_02",
+  "B": "icon_griamore_sr_type01_skill_05",
+  "ultimate": "icon_griamore_sr_type01_special_01"
+ },
+ "1175002": {
+  "A": "icon_griamore_sword_skill_08",
+  "B": "icon_griamore_sword_skill_09",
+  "ultimate": "icon_griamore_sword_special_01"
+ },
+ "1164002": {
+  "A": "icon_howzer_sr_type01_skill_06",
+  "B": "icon_howzer_sr_type01_skill_07",
+  "ultimate": "icon_howzer_sr_type01_special_01"
+ },
+ "1165002": {
+  "A": "icon_howzer_sword_skill_08",
+  "B": "icon_howzer_sword_skill_09",
+  "ultimate": "icon_howzer_sword_special_01"
+ },
+ "1893501": {
+  "A": "icon_chandler_ssr_type01_skill_01",
+  "B": "icon_chandler_ssr_type01_skill_02"
+ },
+ "1893502": {
+  "A": "icon_chandler_ssr_type01_skill_05",
+  "B": "icon_chandler_ssr_type01_skill_06"
+ },
+ "1893503": {
+  "A": "icon_chandler_ssr_type01_npc_skill_03",
+  "B": "icon_chandler_ssr_type01_npc_skill_04"
+ },
+ "1675501": {
+  "A": "icon_disaster_eastin_queen_ssr_type01_skill_01",
+  "B": "icon_disaster_eastin_queen_ssr_type01_skill_02"
+ },
+ "1675502": {
+  "A": "icon_disaster_eastin_queen_ssr_type01_skill_05",
+  "B": "icon_disaster_eastin_queen_ssr_type01_skill_06"
+ },
+ "1675503": {
+  "A": "icon_disaster_eastin_queen_ssr_type01_skill_07",
+  "B": "icon_disaster_eastin_queen_ssr_type01_skill_08"
+ },
+ "1685501": {
+  "A": "icon_disaster_mono_master_ssr_type01_skill_01",
+  "B": "icon_disaster_mono_master_ssr_type01_skill_02"
+ },
+ "1685502": {
+  "A": "icon_disaster_mono_master_ssr_type01_skill_05",
+  "B": "icon_disaster_mono_master_ssr_type01_skill_04"
+ },
+ "1685503": {
+  "A": "icon_disaster_mono_master_ssr_type01_skill_07",
+  "B": "icon_disaster_mono_master_ssr_type01_skill_08"
+ },
+ "1886502": {
+  "A": "icon_disaster_valenty_mk2_ssr_type01_skill_05",
+  "B": "icon_disaster_valenty_mk2_ssr_type01_skill_06"
+ },
+ "1886503": {
+  "A": "icon_disaster_valenty_mk2_ssr_type01_skill_07",
+  "B": "icon_disaster_valenty_mk2_ssr_type01_skill_08"
+ },
+ "1545003": {
+  "A": "icon_drole_ssr_type01_skill_07",
+  "B": "icon_drole_ssr_type01_skill_08",
+  "ultimate": "icon_drole_glove_special_02"
+ },
+ "1385003": {
+  "A": "icon_elaine_glove_skill_03",
+  "B": "icon_elaine_glove_skill_04"
+ },
+ "1095001": {
+  "A": "icon_king_sword_skill_05",
+  "B": "icon_king_sword_skill_04"
+ },
+ "1095002": {
+  "A": "icon_king_sword_skill_03"
+ },
+ "1105001": {
+  "A": "icon_kingfat_sword_skill_04",
+  "B": "icon_kingfat_sword_skill_05"
+ },
+ "1105003": {
+  "A": "icon_kingfat_sword_skill_01",
+  "B": "icon_kingfat_sword_skill_06"
+ },
+ "1105002": {
+  "B": "icon_kingfat_sword_skill_03"
+ },
+ "1515003": {
+  "A": "icon_melascula_glove_skill_07",
+  "B": "icon_melascula_glove_skill_08"
+ },
+ "1015002": {
+  "A": "icon_meliodas_demon_ssr_type01_skill_03"
+ },
+ "1135002": {
+  "A": "icon_merlin_orb_skill_05"
+ },
+ "1135003": {
+  "B": "icon_merlin_orb_skill_07"
+ },
+ "1967501": {
+  "A": "icon_4koa_lancelot_ssr_type01_skill_01",
+  "B": "icon_4koa_lancelot_ssr_type01_skill_02",
+  "ultimate": "icon_4koa_lancelot_ssr_type01_special_01"
+ },
+ "1967502": {
+  "A": "icon_4koa_lancelot_ssr_type01_skill_03",
+  "B": "icon_4koa_lancelot_ssr_type01_skill_04"
+ },
+ "1931501": {
+  "A": "icon_disaster_roxy_crazy_ssr_type01_skill_01",
+  "B": "icon_disaster_roxy_crazy_ssr_type01_skill_02"
+ },
+ "1931502": {
+  "A": "icon_disaster_roxy_crazy_ssr_type01_skill_05",
+  "B": "icon_disaster_roxy_crazy_ssr_type01_skill_06"
+ },
+ "1555002": {
+  "A": "icon_dreyfus_demon_sword_skill_01"
+ },
+ "1805002": {
+  "A": "icon_elizabeth_goddess_glove_skill_03",
+  "B": "icon_elizabeth_goddess_glove_skill_04"
+ },
+ "1475002": {
+  "A": "icon_escanor_ssr_type01_skill_01",
+  "B": "icon_escanor_ssr_type01_skill_04"
+ },
+ "1585501": {
+  "A": "icon_estarossa_assault_ssr_type01_skill_01",
+  "B": "icon_estarossa_assault_ssr_type01_skill_04"
+ },
+ "1585502": {
+  "A": "icon_estarossa_assault_ssr_type01_skill_05",
+  "B": "icon_estarossa_assault_ssr_type01_skill_06",
+  "ultimate": "icon_estarossa_assault_ssr_type01_special_02"
+ },
+ "1535001": {
+  "B": "icon_gloxinia_ssr_type01_skill_02"
+ },
+ "1535002": {
+  "B": "icon_gloxinia_ssr_type01_skill_04"
+ },
+ "1815002": {
+  "A": "icon_goddess_ludociel_ssr_type01_skill_07",
+  "B": "icon_goddess_ludociel_ssr_type01_skill_08"
+ },
+ "1897501": {
+  "A": "icon_goddess_margaret_ssr_type01_skill_07"
+ },
+ "1897502": {
+  "A": "icon_goddess_margaret_ssr_type01_skill_05",
+  "B": "icon_goddess_margaret_ssr_type01_skill_06"
+ },
+ "1845502": {
+  "A": "icon_goddess_sollasido_ssr_type01_skill_05",
+  "B": "icon_goddess_sollasido_ssr_type01_skill_06"
+ },
+ "1485002": {
+  "A": "icon_jenna_staff_skill_03",
+  "B": "icon_jenna_staff_skill_04"
+ },
+ "1870502": {
+  "A": "icon_liliahawaken_skill_03",
+  "B": "icon_liliahawaken_skill_04"
+ },
+ "1525001": {
+  "A": "icon_monspeet_glove_skill_01",
+  "B": "icon_monspeet_glove_skill_02"
+ },
+ "1896502": {
+  "A": "icon_nor_donar_ssr_type01_skill_03",
+  "B": "icon_nor_donar_ssr_type01_skill_04"
+ },
+ "1896503": {
+  "A": "icon_nor_donar_ssr_type01_skill_06",
+  "B": "icon_nor_donar_ssr_type01_skill_07"
+ },
+ "1495002": {
+  "A": "icon_zaneri_glove_skill_03",
+  "B": "icon_zaneri_glove_skill_04"
+ },
+ "1203001": {
+  "A": "icon_alioni_sword_skill_03",
+  "B": "icon_alioni_sword_skill_04"
+ },
+ "1605001": {
+  "B": "icon_deathpierce_sword_skill_02"
+ },
+ "1755001": {
+  "B": "icon_helbram_sword_skill_02",
+  "A": "icon_helbram_sword_skill_01"
+ },
+ "1273001": {
+  "B": "icon_marmas_sword_skill_02"
+ },
+ "1634001": {
+  "A": "icon_waillo_sword_skill_01",
+  "B": "icon_waillo_sword_skill_02"
+ },
+ "1075003": {
+  "A": "icon_ban_nunchaku_skill_05",
+  "B": "icon_ban_nunchaku_skill_06",
+  "ultimate": "icon_ban_nunchaku_special_01"
+ },
+ "1154002": {
+  "A": "icon_guila_sword_skill_05",
+  "B": "icon_guila_sword_skill_06",
+  "ultimate": "icon_guila_sword_special_01"
+ },
+ "1425002": {
+  "A": "icon_elizabeth_hawk_ssr_type01_skill_06",
+  "B": "icon_elizabeth_hawk_ssr_type01_skill_07",
+  "ultimate": "icon_elizabeth_hawk_ssr_type01_special_01"
+ },
+ "1075002": {
+  "A": "icon_ban_nunchaku_skill_04",
+  "B": "icon_ban_nunchaku_skill_01",
+  "ultimate": "icon_ban_nunchaku_special_01"
+ },
+ "1435001": {
+  "A": "icon_slime_milim_ssr_type01_skill_02",
+  "B": "icon_slime_milim_ssr_type01_skill_01",
+  "ultimate": "icon_slime_milim_ssr_type01_special_01"
+ },
+ "1445001": {
+  "A": "icon_slime_benimaru_ssr_type01_skill_01",
+  "B": "icon_slime_benimaru_ssr_type01_skill_02",
+  "ultimate": "icon_slime_benimaru_ssr_type01_special_01"
+ },
+ "1464001": {
+  "A": "icon_slime_rimuruslime_sr_type01_skill_01",
+  "B": "icon_slime_rimuruslime_sr_type01_skill_02",
+  "ultimate": "icon_slime_rimuruslime_sr_type01_special_01"
+ },
+ "1465001": {
+  "A": "icon_slime_rimuruhuman_ssr_type01_skill_01",
+  "B": "icon_slime_rimuruhuman_ssr_type01_skill_02",
+  "ultimate": "icon_slime_rimuruhuman_ssr_type01_special_01"
+ },
+ "1881502": {
+  "A": "icon_npc_liz_sword_skill_03",
+  "B": "icon_npc_liz_sword_skill_04",
+  "ultimate": "icon_npc_liz_sword_special_01"
+ },
+ "1881503": {
+  "A": "icon_npc_liz_sword_skill_05",
+  "B": "icon_npc_liz_sword_skill_06"
+ },
+ "1966501": {
+  "A": "icon_4koa_varghese_monster_skill_01",
+  "B": "icon_4koa_varghese_monster_skill_02",
+  "ultimate": "icon_4koa_varghese_monster_special_01"
+ },
+ "1966502": {
+  "A": "icon_4koa_varghese_monster_skill_03",
+  "B": "icon_4koa_varghese_monster_skill_04",
+  "ultimate": "icon_4koa_varghese_monster_special_01"
+ }
+}
