@@ -29,12 +29,10 @@
         "eroi": 276,
         "abilita_speciali": 34
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 1: icona icon_passive_condition_start_combat, frase DB_passive_condition_start_combat, nome del filtro DB_passive_condition_filter_name_01",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "2": {
@@ -55,12 +53,10 @@
         "eroi": 95,
         "abilita_speciali": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 2: icona icon_passive_condition_sub, frase DB_passive_condition_sub, nome del filtro DB_passive_condition_filter_name_02",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "3": {
@@ -81,12 +77,10 @@
         "eroi": 20,
         "abilita_speciali": 8
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 3: icona icon_passive_condition_pvp_only, frase DB_passive_condition_pvp_only, nome del filtro DB_passive_condition_filter_name_03",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "4": {
@@ -107,12 +101,10 @@
         "eroi": 17,
         "abilita_speciali": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 4: icona icon_passive_condition_pvp_except, frase DB_passive_condition_pvp_except, nome del filtro DB_passive_condition_filter_name_04",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "5": {
@@ -133,12 +125,10 @@
         "eroi": 10,
         "abilita_speciali": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 5: icona icon_passive_condition_destroy_only, frase DB_passive_condition_destroy_only, nome del filtro DB_passive_condition_filter_name_05",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "6": {
@@ -159,12 +149,10 @@
         "eroi": 31,
         "abilita_speciali": 15
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 6: icona icon_passive_condition_destroy_except, frase DB_passive_condition_destroy_except, nome del filtro DB_passive_condition_filter_name_06",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "7": {
@@ -185,12 +173,10 @@
         "eroi": 295,
         "abilita_speciali": 11
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 7: icona icon_passive_condition_all_contents, frase DB_passive_condition_all_contents, nome del filtro DB_passive_condition_filter_name_07",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "8": {
@@ -211,12 +197,10 @@
         "eroi": 9,
         "abilita_speciali": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 8: icona icon_passive_condition_creaturenest, frase DB_passive_condition_creaturenest, nome del filtro DB_passive_condition_filter_name_08",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     },
     "9": {
@@ -237,12 +221,10 @@
         "eroi": 5,
         "abilita_speciali": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "il legame codice -> icona sta in DBSkillPassiveConditionIconRow, cifrata",
-        "il nome del filtro col numero del codice dice la stessa cosa della frase (8 codici su 9 leggibili in almeno una lingua)",
-        "i testi delle passive confermano: col 3 nominano il PVP 19 volte su 20, col 5 il Death Match 10 su 10, con l'8 la Bestia demoniaca 8 su 9",
-        "le icone di 1 e 2 le ha riconosciute l'utente in gioco"
+        "DB_skill_passive_condition_icon, riga 9: icona icon_passive_condition_creaturenest_except, frase DB_passive_condition_creaturenest_except, nome del filtro DB_passive_condition_filter_name_09",
+        "fino al 26/09 la tabella era cifrata e il legame era dedotto dai nomi dei filtri e dai testi delle passive: la tabella gli da' ragione 9 codici su 9"
       ]
     }
   },

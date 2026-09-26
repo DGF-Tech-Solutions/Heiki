@@ -504,9 +504,9 @@ export interface HeroContextIndex {
  * cornice del suo tipo (PassiveManager.ExclusiveIconFrame del client). Il
  * Talento nel codice del gioco si chiama "ability".
  *
- * L'icona e' gia' incorniciata dalla pipeline: `iconSource` dice come si sa che
- * e' sua, perche' per Comandamenti, Grazie e Unita' il file non porta l'heroId
- * dell'eroe e l'accostamento viene da fonti di forza diversa.
+ * L'icona e' gia' incorniciata dalla pipeline, tutte e due dal client:
+ * DB_skill_passive.icon e la cornice del tipo della passiva (i Talenti quella
+ * del tipo della loro carta).
  */
 export interface HeroSpecialAbility {
   /** "comandamento" | "grazia" | "unita" | "talento": chiave di `kinds` */
@@ -527,10 +527,6 @@ export interface HeroSpecialAbility {
   conditions: readonly number[];
   /** c'e' l'immagine incorniciata in public/eroi/<gioco>/speciali/<id>.png */
   icon: boolean;
-  /** "wiki" | "schema" | "a vista" | "id nel nome" | "generica" */
-  iconSource: string;
-  /** "dal tipo", o come e' stata dedotta */
-  frameSource: string;
 }
 
 /** Il tipo di un'abilita' speciale, con le regole del gioco su come convive con gli altri. */

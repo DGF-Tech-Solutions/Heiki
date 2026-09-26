@@ -894,6 +894,6 @@ export const HERO_CONTEXT: HeroContextIndex = {
   glossary: GLOSSARY,
   codes: { race: RACE, attribute: ATTRIBUTE, faction: FACTION },
   passiveConditions: PASSIVE_CONDITIONS,
-  sources: {"rarita":"RatingType (enum del client) su rating e startRating di 7dshub","codici":"enum del client, etichette dai testi del client","effetti":"note del gioco, dizionario buff e tassonomia del client","dedotti":"SkillEffectEnum del client, marcati uno per uno","condizioni":"passiveConditions di 7dshub; icona e frase dal client (icon_passive_condition_*, DB_passive_condition_*); legame codice-icona dedotto, prove in CONDIZIONI_PASSIVA"},
+  sources: {"rarita":"RatingType (enum del client) su rating e start_rating di DB_skin_base","codici":"enum del client, etichette dai testi del client","effetti":"note del gioco, dizionario buff e tassonomia del client","dedotti":"SkillEffectEnum del client, marcati uno per uno","condizioni":"codici da DB_skill_passive.list_array_exclusive_condition_icon; icona e frase da DB_skill_passive_condition_icon (icon_passive_condition_*, DB_passive_condition_*)"},
   heroes: HEROES,
 };

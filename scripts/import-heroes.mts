@@ -1527,8 +1527,8 @@ interface SourceSpecials {
     cornice: { sprite: string; certezza: string };
   }>;
   eroi: Record<string, string[]>;
-  /** heroId -> file dell'icona passiva giusta, dove mappa_asset.py ne ha preso un'altra */
-  correzioni_icona_passiva?: Record<string, string>;
+  /** heroId -> file dell'icona dell'Unica in m/Texture2D, da DB_skill_passive.icon */
+  icone_uniche?: Record<string, string>;
 }
 
 const specialsJson = resolve(SOURCE, "eroi/abilita_speciali.json");
@@ -1592,8 +1592,6 @@ if (!specialsSource) {
         ...(steps.length > 0 ? { ultimateSteps: steps } : {}),
         conditions: ability.condizioni,
         icon,
-        iconSource: ability.icona.fonte,
-        frameSource: ability.cornice.certezza,
       })},`,
     );
   }
@@ -1614,9 +1612,8 @@ if (!specialsSource) {
  *
  * FONTE: il client. Effetti e condizioni dalla scheda (grace, taboo,
  * solidarity, ability), \`text\` in inglese e \`textIt\` in italiano; nomi e
- * regole nelle due lingue; icone e cornici. Le icone di Comandamenti, Grazie e
- * Unita' non portano l'heroId: ogni abilita' dichiara in \`iconSource\` come si
- * sa che l'icona e' sua.
+ * regole nelle due lingue; icone (DB_skill_passive.icon) e cornici (dal tipo
+ * della passiva, come IconExclusive.Set; i Talenti dal tipo della loro carta).
  */
 
 import type { HeroSpecialsIndex } from "../types";
@@ -1801,14 +1798,18 @@ ${relicRows.join("\n")}
 /* --------------------------------------------------------------- asset -- */
 
 /**
- * Illustrazione e icona dell'abilita' esclusiva.
+ * Illustrazione e icona dell'abilita' esclusiva (l'Unica).
  *
- * Le mappa `python mappa_asset.py` nella cartella della pipeline. Qui si
- * copiano solo i collegamenti CERTI, cioe' quelli il cui nome di file contiene
- * l'heroId a 7 cifre: illustrazione e icona abilita'. Le icone dei ritratti no,
- * perche' l'heroId non c'e' e il collegamento passa da uno slug che restringe
- * al personaggio ma non alla variante - va bene per indagare, non per
- * pubblicare.
+ * L'illustrazione la mappa `python mappa_asset.py` nella cartella della
+ * pipeline: si copia solo se il nome del file contiene l'heroId a 7 cifre. Le
+ * icone dei ritratti no, perche' l'heroId non c'e' e il collegamento passa da
+ * uno slug che restringe al personaggio ma non alla variante.
+ *
+ * L'icona dell'Unica dal 26/09 la dice il client: DB_skill_passive.icon della
+ * passiva che la scheda mostra, scritta da abilita_speciali.py in
+ * `icone_uniche`. Il nome del file (icon_exclusive_skill_<heroId>) era giusto per
+ * 362 eroi su 375: agli altri mancava l'icona, o c'era quella di un'altra
+ * versione, o la sfera dell'Unita' al posto del ritratto.
  */
 interface SourceAssets {
   splash?: string;
@@ -1843,18 +1844,15 @@ if (!existsSync(assetsJson)) {
 
     const flags: string[] = [];
     for (const kind of ASSET_KINDS) {
-      const rel = voce[kind.key];
+      // L'icona dell'Unica dal client si copia SEMPRE: il file preso prima per
+      // nome puo' essere sul disco con una data piu' recente di quello giusto.
+      const unica = kind.key === "abilita" ? specialsSource?.icone_uniche?.[hid] : undefined;
+      const rel = unica ? `m/Texture2D/${unica}` : voce[kind.key];
       if (!rel) continue;
-      // La passiva di un eroe puo' essere stata presa per l'icona di un'abilita'
-      // speciale che porta il suo heroId (Roxy [Winter Whirlwind]): la
-      // correzione la da' abilita_speciali.py, e si copia SEMPRE, perche' il file
-      // sbagliato gia' sul disco e' piu' nuovo di quello giusto.
-      const correction =
-        kind.key === "abilita" ? specialsSource?.correzioni_icona_passiva?.[hid] : undefined;
-      const from = correction ? resolve(estratti, "m/Texture2D", correction) : resolve(estratti, rel);
+      const from = resolve(estratti, rel);
       if (!existsSync(from)) continue;
       const to = resolve(DEST_IMAGES, kind.dir, `${hid}.png`);
-      if (correction) {
+      if (unica) {
         copyFileSync(from, to);
         copied[kind.dir]!++;
       } else if (copyIfNewer(from, to)) {

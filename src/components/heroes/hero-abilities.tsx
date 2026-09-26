@@ -57,8 +57,6 @@ const TESTI = testi({
     passiva: "Unica",
     passivaSenzaTesto: "Di questa Unica abbiamo l’icona dal client, non ancora il testo.",
     accostamentoDedotto: "(accostamento dedotto dal vocabolario del client)",
-    iconaFonte: (breve: string) => `icona ${breve}`,
-    cornice: (spiega: string, cornice: string) => `${spiega} Cornice: ${cornice}.`,
     soggettoSpeciale: (tipo: string, etichetta: HeroLabel | undefined) =>
       etichetta?.it ? `${ARTICOLO_SPECIALE[tipo] ?? "l'abilità: "}${etichetta.it}` : "l'abilità",
     soggettoPassiva: "l’Unica",
@@ -76,8 +74,6 @@ const TESTI = testi({
     passiva: "Unique",
     passivaSenzaTesto: "For this Unique we have the icon from the client, not the text yet.",
     accostamentoDedotto: "(match inferred from the client's vocabulary)",
-    iconaFonte: (breve: string) => `icon: ${breve}`,
-    cornice: (spiega: string, cornice: string) => `${spiega} Frame: ${cornice}.`,
     // In inglese l'articolo e' uno solo, e il nome del tipo e' quello del gioco.
     soggettoSpeciale: (_tipo: string, etichetta: HeroLabel | undefined) =>
       etichetta?.en ? `the ${etichetta.en}` : "the ability",
@@ -478,9 +474,6 @@ function EffectTag({
   );
 }
 
-/** La forma di una voce di FONTE_ICONA_SPECIALE, per cercarla con la chiave del dato. */
-type Fonte = { breve: string; spiega: string };
-
 /**
  * Le classi dei sei ranghi, scritte per esteso una per una.
  *
@@ -571,82 +564,11 @@ const ULTIMATE_LINK = [
   },
 ] as const;
 
-/** Come si sa che l'icona di un'abilita' speciale e' sua: la parola breve e la spiegazione. */
-const FONTE_ICONA_SPECIALE = testi({
-  it: {
-    wiki: {
-      breve: "dal wiki",
-      spiega: "Il wiki di community cita questo file nella pagina dell'eroe, accanto all'abilità.",
-    },
-    schema: {
-      breve: "dedotta",
-      spiega:
-        "Nessuna fonte la cita, ma segue lo schema dei nomi delle icone dichiarate per le altre abilità dello stesso tipo.",
-    },
-    "a vista": {
-      breve: "riconosciuta a vista",
-      spiega:
-        "Un'icona del personaggio che nessun'altra abilità reclama, riconosciuta dal disegno: le sfere contano i comandamenti, il volto dice la versione.",
-    },
-    "id nel nome": {
-      breve: "dal client",
-      spiega: "Il file dell'icona porta l'id dell'eroe nel nome: nessun accostamento da indovinare.",
-    },
-    generica: {
-      breve: "generica",
-      spiega: "L'icona propria non si trova fra quelle estratte: resta il simbolo del tipo.",
-    },
-  },
-  en: {
-    wiki: {
-      breve: "from the wiki",
-      spiega: "The community wiki cites this file on the hero's page, next to the ability.",
-    },
-    schema: {
-      breve: "inferred",
-      spiega:
-        "No source cites it, but it follows the naming pattern of the icons stated for the other abilities of the same type.",
-    },
-    "a vista": {
-      breve: "recognized by eye",
-      spiega:
-        "An icon of the character that no other ability claims, recognized from the artwork: the orbs count the Commandments, the face tells the version.",
-    },
-    "id nel nome": {
-      breve: "from the client",
-      spiega: "The icon file carries the hero's id in its name: no match to guess.",
-    },
-    generica: {
-      breve: "generic",
-      spiega: "The ability's own icon isn't among the extracted ones: the type's symbol stands in.",
-    },
-  },
-});
-
-/**
- * Come si sa la cornice dell'icona: `frameSource` arriva dalla pipeline come
- * parola italiana, e in inglese va detta in inglese. Un valore nuovo che qui
- * manca si mostra com'e'.
- */
-const FONTE_CORNICE = testi({
-  it: {
-    "dal tipo": "dal tipo",
-    "dal tipo della sua carta": "dal tipo della sua carta",
-    "dedotta: comandamento multiplo": "dedotta: comandamento multiplo",
-  },
-  en: {
-    "dal tipo": "from the type",
-    "dal tipo della sua carta": "from its card's type",
-    "dedotta: comandamento multiplo": "inferred: multiple Commandments",
-  },
-});
-
 /**
  * Un Comandamento, una Grazia, un'Unita' o un Talento.
  *
- * L'icona arriva gia' nella cornice del suo tipo, com'e' nel gioco. Accanto al
- * nome si dice come si sa che l'icona e' sua, perche' per tre tipi su quattro il
- * file non porta l'heroId e le fonti hanno forza diversa. Sotto il testo, le
+ * L'icona arriva gia' nella cornice del suo tipo, com'e' nel gioco: tutte e due
+ * dal client (DB_skill_passive.icon, e la cornice del tipo). Sotto il testo, le
  * regole con cui il gioco fa convivere i tipi in squadra: sono la cosa che
  * decide se l'abilita' si attiva davvero.
  */
@@ -673,10 +595,7 @@ function SpecialAbility({
   termIds?: TermIds;
 }) {
   const t = TESTI[locale];
-  const fonti: Readonly<Record<string, Fonte | undefined>> = FONTE_ICONA_SPECIALE[locale];
-  const cornici: Readonly<Record<string, string | undefined>> = FONTE_CORNICE[locale];
   const name = inLingua(ability.name, locale);
-  const source = fonti[ability.iconSource];
   const rules = (kind?.rules ?? [])
     .map((rule) => inLingua(rule, locale))
     .filter((rule): rule is string => rule !== null);
@@ -701,14 +620,6 @@ function SpecialAbility({
       <div className="min-w-0">
         {name ? (
           <GameText text={name} className="m-0 font-semibold [&>p]:m-0" />
-        ) : null}
-        {ability.icon && source ? (
-          <p
-            className="m-0 mb-1.5 text-[12px] text-ink-3"
-            title={t.cornice(source.spiega, cornici[ability.frameSource] ?? ability.frameSource)}
-          >
-            {t.iconaFonte(source.breve)}
-          </p>
         ) : null}
 
         <PassiveConditions
