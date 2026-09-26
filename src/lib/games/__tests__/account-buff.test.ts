@@ -187,6 +187,16 @@ describe("statistiche in battaglia e classe di combattimento", () => {
     expect(heroCombatClass(values, data.heroPower, { ultimateRank: 1, trueAwakening: false })).toBe(power - 5 * 400 - 1500);
   });
 
+  it("ridà la classe mostrata dal gioco: Meliodas Nemesi dell'utente, 45.411", () => {
+    // la schermata dell'eroe del 26/09, senza equipaggiamento: ultimate al rango 2,
+    // Vero risveglio della Divinita' (Amplificazione danni 15%)
+    const screen = {
+      atk: 8889, def: 7189, hp: 120210, fixedAtkPer: 123, fixedDefPer: 108, hpRegenPer: 40, critPer: 122,
+      critAtkPer: 251, critResPer: 113, critDefPer: 147, hpRecoveryPer: 127.5, hpStealPer: 17, dmgRes: 0, dmgInc: 15,
+    };
+    expect(heroCombatClass(screen, data.heroPower, { ultimateRank: 2, trueAwakening: true })).toBe(45411);
+  });
+
   it("i pesi sono quelli della configurazione del gioco", () => {
     expect(data.heroPower.weights).toMatchObject({ atk: 1, def: 0.8, hp: 0.2, critPer: 5, critAtkPer: 2.5, fixedAtkPer: 5 });
     expect(data.heroPower).toMatchObject({ uniquePassive: 500, perUltimateRank: 400, trueAwakening: 1500 });

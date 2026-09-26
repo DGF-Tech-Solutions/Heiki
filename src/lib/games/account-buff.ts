@@ -271,6 +271,10 @@ export interface HeroPowerOptions {
  * dell'ultimate, il Vero risveglio; arrotondata per eccesso. Senza titoli e
  * costellazioni, che il gioco non conta nella classe. L'equipaggiamento, che il
  * gioco conta, qui manca perche' manca nelle statistiche.
+ *
+ * Verificata sul gioco il 26/09: con le statistiche della schermata del Meliodas
+ * Nemesi dell'utente (senza equipaggiamento, ultimate al rango 2) da' 45.411, il
+ * numero del gioco. Il test lo tiene.
  */
 export function heroCombatClass(
   stats: Readonly<Record<string, number>>,
