@@ -173,9 +173,13 @@ export function StatSlider({
   const extraRows = ROWS.filter((row) => row.extra && values[row.key] !== undefined).length;
 
   return (
-    <div className="max-w-[560px]">
+    // Comandi e tabella affiancati quando la scheda e' larga (dal 26/09 le
+    // statistiche hanno una scheda loro, che e' un contenitore): muovendo lo
+    // slider i numeri restano in vista. Prima la tabella stava sotto i comandi,
+    // che col tuo account sono alti circa 600px. Stretta, torna una colonna.
+    <div className="grid items-start gap-x-6 gap-y-4 @4xl:grid-cols-[minmax(0,560px)_minmax(0,1fr)]">
       {steps && selection ? (
-        <div className="mb-4 grid gap-3 rounded-card border border-rule bg-paper-2 p-4 text-[13px]">
+        <div className="grid max-w-[560px] gap-3 rounded-card border border-rule bg-paper-2 p-4 text-[13px]">
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
             <label htmlFor={`${id}-livello`} className="text-ink-2">
               {t.livello}
@@ -387,59 +391,61 @@ export function StatSlider({
         </div>
       ) : null}
 
-      {/* Una colonna di numeri, due quando l'account aggiunge qualcosa: stretta,
-          perche' larga quanto la scheda il valore finirebbe a mille pixel dalla
-          sua etichetta. `aria-live` fa sentire i numeri nuovi a chi usa un
-          lettore di schermo mentre muove lo slider. */}
-      <table className="w-full max-w-[460px] border-collapse text-[13px]" aria-live="polite">
-        {battle ? (
-          <thead>
-            <tr className="border-b border-rule text-left">
-              <th className="py-1.5 pr-3 font-normal" />
-              <th className="py-1.5 pr-3 text-right text-[12px] font-medium text-ink-3">{t.scheda}</th>
-              <th className="py-1.5 text-right text-[12px] font-medium text-ink-2">{t.battaglia}</th>
-            </tr>
-          </thead>
-        ) : null}
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.key} className="border-b border-rule/60">
-              <td className="py-1.5 pr-3 text-ink-2">{row.label[locale]}</td>
-              <td className={cx(numeric, "py-1.5 text-right", battle ? "pr-3 text-ink-2" : "font-medium")}>
-                {numero(values[row.key]!, locale)}
-                {row.percent ? "%" : ""}
-              </td>
-              {battle ? (
-                <td className={cx(numeric, "py-1.5 text-right font-medium")}>
-                  {numero(battle[row.key]!, locale)}
+      <div className="min-w-0">
+        {/* Una colonna di numeri, due quando l'account aggiunge qualcosa: stretta,
+            perche' larga quanto la scheda il valore finirebbe a mille pixel dalla
+            sua etichetta. `aria-live` fa sentire i numeri nuovi a chi usa un
+            lettore di schermo mentre muove lo slider. */}
+        <table className="w-full max-w-[460px] border-collapse text-[13px]" aria-live="polite">
+          {battle ? (
+            <thead>
+              <tr className="border-b border-rule text-left">
+                <th className="py-1.5 pr-3 font-normal" />
+                <th className="py-1.5 pr-3 text-right text-[12px] font-medium text-ink-3">{t.scheda}</th>
+                <th className="py-1.5 text-right text-[12px] font-medium text-ink-2">{t.battaglia}</th>
+              </tr>
+            </thead>
+          ) : null}
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.key} className="border-b border-rule/60">
+                <td className="py-1.5 pr-3 text-ink-2">{row.label[locale]}</td>
+                <td className={cx(numeric, "py-1.5 text-right", battle ? "pr-3 text-ink-2" : "font-medium")}>
+                  {numero(values[row.key]!, locale)}
                   {row.percent ? "%" : ""}
                 </td>
-              ) : null}
-            </tr>
-          ))}
-          {power !== null ? (
-            <tr className="border-b border-rule/60">
-              <td className="py-1.5 pr-3 text-ink-2">{t.classe}</td>
-              <td className={cx(numeric, "py-1.5 text-right", battle ? "pr-3" : "font-medium")}>
-                {numero(power, locale)}
-              </td>
-              {battle ? <td className="py-1.5 text-right text-ink-3">—</td> : null}
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
-      {extraRows > 0 ? (
-        <button
-          type="button"
-          onClick={() => setAllRows((current) => !current)}
-          aria-expanded={allRows}
-          className="mt-1.5 text-[12px] text-brand hover:underline"
-        >
-          {allRows ? t.principali : t.tutte(rows.length + extraRows)}
-        </button>
-      ) : null}
-      {power !== null ? <p className="mt-2 max-w-[70ch] text-[12px] text-ink-3">{t.classeNota}</p> : null}
-      {battle ? <p className="mt-1 max-w-[70ch] text-[12px] text-ink-3">{t.battagliaNota}</p> : null}
+                {battle ? (
+                  <td className={cx(numeric, "py-1.5 text-right font-medium")}>
+                    {numero(battle[row.key]!, locale)}
+                    {row.percent ? "%" : ""}
+                  </td>
+                ) : null}
+              </tr>
+            ))}
+            {power !== null ? (
+              <tr className="border-b border-rule/60">
+                <td className="py-1.5 pr-3 text-ink-2">{t.classe}</td>
+                <td className={cx(numeric, "py-1.5 text-right", battle ? "pr-3" : "font-medium")}>
+                  {numero(power, locale)}
+                </td>
+                {battle ? <td className="py-1.5 text-right text-ink-3">—</td> : null}
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+        {extraRows > 0 ? (
+          <button
+            type="button"
+            onClick={() => setAllRows((current) => !current)}
+            aria-expanded={allRows}
+            className="mt-1.5 text-[12px] text-brand hover:underline"
+          >
+            {allRows ? t.principali : t.tutte(rows.length + extraRows)}
+          </button>
+        ) : null}
+        {power !== null ? <p className="mt-2 max-w-[70ch] text-[12px] text-ink-3">{t.classeNota}</p> : null}
+        {battle ? <p className="mt-1 max-w-[70ch] text-[12px] text-ink-3">{t.battagliaNota}</p> : null}
+      </div>
     </div>
   );
 }

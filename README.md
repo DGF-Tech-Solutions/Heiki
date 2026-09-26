@@ -97,7 +97,8 @@ src/app/
     layout.tsx                selettore gioco + barra laterale a gruppi
     page.tsx                  feed della community
     eroi/                     roster completo, filtri per rarita' e attributo
-    eroi/[heroId]/            scheda dell'eroe: testi dal client del gioco
+    eroi/[heroId]/            scheda dell'eroe, a schede (Abilita', Statistiche, Reliquia,
+                              Info; ?scheda=<nome> apre quella giusta): testi dal client
     personaggi/[characterId]  scheda personaggio
     nemici/                   bersagli usati nei calcoli
     classifica/               ordinamento per danno simulato
@@ -127,7 +128,9 @@ src/lib/profile/              livelli, cosmetici, salvataggio
 src/lib/auth/                 Auth.js, ruoli, permessi
 src/lib/db/                   schema Drizzle e client
 src/components/ui.tsx         primitive dell'interfaccia
-src/components/heroes/        sfoglia il roster: filtri e griglia
+src/components/heroes/        sfoglia il roster: filtri e griglia; le schede della pagina
+                              dell'eroe (hero-tabs, e un file per scheda: hero-abilities,
+                              hero-relics, stat-slider). Una funzione nuova = una scheda
 scripts/                      setup, migrazioni, seed, verifica di fumo,
                               ruoli, importazione roster
 ```

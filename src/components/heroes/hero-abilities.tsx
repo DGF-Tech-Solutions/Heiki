@@ -1,0 +1,1264 @@
+/**
+ * La scheda «Abilita'» della pagina di un eroe: carte A e B coi loro ranghi,
+ * ultimate, passiva, e Comandamenti, Grazie, Unita' e Talenti.
+ *
+ * In un file suo dal 26/09, quando la pagina e' passata alle schede. La passiva
+ * e le sue condizioni servono anche alla Reliquia sacra, che ne ha una: per
+ * questo `PassiveConditions` e `PassiveText` sono esportate.
+ */
+
+import { GameNotes, GameText } from "@/components/heroes/game-text";
+import { hasIcon, localized, textIn } from "@/components/heroes/hero-parts";
+import { cx, eyebrow, numeric } from "@/components/ui";
+import {
+  gameIconSrc,
+  heroCardArtSrc,
+  heroSkillIconSrc,
+  heroSpecialIconSrc,
+  heroUltimateArtSrc,
+} from "@/lib/games/heroes";
+import type {
+  HeroAbilities as HeroAbilitiesData,
+  HeroAssets,
+  HeroCard,
+  HeroCardContext,
+  HeroContext,
+  HeroEffect,
+  HeroLabel,
+  HeroSpecialAbility,
+  HeroSpecialKind,
+} from "@/lib/games/types";
+import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
+
+/**
+ * L'articolo davanti al tipo, nella riga "... segue il rango scelto": l'Unita', la Grazia.
+ * Solo italiano: in inglese l'articolo e' sempre "the".
+ */
+const ARTICOLO_SPECIALE: Readonly<Record<string, string>> = {
+  comandamento: "il ",
+  grazia: "la ",
+  unita: "l'",
+  talento: "il ",
+};
+
+const TESTI = testi({
+  it: {
+    carteAttacco: "Carte d’attacco",
+    illustrazioniAltreVersioni: (illustrazioni: number, carte: number) =>
+      `La cartella di questo personaggio contiene ${illustrazioni} illustrazioni, ma l’eroe ha ${carte} carte: le altre sono delle sue altre versioni. Quali siano le sue non si ricava dal client`,
+    illustrazioniCarte: (illustrazioni: number) =>
+      `Le ${illustrazioni} illustrazioni delle carte di quest’eroe. Quale appartenga a quale carta non si ricava dal client`,
+    gradoNonCombacia: ", e il grado di uscita non combacia",
+    gradoDaVerificare: "(stesso personaggio, grado di uscita diverso: da verificare)",
+    fonteCarte:
+      "Quali carte ha l’eroe e cosa fanno a ogni rango vengono dalle tabelle del client del gioco.",
+    // Solo in italiano: in inglese i testi dei ranghi sono semplicemente nella
+    // lingua della pagina, e non c'e' niente da avvertire.
+    testiInInglese: " I testi restano in inglese — il client ne ha solo i modelli, senza i valori." as
+      | string
+      | null,
+    ultimate: "Ultimate",
+    // Il nome della schermata dell'eroe nel gioco (UI_hero_info_49): «Unica».
+    passiva: "Unica",
+    passivaSenzaTesto: "Di questa Unica abbiamo l’icona dal client, non ancora il testo.",
+    accostamentoDedotto: "(accostamento dedotto dal vocabolario del client)",
+    iconaFonte: (breve: string) => `icona ${breve}`,
+    cornice: (spiega: string, cornice: string) => `${spiega} Cornice: ${cornice}.`,
+    soggettoSpeciale: (tipo: string, etichetta: HeroLabel | undefined) =>
+      etichetta?.it ? `${ARTICOLO_SPECIALE[tipo] ?? "l'abilità: "}${etichetta.it}` : "l'abilità",
+    soggettoPassiva: "l’Unica",
+    ultimateAlRango: (rango: number) => `Ultimate al rango ${rango}`,
+    segueRango: (soggetto: string) => `· ${soggetto} segue il rango scelto sulla carta dell’ultimate`,
+    valoriArancione: ": i valori in arancione sono quelli legati al rango",
+    rango: (rango: number) => `Rango ${rango}`,
+    carta: (slot: string) => `carta ${slot}`,
+    illustrazioneFonte: (breve: string) => `illustrazione ${breve}`,
+  },
+  en: {
+    carteAttacco: "Skill cards",
+    illustrazioniAltreVersioni: (illustrazioni: number, carte: number) =>
+      `This character's folder holds ${illustrazioni} illustrations, but the hero has ${carte} ${carte === 1 ? "card" : "cards"}: the others belong to its other versions. Which ones are its own can't be told from the client`,
+    illustrazioniCarte: (illustrazioni: number) =>
+      `The ${illustrazioni} card ${illustrazioni === 1 ? "illustration" : "illustrations"} of this hero. Which one belongs to which card can't be told from the client`,
+    gradoNonCombacia: ", and the starting rarity doesn't match",
+    gradoDaVerificare: "(same character, different starting rarity: to be verified)",
+    fonteCarte: "Which cards the hero has and what they do at each rank come from the game client's tables.",
+    testiInInglese: null,
+    ultimate: "Ultimate Move",
+    passiva: "Unique",
+    passivaSenzaTesto: "For this Unique we have the icon from the client, not the text yet.",
+    accostamentoDedotto: "(match inferred from the client's vocabulary)",
+    iconaFonte: (breve: string) => `icon: ${breve}`,
+    cornice: (spiega: string, cornice: string) => `${spiega} Frame: ${cornice}.`,
+    // In inglese l'articolo e' uno solo, e il nome del tipo e' quello del gioco.
+    soggettoSpeciale: (_tipo: string, etichetta: HeroLabel | undefined) =>
+      etichetta?.en ? `the ${etichetta.en}` : "the ability",
+    soggettoPassiva: "the Unique",
+    ultimateAlRango: (rango: number) => `Ultimate Move at rank ${rango}`,
+    segueRango: (soggetto: string) => `· ${soggetto} follows the rank chosen on the Ultimate Move card`,
+    valoriArancione: ": values in orange are the ones tied to the rank",
+    rango: (rango: number) => `Rank ${rango}`,
+    carta: (slot: string) => `card ${slot}`,
+    illustrazioneFonte: (breve: string) => `illustration: ${breve}`,
+  },
+});
+
+/** I passi che seguono l'ultimate, col testo gia' nella lingua della pagina. */
+function stepsIn(
+  steps: readonly { fromUltimateRank: number; text: string; textIt?: string }[] | undefined,
+  locale: Locale,
+): { fromUltimateRank: number; text: string }[] | undefined {
+  return steps?.map((step) => ({ fromUltimateRank: step.fromUltimateRank, text: textIn(step, locale) }));
+}
+
+/**
+ * La scheda «Abilita'»: a sinistra l'Unica e sotto le abilita' speciali, a
+ * destra le tre carte che l'eroe gioca, A, B e ultimate.
+ *
+ * Scelta dell'utente (26/09), dopo una prima versione a coppie (A accanto a B,
+ * ultimate accanto all'Unica): l'Unica e' il testo lungo e le carte sono
+ * illustrazioni alte con due o tre righe accanto, quindi due colonne ognuna
+ * col suo genere si riempiono meglio di righe che si allungano sulla piu' alta.
+ * Comandamenti, Grazie, Unita' e Talenti vanno sotto l'Unica: si aggiungono a
+ * lei, e il Talento ne segue il rango dell'ultimate come lei.
+ *
+ * Stretta torna una colonna: prima la colonna di sinistra, poi le carte, lo
+ * stesso ordine in cui si leggono le due colonne. Se una delle due colonne e'
+ * vuota (un modulo con le sole carte) l'altra prende tutta la larghezza.
+ *
+ * Le colonne le decide la larghezza della scheda (`@4xl`, 896px, sul
+ * contenitore che `HeroTabs` mette intorno a ogni scheda), non quella della
+ * finestra: la barra laterale del sito c'e' da 1024px in su e si mangia 210px,
+ * quindi a parita' di finestra lo spazio cambia. Sotto i 896px una carta
+ * avrebbe meno di 440px, e il testo accanto all'illustrazione scenderebbe sotto
+ * i 280.
+ */
+export function HeroAbilities({
+  game,
+  locale,
+  heroId,
+  abilities,
+  assets,
+  context,
+  glossary,
+  passiveConditions,
+  specials,
+  specialKinds,
+  icons,
+}: {
+  game: string;
+  locale: Locale;
+  heroId: string;
+  abilities: HeroAbilitiesData | undefined;
+  assets: HeroAssets | undefined;
+  context: HeroContext | undefined;
+  glossary: Readonly<Record<string, HeroEffect>> | undefined;
+  passiveConditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
+  specials: readonly { id: string; ability: HeroSpecialAbility }[];
+  specialKinds: Readonly<Record<string, HeroSpecialKind>> | undefined;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+}) {
+  const t = TESTI[locale];
+
+  // Quante carte mostrare quando NON c'e' il database delle abilita': e' il
+  // ripiego per un modulo che abbia gli sprite e non ancora i testi. Con il
+  // database si usa `abilities.cards`, che sono quelle di QUESTA versione,
+  // mentre gli sprite dedotti dallo slug sono tutti quelli del personaggio.
+  const cardCount = assets?.cards ?? 0;
+  const cards = abilities?.cards ?? [];
+
+  const heading = cx(eyebrow, "mb-2.5");
+  const column = "grid min-w-0 content-start gap-y-6";
+
+  const unique = !!(abilities?.passive?.text || assets?.skill);
+  const left = unique || specials.length > 0;
+  const right = cards.length > 0 || cardCount > 0 || !!abilities?.ultimate;
+
+  return (
+    <>
+      <div className={cx("grid items-start gap-x-5 gap-y-6", left && right && "@4xl:grid-cols-2")}>
+        {left ? (
+          <div className={column}>
+            {unique ? (
+              <section>
+                <h2 className={heading}>{t.passiva}</h2>
+                {/*
+                  L'icona e' l'unico pezzo di passiva che il client dia con certezza:
+                  il file si chiama col proprio heroId (`icon_exclusive_skill_<id>`),
+                  quindi non c'e' accostamento da indovinare. Il testo invece viene
+                  da 7dshub. Se manca uno dei due si mostra l'altro: un'icona senza
+                  testo resta un'informazione, e un testo senza icona pure.
+                */}
+                <div
+                  className="grid items-start gap-4 rounded-card border border-rule border-l-[3px] border-l-gold bg-paper-2 p-4"
+                  style={assets?.skill ? { gridTemplateColumns: "56px minmax(0, 1fr)" } : undefined}
+                >
+                  {assets?.skill ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={heroSkillIconSrc(game, heroId)}
+                      alt=""
+                      width={64}
+                      height={64}
+                      loading="lazy"
+                      className="block w-full rounded-card border border-rule bg-paper"
+                    />
+                  ) : null}
+
+                  <div className="min-w-0">
+                    {abilities?.passive?.name ? (
+                      <p className="m-0 mb-1 font-semibold">
+                        {localized(abilities.passive.nameI18n, abilities.passive.name, locale)}
+                      </p>
+                    ) : null}
+                    <PassiveConditions
+                      game={game}
+                      locale={locale}
+                      codes={context?.passiveConditions}
+                      conditions={passiveConditions}
+                      icons={icons}
+                    />
+                    {abilities?.passive?.text ? (
+                      <PassiveText
+                        game={game}
+                        locale={locale}
+                        text={textIn(
+                          { text: abilities.passive.text, textIt: abilities.passive.textIt },
+                          locale,
+                        )}
+                        // Senza i pulsanti dell'ultimate non c'e' un rango da seguire:
+                        // resta il testo del rango 1, e nessun pannello resta spento.
+                        steps={
+                          (abilities.ultimate?.ranks.length ?? 0) > 1
+                            ? stepsIn(abilities.passive.ultimateSteps, locale)
+                            : undefined
+                        }
+                        context={context?.cards["passiva"]}
+                        glossary={glossary}
+                        icons={icons}
+                      />
+                    ) : (
+                      <p className="m-0 text-sm text-ink-3">{t.passivaSenzaTesto}</p>
+                    )}
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {/*
+              Comandamenti, Grazie, Unita' e Talenti: una sezione per abilita', col
+              nome del suo tipo come titolo, subito sotto l'Unica a cui si
+              aggiungono. Nessun eroe ne ha piu' di una, ma la lista regge anche quel
+              caso.
+            */}
+            {specials.map(({ id, ability }) => {
+              const kind = specialKinds?.[ability.kind];
+              return (
+                <section key={id}>
+                  <h2 className={heading}>{inLingua(kind?.label, locale) ?? ability.kind}</h2>
+                  <SpecialAbility
+                    game={game}
+                    locale={locale}
+                    id={id}
+                    ability={ability}
+                    kind={kind}
+                    conditions={passiveConditions}
+                    icons={icons}
+                    reactive={(abilities?.ultimate?.ranks.length ?? 0) > 1}
+                  />
+                </section>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {right ? (
+          <div className={column}>
+            {/*
+              Una riga per carta, con la sua illustrazione. L'accostamento non
+              si ricava dai nomi dei file: lo decide la pipeline
+              (accosta_carte.py) fra wiki, scelte a mano e regole misurate
+              contro il wiki, e ogni carta dice da quale delle tre viene.
+            */}
+            {cards.map((card, index) => (
+              <section key={index}>
+                <h2 className={heading}>
+                  {card.slot === "A" || card.slot === "B" ? t.carta(card.slot) : t.carteAttacco}
+                </h2>
+                <CardRow
+                  game={game}
+                  locale={locale}
+                  heroId={heroId}
+                  card={card}
+                  context={card.slot ? context?.cards[card.slot] : undefined}
+                  glossary={glossary}
+                  icons={icons}
+                />
+              </section>
+            ))}
+
+            {/*
+              Quando l'accostamento non si sa, le immagini restavano invisibili:
+              il testo aveva la sua riga e gli sprite non comparivano da nessuna
+              parte. Mostrarli qui sotto, staccati e dichiarati come non
+              attribuiti, li rende consultabili senza affermare il falso -
+              metterli accanto a un testo a caso sarebbe stata l'unica cosa
+              peggiore del non mostrarli.
+
+              MA NON SONO TUTTE SUE, e prima lo si diceva. Gli sprite stanno in
+              una cartella per PERSONAGGIO, che le versioni si spartiscono due a
+              due: nella cartella `ban_nunchaku` il wiki assegna 04 e 01 a un
+              Ban e 02 e 03 a un altro. Risultato: 170 eroi ne ricevono piu' di
+              quante carte abbiano - fino a 10 per 3 carte - e la frase «le N
+              illustrazioni di quest'eroe» era falsa per tutti loro.
+
+              Ridurle a due non si puo' senza indovinare: la regola posizionale
+              cade su Diane, Drole, Gil Thunder e Griamore, e la carta A ha
+              l'indice minore solo in 92 casi su 110. Anche l'eliminazione fra
+              fratelli non regge, perche' due versioni sconosciute nella stessa
+              cartella si contenderebbero gli stessi avanzi. L'unica fonte che
+              lo dichiari e' il wiki, e copre 114 eroi: allargare quello e' il
+              vero rimedio. Qui si dice come stanno le cose.
+            */}
+            {cards.length > 0 && cardCount > 0 && cards.every((card) => card.sprite === undefined) ? (
+              <div>
+                <p className="m-0 mb-2 text-[13px] text-ink-3">
+                  {cardCount > cards.length
+                    ? t.illustrazioniAltreVersioni(cardCount, cards.length)
+                    : t.illustrazioniCarte(cardCount)}
+                  {assets?.cardsApprox ? t.gradoNonCombacia : null}.
+                </p>
+                <Sprites game={game} heroId={heroId} count={cardCount} />
+              </div>
+            ) : null}
+
+            {cards.length === 0 && cardCount > 0 ? (
+              /* Ripiego: ci sono gli sprite ma nessun testo. Vale per un modulo che
+                 abbia le immagini e non ancora il database delle abilita'. */
+              <section>
+                <h2 className={heading}>
+                  {t.carteAttacco} · {cardCount}
+                  {assets?.cardsApprox ? (
+                    <span className="ml-2 normal-case tracking-normal text-ink-3">
+                      {t.gradoDaVerificare}
+                    </span>
+                  ) : null}
+                </h2>
+                <Sprites game={game} heroId={heroId} count={cardCount} />
+              </section>
+            ) : null}
+
+            {abilities?.ultimate ? (
+              <section>
+                <h2 className={heading}>{t.ultimate}</h2>
+                {/*
+                  La carta dell'ultimate accanto al testo, come per le carte
+                  d'attacco. Un'ultimate per eroe, quindi niente accostamento per
+                  nome: basta sapere che l'illustrazione e' sua, e `assets.ultimate`
+                  c'e' solo quando lo si sa.
+                */}
+                <CardRow
+                  game={game}
+                  locale={locale}
+                  heroId={heroId}
+                  card={abilities.ultimate}
+                  context={context?.cards["ultimate"]}
+                  glossary={glossary}
+                  icons={icons}
+                  artSrc={assets?.ultimate ? heroUltimateArtSrc(game, heroId) : undefined}
+                />
+              </section>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      {cards.length > 0 ? (
+        <p className="mt-5 text-[13px] text-ink-3">
+          {t.fonteCarte}
+          {/*
+            L'avviso vale solo se qualche testo resta davvero in inglese:
+            con `textsInItalian` la pagina in italiano li mostra tutti in
+            italiano, e in inglese l'avviso non esiste.
+          */}
+          {abilities?.textsInEnglish && !abilities.textsInItalian ? t.testiInInglese : null}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+/** Gli sprite delle carte senza un testo accanto: in fila, piccoli. */
+function Sprites({ game, heroId, count }: { game: string; heroId: string; count: number }) {
+  return (
+    <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
+      {Array.from({ length: count }, (_, index) => (
+        <li key={index}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={heroCardArtSrc(game, heroId, index + 1)}
+            alt=""
+            width={128}
+            height={256}
+            loading="lazy"
+            className="block w-[84px] rounded-[3px] bg-paper-2"
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Cosa fa una carta, detto con i termini del gioco.
+ *
+ * Il testo del rango, in una lingua o nell'altra, e' pieno di meccaniche
+ * evidenziate che non si spiegano da sole. Qui ci sono le stesse meccaniche come termini, con la
+ * definizione che il GIOCO ne da': quelle che si scrive nelle note dentro
+ * l'abilita', il suo dizionario dei buff, la tassonomia con cui filtra gli
+ * effetti.
+ *
+ * Un termine DEDOTTO si vede che lo e'. Il gioco quelle operazioni - "Removes
+ * Buffs", "depletes" - non le definisce in nessun posto in chiaro, e
+ * l'accostamento viene dal vocabolario interno del client: e' una garanzia
+ * diversa da una definizione scritta, e chi legge ha diritto di distinguerle.
+ */
+function Effects({
+  context,
+  glossary,
+  locale,
+}: {
+  context: HeroCardContext | undefined;
+  glossary: Readonly<Record<string, HeroEffect>> | undefined;
+  locale: Locale;
+}) {
+  if (!context || !glossary) return null;
+
+  // Prima quelli di tutta la carta, poi quelli che compaiono salendo di rango.
+  // Tenerli separati evita di dire che al rango 1 la carta fa gia' quello che
+  // impara al 3.
+  const common = context.effects
+    .map((key) => glossary[key])
+    .filter((effect): effect is HeroEffect => effect !== undefined);
+
+  const later = Object.entries(context.onlyAtRanks ?? {}).flatMap(([rank, keys]) =>
+    keys
+      .map((key) => ({ rank, effect: glossary[key] }))
+      .filter((item): item is { rank: string; effect: HeroEffect } => item.effect !== undefined),
+  );
+
+  if (common.length === 0 && later.length === 0) return null;
+
+  return (
+    <ul className="m-0 mt-2.5 flex list-none flex-wrap gap-1.5 p-0">
+      {common.map((effect, index) => (
+        <EffectTag key={`c${index}`} effect={effect} locale={locale} />
+      ))}
+      {later.map((item, index) => (
+        <EffectTag key={`l${index}`} effect={item.effect} rank={item.rank} locale={locale} />
+      ))}
+    </ul>
+  );
+}
+
+function EffectTag({
+  effect,
+  rank,
+  locale,
+}: {
+  effect: HeroEffect;
+  rank?: string;
+  locale: Locale;
+}) {
+  const label = inLingua(effect.label, locale);
+  if (!label) return null;
+
+  const definition = inLingua(effect.definition, locale);
+  const dedotto = effect.certainty === "dedotto";
+
+  return (
+    <li
+      className={cx(
+        "inline-flex items-baseline gap-1 rounded-[2px] border px-1.5 py-0.5 text-[12px]",
+        dedotto ? "border-dashed border-rule-2 text-ink-3" : "border-rule text-ink-2",
+      )}
+      title={
+        // Il titolo porta la definizione del gioco e, quando serve, il fatto
+        // che l'accostamento sia dedotto. Non e' il posto ideale per una
+        // spiegazione, ma e' quello che non allunga la scheda di 30 righe.
+        [definition, dedotto ? TESTI[locale].accostamentoDedotto : null]
+          .filter(Boolean)
+          .join(" ") || undefined
+      }
+    >
+      {rank ? <span className={cx(numeric, "text-[10px] text-ink-3")}>R{rank}</span> : null}
+      <span>{label}</span>
+      {dedotto ? <span className="text-ink-3">?</span> : null}
+    </li>
+  );
+}
+
+/**
+ * Come si sa che un'illustrazione e' di quella carta.
+ *
+ * In pagina la parola breve, al passaggio del puntatore la regola con la sua
+ * misura: le misure sono contro gli accostamenti che il wiki dichiara.
+ */
+const FONTE_SPRITE = testi({
+  it: {
+    wiki: {
+      breve: "dal wiki",
+      spiega: "Il wiki di community cita il file dell'illustrazione accanto a questa carta.",
+    },
+    manuale: {
+      breve: "verificata a mano",
+      spiega:
+        "Scelta a mano confrontando le carte del gioco. Dove il wiki la dichiara anche, coincide 25 volte su 25.",
+    },
+    cartella_propria: {
+      breve: "dedotta",
+      spiega:
+        "L'eroe è l'unico della sua cartella di carte: le prime due, ordinate per id d'abilità. Esatta 53 volte su 53 sulle carte che il wiki dichiara.",
+    },
+    ordine_uscita: {
+      breve: "dedotta",
+      spiega:
+        "Le versioni del personaggio, in ordine di uscita, prendono le carte a coppie. Esatta 55 volte su 57 sulle carte che il wiki dichiara.",
+    },
+    famiglia: {
+      breve: "dedotta",
+      spiega:
+        "Le versioni di un personaggio condividono la carta dell'ultimate. Esatta 139 volte su 145 sulle ultimate che il wiki dichiara.",
+    },
+  },
+  en: {
+    wiki: {
+      breve: "from the wiki",
+      spiega: "The community wiki cites the illustration file next to this card.",
+    },
+    manuale: {
+      breve: "checked by hand",
+      spiega:
+        "Picked by hand by comparing the game's cards. Where the wiki states it too, it matches 25 times out of 25.",
+    },
+    cartella_propria: {
+      breve: "inferred",
+      spiega:
+        "The hero is the only one in its card folder: the first two, sorted by skill id. Correct 53 times out of 53 on the cards the wiki states.",
+    },
+    ordine_uscita: {
+      breve: "inferred",
+      spiega:
+        "The character's versions, in release order, take the cards in pairs. Correct 55 times out of 57 on the cards the wiki states.",
+    },
+    famiglia: {
+      breve: "inferred",
+      spiega:
+        "A character's versions share the Ultimate Move card. Correct 139 times out of 145 on the Ultimate Moves the wiki states.",
+    },
+  },
+});
+
+/** La forma di una voce di FONTE_SPRITE e FONTE_ICONA_SPECIALE, per cercarle con la chiave del dato. */
+type Fonte = { breve: string; spiega: string };
+
+/**
+ * Le classi dei sei ranghi, scritte per esteso una per una.
+ *
+ * Sembra ripetizione ed e' invece l'unico modo che funziona: Tailwind legge il
+ * SORGENTE per sapere quali regole generare, quindi una classe costruita con
+ * un template - `peer/r${n}` - non finirebbe mai nel CSS e il selettore non
+ * cambierebbe niente, senza dare errore da nessuna parte. Sei perche' tanti
+ * sono i ranghi dell'ultimate; le carte A e B ne hanno tre.
+ */
+const RANK_CLASSES = [
+  {
+    hook: "rk1",
+    chip: "group-has-[.rk1:checked]:border-brand group-has-[.rk1:checked]:bg-brand-soft group-has-[.rk1:checked]:text-ink group-has-[.rk1:checked]:opacity-100",
+    show: "group-has-[.rk1:checked]:block",
+  },
+  {
+    hook: "rk2",
+    chip: "group-has-[.rk2:checked]:border-brand group-has-[.rk2:checked]:bg-brand-soft group-has-[.rk2:checked]:text-ink group-has-[.rk2:checked]:opacity-100",
+    show: "group-has-[.rk2:checked]:block",
+  },
+  {
+    hook: "rk3",
+    chip: "group-has-[.rk3:checked]:border-brand group-has-[.rk3:checked]:bg-brand-soft group-has-[.rk3:checked]:text-ink group-has-[.rk3:checked]:opacity-100",
+    show: "group-has-[.rk3:checked]:block",
+  },
+  {
+    hook: "rk4",
+    chip: "group-has-[.rk4:checked]:border-brand group-has-[.rk4:checked]:bg-brand-soft group-has-[.rk4:checked]:text-ink group-has-[.rk4:checked]:opacity-100",
+    show: "group-has-[.rk4:checked]:block",
+  },
+  {
+    hook: "rk5",
+    chip: "group-has-[.rk5:checked]:border-brand group-has-[.rk5:checked]:bg-brand-soft group-has-[.rk5:checked]:text-ink group-has-[.rk5:checked]:opacity-100",
+    show: "group-has-[.rk5:checked]:block",
+  },
+  {
+    hook: "rk6",
+    chip: "group-has-[.rk6:checked]:border-brand group-has-[.rk6:checked]:bg-brand-soft group-has-[.rk6:checked]:text-ink group-has-[.rk6:checked]:opacity-100",
+    show: "group-has-[.rk6:checked]:block",
+  },
+] as const;
+
+/** Cosa porta il pulsante del rango: stelle (carte A e B), pietre (ultimate), o la sigla. */
+type RankMark = "stelle" | "pietre" | "sigle";
+
+/**
+ * Il rango dell'ultimate letto da FUORI della sua carta: lo usa la passiva.
+ *
+ * Il radio dell'ultimate porta due agganci. `rkN` lo legge la carta, per il
+ * testo del rango; `ultN` la passiva, che sta in un'altra sezione e quindi
+ * chiede all'`<article>` (`group/scheda`). L'articolo contiene anche le carte A
+ * e B coi loro `rk1`-`rk3`: chiedendogli `.rk3:checked` risponderebbe pure la
+ * carta A, e la passiva seguirebbe il rango sbagliato.
+ *
+ * Scritte per esteso per la stessa ragione di RANK_CLASSES: Tailwind legge il
+ * sorgente.
+ */
+const ULTIMATE_LINK = [
+  {
+    hook: "ult1",
+    show: "group-has-[.ult1:checked]/scheda:block",
+    inline: "group-has-[.ult1:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult2",
+    show: "group-has-[.ult2:checked]/scheda:block",
+    inline: "group-has-[.ult2:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult3",
+    show: "group-has-[.ult3:checked]/scheda:block",
+    inline: "group-has-[.ult3:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult4",
+    show: "group-has-[.ult4:checked]/scheda:block",
+    inline: "group-has-[.ult4:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult5",
+    show: "group-has-[.ult5:checked]/scheda:block",
+    inline: "group-has-[.ult5:checked]/scheda:inline-flex",
+  },
+  {
+    hook: "ult6",
+    show: "group-has-[.ult6:checked]/scheda:block",
+    inline: "group-has-[.ult6:checked]/scheda:inline-flex",
+  },
+] as const;
+
+/** Come si sa che l'icona di un'abilita' speciale e' sua: la parola breve e la spiegazione. */
+const FONTE_ICONA_SPECIALE = testi({
+  it: {
+    wiki: {
+      breve: "dal wiki",
+      spiega: "Il wiki di community cita questo file nella pagina dell'eroe, accanto all'abilità.",
+    },
+    schema: {
+      breve: "dedotta",
+      spiega:
+        "Nessuna fonte la cita, ma segue lo schema dei nomi delle icone dichiarate per le altre abilità dello stesso tipo.",
+    },
+    "a vista": {
+      breve: "riconosciuta a vista",
+      spiega:
+        "Un'icona del personaggio che nessun'altra abilità reclama, riconosciuta dal disegno: le sfere contano i comandamenti, il volto dice la versione.",
+    },
+    "id nel nome": {
+      breve: "dal client",
+      spiega: "Il file dell'icona porta l'id dell'eroe nel nome: nessun accostamento da indovinare.",
+    },
+    generica: {
+      breve: "generica",
+      spiega: "L'icona propria non si trova fra quelle estratte: resta il simbolo del tipo.",
+    },
+  },
+  en: {
+    wiki: {
+      breve: "from the wiki",
+      spiega: "The community wiki cites this file on the hero's page, next to the ability.",
+    },
+    schema: {
+      breve: "inferred",
+      spiega:
+        "No source cites it, but it follows the naming pattern of the icons stated for the other abilities of the same type.",
+    },
+    "a vista": {
+      breve: "recognized by eye",
+      spiega:
+        "An icon of the character that no other ability claims, recognized from the artwork: the orbs count the Commandments, the face tells the version.",
+    },
+    "id nel nome": {
+      breve: "from the client",
+      spiega: "The icon file carries the hero's id in its name: no match to guess.",
+    },
+    generica: {
+      breve: "generic",
+      spiega: "The ability's own icon isn't among the extracted ones: the type's symbol stands in.",
+    },
+  },
+});
+
+/**
+ * Come si sa la cornice dell'icona: `frameSource` arriva dalla pipeline come
+ * parola italiana, e in inglese va detta in inglese. Un valore nuovo che qui
+ * manca si mostra com'e'.
+ */
+const FONTE_CORNICE = testi({
+  it: {
+    "dal tipo": "dal tipo",
+    "dal tipo della sua carta": "dal tipo della sua carta",
+    "dedotta: comandamento multiplo": "dedotta: comandamento multiplo",
+  },
+  en: {
+    "dal tipo": "from the type",
+    "dal tipo della sua carta": "from its card's type",
+    "dedotta: comandamento multiplo": "inferred: multiple Commandments",
+  },
+});
+
+/**
+ * Un Comandamento, una Grazia, un'Unita' o un Talento.
+ *
+ * L'icona arriva gia' nella cornice del suo tipo, com'e' nel gioco. Accanto al
+ * nome si dice come si sa che l'icona e' sua, perche' per tre tipi su quattro il
+ * file non porta l'heroId e le fonti hanno forza diversa. Sotto il testo, le
+ * regole con cui il gioco fa convivere i tipi in squadra: sono la cosa che
+ * decide se l'abilita' si attiva davvero.
+ */
+function SpecialAbility({
+  game,
+  locale,
+  id,
+  ability,
+  kind,
+  conditions,
+  icons,
+  reactive,
+}: {
+  game: string;
+  locale: Locale;
+  id: string;
+  ability: HeroSpecialAbility;
+  kind: HeroSpecialKind | undefined;
+  conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+  /** c'e' un rango dell'ultimate da seguire */
+  reactive: boolean;
+}) {
+  const t = TESTI[locale];
+  const fonti: Readonly<Record<string, Fonte | undefined>> = FONTE_ICONA_SPECIALE[locale];
+  const cornici: Readonly<Record<string, string | undefined>> = FONTE_CORNICE[locale];
+  const name = inLingua(ability.name, locale);
+  const source = fonti[ability.iconSource];
+  const rules = (kind?.rules ?? [])
+    .map((rule) => inLingua(rule, locale))
+    .filter((rule): rule is string => rule !== null);
+
+  return (
+    <div
+      className="grid items-start gap-4 rounded-card border border-rule bg-paper-2 p-4"
+      style={ability.icon ? { gridTemplateColumns: "76px minmax(0, 1fr)" } : undefined}
+    >
+      {ability.icon ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={heroSpecialIconSrc(game, id)}
+          alt=""
+          width={122}
+          height={127}
+          loading="lazy"
+          className="block h-auto w-full"
+        />
+      ) : null}
+
+      <div className="min-w-0">
+        {name ? (
+          <GameText text={name} className="m-0 font-semibold [&>p]:m-0" />
+        ) : null}
+        {ability.icon && source ? (
+          <p
+            className="m-0 mb-1.5 text-[12px] text-ink-3"
+            title={t.cornice(source.spiega, cornici[ability.frameSource] ?? ability.frameSource)}
+          >
+            {t.iconaFonte(source.breve)}
+          </p>
+        ) : null}
+
+        <PassiveConditions
+          game={game}
+          locale={locale}
+          codes={ability.conditions}
+          conditions={conditions}
+          icons={icons}
+        />
+        <PassiveText
+          game={game}
+          locale={locale}
+          text={textIn(ability, locale)}
+          steps={reactive ? stepsIn(ability.ultimateSteps, locale) : undefined}
+          icons={icons}
+          subject={t.soggettoSpeciale(ability.kind, kind?.label)}
+        />
+
+        {rules.length > 0 ? (
+          <ul className="m-0 mt-2.5 list-none border-t border-rule p-0 pt-2 text-[12px] leading-snug text-ink-3 [&>li+li]:mt-1">
+            {rules.map((rule) => (
+              <li key={rule}>
+                <GameText text={rule} className="[&>p]:m-0" />
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Dove si attiva la passiva, con le icone del gioco.
+ *
+ * Sono quelle del riquadro dell'abilita' unica - la spada nel quadrato rosso,
+ * la mano bianca nel cerchio blu - e servono a capire a colpo d'occhio se una
+ * passiva vale in battaglia o anche dallo slot secondario, in tutti i contenuti
+ * o solo in PvP.
+ *
+ * Icona E frase, non l'icona da sola: le frasi sono quelle del gioco, e le
+ * icone dell'esclusione (la croce rossa sulla bestia, sul demone) non si
+ * leggono al primo sguardo per chi il gioco non lo conosce ancora. Dove l'icona
+ * manca - chi clona senza asset - resta la frase.
+ */
+export function PassiveConditions({
+  game,
+  locale,
+  codes,
+  conditions,
+  icons,
+}: {
+  game: string;
+  locale: Locale;
+  codes: readonly number[] | undefined;
+  conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+}) {
+  const rows = (codes ?? [])
+    .map((code) => conditions?.[String(code)])
+    .filter((condition): condition is { icon: string; description: HeroLabel } => !!condition)
+    .map((condition) => ({
+      icon: condition.icon,
+      text: inLingua(condition.description, locale),
+    }))
+    .filter((row): row is { icon: string; text: string } => row.text !== null);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <ul className="m-0 mb-2.5 flex list-none flex-wrap gap-x-4 gap-y-1.5 p-0">
+      {rows.map((row) => (
+        <li
+          key={row.icon}
+          className="inline-flex items-center gap-1.5 text-[12px] leading-snug text-ink-2"
+        >
+          {hasIcon(icons, "condizione", row.icon) ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={gameIconSrc(game, "condizione", row.icon)}
+              alt=""
+              width={64}
+              height={64}
+              className="h-5 w-5 shrink-0"
+            />
+          ) : null}
+          {row.text}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Il testo della passiva, che in 42 eroi segue il rango dell'ultimate.
+ *
+ * Come i ranghi delle carte, senza JavaScript: un pannello per versione del
+ * testo, e ogni pannello si accende sui ranghi in cui vale. La versione che
+ * vale dal rango 2 al 4 porta le classi dei ranghi 2, 3 e 4. Parte dal rango
+ * che l'ultimate ha scelto da sola, il sesto.
+ *
+ * Le note in fondo seguono il rango anche loro: in 21 di queste 42 passive il
+ * valore che sale sta anche dentro la definizione di un termine (`※Cold Snap:
+ * Attack-related stats 15%`), e in 8 cambia SOLTANTO li'. Una nota ferma al
+ * primo rango direbbe un numero sbagliato proprio dove la passiva cambia.
+ */
+export function PassiveText({
+  game,
+  locale,
+  text,
+  steps,
+  context,
+  glossary,
+  icons,
+  subject,
+}: {
+  game: string;
+  locale: Locale;
+  text: string;
+  /** chi segue il rango, nella riga sopra il testo: "la passiva", "il Talento"; se manca, la passiva */
+  subject?: string;
+  /** assenti quando la passiva non cambia, o quando non c'e' un rango da scegliere */
+  steps?: readonly { fromUltimateRank: number; text: string }[];
+  context?: HeroCardContext;
+  glossary?: Readonly<Record<string, HeroEffect>>;
+  icons?: Readonly<Record<string, readonly string[]>>;
+}) {
+  const t = TESTI[locale];
+  const body = "text-sm leading-relaxed text-ink-2";
+
+  if (!steps || steps.length === 0) {
+    return (
+      <>
+        <GameText text={text} omitNotes className={body} />
+        <Effects context={context} glossary={glossary} locale={locale} />
+        <GameNotes texts={[text]} className="mt-2.5" />
+      </>
+    );
+  }
+
+  const versions = [{ fromUltimateRank: 1, text }, ...steps];
+  // Ogni versione vale dal suo rango fino a quello prima della seguente.
+  const shows = versions.map((version, index) => {
+    const until = versions[index + 1]?.fromUltimateRank ?? ULTIMATE_LINK.length + 1;
+    return ULTIMATE_LINK.slice(version.fromUltimateRank - 1, until - 1).map((link) => link.show);
+  });
+  const gems = ULTIMATE_LINK.every((link) => hasIcon(icons, "carta", `pietra_${link.hook.slice(3)}`));
+  const orange = versions.some((version) => version.text.includes("[FF8000]"));
+
+  return (
+    <>
+      <p className="m-0 mb-2 flex flex-wrap items-center gap-x-1.5 text-[12px] leading-snug text-ink-3">
+        {ULTIMATE_LINK.map((link, index) => (
+          <span
+            key={link.hook}
+            className={cx("hidden items-center gap-1 font-semibold text-ink-2", link.inline)}
+          >
+            {gems ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={gameIconSrc(game, "carta", `pietra_${index + 1}`)}
+                alt=""
+                width={14}
+                height={14}
+                className="h-3.5 w-3.5 object-contain"
+              />
+            ) : null}
+            {t.ultimateAlRango(index + 1)}
+          </span>
+        ))}
+        <span>
+          {t.segueRango(subject ?? t.soggettoPassiva)}
+          {orange ? t.valoriArancione : ""}
+        </span>
+      </p>
+
+      {versions.map((version, index) => (
+        <div key={`testo-${version.fromUltimateRank}`} className={cx("hidden", ...shows[index]!)}>
+          <GameText text={version.text} omitNotes className={body} />
+        </div>
+      ))}
+
+      <Effects context={context} glossary={glossary} locale={locale} />
+
+      {versions.map((version, index) => (
+        <div key={`note-${version.fromUltimateRank}`} className={cx("hidden", ...shows[index]!)}>
+          <GameNotes texts={[version.text]} className="mt-2.5" />
+        </div>
+      ))}
+    </>
+  );
+}
+
+/**
+ * I pulsanti per scegliere il rango.
+ *
+ * I tre ranghi stavano uno sotto l'altro e differivano quasi solo nella
+ * percentuale: tre righe da leggere per trovare un numero diverso. Qui se ne
+ * legge una alla volta.
+ *
+ * SENZA JAVASCRIPT, ed e' una scelta. Radio nascosti e regole CSS fanno
+ * esattamente la stessa cosa di uno stato React, ma questa scheda pesa 186 byte
+ * di script proprio perche' e' tutta renderizzata sul server: un `useState` qui
+ * la trasformerebbe in un componente client e si porterebbe dietro nel bundle i
+ * testi di tutti i ranghi di tutte le carte. Funziona anche a JavaScript
+ * disattivato, e la tastiera lo tratta come il gruppo di radio che e'.
+ *
+ * I pulsanti stanno SOTTO l'illustrazione e il testo nell'altra colonna: il
+ * legame passa da `group-has-[]` sulla carta intera, non da `peer-checked`,
+ * che guarda solo i fratelli precedenti.
+ *
+ * Il pulsante segna il rango come lo segna il gioco. Sulle carte A e B porta
+ * le stelle - una, due, tre. L'ultimate ha sei ranghi e il gioco li segna con
+ * una pietra incastonata in cima alla carta, un colore per rango: verdina,
+ * azzurra, gialla, arancione, rossa, e al sesto la goccia verde chiaro. Alle
+ * sigle R1-R6 si torna senza i PNG, per chi clona senza gli asset.
+ *
+ * Parte dal rango PIU' ALTO: e' la carta com'e' quando conta, e chi vuole
+ * vedere da dove parte scende di uno.
+ */
+function RankButtons({
+  game,
+  locale,
+  group,
+  card,
+  mark,
+  fill,
+}: {
+  game: string;
+  locale: Locale;
+  group: string;
+  card: HeroCard;
+  mark: RankMark;
+  /** sotto l'illustrazione: la riga e' larga quanto la carta, e i pulsanti crescono fino ai bordi */
+  fill: boolean;
+}) {
+  const t = TESTI[locale];
+  // Sotto la carta i pulsanti stanno in una riga sola. I tre a stelle crescono
+  // fino ai bordi. Le sei pietre le mette in fila la griglia, a 18px l'una -
+  // 120 meno cinque spazi da 2px, diviso sei - e la pietra ne occupa 14. Le sei
+  // sigle invece in 120px non ci stanno - 25px l'una piu' gli spazi fanno 170 -
+  // quindi vanno tre per riga.
+  const layout = !fill
+    ? "mt-2 flex flex-wrap gap-1.5"
+    : mark === "stelle"
+      ? "mt-1.5 flex gap-1"
+      : mark === "pietre"
+        ? "mt-1.5 grid grid-cols-6 gap-0.5"
+        : "mt-1.5 grid grid-cols-3 gap-1";
+
+  return (
+    <div className={layout}>
+      {card.ranks.map((rank, index) => (
+        <input
+          key={`radio-${rank.rank}`}
+          type="radio"
+          name={group}
+          id={`${group}-${rank.rank}`}
+          defaultChecked={index === card.ranks.length - 1}
+          className={cx(
+            "sr-only",
+            RANK_CLASSES[index]?.hook,
+            card.slot === "ultimate" && ULTIMATE_LINK[rank.rank - 1]?.hook,
+          )}
+        />
+      ))}
+
+      {card.ranks.map((rank, index) => (
+        <label
+          key={`label-${rank.rank}`}
+          htmlFor={`${group}-${rank.rank}`}
+          title={t.rango(rank.rank)}
+          className={cx(
+            numeric,
+            "flex cursor-pointer items-center justify-center rounded-[2px] border border-rule bg-paper-2",
+            "text-[10px] text-ink-3 transition hover:text-ink",
+            // Le insegne spente a meta' dicono quale rango NON e' scelto meglio
+            // del solo bordo: le stelle sono tutte dello stesso giallo, e sei
+            // pietre accese di sei colori non ne farebbero risaltare nessuna.
+            mark === "sigle" ? "px-1.5" : "h-5 opacity-50 hover:opacity-100",
+            // nella griglia delle sei pietre restano 16px dentro il bordo: niente margini
+            mark !== "sigle" && (mark === "pietre" && fill ? "px-0" : "px-1"),
+            fill && "flex-auto",
+            RANK_CLASSES[index]?.chip,
+          )}
+        >
+          {mark === "stelle" ? (
+            <>
+              {Array.from({ length: rank.rank }, (_, star) => (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  key={star}
+                  src={gameIconSrc(game, "carta", "stella")}
+                  alt=""
+                  width={39}
+                  height={41}
+                  loading="lazy"
+                  className="h-auto w-[13px]"
+                />
+              ))}
+              {/* le stelle sono immagini decorative: il nome del radio sta qui */}
+              <span className="sr-only">{t.rango(rank.rank)}</span>
+            </>
+          ) : mark === "pietre" ? (
+            <>
+              {/*
+                Una casella quadrata e `object-contain`: le pietre hanno misure
+                diverse (dalla 62x71 della prima alla 96x128 della sesta), e
+                cosi' stanno tutte alla stessa altezza senza scrivere qui le
+                misure dell'atlas.
+              */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={gameIconSrc(game, "carta", `pietra_${rank.rank}`)}
+                alt=""
+                width={14}
+                height={14}
+                loading="lazy"
+                className="h-3.5 w-3.5 object-contain"
+              />
+              <span className="sr-only">{t.rango(rank.rank)}</span>
+            </>
+          ) : (
+            `R${rank.rank}`
+          )}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** Il testo del rango scelto: uno solo alla volta, e lo decide il radio. */
+function RankPanels({ card, locale }: { card: HeroCard; locale: Locale }) {
+  const ranks = card.ranks;
+  if (ranks.length === 0) return null;
+
+  // Un rango solo: non c'e' niente da scegliere, e il testo si vede e basta.
+  if (ranks.length === 1) {
+    return (
+      <div className="mt-2 text-[13px] leading-snug">
+        <GameText text={textIn(ranks[0]!, locale)} omitNotes className="[&>p]:m-0" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 text-[13px] leading-snug">
+      {ranks.map((rank, index) => (
+        <div key={`panel-${rank.rank}`} className={cx("hidden", RANK_CLASSES[index]?.show)}>
+          <GameText text={textIn(rank, locale)} omitNotes className="[&>p]:m-0" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Una carta con i suoi ranghi.
+ *
+ * Lo sprite compare solo se `card.sprite` dice quale: senza, la colonna
+ * dell'immagine sparisce e il testo si prende tutta la riga. Accostare uno
+ * sprite qualsiasi riempirebbe meglio lo spazio e direbbe una cosa falsa.
+ */
+function CardRow({
+  game,
+  locale,
+  heroId,
+  card,
+  context,
+  glossary,
+  icons,
+  artSrc,
+}: {
+  game: string;
+  locale: Locale;
+  heroId: string;
+  card: HeroCard;
+  context?: HeroCardContext;
+  glossary?: Readonly<Record<string, HeroEffect>>;
+  icons?: Readonly<Record<string, readonly string[]>>;
+  /** l'illustrazione quando non e' uno sprite numerato: l'ultimate ha la sua cartella */
+  artSrc?: string;
+}) {
+  const t = TESTI[locale];
+  const fontiSprite: Readonly<Record<string, Fonte | undefined>> = FONTE_SPRITE[locale];
+  const art =
+    artSrc ?? (card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null);
+
+  // Il rango si segna come lo segna il gioco: stelle sulle carte d'attacco, che
+  // hanno tre ranghi, e una pietra per rango sull'ultimate, che ne ha sei. Se
+  // manca anche una sola pietra si torna alle sigle per tutta la carta: meta'
+  // pulsanti a pietre e meta' a sigle non si leggerebbero come la stessa scala.
+  const mark: RankMark =
+    (card.slot === "A" || card.slot === "B") && hasIcon(icons, "carta", "stella")
+      ? "stelle"
+      : card.slot === "ultimate" &&
+          card.ranks.every((rank) => hasIcon(icons, "carta", `pietra_${rank.rank}`))
+        ? "pietre"
+        : "sigle";
+  // Con un rango solo non c'e' niente da scegliere, quindi nessun pulsante.
+  const picker = card.ranks.length > 1;
+  const group = `${heroId}-${card.slot ?? "carta"}`;
+
+  // La colonna dell'immagine e' larga 120px, e non 84, per la riga dei tre
+  // pulsanti a stelle che le sta sotto: al minimo ne occupa 116 (23 + 36 + 49
+  // piu' gli spazi). A 84 le stelle scenderebbero a 9px, e non si leggerebbero.
+  const columns = art ? { gridTemplateColumns: "120px minmax(0, 1fr)" } : undefined;
+
+  return (
+    // `group` serve a :has(): i pulsanti stanno nella colonna dell'immagine e
+    // il testo del rango nell'altra, quindi il legame passa dall'antenato
+    // comune.
+    <div
+      className="group grid items-start gap-4 rounded-card border border-rule bg-paper p-3"
+      style={columns}
+    >
+      {art ? (
+        <div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={art}
+            alt=""
+            width={128}
+            height={256}
+            loading="lazy"
+            className="block w-full rounded-[3px] bg-paper-2"
+          />
+
+          {picker ? (
+            <RankButtons game={game} locale={locale} group={group} card={card} mark={mark} fill />
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="min-w-0">
+        {/*
+          Il nome in grassetto come quello della passiva e delle abilita'
+          speciali. "carta A" non si ripete qui: dal 26/09 e' il titolo del
+          riquadro.
+        */}
+        <p className="m-0 font-semibold">{localized(card.nameI18n, card.name, locale)}</p>
+        {art && card.spriteSource ? (
+          <p className="m-0 text-[12px] text-ink-3" title={fontiSprite[card.spriteSource]?.spiega}>
+            {t.illustrazioneFonte(fontiSprite[card.spriteSource]?.breve ?? card.spriteSource)}
+          </p>
+        ) : null}
+
+        {/* Senza illustrazione non c'e' una carta sotto cui metterli: stanno sopra il testo. */}
+        {art === null && picker ? (
+          <RankButtons
+            game={game}
+            locale={locale}
+            group={group}
+            card={card}
+            mark={mark}
+            fill={false}
+          />
+        ) : null}
+
+        <RankPanels card={card} locale={locale} />
+
+        {/*
+          Le definizioni dei termini stanno in fondo, una volta per carta. Il
+          gioco le ripete in ogni rango identiche: lasciarle li' significava
+          stampare tre volte la stessa spiegazione sotto tre righe che
+          differiscono per una percentuale.
+        */}
+        <Effects context={context} glossary={glossary} locale={locale} />
+
+        <GameNotes texts={card.ranks.map((rank) => textIn(rank, locale))} className="mt-2.5" />
+      </div>
+    </div>
+  );
+}
