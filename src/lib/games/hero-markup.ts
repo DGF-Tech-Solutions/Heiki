@@ -159,8 +159,11 @@ const NOTE_MARK = "※";
 /**
  * La stessa nota aperta con l'asterisco: "*Evasione: immune ad Attacco...".
  *
- * Succede nei testi italiani di 7dshub, in 16 ranghi su 4.812, dove gli stessi
- * ranghi in inglese portano ※. Vale solo in testa alla riga e seguito da un
+ * Succedeva nei testi italiani di 7dshub, in 16 ranghi su 4.812, dove gli stessi
+ * ranghi in inglese portano ※. Nei testi del client, dal 25/09, le note italiane
+ * hanno tutte ※: 0 con l'asterisco in carte, passive, abilita' speciali e
+ * reliquie il 26/09. La regola resta, innocua, per una fonte che lo usasse
+ * ancora. Vale solo in testa alla riga e seguito da un
  * nome e dai due punti: un asterisco in mezzo alla frase, o una riga che parte
  * con l'asterisco senza nominare un termine, resta testo. Il nome ha un tetto
  * di lunghezza perche' i termini sono nomi, non frasi: "*" seguito da due righe

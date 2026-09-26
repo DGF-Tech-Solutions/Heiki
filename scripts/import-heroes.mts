@@ -1929,8 +1929,9 @@ ${rows.join("\n")}
  * Nemmeno i singoli EFFETTI ce l'hanno, e qui il numero e' netto: delle 533
  * icone `icon_buff_*` solo 17 hanno lo stesso nome di una voce del glossario, e
  * coprono 22 accostamenti su 1.690 - l'1%. Il legame vero e' la colonna
- * `DBSkillCardBuffRow.icon`, che sta nelle tabelle cifrate: senza quella,
- * mettere un'icona accanto a un effetto vorrebbe dire indovinarla.
+ * `DB_skill_card_buff.icon`: fino al 26/09 era cifrata, ora si legge ed e' in
+ * data/grand-cross/effetti/buff.json. Un'icona accanto a un effetto si potra'
+ * mettere da li', senza indovinarla.
  */
 const ICON_SOURCE = resolve(SOURCE, "7dsgc_estratti/m/Texture2D");
 

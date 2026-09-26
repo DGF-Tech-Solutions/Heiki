@@ -185,11 +185,11 @@ export function HeroAbilities({
               <section>
                 <h2 className={heading}>{t.passiva}</h2>
                 {/*
-                  L'icona e' l'unico pezzo di passiva che il client dia con certezza:
-                  il file si chiama col proprio heroId (`icon_exclusive_skill_<id>`),
-                  quindi non c'e' accostamento da indovinare. Il testo invece viene
-                  da 7dshub. Se manca uno dei due si mostra l'altro: un'icona senza
-                  testo resta un'informazione, e un testo senza icona pure.
+                  Icona e testo vengono tutti e due dal client: l'icona e' il campo
+                  `icon` della passiva (abilita_speciali.py, `icone_uniche`), il testo
+                  il suo modello riempito coi valori. Se manca uno dei due si mostra
+                  l'altro: un'icona senza testo resta un'informazione, e un testo
+                  senza icona pure.
                 */}
                 <div
                   className="grid items-start gap-4 rounded-card border border-rule border-l-[3px] border-l-gold bg-paper-2 p-4"

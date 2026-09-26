@@ -29,8 +29,8 @@ export function localized(
 
 /**
  * Il testo di un rango, di una passiva o di un'abilita' speciale nella lingua
- * della pagina. `text` e' l'inglese di 7dshub e c'e' sempre; `textIt` l'italiano,
- * che manca solo dove la fonte italiana ha un segnaposto.
+ * della pagina. `text` e' l'inglese del client e c'e' sempre; `textIt` l'italiano,
+ * che manca solo dove il client non ha il testo italiano.
  */
 export function textIn(item: { text: string; textIt?: string }, locale: Locale): string {
   return locale === "it" ? (item.textIt ?? item.text) : item.text;

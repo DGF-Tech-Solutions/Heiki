@@ -148,9 +148,10 @@ export interface HeroText {
    * I campi qui sopra sono l'italiano col ripiego sull'inglese, scelto una
    * volta per tutte dall'importazione: bastavano finche' il sito era solo in
    * italiano. Questi tengono le due lingue separate, e la pagina sceglie con
-   * `inLingua`. L'italiano viene dal client e, dove il client non lo porta,
-   * da 7dshub in italiano; l'inglese dal client, tranne dove la decifratura
-   * l'ha rovinato ("5biNasc&" per "Snatch") e 7dshub lo scrive pulito.
+   * `inLingua`. Tutto dal client: i testi dell'eroe (testi_eroi.json) e, dove
+   * mancano, la scheda del client nella stessa lingua; un epiteto inglese che
+   * la decifratura dei testi ha rovinato si riprende dal roster, anch'esso del
+   * client. Fino al 24/09 i ripieghi venivano da 7dshub.
    */
   i18n?: {
     name: HeroLabel;
@@ -205,15 +206,14 @@ export interface HeroCard {
   sprite?: number;
   /**
    * Il nome nelle due lingue. `name` resta l'italiano col ripiego
-   * sull'inglese; qui l'inglese e' sempre inglese, e l'italiano c'e' anche per
-   * le carte che il client non ha tradotto, preso da 7dshub in italiano.
+   * sull'inglese; qui l'inglese e' sempre inglese. Dal client, e se il nome del
+   * database manca, dalla scheda italiana del client.
    */
   nameI18n?: HeroLabel;
   /**
-   * Il testo di ogni rango. `text` e' quello inglese di 7dshub, `textIt` lo
-   * stesso rango come 7dshub lo scrive in italiano: stessi valori, stesso
-   * markup, gia' risolti dal server del gioco. Manca dove la fonte italiana
-   * ha un segnaposto invece del testo.
+   * Il testo di ogni rango. `text` in inglese, `textIt` lo stesso rango in
+   * italiano: il modello del client nelle due lingue riempito coi valori delle
+   * tabelle, come fa il gioco (modelli_client.py). Stessi valori, stesso markup.
    */
   ranks: readonly { rank: number; text: string; textIt?: string }[];
 }
@@ -221,10 +221,10 @@ export interface HeroCard {
 /**
  * Carte e passiva di un eroe.
  *
- * NON vengono dal client: il client ha le descrizioni ma non la tabella che le
- * lega a un eroe. Vengono dal wiki di community, e `source` lo dice perche' la
- * differenza conta: un dato estratto dal gioco e uno trascritto da qualcuno non
- * offrono la stessa garanzia, e chi legge ha diritto di distinguerli.
+ * Dalle tabelle del client: quali carte ha l'eroe (DB_skin_skill), cosa fanno a
+ * ogni rango (DB_skill_card_*, coi modelli di testo del client), la passiva
+ * (DB_skill_passive). Fino al 24/09 le tabelle erano cifrate e venivano da fonti
+ * esterne; `source` dice da dove vengono.
  *
  * Sono esclusi i giudizi - valutazioni, pro e contro, consigli d'uso: quelli
  * sono opinioni di altri, e mescolarle ai fatti le renderebbe indistinguibili.
@@ -239,7 +239,7 @@ export interface HeroAbilities {
     nameI18n?: HeroLabel;
     /** il testo al rango 1 dell'ultimate; per 331 eroi su 373 e' l'unico */
     text?: string;
-    /** lo stesso testo in italiano, da 7dshub in italiano */
+    /** lo stesso testo in italiano, dal modello italiano del client */
     textIt?: string;
     /**
      * Come cambia la passiva salendo di rango l'ultimate. Ogni voce vale dal suo
@@ -252,23 +252,21 @@ export interface HeroAbilities {
      */
     ultimateSteps?: readonly { fromUltimateRank: number; text: string; textIt?: string }[];
   };
-  /** da dove arriva il testo, es. "7dshub.com" */
+  /** da dove arriva il testo: oggi "client del gioco" */
   source: string;
   /**
    * `text` - dei ranghi, della passiva, dei suoi passi - e' in inglese.
    *
-   * Lo e' sempre stato, e resta vero: il client spedisce 285 descrizioni di
-   * abilita' in tutto, e sono MODELLI - "damage equal to {melee_val} of
-   * Attack" - che il server riempie, quindi i valori per rango esistono solo
-   * risolti da 7dshub. Il nome della carta invece e' in italiano dove il gioco
-   * l'ha tradotto, e le due cose vanno dichiarate separate.
+   * I testi sono MODELLI del client - "damage equal to {melee_val} of Attack" -
+   * riempiti coi valori delle tabelle come fa il gioco (modelli_client.py). Il
+   * nome della carta e' in italiano dove il gioco l'ha tradotto, e le due cose
+   * vanno dichiarate separate.
    */
   textsInEnglish?: boolean;
   /**
-   * C'e' anche l'italiano: `textIt` accanto a ogni `text` che 7dshub scrive in
-   * italiano. Non e' una traduzione nostra: 7dshub legge lo stesso server del
-   * gioco nelle due lingue, e i valori sono gli stessi. Con questo flag la
-   * pagina in italiano non ha piu' niente da avvertire.
+   * C'e' anche l'italiano: `textIt` accanto a ogni `text`, dal modello italiano
+   * del client con gli stessi valori. Non e' una traduzione nostra. Con questo
+   * flag la pagina in italiano non ha piu' niente da avvertire.
    */
   textsInItalian?: boolean;
 }
@@ -512,14 +510,13 @@ export interface HeroSpecialAbility {
   /** "comandamento" | "grazia" | "unita" | "talento": chiave di `kinds` */
   kind: string;
   /**
-   * Il nome nelle due lingue. L'italiano viene dal client e, dove il client
-   * non lo legge (i sette Talenti, due Unita', una Grazia), da 7dshub in
-   * italiano.
+   * Il nome nelle due lingue, dal client: il nome della passiva e, dove quella
+   * riga non si legge, la scheda italiana del client.
    */
   name: HeroLabel;
   /** l'effetto al rango 1 dell'ultimate, in inglese come `text` delle altre abilita' */
   text: string;
-  /** lo stesso effetto in italiano, da 7dshub in italiano */
+  /** lo stesso effetto in italiano, dal modello italiano del client */
   textIt?: string;
   /** come per la passiva: un Talento puo' cambiare col rango dell'ultimate */
   ultimateSteps?: readonly { fromUltimateRank: number; text: string; textIt?: string }[];
