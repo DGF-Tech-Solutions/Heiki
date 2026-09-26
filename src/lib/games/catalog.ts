@@ -112,7 +112,15 @@ export interface GameSection {
    * ancora. Dichiararlo qui evita l'alternativa peggiore, cioe' una voce di
    * menu che porta a una pagina vuota.
    */
-  needs?: "roster" | "releases" | "artifacts" | "deathMatch" | "creatureNest" | "demonKing" | "supremeDeity";
+  needs?:
+    | "roster"
+    | "releases"
+    | "artifacts"
+    | "accountBuff"
+    | "deathMatch"
+    | "creatureNest"
+    | "demonKing"
+    | "supremeDeity";
 }
 
 export interface GameSectionGroup {
@@ -162,6 +170,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "The cards: stats, sets and the packs they come from",
         },
         needs: "artifacts",
+      },
+      {
+        path: "/buff-account",
+        label: { it: "Buff dell'account", en: "Account Buffs" },
+        hint: {
+          it: "Classe di combattimento dell'account e costellazioni, pietra per pietra",
+          en: "Account Combat Class and constellations, stone by stone",
+        },
+        needs: "accountBuff",
       },
       {
         path: "/personaggi",

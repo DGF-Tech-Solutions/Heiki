@@ -32,6 +32,7 @@ import type {
   EndgameHeroLink,
   SupremeDeityIndex,
 } from "./endgame-types";
+import type { AccountBuffIndex } from "./account-buff-types";
 import type { ArtifactIndex } from "./artifact-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
@@ -813,6 +814,14 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * Il contratto sta in artifact-types.ts.
    */
   readonly artifacts?: ArtifactIndex;
+
+  /**
+   * I buff dell'account: la classe di combattimento dell'account coi suoi titoli,
+   * le costellazioni pietra per pietra, e le regole della classe di un eroe. Li
+   * legge il server; allo slider della scheda arrivano ridotti ai totali
+   * (`sliderData`). Il contratto sta in account-buff-types.ts.
+   */
+  readonly accountBuff?: AccountBuffIndex;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

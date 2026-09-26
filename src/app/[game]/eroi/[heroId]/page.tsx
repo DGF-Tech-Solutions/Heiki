@@ -6,6 +6,8 @@ import { HeroEndgameLine } from "@/components/endgame/hero-endgame";
 import { GameNotes, GameText } from "@/components/heroes/game-text";
 import { StatSlider } from "@/components/heroes/stat-slider";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
+import { sliderData } from "@/lib/games/account-buff";
+import type { AccountBuffIndex } from "@/lib/games/account-buff-types";
 import { findGame } from "@/lib/games/catalog";
 import { plainHeroText } from "@/lib/games/hero-markup";
 import {
@@ -345,6 +347,7 @@ function lookup(game: string, heroId: string) {
     // per il nome della bestia nelle Reliquie sacre
     beastPages: Object.fromEntries((gameModule.creatureNest?.beasts ?? []).map((beast) => [beast.group, beast.key])),
     icons: gameModule.icons,
+    accountBuff: gameModule.accountBuff,
     context: gameModule.heroContext?.heroes[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
   };
@@ -400,6 +403,7 @@ export default async function HeroPage({ params }: Props) {
     beastPages,
     context,
     icons,
+    accountBuff,
   } = found;
 
   /**
@@ -872,7 +876,7 @@ export default async function HeroPage({ params }: Props) {
             </ul>
           </section>
         ) : null}
-        <Stats game={game} stats={stats} locale={locale} icons={icons} />
+        <Stats game={game} stats={stats} locale={locale} icons={icons} accountBuff={accountBuff} />
       </article>
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
@@ -1975,22 +1979,38 @@ function Stats({
   stats,
   locale,
   icons,
+  accountBuff,
 }: {
   game: string;
   stats: HeroStats | undefined;
   locale: Locale;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
+  accountBuff: AccountBuffIndex | undefined;
 }) {
   if (!stats) return null;
   const t = TESTI[locale];
   // Le stelle del Risveglio sono le stesse dei ranghi delle carte: il gioco usa
   // una stella gialla per tutti e due.
   const star = hasIcon(icons, "carta", "stella") ? gameIconSrc(game, "carta", "stella") : undefined;
+  // e il rango dell'ultimate, per la classe di combattimento, con le pietre della
+  // sua cornice: tutte e sei o nessuna, come nelle carte
+  const gems = [1, 2, 3, 4, 5, 6].every((rank) => hasIcon(icons, "carta", `pietra_${rank}`))
+    ? [1, 2, 3, 4, 5, 6].map((rank) => gameIconSrc(game, "carta", `pietra_${rank}`))
+    : undefined;
 
   return (
     <section className="mb-7">
       <h2 className={cx(eyebrow, "mb-2.5")}>{t.statisticheTitolo}</h2>
-      <StatSlider steps={stats.steps} max={stats.max} starSrc={star} />
+      <StatSlider
+        steps={stats.steps}
+        max={stats.max}
+        starSrc={star}
+        // i buff dell'account ridotti ai totali: poche centinaia di numeri invece delle 1.463 pietre
+        account={accountBuff ? sliderData(accountBuff, game, locale) : undefined}
+        gameSlug={game}
+        accountHref={`/${game}/buff-account`}
+        gemSrcs={gems}
+      />
       <p className="mt-3 max-w-[70ch] text-[13px] text-ink-3">
         {stats.steps ? t.statisticheFonte : t.statisticheFonteMassimo}
       </p>

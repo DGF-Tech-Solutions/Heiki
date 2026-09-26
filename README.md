@@ -51,9 +51,10 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi l'Endgame e gli artefatti |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi l'Endgame, gli artefatti e i buff dell'account |
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
 | `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
+| `npm run buff:import` | Rigenera solo i buff dell'account: classe dell'account e costellazioni |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 
 ### Docker
@@ -134,7 +135,7 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 ### Navigazione a gruppi
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Eroi, Uscite, Set artefatto, Carte artefatto, Personaggi, Nemici) · **Endgame** (Scontri finali, Bestie
+(Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Personaggi, Nemici) · **Endgame** (Scontri finali, Bestie
 demoniache, Re Demone, Divinità Suprema) · **Strumenti** (Simulatore,
 Classifica) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
 
@@ -292,6 +293,23 @@ Il confine passa qui, e non è formale:
   composte come nel gioco: l'illustrazione dentro la cornice del suo grado, presa
   dall'atlante `atlas_artifact` (la piccola delle liste e la grande a nove fette),
   verticali, in WebP; vanno in `public/eroi/<gioco>/artefatti/`
+- **i buff dell'account** (la classe di combattimento dell'account coi suoi 53
+  titoli, le 11 costellazioni pietra per pietra, le regole della classe di un eroe)
+  stanno in `account-buff.generated.ts`, scritto da `scripts/import-account-buff.mts`
+  dal JSON di `_7dsgc/script/buff_account.py`; il contratto è in
+  `src/lib/games/account-buff-types.ts`, i conti in `account-buff.ts`. Come si
+  sommano l'ha letto la pipeline nel **codice** del client, e lo studio con le prove
+  è `_7dsgc/BUFF_ACCOUNT.md`: dei titoli vale solo il più alto, in percentuale sulla
+  statistica prima delle passive; le costellazioni si aggiungono dopo, come valori
+  fissi; né gli uni né le altre entrano nella classe di combattimento né nella
+  schermata delle statistiche del gioco, contano in battaglia. Le posizioni delle
+  pietre vengono dai prefab delle mappe del gioco. Il tuo account (classe e
+  costellazioni) si sceglie nella pagina `/buff-account` o nello slider della scheda
+  eroe e si salva nel browser (`localStorage`, `account-setup.ts`): la scheda legge
+  i totali già sommati, con l'impronta dei dati (`version`) per accorgersi di una
+  patch. La classe di combattimento dell'eroe nella scheda è calcolata con la
+  formula del client, senza equipaggiamento. Le immagini (simboli, pietre) vanno in
+  `public/eroi/<gioco>/buff-account/`
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 
