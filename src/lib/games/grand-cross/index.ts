@@ -53,6 +53,7 @@ import { HERO_ASSETS } from "./hero-assets.generated";
 import { HERO_CONTEXT } from "./hero-context.generated";
 import { HERO_SPECIALS } from "./hero-specials.generated";
 import { HERO_RELICS } from "./hero-relics.generated";
+import { RELEASES } from "./releases.generated";
 import { GAME_ICONS } from "./game-icons.generated";
 import { HERO_STATS } from "./hero-stats.generated";
 import { HERO_TEXTS } from "./hero-texts.generated";
@@ -480,6 +481,7 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   heroContext: HERO_CONTEXT,
   heroSpecials: HERO_SPECIALS,
   heroRelics: HERO_RELICS,
+  releases: RELEASES,
   icons: GAME_ICONS,
   resolveActor,
   computeDamage,

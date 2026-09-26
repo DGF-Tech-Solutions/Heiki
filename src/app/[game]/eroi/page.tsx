@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { RosterBrowser } from "@/components/heroes/roster-browser";
@@ -31,6 +32,8 @@ const TESTI = testi({
       `${eroi} eroi, ${contati} di grado ${grado}. Le card sono quelle del gioco, ricostruite dagli asset del client: cornice, sfondo di rarità e bollino dell'attributo.`,
     diritti: (editore: string) =>
       `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
+    ordine: "Sono in ordine d'uscita sul server globale, dal più recente. Banner, date ed eventi di ogni aggiornamento stanno in",
+    uscite: "Uscite",
   },
   en: {
     titoloPagina: (gioco: string) => `${gioco} Heroes · GachaZone`,
@@ -42,6 +45,8 @@ const TESTI = testi({
       `${eroi} heroes, ${contati} of them ${grado}. The cards are the game's own, rebuilt from the client assets: frame, rarity background and attribute badge.`,
     diritti: (editore: string) =>
       `Images and names belong to ${editore} and are shown here for reference.`,
+    ordine: "They are in global release order, newest first. Banners, dates and events of every update are in",
+    uscite: "Releases",
   },
 });
 
@@ -67,7 +72,7 @@ export default async function HeroesPage({ params, searchParams }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster, icons } = requireGameModule(game);
+  const { roster, icons, releases } = requireGameModule(game);
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -103,6 +108,20 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         <p className="mt-2.5 max-w-[68ch] text-sm text-ink-2">
           {t.introduzione(roster.heroes.length, counted, rarest ?? "")}
         </p>
+        {/*
+          L'ordine di partenza e' quello d'uscita solo se il modulo ha il
+          calendario: senza, e' quello in cui il modulo dichiara gli eroi, e
+          dirlo "d'uscita" sarebbe falso.
+        */}
+        {releases ? (
+          <p className="mt-1.5 max-w-[68ch] text-sm text-ink-2">
+            {t.ordine}{" "}
+            <Link href={`/${game}/uscite`} className="text-ink underline-offset-2 hover:text-brand hover:underline">
+              {t.uscite}
+            </Link>
+            .
+          </p>
+        ) : null}
       </header>
 
       <RosterBrowser game={game} roster={localized} icons={icons} initialSearch={cerca ?? ""} />

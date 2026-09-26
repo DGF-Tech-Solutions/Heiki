@@ -111,7 +111,7 @@ export interface GameSection {
    * ancora. Dichiararlo qui evita l'alternativa peggiore, cioe' una voce di
    * menu che porta a una pagina vuota.
    */
-  needs?: "roster";
+  needs?: "roster" | "releases";
 }
 
 export interface GameSectionGroup {
@@ -134,6 +134,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         label: { it: "Eroi", en: "Heroes" },
         hint: { it: "Roster completo, per rarità e attributo", en: "Full roster, by rarity and attribute" },
         needs: "roster",
+      },
+      {
+        path: "/uscite",
+        label: { it: "Uscite", en: "Releases" },
+        hint: {
+          it: "Banner, date, eroi ed eventi, aggiornamento per aggiornamento",
+          en: "Banners, dates, heroes and events, update by update",
+        },
+        needs: "releases",
       },
       {
         path: "/personaggi",

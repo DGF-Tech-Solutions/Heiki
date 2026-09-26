@@ -30,6 +30,7 @@ import type {
   HeroEffect,
   HeroEntry,
   HeroLabel,
+  HeroRelease,
   HeroRelic,
   HeroRelicAmount,
   HeroRelicsIndex,
@@ -62,6 +63,12 @@ const TESTI = testi({
     eroi: "Eroi",
     altCard: (eroe: string) => `Card di ${eroe}`,
     nelGioco: "Nel gioco:",
+    uscita: "Uscita",
+    giapponeCorea: "Giappone e Corea",
+    globale: "Globale",
+    evoluzioneLr: "evoluzione LR",
+    nelCalendario: "nel calendario",
+    festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustrazione di ${eroe}`,
     descrizione: "Descrizione",
     senzaDescrizione:
@@ -131,6 +138,12 @@ const TESTI = testi({
     eroi: "Heroes",
     altCard: (eroe: string) => `${eroe} card`,
     nelGioco: "In game:",
+    uscita: "Release",
+    giapponeCorea: "Japan and Korea",
+    globale: "Global",
+    evoluzioneLr: "LR evolution",
+    nelCalendario: "in the calendar",
+    festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustration of ${eroe}`,
     descrizione: "Description",
     senzaDescrizione:
@@ -325,6 +338,7 @@ function lookup(game: string, heroId: string) {
     specialKinds: gameModule.heroSpecials?.kinds,
     relics: relicsOf(gameModule.heroRelics, heroId),
     relicIndex: gameModule.heroRelics,
+    release: gameModule.releases?.heroes[heroId],
     icons: gameModule.icons,
     context: gameModule.heroContext?.heroes[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
@@ -376,6 +390,7 @@ export default async function HeroPage({ params }: Props) {
     specialKinds,
     relics,
     relicIndex,
+    release,
     context,
     icons,
   } = found;
@@ -523,6 +538,8 @@ export default async function HeroPage({ params }: Props) {
                 {hero.group}
               </Link>
             </div>
+
+            {release ? <ReleaseLine game={game} release={release} locale={locale} /> : null}
 
             {title && title !== name ? (
               // Un <div> e non un <p>: GameText disegna un <div> di <p>, e un <p>
@@ -903,6 +920,71 @@ function GameIcon({
       className={cx("inline-block", className)}
       style={{ width: size, height: "auto" }}
     />
+  );
+}
+
+/**
+ * Quando e' uscito: globale, Giappone e Corea, e il collegamento alla sua riga
+ * nel calendario.
+ *
+ * Il globale prima: e' il server di chi legge in italiano. Le due date e non
+ * una: fino a novembre 2024 il globale arrivava mesi dopo il Giappone, e in un
+ * altro ordine (i 52 eroi del lancio giapponese, 4 giugno 2019, sono fra i 60
+ * del lancio globale, 2 marzo 2020). Da allora escono lo stesso giorno, di
+ * solito il giovedi' (Odino il mercoledi' prima, nel globale). Le date sono
+ * quelle delle righe del calendario:
+ * fino al 26/09 quella globale veniva da 7dshub, che scrive spesso il lunedi'
+ * dove il foglio scrive il martedi', e in qualche caso sbaglia di mesi
+ * (Cardinal Helbram: marzo 2023 contro agosto 2020).
+ */
+function ReleaseLine({ game, release, locale }: { game: string; release: HeroRelease; locale: Locale }) {
+  const t = TESTI[locale];
+  const format = new Intl.DateTimeFormat(intlLocale(locale), {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const day = (value: string) => (
+    <time dateTime={value} className={numeric}>
+      {format.format(new Date(`${value}T00:00:00Z`))}
+    </time>
+  );
+  const parts: { key: string; node: React.ReactNode }[] = [];
+  if (release.global) parts.push({ key: "gb", node: <>{t.globale} {day(release.global)}</> });
+  if (release.jp) parts.push({ key: "jp", node: <>{t.giapponeCorea} {day(release.jp)}</> });
+  const lr = release.lrGlobal ?? release.lrJp;
+  if (lr) parts.push({ key: "lr", node: <>{t.evoluzioneLr} {day(lr)}</> });
+  // La riga nel calendario globale, che e' quello da cui la pagina parte; se
+  // l'eroe li' non c'e', quella giapponese.
+  const calendar = release.updateGlobal
+    ? `/${game}/uscite#u-${release.updateGlobal}`
+    : release.updateJp
+      ? `/${game}/uscite?server=giappone#u-${release.updateJp}`
+      : null;
+  if (calendar) {
+    parts.push({
+      key: "cal",
+      node: (
+        <Link href={calendar} className="text-ink hover:text-brand">
+          {t.nelCalendario}
+        </Link>
+      ),
+    });
+  }
+  if (parts.length === 0) return null;
+
+  return (
+    <p className="m-0 mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-ink-2">
+      <span className={eyebrow}>{t.uscita}</span>
+      {parts.map((part, index) => (
+        <span key={part.key}>
+          {index > 0 ? "· " : null}
+          {part.node}
+        </span>
+      ))}
+      {release.festival ? <Tag tone="gold">{t.festival}</Tag> : null}
+    </p>
   );
 }
 

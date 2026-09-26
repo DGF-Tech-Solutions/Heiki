@@ -36,7 +36,7 @@ import { testi, type Locale } from "@/lib/i18n/locale";
 
 const TESTI = testi({
   it: {
-    ordini: { roster: "Recenti", name: "Nome", group: "Personaggio" },
+    ordini: { roster: "Uscita", name: "Nome", group: "Personaggio" },
     cercaSegnaposto: "Cerca per nome, epiteto o personaggio…",
     cercaEtichetta: "Cerca un eroe",
     ordina: "Ordina",
@@ -51,7 +51,7 @@ const TESTI = testi({
     nessunEroe: "Nessun eroe con questi filtri.",
   },
   en: {
-    ordini: { roster: "Recent", name: "Name", group: "Character" },
+    ordini: { roster: "Release", name: "Name", group: "Character" },
     cercaSegnaposto: "Search by name, epithet or character…",
     cercaEtichetta: "Search for a hero",
     ordina: "Sort",

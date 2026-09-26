@@ -218,6 +218,333 @@ if (!existsSync(italianJson)) {
   );
 }
 
+/* -------------------------------------------------------------- uscite -- */
+
+/**
+ * Il calendario delle uscite.
+ *
+ * Lo scrive `python script\date_uscita.py` (dentro _7dsgc) in
+ * eroi/calendario_uscite.json, dal foglio della community di thefilght /
+ * dreamer_plays. Il foglio ha DUE calendari, e fino al 26/09 se ne leggeva uno:
+ *
+ *   giappone   la scheda [UPDATE SCHEDULE], Giappone e Corea, dal 4/6/2019
+ *   globale    la scheda GLOBAL SCHEDULE (nascosta, ferma dal novembre 2024)
+ *              fino all'allineamento del 22/11/2024; poi le righe giapponesi,
+ *              lo stesso giorno, tranne i rari aggiornamenti usciti nel globale
+ *              il mercoledi' prima (date_uscita.ANTICIPI_GLOBALI: Odino, i due
+ *              "Another")
+ *
+ * Leggendo solo il giapponese, prima dell'allineamento date e ordine erano
+ * quelli del Giappone, e il globale aveva le sue: il lancio il 2/3/2020 con 60
+ * eroi, e poi gli eroi in un altro ordine, di martedi'. Ogni eroe e' legato al
+ * suo heroId dalla pipeline, dove il legame e' certo. Il client PC non ha date
+ * d'uscita, quindi il foglio e' l'unica fonte, e viaggia col dato fino in pagina.
+ *
+ * Serve a due cose: la sezione Uscite, e l'ORDINE della griglia degli eroi, che
+ * si scrive qui una volta invece di ricalcolarlo nel browser. E' l'ordine del
+ * GLOBALE, il server di chi legge in italiano: dal piu' recente, e a parita' di
+ * data nell'ordine del foglio (prima l'eroe del banner, poi gli omaggi). La data
+ * di un eroe e' quella della sua riga nel calendario, e per gli eroi del lancio
+ * quella della riga del lancio; solo chi non ha nessuna riga (un Jericho SR, nel
+ * calendario giapponese) prende quella di uscite_jpkr.json.
+ *
+ * Se il file manca, il roster resta nell'ordine di eroi.json e la sezione
+ * Uscite non compare.
+ */
+interface SourceReleaseHero {
+  colori: string[];
+  nome: string;
+  rarita: string;
+  modo: string;
+  heroId?: string;
+}
+
+interface SourceReleaseUpdate {
+  numero: string | null;
+  data: string;
+  data_giappone?: string;
+  da_giappone?: boolean;
+  eroi: SourceReleaseHero[];
+  senza_eroi?: "eroi" | "banner";
+  lancio?: boolean;
+  eroi_lancio?: string[];
+  dettaglio?: string;
+  nota?: string;
+  ritorni?: string;
+  armi_ur?: string;
+  reliquie?: string;
+  evoluzioni_lr?: { colori: string[]; nome: string; heroId?: string }[];
+  eventi?: string[];
+  guerra_cavalieri?: string;
+  boss_cavalieri?: string;
+  arena?: string;
+  stamina_dimezzata?: boolean;
+}
+
+interface SourceCalendar {
+  fonte: {
+    titolo: string;
+    titolo_globale?: string;
+    autori: string;
+    indirizzo: string;
+    scaricato: string;
+  };
+  allineamento?: string;
+  giappone: SourceReleaseUpdate[];
+  globale?: SourceReleaseUpdate[];
+  eroi: Record<string, { gb?: string; jpkr?: string; festival?: boolean; gbLr?: string; jpkrLr?: string }>;
+}
+
+/**
+ * I modi di ottenimento del foglio in italiano, pezzo per pezzo ("Freebie / Pick
+ * Up Draw" sono due pezzi). Il Pick Up e' "Pescata", come chiede l'utente
+ * (26/09): il client italiano dice "Raccolta" (Biglietto Raccolta), ma chi gioca
+ * dice pescata, e la pescata e' gia' la parola del gioco per il gacha (Biglietto
+ * pescata speciale). Lo Step Up e' "Passo avanti", il Coin Shop "Negozio monete",
+ * come nel client. "600" resta com'e': il foglio non dice cosa conta, e tradurlo
+ * vorrebbe dire inventarlo.
+ *
+ * Un pezzo che qui non c'e' lascia l'italiano a null, e la pagina mostra
+ * l'inglese del foglio: l'importazione lo dice, e un test si ferma.
+ */
+const METHOD_IT: Readonly<Record<string, string>> = {
+  "pick up draw": "Pescata",
+  "pick up draw (limited)": "Pescata limitata",
+  "600 pick up draw": "Pescata 600",
+  "collab banner": "Pescata della collaborazione",
+  "festival banner draw": "Festival",
+  "festival banner draw (seasonal)": "Festival stagionale",
+  "step-up summon": "Passo avanti",
+  "free step-up summon": "Passo avanti gratuito",
+  "coin shop": "Negozio monete",
+  "hawk pass": "Hawk Pass",
+  freebie: "Omaggio",
+  "freebie (summon)": "Omaggio (evocazione)",
+  "freebie (mission)": "Omaggio (missione)",
+  "freebie (celebration reward)": "Omaggio (premio dei festeggiamenti)",
+  "check-in freebie": "Omaggio per l'accesso",
+  "log-in freebie": "Omaggio per l'accesso",
+  "event freebie": "Omaggio dell'evento",
+  regular: "normale",
+  mission: "Missione",
+  "pvp top 100 reward": "Premio dei primi 100 in PvP",
+};
+
+const untranslatedMethods = new Set<string>();
+
+function methodLabel(method: string): { it: string | null; en: string } {
+  const parts = method.split(/\s*\/\s*/).map((part) => part.trim());
+  const it = parts.map((part) => METHOD_IT[part.toLowerCase()] ?? null);
+  parts.forEach((part, index) => {
+    if (it[index] === null) untranslatedMethods.add(part);
+  });
+  return { it: it.every((part) => part !== null) ? it.join(" / ") : null, en: method };
+}
+
+const DEST_RELEASES = resolve(ROOT, "src/lib/games", GAME, "releases.generated.ts");
+const calendarJson = resolve(SOURCE, "eroi/calendario_uscite.json");
+const calendarSource = existsSync(calendarJson)
+  ? (JSON.parse(readFileSync(calendarJson, "utf8")) as SourceCalendar)
+  : null;
+
+/** heroId -> posizione nella griglia: 0 e' il piu' recente. */
+const releaseRank = new Map<string, number>();
+
+/** Dove sta ogni eroe in un calendario: la data della riga e la posizione. */
+interface Placement {
+  date: string;
+  position: number;
+}
+
+if (!calendarSource) {
+  console.log(`  calendario_uscite.json non trovato: roster nell'ordine di eroi.json, niente Uscite.`);
+  console.log(`  (si genera con: python script\\date_uscita.py, dentro _7dsgc)`);
+} else {
+  const known = new Set(heroes.map((hero) => String(hero.heroId)));
+  const day = (value: string | undefined) => value?.slice(0, 10);
+
+  /**
+   * Controlla un calendario e dice dove sta ogni eroe.
+   *
+   * L'aggiornamento si apre dalla scheda con un'ancora sulla sua data: due
+   * aggiornamenti nello stesso giorno porterebbero allo stesso punto. Ogni eroe
+   * al massimo una volta, e solo eroi che il roster conosce: un id sbagliato qui
+   * diventerebbe un collegamento a una pagina che non esiste. Gli eroi del
+   * lancio stanno tutti nella posizione della riga del lancio: fra loro decide
+   * l'ordine giapponese.
+   */
+  const place = (name: string, updates: SourceReleaseUpdate[]) => {
+    const dates = new Set<string>();
+    const heroAt = new Map<string, Placement>();
+    const lrAt = new Map<string, string>();
+    let position = 0;
+    for (const update of updates) {
+      if (dates.has(update.data)) fail(`due aggiornamenti il ${update.data} nel calendario ${name}`);
+      dates.add(update.data);
+      const add = (id: string, at: number) => {
+        if (!known.has(id)) fail(`il calendario ${name} cita ${id}, che non e' in eroi.json`);
+        if (heroAt.has(id)) fail(`${id} compare due volte nel calendario ${name}`);
+        heroAt.set(id, { date: update.data, position: at });
+      };
+      const start = position;
+      position += update.eroi.length;
+      update.eroi.forEach((hero, index) => {
+        if (hero.heroId) add(hero.heroId, start + index);
+      });
+      for (const id of update.eroi_lancio ?? []) add(id, position);
+      for (const lr of update.evoluzioni_lr ?? []) {
+        if (!lr.heroId) continue;
+        if (!known.has(lr.heroId)) fail(`il calendario ${name} cita ${lr.heroId}, che non e' in eroi.json`);
+        lrAt.set(lr.heroId, update.data);
+      }
+    }
+    return { heroAt, lrAt };
+  };
+
+  const jp = place("giappone", calendarSource.giappone);
+  const gl = calendarSource.globale ? place("globale", calendarSource.globale) : null;
+
+  const releaseHeroes: Record<string, Record<string, string | boolean>> = {};
+  for (const id of [...known].sort()) {
+    const dated = calendarSource.eroi[id];
+    const entry: Record<string, string | boolean> = {};
+    const jpDate = jp.heroAt.get(id)?.date ?? day(dated?.jpkr);
+    const globalDate = gl?.heroAt.get(id)?.date ?? day(dated?.gb);
+    if (jpDate) entry.jp = jpDate;
+    if (globalDate) entry.global = globalDate;
+    if (dated?.festival) entry.festival = true;
+    const lrJp = jp.lrAt.get(id) ?? day(dated?.jpkrLr);
+    const lrGlobal = gl?.lrAt.get(id) ?? day(dated?.gbLr);
+    if (lrJp) entry.lrJp = lrJp;
+    if (lrGlobal) entry.lrGlobal = lrGlobal;
+    const inGlobal = gl?.heroAt.get(id);
+    const inJp = jp.heroAt.get(id);
+    if (inGlobal) entry.updateGlobal = inGlobal.date;
+    if (inJp) entry.updateJp = inJp.date;
+    releaseHeroes[id] = entry;
+  }
+
+  // L'ordine della griglia: il calendario globale se c'e', se no il giapponese.
+  // Dal piu' recente; a parita' di data la posizione nel foglio; poi la data
+  // giapponese (i 60 del lancio globale sono usciti in Giappone in otto mesi);
+  // poi per id.
+  const main = gl ?? jp;
+  const mainDate = (id: string) => String((gl ? releaseHeroes[id]?.global : releaseHeroes[id]?.jp) ?? "");
+  const ordered = [...known].sort((a, b) => {
+    const da = mainDate(a);
+    const db = mainDate(b);
+    if (da !== db) return da < db ? 1 : -1;
+    const pa = main.heroAt.get(a)?.position ?? Infinity;
+    const pb = main.heroAt.get(b)?.position ?? Infinity;
+    if (pa !== pb) return pa - pb;
+    const ja = String(releaseHeroes[a]?.jp ?? "");
+    const jb = String(releaseHeroes[b]?.jp ?? "");
+    if (ja !== jb) return ja < jb ? 1 : -1;
+    return a.localeCompare(b);
+  });
+  ordered.forEach((id, index) => releaseRank.set(id, index));
+
+  const updateRow = (update: SourceReleaseUpdate) => {
+    const out: Record<string, unknown> = {};
+    if (update.numero) out.number = update.numero;
+    out.date = update.data;
+    if (update.da_giappone) out.fromJp = true;
+    if (update.data_giappone) out.jpDate = update.data_giappone;
+    out.heroes = update.eroi.map((hero) => ({
+      name: hero.nome,
+      colors: hero.colori,
+      rarity: hero.rarita,
+      method: methodLabel(hero.modo),
+      ...(/festival/i.test(hero.modo) ? { festival: true } : {}),
+      ...(hero.heroId ? { heroId: hero.heroId } : {}),
+    }));
+    if (update.senza_eroi) out.noHeroes = update.senza_eroi === "eroi" ? "heroes" : "banner";
+    if (update.lancio) out.launch = true;
+    if (update.eroi_lancio?.length) out.launchHeroes = update.eroi_lancio;
+    if (update.dettaglio) out.detail = update.dettaglio;
+    if (update.nota) out.note = update.nota;
+    if (update.ritorni) out.reruns = update.ritorni;
+    if (update.armi_ur) out.urGear = update.armi_ur;
+    if (update.reliquie) out.holyRelics = update.reliquie;
+    if (update.evoluzioni_lr?.length) {
+      out.lrEvolutions = update.evoluzioni_lr.map((lr) => ({
+        name: lr.nome,
+        colors: lr.colori,
+        ...(lr.heroId ? { heroId: lr.heroId } : {}),
+      }));
+    }
+    if (update.eventi?.length) out.events = update.eventi;
+    if (update.guerra_cavalieri) out.knighthoodWar = update.guerra_cavalieri;
+    if (update.boss_cavalieri) out.knighthoodBoss = update.boss_cavalieri;
+    if (update.arena) out.arena = update.arena;
+    if (update.stamina_dimezzata) out.halfStamina = true;
+    return `      ${JSON.stringify(out)},`;
+  };
+
+  const { fonte } = calendarSource;
+  const source = {
+    title: fonte.titolo,
+    authors: fonte.autori,
+    url: fonte.indirizzo,
+    downloaded: fonte.scaricato,
+    ...(fonte.titolo_globale ? { globalTitle: fonte.titolo_globale } : {}),
+  };
+  const schedules = [
+    ...(calendarSource.globale ? [`    global: [\n${calendarSource.globale.map(updateRow).join("\n")}\n    ],`] : []),
+    `    jp: [\n${calendarSource.giappone.map(updateRow).join("\n")}\n    ],`,
+  ];
+  writeFileSync(
+    DEST_RELEASES,
+    `/**
+ * Il calendario delle uscite di Grand Cross.
+ *
+ * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
+ *
+ * FONTE: il foglio della community di ${fonte.autori}, copia del
+ * ${fonte.scaricato}, letto da date_uscita.py (calendario_uscite.json). Due calendari:
+ *   jp      la scheda [UPDATE SCHEDULE], Giappone e Corea
+ *   global  la scheda GLOBAL SCHEDULE fino all'allineamento (${calendarSource.allineamento ?? "-"}), poi le righe
+ *           giapponesi (\`fromJp\`), lo stesso giorno; le poche uscite nel globale il
+ *           mercoledi' prima hanno la data globale, e \`jpDate\` tiene quella giapponese
+ * Gli eroi sono legati al roster dalla pipeline: colore, rarita', personaggio e
+ * data; dove il legame non e' certo \`heroId\` manca. I testi liberi sono quelli
+ * del foglio, in inglese.
+ *
+ * \`heroes\` porta le date di OGNI eroe: quella della sua riga, per gli eroi del
+ * lancio quella del lancio, e per chi non ha una riga quella di uscite_jpkr.json.
+ */
+
+import type { ReleaseCalendar } from "../types";
+
+export const RELEASES: ReleaseCalendar = {
+  source: ${JSON.stringify(source)},
+${calendarSource.allineamento ? `  sync: ${JSON.stringify(calendarSource.allineamento)},\n` : ""}  schedules: {
+${schedules.join("\n")}
+  },
+  heroes: ${JSON.stringify(releaseHeroes)},
+};
+`,
+    "utf8",
+  );
+
+  const count = (updates: SourceReleaseUpdate[]) => {
+    const listed = updates.reduce((sum, update) => sum + update.eroi.length, 0);
+    const linked = updates.reduce((sum, update) => sum + update.eroi.filter((hero) => hero.heroId).length, 0);
+    return `${updates.length} aggiornamenti, ${linked}/${listed} eroi legati al roster`;
+  };
+  console.log(
+    `  calendario delle uscite (copia del foglio del ${fonte.scaricato}): ` +
+      `globale ${calendarSource.globale ? count(calendarSource.globale) : "assente"}; ` +
+      `giapponese ${count(calendarSource.giappone)}`,
+  );
+  if (untranslatedMethods.size > 0) {
+    console.log(
+      `  modi di ottenimento senza italiano (restano in inglese; vanno in METHOD_IT): ` +
+        [...untranslatedMethods].join(", "),
+    );
+  }
+}
+
 /* ---------------------------------------------------------------- dati -- */
 
 /**
@@ -228,10 +555,21 @@ if (!existsSync(italianJson)) {
  * E' decorazione della fonte, non parte del nome, e va via qui: l'interfaccia
  * deve poter presentare il dato senza ripulirlo ogni volta.
  */
+/**
+ * Toglie i tag di formattazione del gioco: [b], [i], [u] e le chiusure.
+ *
+ * Solo quelli a una lettera. Un'espressione piu' larga mangerebbe "[Sunshine]",
+ * che e' l'epiteto e non un tag. Serve anche ai NOMI: i Comandamenti e gli
+ * Arcangeli si chiamano "Derieri of [b]Purity[/b]" nel client (26 eroi, nelle
+ * due lingue), e fino al 26/09 il grassetto finiva stampato nel titolo della
+ * scheda, nelle briciole e nella griglia.
+ */
+function untag(text: string): string {
+  return text.replace(/\[\/?[biu]\]/gi, "").trim();
+}
+
 function clean(text: string): string {
-  // Solo i tag di formattazione a una lettera. Un'espressione piu' larga
-  // mangerebbe "[Sunshine]", che e' l'epiteto e non un tag.
-  let out = text.replace(/\[\/?[biu]\]/gi, "").trim();
+  let out = untag(text);
 
   // Le quadre esterne si tolgono solo se avvolgono TUTTO. In "[Boar Hat] Tavern"
   // fanno parte del testo, e toglierle lascerebbe una parentesi spaiata.
@@ -273,7 +611,11 @@ const textsSource = existsSync(textsJson)
  * decorato come "\"Snatch\"".
  */
 let italianNames = 0;
-const rows = heroes
+// L'ordine d'uscita calcolato sopra, dal calendario. Senza calendario resta
+// quello di eroi.json, che e' per heroId.
+const rank = (hero: SourceHero) => releaseRank.get(String(hero.heroId)) ?? Infinity;
+const rows = [...heroes]
+  .sort((a, b) => rank(a) - rank(b) || a.heroId - b.heroId)
   .map((hero) => {
     const hid = String(hero.heroId);
     const nameIt = italian(textsSource?.[hid]?.nome?.it) ?? italianHeroes.get(hid)?.name;
@@ -281,7 +623,7 @@ const rows = heroes
     const cells = [
       hid,
       hero.gruppo,
-      hero.nome,
+      untag(hero.nome),
       clean(hero.nickname),
       hero.rarita,
       hero.ottenibile_come,
@@ -290,7 +632,7 @@ const rows = heroes
     // Le due colonne italiane si scrivono solo se ce n'e' almeno una: senza la
     // fonte italiana le righe restano di sette, com'erano.
     if (nameIt || epithetIt) {
-      cells.push(nameIt ?? "", epithetIt ? clean(epithetIt) : "");
+      cells.push(nameIt ? untag(nameIt) : "", epithetIt ? clean(epithetIt) : "");
       if (nameIt && epithetIt) italianNames++;
     }
     return cells.map((cell) => JSON.stringify(cell));
@@ -308,7 +650,14 @@ const generated = `/**
  * legge e si confronta in diff, ${heroes.length} oggetti su otto righe l'uno no. Il tipo
  * Row le tiene comunque controllate dal compilatore.
  *
- * L'ordine e' quello della fonte: dal piu' recente.
+${
+  calendarSource
+    ? ` * L'ordine e' quello d'uscita nel GLOBALE, dal piu' recente: la data del
+ * calendario delle uscite e, nello stesso giorno, l'ordine del foglio. E' il
+ * default della griglia.`
+    : ` * L'ordine e' quello di eroi.json, per heroId: senza il calendario delle uscite
+ * non c'e' una data con cui ordinare.`
+}
  *
  * Nome ed epiteto stanno in due lingue: le prime colonne sono l'inglese di
  * eroi.json, le ultime due l'italiano del client. La pagina sceglie quale

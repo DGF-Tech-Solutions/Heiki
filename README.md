@@ -253,6 +253,14 @@ Il confine passa qui, e non è formale:
   Stanno in `public/eroi/`, che è in `.gitignore`
 - **i testi lunghi** stanno in `hero-texts.generated.ts`, separati dal roster:
   il roster viaggia fino al browser per i filtri, le descrizioni no
+- **il calendario delle uscite** sta in `releases.generated.ts`: il foglio della
+  community (thefilght / dreamer_plays), letto da `_7dsgc/script/date_uscita.py`,
+  un aggiornamento per data con ogni eroe legato al roster. I calendari sono due:
+  quello **globale** (la scheda GLOBAL SCHEDULE fino all'allineamento del
+  novembre 2024, poi le date giapponesi, salvo i rari aggiornamenti usciti nel
+  globale il mercoledì prima) e quello di **Giappone e Corea**. Alimenta la sezione **Uscite** e l'ordine di partenza della griglia
+  degli eroi, per uscita globale dal più recente. Il client PC non ha date
+  d'uscita: la fonte è dichiarata in pagina
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

@@ -233,6 +233,16 @@ describe("roster di Grand Cross", () => {
     expect(roster?.heroes.filter((h) => decorated(h.epithet)).map((h) => h.epithet)).toEqual([]);
   });
 
+  // I nomi dei Comandamenti e degli Arcangeli portano il grassetto del gioco
+  // ("Derieri of [b]Purity[/b]"), nelle due lingue: fino al 26/09 finiva
+  // stampato nel titolo della scheda, nelle briciole e nella griglia.
+  it("nessun nome conserva i tag di formattazione del gioco", () => {
+    const tagged = (roster?.heroes ?? []).flatMap((h) =>
+      [h.name, h.nameIt ?? ""].filter((name) => /\[\/?[biu]\]/i.test(name)),
+    );
+    expect(tagged).toEqual([]);
+  });
+
   /*
    * Nome ed epiteto italiani arrivano dal client, e dove il client non li ha da
    * 7dshub in italiano: oggi ci sono per tutti. Se una fonte li perdesse, la

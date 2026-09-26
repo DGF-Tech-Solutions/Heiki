@@ -120,8 +120,10 @@ export type HeroOrder = "roster" | "name" | "group";
  * Ordina senza toccare l'elenco ricevuto.
  *
  * "roster" e' l'ordine in cui il modulo li dichiara - per Grand Cross e'
- * l'ordine di uscita, dal piu' recente - ed e' il default perche' e' l'unico
- * che risponde alla domanda "cosa e' uscito ultimamente".
+ * l'ordine di uscita, dal piu' recente, che l'importazione ricava dal
+ * calendario delle uscite - ed e' il default perche' e' l'unico che risponde
+ * alla domanda "cosa e' uscito ultimamente". Fino al 26/09 il commento lo
+ * diceva ma i dati erano per heroId: Master Meliodas, del lancio, stava in cima.
  *
  * "name" ordina per il nome MOSTRATO, nella lingua della pagina: in italiano
  * "Ban attaccabrighe" sta fra le B, anche se in inglese e' "Brawler Ban".

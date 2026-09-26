@@ -545,6 +545,134 @@ export interface HeroSpecialsIndex {
 }
 
 /**
+ * Un eroe in una riga del calendario delle uscite, com'e' scritto nella fonte.
+ *
+ * Il nome, i colori e la rarita' restano quelli della fonte anche quando c'e'
+ * il legame col roster: sono la riga che si sta leggendo, e dove la fonte e il
+ * client non concordano (i colori dei due eroi "Another", scambiati) la
+ * differenza deve potersi vedere, non sparire in un'unificazione.
+ */
+export interface ReleaseHero {
+  /** il nome come lo scrive la fonte: "Merlin (Kid)" */
+  name: string;
+  /** lettere di colore della fonte (R G B L D): due per l'attributo doppio, nessuna se la cella e' vuota */
+  colors: readonly string[];
+  /** rarita' d'uscita */
+  rarity: string;
+  /**
+   * Come si ottiene. L'inglese e' il testo della fonte ("Festival Banner Draw",
+   * "Freebie"), l'italiano la sua traduzione coi nomi del gioco (Festival,
+   * Raccolta, Passo avanti), null dove un pezzo non ha ancora una traduzione.
+   */
+  method: HeroLabel;
+  /** la fonte lo segna come Festival: il banner piu' raro */
+  festival?: boolean;
+  /** l'eroe del roster. Assente se il legame non e' certo: meglio nessun collegamento che quello sbagliato */
+  heroId?: string;
+}
+
+/** Un'evoluzione a LR annunciata in un aggiornamento. */
+export interface ReleaseLrEvolution {
+  name: string;
+  colors: readonly string[];
+  heroId?: string;
+}
+
+/**
+ * Un aggiornamento del gioco: una data della fonte e quello che ha portato.
+ *
+ * I testi liberi (eventi, dettagli, armi, reliquie) restano nella lingua della
+ * fonte, l'inglese: tradurli sarebbe un'interpretazione nostra, e il campo lo
+ * dice gia' il suo nome.
+ */
+export interface ReleaseUpdate {
+  /** numero progressivo della fonte; le settimane piu' recenti possono non averlo */
+  number?: string;
+  /** data della fonte, AAAA-MM-GG */
+  date: string;
+  heroes: readonly ReleaseHero[];
+  /** settimana senza eroi nuovi: "heroes" se un banner c'era, "banner" se nemmeno quello */
+  noHeroes?: "heroes" | "banner";
+  /** il giorno del lancio */
+  launch?: boolean;
+  /** gli eroi del lancio: la fonte non li elenca, vengono dalle date del roster */
+  launchHeroes?: readonly string[];
+  /** precisazione accanto a una settimana senza eroi o al lancio */
+  detail?: string;
+  /** una riga che non e' un eroe ne' una settimana vuota: un banner speciale, "Collab?" */
+  note?: string;
+  /** gli eroi che tornano con una collaborazione */
+  reruns?: string;
+  urGear?: string;
+  holyRelics?: string;
+  lrEvolutions?: readonly ReleaseLrEvolution[];
+  /** le novita' dell'aggiornamento, una per voce */
+  events?: readonly string[];
+  /** Guerra d'élite dei Cavalieri: "51 / 48" e' Giappone / globale */
+  knighthoodWar?: string;
+  /** boss dei Cavalieri */
+  knighthoodBoss?: string;
+  /** stagione di Arena degli eroi, Labirinto o Difesa di Liones */
+  arena?: string;
+  /** settimana con la stamina dimezzata (la segna solo il calendario globale) */
+  halfStamina?: boolean;
+  /**
+   * Nel calendario globale, una riga presa da quello giapponese (dopo
+   * l'allineamento): `number` e' la numerazione giapponese.
+   */
+  fromJp?: boolean;
+  /**
+   * Nel calendario globale, la data giapponese di una riga uscita nel globale in
+   * un altro giorno: i rari aggiornamenti arrivati il mercoledi' prima (Odino).
+   * `date` e' gia' quella globale.
+   */
+  jpDate?: string;
+}
+
+/** I calendari: il server globale, e Giappone e Corea. */
+export type ReleaseRegion = "global" | "jp";
+
+/** Le date d'uscita di un eroe, AAAA-MM-GG. */
+export interface HeroRelease {
+  /** Giappone e Corea: la data del calendario, se l'eroe ci ha una riga */
+  jp?: string;
+  /** globale: la data del calendario globale, se l'eroe ci ha una riga */
+  global?: string;
+  festival?: boolean;
+  /** evoluzione a LR */
+  lrJp?: string;
+  lrGlobal?: string;
+  /** la riga dell'eroe nei due calendari (la sua data): serve al collegamento */
+  updateGlobal?: string;
+  updateJp?: string;
+}
+
+/**
+ * Il calendario delle uscite, com'e' scritto nella fonte.
+ *
+ * Per Grand Cross la fonte e' un foglio della community, non il client: il
+ * client PC non porta date d'uscita. Per questo `source` viaggia col dato fino
+ * in pagina.
+ */
+export interface ReleaseCalendar {
+  readonly source: {
+    readonly title: string;
+    readonly authors: string;
+    readonly url: string;
+    /** quando e' stata scaricata la copia letta, AAAA-MM-GG */
+    readonly downloaded: string;
+    /** il titolo del calendario globale, dove e' una scheda a parte */
+    readonly globalTitle?: string;
+  };
+  /** il giorno in cui il globale si e' allineato al Giappone */
+  readonly sync?: string;
+  /** i calendari, ognuno dal piu' vecchio, nell'ordine della fonte */
+  readonly schedules: Readonly<Partial<Record<ReleaseRegion, readonly ReleaseUpdate[]>>>;
+  /** le date di ogni eroe, anche di chi nel calendario non ha una riga */
+  readonly heroes: Readonly<Record<string, HeroRelease>>;
+}
+
+/**
  * Roster sfogliabile di un gioco.
  *
  * Le sfaccettature sono dichiarate invece che dedotte dalle voci: l'ordine
@@ -652,6 +780,12 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
 
   /** Le Reliquie sacre: immagine, effetto, potenziamenti, bestia e materiali. */
   readonly heroRelics?: HeroRelicsIndex;
+
+  /**
+   * Il calendario delle uscite: aggiornamenti, eroi, eventi, e le date di ogni
+   * eroe. Come heroTexts lo legge solo il server: la sezione Uscite e la scheda.
+   */
+  readonly releases?: ReleaseCalendar;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.
