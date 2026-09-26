@@ -7,7 +7,7 @@ import { cx, display, eyebrow } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
 import { requireGameModule } from "@/lib/games/registry";
-import { testi } from "@/lib/i18n/locale";
+import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 /**
@@ -52,7 +52,8 @@ const TESTI = testi({
 
 interface Props {
   params: Promise<{ game: string }>;
-  searchParams: Promise<{ cerca?: string }>;
+  /** `?razza=3`, `?caratteristica=6`: ci portano le tendine delle parole blu della scheda eroe */
+  searchParams: Promise<{ cerca?: string; razza?: string; caratteristica?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -67,12 +68,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function HeroesPage({ params, searchParams }: Props) {
   const { game } = await params;
-  const { cerca } = await searchParams;
+  const { cerca, razza, caratteristica } = await searchParams;
 
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster, icons, releases } = requireGameModule(game);
+  const { roster, icons, releases, heroContext } = requireGameModule(game);
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -87,13 +88,44 @@ export default async function HeroesPage({ params, searchParams }: Props) {
   // con `name` inglese e `nameIt` italiano. Sostituire qui `name` con l'italiano
   // toglierebbe l'inglese dalla ricerca. Quale dei due mostrare lo sceglie
   // heroName nella griglia: una riga, su dati che la voce ha gia'.
+  //
+  // Razza e caratteristiche il roster generato non le porta: stanno nel contesto
+  // degli eroi, e si aggiungono qui a ogni voce (un numero e una lista corta),
+  // coi nomi nella lingua della pagina per i pulsanti. Si offrono solo i codici
+  // che almeno un eroe ha e che il gioco sa nominare.
   const localized = {
     ...roster,
     affinities: roster.affinities.map((affinity) => ({
       ...affinity,
       label: affinityLabel(affinity.id, locale),
     })),
+    heroes: heroContext
+      ? roster.heroes.map((hero) => {
+          const context = heroContext.heroes[hero.id];
+          return context ? { ...hero, race: context.race, factions: context.factions } : hero;
+        })
+      : roster.heroes,
   };
+  const present = (pick: (id: string) => readonly number[]) =>
+    [...new Set(roster.heroes.flatMap((hero) => pick(hero.id)))].sort((a, b) => a - b);
+  const traits = heroContext
+    ? {
+        races: present((id) => {
+          const race = heroContext.heroes[id]?.race;
+          return race != null ? [race] : [];
+        }).flatMap((code) => {
+          const label = inLingua(heroContext.codes.race[String(code)], locale);
+          return label ? [{ code, label, iconKey: String(code) }] : [];
+        }),
+        factions: present((id) => heroContext.heroes[id]?.factions ?? []).flatMap((code) => {
+          const label = inLingua(heroContext.codes.faction[String(code)], locale);
+          return label ? [{ code, label }] : [];
+        }),
+      }
+    : undefined;
+  // un codice nell'indirizzo vale solo se e' fra quelli offerti
+  const chosen = (value: string | undefined, offered: readonly { code: number }[] | undefined) =>
+    offered?.find((item) => String(item.code) === value)?.code ?? null;
 
   const rarest = roster.rarities[0];
   const counted = roster.heroes.filter((hero) => hero.rarity === rarest).length;
@@ -124,7 +156,15 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         ) : null}
       </header>
 
-      <RosterBrowser game={game} roster={localized} icons={icons} initialSearch={cerca ?? ""} />
+      <RosterBrowser
+        game={game}
+        roster={localized}
+        icons={icons}
+        initialSearch={cerca ?? ""}
+        traits={traits}
+        initialRace={chosen(razza, traits?.races)}
+        initialFaction={chosen(caratteristica, traits?.factions)}
+      />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
         {t.diritti(entry.publisher)}

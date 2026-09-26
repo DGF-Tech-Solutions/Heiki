@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { GameText } from "@/components/heroes/game-text";
 import { PassiveConditions, PassiveText } from "@/components/heroes/hero-abilities";
+import type { TermIds } from "@/components/heroes/hero-terms";
 import { cx, eyebrow, numeric } from "@/components/ui";
 import { gameItemSrc, heroRelicSrc } from "@/lib/games/heroes";
 import type { HeroLabel, HeroRelic, HeroRelicAmount, HeroRelicsIndex } from "@/lib/games/types";
@@ -78,6 +79,7 @@ export function Relics({
   conditions,
   icons,
   beastPages,
+  termIds,
 }: {
   game: string;
   locale: Locale;
@@ -86,6 +88,8 @@ export function Relics({
   conditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   beastPages: Readonly<Record<string, string>>;
+  /** le tendine delle parole blu dell'effetto (hero-terms.tsx) */
+  termIds?: TermIds;
 }) {
   if (relics.length === 0) return null;
   const t = TESTI[locale];
@@ -106,6 +110,7 @@ export function Relics({
               conditions={conditions}
               icons={icons}
               beastPages={beastPages}
+              termIds={termIds}
             />
           </li>
         ))}
@@ -132,6 +137,7 @@ function RelicCard({
   conditions,
   icons,
   beastPages,
+  termIds,
 }: {
   game: string;
   locale: Locale;
@@ -142,6 +148,7 @@ function RelicCard({
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   /** gruppo della bestia -> la chiave della sua pagina: /<gioco>/bestie-demoniache/<chiave> */
   beastPages: Readonly<Record<string, string>>;
+  termIds?: TermIds;
 }) {
   const t = TESTI[locale];
   const name = inLingua(relic.name, locale);
@@ -215,7 +222,13 @@ function RelicCard({
               conditions={conditions}
               icons={icons}
             />
-            <PassiveText game={game} locale={locale} text={passiveText} icons={icons} />
+            <PassiveText
+              game={game}
+              locale={locale}
+              text={passiveText}
+              icons={icons}
+              terms={relic.passive.text.en ? [termIds?.(relic.passive.text.en, passiveText)] : undefined}
+            />
           </div>
         ) : null}
 

@@ -51,7 +51,8 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi l'Endgame, gli artefatti e i buff dell'account |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi le parole blu, l'Endgame, gli artefatti e i buff dell'account |
+| `npm run parole:import` | Rigenera solo le parole blu della scheda eroe (dopo gli eroi) |
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
 | `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
 | `npm run buff:import` | Rigenera solo i buff dell'account: classe dell'account e costellazioni |
@@ -96,7 +97,8 @@ src/app/
   [game]/                     tutto il contenuto di un gioco
     layout.tsx                selettore gioco + barra laterale a gruppi
     page.tsx                  feed della community
-    eroi/                     roster completo, filtri per rarita' e attributo
+    eroi/                     roster completo, filtri per rarita', attributo, razza e
+                              caratteristica (?razza=3, ?caratteristica=6 li scelgono)
     eroi/[heroId]/            scheda dell'eroe, a schede (Abilita', Statistiche, Reliquia,
                               Info; ?scheda=<nome> apre quella giusta): testi dal client
     personaggi/[characterId]  scheda personaggio
@@ -130,7 +132,8 @@ src/lib/db/                   schema Drizzle e client
 src/components/ui.tsx         primitive dell'interfaccia
 src/components/heroes/        sfoglia il roster: filtri e griglia; le schede della pagina
                               dell'eroe (hero-tabs, e un file per scheda: hero-abilities,
-                              hero-relics, stat-slider). Una funzione nuova = una scheda
+                              hero-relics, stat-slider). Una funzione nuova = una scheda.
+                              hero-terms: le tendine delle parole blu
 scripts/                      setup, migrazioni, seed, verifica di fumo,
                               ruoli, importazione roster
 ```
@@ -313,6 +316,22 @@ Il confine passa qui, e non è formale:
   patch. La classe di combattimento dell'eroe nella scheda è calcolata con la
   formula del client, senza equipaggiamento. Le immagini (simboli, pietre) vanno in
   `public/eroi/<gioco>/buff-account/`
+- **le parole blu** della scheda eroe (Perforazione, Evasione, alleati
+  applicabili, Demoni, [Ragnarok]...) si cliccano e aprono una tendina con gli eroi
+  legati: per un effetto chi ce l'ha e in quale abilità, per una razza, una
+  caratteristica o gli alleati applicabili chi ne fa parte. I dati stanno in
+  `hero-terms.generated.ts`, scritto da `scripts/import-hero-terms.mts` dal JSON di
+  `_7dsgc/script/parole_blu.py` (la stessa logica di `contesto_eroi.py`, parola per
+  parola, sul testo inglese) e dai dati degli eroi già generati: per questo in
+  `eroi:import` viene subito dopo gli eroi. Il contratto è in
+  `src/lib/games/hero-terms-types.ts`. Le parole si contano con `termWords`
+  (`hero-markup.ts`), la stessa funzione per l'import e per la pagina, e quelle
+  italiane si legano per posizione a quelle inglesi (99,7% dei testi); nomi e
+  definizioni italiani dei concetti vengono dalle note italiane del gioco. Le
+  tendine le disegna il server e le apre il browser (`popover`), senza JavaScript;
+  un componente client le mette sotto la parola e accende la ricerca negli elenchi
+  da 8 eroi in su (nome ed epiteto nelle due lingue, personaggio, abilità). Per
+  una razza o una caratteristica, in fondo c'è la griglia Eroi già filtrata
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

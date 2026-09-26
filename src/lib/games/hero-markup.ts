@@ -226,6 +226,57 @@ export function splitHeroNotes(raw: string): SplitHeroText {
   return { body, notes };
 }
 
+/** L'azzurro con cui il gioco evidenzia i termini: meccaniche, razze, caratteristiche. */
+const TERM_COLOR = "#00D5FF";
+
+/** Un pezzo di riga: un segmento qualunque, o una parola blu intera. */
+export type LinePiece =
+  | { readonly kind: "text"; readonly segment: TextSegment }
+  | { readonly kind: "term"; readonly segments: readonly TextSegment[] };
+
+/**
+ * I pezzi di una riga, con le parole blu raggruppate.
+ *
+ * Una parola blu del gioco puo' arrivare in piu' segmenti: un grassetto o un
+ * corsivo nel mezzo spezza il segmento senza chiudere il colore. Per il sito e'
+ * una parola sola, e si clicca tutta insieme (26/09: le parole blu della scheda
+ * aprono l'elenco degli eroi legati). Segmenti blu consecutivi fanno un termine.
+ */
+export function groupTerms(line: TextLine): LinePiece[] {
+  const pieces: LinePiece[] = [];
+  let run: TextSegment[] = [];
+  const close = () => {
+    if (run.length > 0) pieces.push({ kind: "term", segments: run });
+    run = [];
+  };
+  for (const segment of line) {
+    if (segment.color?.toUpperCase() === TERM_COLOR) {
+      run.push(segment);
+      continue;
+    }
+    close();
+    pieces.push({ kind: "text", segment });
+  }
+  close();
+  return pieces;
+}
+
+/**
+ * Le parole blu del corpo di un testo (senza le note), in ordine, come testo.
+ *
+ * E' la numerazione su cui si legano le parole alla loro spiegazione: l'import
+ * (scripts/import-hero-terms.mts) la conta sul testo inglese, la pagina sullo
+ * stesso testo o sulla sua traduzione, e le due devono contare nello stesso
+ * modo. Per questo sta qui, accanto al parser, e non in due copie.
+ */
+export function termWords(raw: string): string[] {
+  return splitHeroNotes(raw).body.flatMap((line) =>
+    groupTerms(line).flatMap((piece) =>
+      piece.kind === "term" ? [piece.segments.map((segment) => segment.text).join("").trim()] : [],
+    ),
+  );
+}
+
 /**
  * Le note di piu' testi, ciascuna una volta sola.
  *

@@ -13,7 +13,11 @@
  * volta, solo quando entrano nello schermo.
  *
  * I nomi degli attributi arrivano gia' tradotti dalla pagina, dentro il roster:
- * qui si traducono solo le scritte del componente.
+ * qui si traducono solo le scritte del componente. Lo stesso per razze e
+ * caratteristiche (`traits`), che il roster generato non porta: le aggiunge la
+ * pagina dal contesto degli eroi. Dal 26/09 si filtra anche per quelle, e si
+ * puo' arrivare qui gia' filtrati (`?razza=3`, `?caratteristica=6`): ci portano
+ * le tendine delle parole blu della scheda eroe.
  */
 
 import Link from "next/link";
@@ -22,6 +26,7 @@ import { Chip, FilterRow } from "@/components/filter-chips";
 import { cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
 import {
   countHeroes,
+  countTraits,
   filterHeroes,
   gameIconSrc,
   heroCardSrc,
@@ -44,6 +49,8 @@ const TESTI = testi({
     rarita: "Rarità",
     attributo: "Attributo",
     esceCome: "Esce come",
+    razza: "Razza",
+    caratteristica: "Caratteristica",
     tutte: "Tutte",
     tutti: "Tutti",
     eroi: (n: number): string => (n === 1 ? "eroe" : "eroi"),
@@ -59,6 +66,8 @@ const TESTI = testi({
     rarita: "Rarity",
     attributo: "Attribute",
     esceCome: "Obtained as",
+    razza: "Race",
+    caratteristica: "Characteristic",
     tutte: "All",
     tutti: "All",
     eroi: (n: number) => (n === 1 ? "hero" : "heroes"),
@@ -75,6 +84,9 @@ export function RosterBrowser({
   roster,
   icons,
   initialSearch = "",
+  traits,
+  initialRace = null,
+  initialFaction = null,
 }: {
   game: string;
   roster: HeroRoster;
@@ -93,6 +105,14 @@ export function RosterBrowser({
    * poi lo stato e' del componente: e' una partenza, non un vincolo.
    */
   initialSearch?: string;
+  /** razze e caratteristiche coi nomi nella lingua della pagina; senza, niente filtri per quelle */
+  traits?: {
+    races: readonly { code: number; label: string; iconKey?: string }[];
+    factions: readonly { code: number; label: string }[];
+  };
+  /** razza e caratteristica gia' scelte all'arrivo, come `initialSearch` */
+  initialRace?: number | null;
+  initialFaction?: number | null;
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
@@ -101,13 +121,15 @@ export function RosterBrowser({
   const [rarity, setRarity] = useState<string | null>(null);
   const [affinity, setAffinity] = useState<string | null>(null);
   const [obtainable, setObtainable] = useState<string | null>(null);
+  const [race, setRace] = useState<number | null>(initialRace);
+  const [faction, setFaction] = useState<number | null>(initialFaction);
   const [order, setOrder] = useState<HeroOrder>("roster");
 
   const heroes = roster.heroes;
 
   const visible = useMemo(
-    () => sortHeroes(filterHeroes(heroes, { search, rarity, affinity, obtainable }), order, locale),
-    [heroes, search, rarity, affinity, obtainable, order, locale],
+    () => sortHeroes(filterHeroes(heroes, { search, rarity, affinity, obtainable, race, faction }), order, locale),
+    [heroes, search, rarity, affinity, obtainable, race, faction, order, locale],
   );
 
   // Ogni gruppo di pulsanti si conta escludendo se stesso dal filtro: il numero
@@ -115,16 +137,24 @@ export function RosterBrowser({
   // ce ne sono adesso. Contarle tutte allo stesso modo darebbe zero su ogni
   // pulsante non attivo - vero, e inutile.
   const rarityCounts = useMemo(
-    () => countHeroes(filterHeroes(heroes, { search, affinity, obtainable }), "rarity"),
-    [heroes, search, affinity, obtainable],
+    () => countHeroes(filterHeroes(heroes, { search, affinity, obtainable, race, faction }), "rarity"),
+    [heroes, search, affinity, obtainable, race, faction],
   );
   const affinityCounts = useMemo(
-    () => countHeroes(filterHeroes(heroes, { search, rarity, obtainable }), "affinity"),
-    [heroes, search, rarity, obtainable],
+    () => countHeroes(filterHeroes(heroes, { search, rarity, obtainable, race, faction }), "affinity"),
+    [heroes, search, rarity, obtainable, race, faction],
   );
   const obtainableCounts = useMemo(
-    () => countHeroes(filterHeroes(heroes, { search, rarity, affinity }), "obtainedAs"),
-    [heroes, search, rarity, affinity],
+    () => countHeroes(filterHeroes(heroes, { search, rarity, affinity, race, faction }), "obtainedAs"),
+    [heroes, search, rarity, affinity, race, faction],
+  );
+  const raceCounts = useMemo(
+    () => countTraits(filterHeroes(heroes, { search, rarity, affinity, obtainable, faction }), "race"),
+    [heroes, search, rarity, affinity, obtainable, faction],
+  );
+  const factionCounts = useMemo(
+    () => countTraits(filterHeroes(heroes, { search, rarity, affinity, obtainable, race }), "faction"),
+    [heroes, search, rarity, affinity, obtainable, race],
   );
 
   const byAffinity = useMemo(
@@ -132,7 +162,14 @@ export function RosterBrowser({
     [roster.affinities],
   );
 
-  const filtered = rarity !== null || affinity !== null || obtainable !== null || search !== "";
+  // «Caratteristica» non entra nei 74px delle altre etichette: con quella fila
+  // tutte si allargano a 124, come nei Set artefatto, e le colonne restano in
+  // fila. Sul telefono 124px sono un terzo della riga: l'etichetta va sopra i
+  // suoi pulsanti, invece di spingerli a capo a meta'.
+  const labelWidth = traits && traits.factions.length > 0 ? "w-full sm:w-[124px]" : undefined;
+
+  const filtered =
+    rarity !== null || affinity !== null || obtainable !== null || race !== null || faction !== null || search !== "";
 
   /** L'icona del gioco per un valore, solo se e' stata estratta. */
   const iconFor = (family: IconFamily, key: string | undefined) =>
@@ -143,6 +180,8 @@ export function RosterBrowser({
     setRarity(null);
     setAffinity(null);
     setObtainable(null);
+    setRace(null);
+    setFaction(null);
   }
 
   return (
@@ -171,7 +210,7 @@ export function RosterBrowser({
           </div>
         </div>
 
-        <FilterRow label={t.rarita}>
+        <FilterRow label={t.rarita} labelClassName={labelWidth}>
           <Chip
             active={rarity === null}
             onClick={() => setRarity(null)}
@@ -190,7 +229,7 @@ export function RosterBrowser({
           ))}
         </FilterRow>
 
-        <FilterRow label={t.attributo}>
+        <FilterRow label={t.attributo} labelClassName={labelWidth}>
           <Chip active={affinity === null} onClick={() => setAffinity(null)} label={t.tutti} />
           {roster.affinities.map((item) => (
             <Chip
@@ -205,7 +244,7 @@ export function RosterBrowser({
           ))}
         </FilterRow>
 
-        <FilterRow label={t.esceCome}>
+        <FilterRow label={t.esceCome} labelClassName={labelWidth}>
           <Chip active={obtainable === null} onClick={() => setObtainable(null)} label={t.tutte} />
           {roster.obtainable.map((value) => (
             <Chip
@@ -218,6 +257,43 @@ export function RosterBrowser({
             />
           ))}
         </FilterRow>
+
+        {/*
+          La razza con l'icona E il nome, come nella scheda: i sei simboli si
+          riconoscono meno delle sigle di rarita'. Le caratteristiche col nome,
+          perche' il gioco un'icona per loro non ce l'ha.
+        */}
+        {traits && traits.races.length > 0 ? (
+          <FilterRow label={t.razza} labelClassName={labelWidth}>
+            <Chip active={race === null} onClick={() => setRace(null)} label={t.tutte} />
+            {traits.races.map((item) => (
+              <Chip
+                key={item.code}
+                active={race === item.code}
+                onClick={() => setRace(race === item.code ? null : item.code)}
+                label={item.label}
+                iconSrc={iconFor("razza", item.iconKey)}
+                withLabel
+                count={raceCounts.get(item.code) ?? 0}
+              />
+            ))}
+          </FilterRow>
+        ) : null}
+
+        {traits && traits.factions.length > 0 ? (
+          <FilterRow label={t.caratteristica} labelClassName={labelWidth}>
+            <Chip active={faction === null} onClick={() => setFaction(null)} label={t.tutte} />
+            {traits.factions.map((item) => (
+              <Chip
+                key={item.code}
+                active={faction === item.code}
+                onClick={() => setFaction(faction === item.code ? null : item.code)}
+                label={item.label}
+                count={factionCounts.get(item.code) ?? 0}
+              />
+            ))}
+          </FilterRow>
+        ) : null}
       </div>
 
       <div className="mb-3.5 flex items-baseline justify-between gap-3">

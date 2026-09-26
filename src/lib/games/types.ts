@@ -34,6 +34,7 @@ import type {
 } from "./endgame-types";
 import type { AccountBuffIndex } from "./account-buff-types";
 import type { ArtifactIndex } from "./artifact-types";
+import type { HeroTermsIndex } from "./hero-terms-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
 export interface DatasetInfo {
@@ -92,6 +93,15 @@ export interface HeroEntry {
   nameIt?: string;
   /** l'epiteto in italiano, gia' ripulito come `epithet` */
   epithetIt?: string;
+  /**
+   * Razza e caratteristiche, coi codici del contesto (`HeroContextIndex.codes`).
+   *
+   * Il roster generato non le porta: le aggiunge la pagina della griglia,
+   * leggendole dal contesto degli eroi, per i filtri per razza e caratteristica
+   * (26/09). Assenti, quei filtri non restringono niente.
+   */
+  race?: number | null;
+  factions?: readonly number[];
 }
 
 /** Attributo di un eroe, col colore con cui il gioco lo identifica. */
@@ -822,6 +832,13 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * (`sliderData`). Il contratto sta in account-buff-types.ts.
    */
   readonly accountBuff?: AccountBuffIndex;
+
+  /**
+   * Le parole blu della scheda eroe: cosa c'e' dietro ognuna e quali eroi hanno
+   * la stessa cosa, per le tendine che si aprono cliccandole. Lo legge solo il
+   * server. Il contratto sta in hero-terms-types.ts.
+   */
+  readonly heroTerms?: HeroTermsIndex;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

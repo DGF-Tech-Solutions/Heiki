@@ -16,6 +16,10 @@ export interface HeroFilter {
   rarity?: string | null;
   affinity?: string | null;
   obtainable?: string | null;
+  /** codice della razza (`HeroEntry.race`) */
+  race?: number | null;
+  /** codice di una caratteristica: basta che l'eroe l'abbia fra le sue */
+  faction?: number | null;
   search?: string;
 }
 
@@ -88,6 +92,8 @@ export function filterHeroes(heroes: readonly HeroEntry[], filter: HeroFilter): 
     if (filter.rarity && hero.rarity !== filter.rarity) return false;
     if (filter.affinity && hero.affinity !== filter.affinity) return false;
     if (filter.obtainable && hero.obtainedAs !== filter.obtainable) return false;
+    if (filter.race != null && hero.race !== filter.race) return false;
+    if (filter.faction != null && !(hero.factions ?? []).includes(filter.faction)) return false;
     if (words.length === 0) return true;
 
     const text = haystack(hero);
@@ -110,6 +116,21 @@ export function countHeroes(
   for (const hero of heroes) {
     const value = hero[facet];
     counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * Quante voci per ogni razza o caratteristica, come `countHeroes`.
+ *
+ * A parte perche' i codici sono numeri e un eroe ha piu' caratteristiche (Ban e'
+ * Ragnarok e Sette Peccati): conta una volta in ciascuna.
+ */
+export function countTraits(heroes: readonly HeroEntry[], trait: "race" | "faction"): Map<number, number> {
+  const counts = new Map<number, number>();
+  for (const hero of heroes) {
+    const values = trait === "race" ? (hero.race != null ? [hero.race] : []) : (hero.factions ?? []);
+    for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
   }
   return counts;
 }

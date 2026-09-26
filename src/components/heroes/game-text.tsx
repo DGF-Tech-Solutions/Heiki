@@ -12,29 +12,64 @@
  * bersaglio - e vale anche dove non c'e' una definizione da mostrare.
  */
 
-import { collectHeroNotes, parseHeroText, splitHeroNotes } from "@/lib/games/hero-markup";
-import type { TextLine } from "@/lib/games/hero-markup";
+import { collectHeroNotes, groupTerms, parseHeroText, splitHeroNotes } from "@/lib/games/hero-markup";
+import type { TextLine, TextSegment } from "@/lib/games/hero-markup";
 import { readableColor } from "@/components/heroes/game-color";
 import { cx } from "@/components/ui";
 
-function Lines({ lines, className }: { lines: readonly TextLine[]; className?: string }) {
+function Segment({ segment }: { segment: TextSegment }) {
+  const color = segment.color ? readableColor(segment.color) : undefined;
+  return (
+    <span
+      className={cx(segment.bold && "font-semibold", segment.italic && "italic")}
+      style={color ? { color } : undefined}
+    >
+      {segment.text}
+    </span>
+  );
+}
+
+/**
+ * `terms`: per ogni parola blu, in ordine, l'id della tendina che apre, o null.
+ * La numerazione e' quella di `termWords` (hero-markup.ts), la stessa con cui
+ * l'import ha legato le parole ai loro bersagli.
+ */
+function Lines({
+  lines,
+  className,
+  terms,
+}: {
+  lines: readonly TextLine[];
+  className?: string;
+  terms?: readonly (string | null)[];
+}) {
   if (lines.length === 0) return null;
+  let term = 0;
 
   return (
     <div className={cx("[&>p]:m-0 [&>p+p]:mt-2", className)}>
       {lines.map((line, index) => (
         <p key={index}>
-          {line.map((segment, position) => {
-            const color = segment.color ? readableColor(segment.color) : undefined;
-
+          {groupTerms(line).map((piece, position) => {
+            if (piece.kind === "text") return <Segment key={position} segment={piece.segment} />;
+            const id = terms?.[term++] ?? null;
+            const segments = piece.segments.map((segment, k) => <Segment key={k} segment={segment} />);
+            if (!id) return <span key={position}>{segments}</span>;
+            // Una parola blu che porta a qualcosa: un pulsante che apre la sua
+            // tendina (`popover` del browser, funziona anche senza JavaScript).
+            // Il colore e' quello della parola, cosi' anche la sottolineatura a
+            // puntini e' azzurra.
+            const color = piece.segments[0]?.color ? readableColor(piece.segments[0].color) : undefined;
             return (
-              <span
+              <button
                 key={position}
-                className={cx(segment.bold && "font-semibold", segment.italic && "italic")}
+                type="button"
+                popoverTarget={id}
+                className="cursor-pointer text-left underline decoration-dotted decoration-1 underline-offset-[3px] hover:decoration-solid focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
                 style={color ? { color } : undefined}
               >
-                {segment.text}
-              </span>
+                {segments}
+              </button>
             );
           })}
         </p>
@@ -49,18 +84,23 @@ function Lines({ lines, className }: { lines: readonly TextLine[]; className?: s
  * Non e' il comportamento predefinito perche' lo stesso componente rende anche
  * titoli e descrizioni, dove non ci sono note e una potatura silenziosa
  * sarebbe solo un rischio in piu'.
+ *
+ * `terms` rende cliccabili le parole blu del corpo (26/09): vale solo con
+ * `omitNotes`, perche' le parole si contano sul corpo senza le note.
  */
 export function GameText({
   text,
   className,
   omitNotes,
+  terms,
 }: {
   text: string;
   className?: string;
   omitNotes?: boolean;
+  terms?: readonly (string | null)[];
 }) {
   const lines = omitNotes ? splitHeroNotes(text).body : parseHeroText(text);
-  return <Lines lines={lines} className={className} />;
+  return <Lines lines={lines} className={className} terms={omitNotes ? terms : undefined} />;
 }
 
 /**

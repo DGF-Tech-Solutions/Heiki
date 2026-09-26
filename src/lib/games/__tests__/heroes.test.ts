@@ -10,6 +10,7 @@
 import { describe, expect, it } from "vitest";
 import {
   countHeroes,
+  countTraits,
   filterHeroes,
   heroCardSrc,
   heroEpithet,
@@ -57,6 +58,28 @@ describe("filterHeroes", () => {
 
   it("somma i criteri invece di alternarli", () => {
     expect(filterHeroes(SAMPLE, { rarity: "LR", affinity: "Oscurita" })).toEqual([]);
+  });
+
+  it("filtra per razza e per caratteristica, che un eroe puo' avere in piu'", () => {
+    const traits: readonly HeroEntry[] = [
+      hero({ id: "a", race: 1, factions: [2] }),
+      hero({ id: "b", race: 3, factions: [4, 6] }),
+      hero({ id: "c", race: 3 }),
+    ];
+    expect(filterHeroes(traits, { race: 3 }).map((h) => h.id)).toEqual(["b", "c"]);
+    expect(filterHeroes(traits, { faction: 6 }).map((h) => h.id)).toEqual(["b"]);
+    expect(filterHeroes(traits, { race: 3, faction: 2 })).toEqual([]);
+    // Ban e' Ragnarok e Sette Peccati: conta in tutte e due
+    expect([...countTraits(traits, "faction")]).toEqual([
+      [2, 1],
+      [4, 1],
+      [6, 1],
+    ]);
+    expect(countTraits(traits, "race").get(3)).toBe(2);
+    // un roster senza razza e caratteristiche (il generato): i filtri non tolgono
+    // niente se non scelti, e tolgono tutto se scelti
+    expect(filterHeroes(SAMPLE, {})).toHaveLength(4);
+    expect(filterHeroes(SAMPLE, { race: 1 })).toEqual([]);
   });
 
   it("un criterio nullo non restringe", () => {

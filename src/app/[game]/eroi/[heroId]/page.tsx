@@ -7,6 +7,7 @@ import { GameText } from "@/components/heroes/game-text";
 import { HeroAbilities } from "@/components/heroes/hero-abilities";
 import { GameIcon, hasIcon, localized } from "@/components/heroes/hero-parts";
 import { Relics } from "@/components/heroes/hero-relics";
+import { HeroTermPopovers, termResolver } from "@/components/heroes/hero-terms";
 import { HeroTabs, type HeroTab } from "@/components/heroes/hero-tabs";
 import { StatSlider } from "@/components/heroes/stat-slider";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
@@ -232,6 +233,12 @@ function lookup(game: string, heroId: string) {
     beastPages: Object.fromEntries((gameModule.creatureNest?.beasts ?? []).map((beast) => [beast.group, beast.key])),
     icons: gameModule.icons,
     accountBuff: gameModule.accountBuff,
+    // le parole blu, e gli indici interi che servono alle loro tendine: gli
+    // elenchi nominano le carte, le abilita' speciali e le reliquie degli ALTRI eroi
+    heroTerms: gameModule.heroTerms,
+    abilityIndex: gameModule.heroAbilities,
+    specialIndex: gameModule.heroSpecials,
+    contextIndex: gameModule.heroContext,
     context: gameModule.heroContext?.heroes[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
   };
@@ -289,6 +296,10 @@ export default async function HeroPage({ params, searchParams }: Props) {
     context,
     icons,
     accountBuff,
+    heroTerms,
+    abilityIndex,
+    specialIndex,
+    contextIndex,
   } = found;
 
   /**
@@ -322,6 +333,24 @@ export default async function HeroPage({ params, searchParams }: Props) {
   const title = localized(text?.i18n?.title, text?.title, locale);
   const description = localized(text?.i18n?.description, text?.description, locale);
 
+  // Le parole blu: quale tendina apre ognuna, e quali tendine servono alla
+  // pagina. I testi sono quelli inglesi (il legame e' su quelli) di tutto
+  // quello che la pagina mostra, anche i ranghi e le versioni nascosti: si
+  // scelgono coi pulsanti, e le loro parole devono aprire qualcosa.
+  const terms = heroTerms ? termResolver(heroTerms) : null;
+  const termTargets = new Set(
+    terms
+      ? [
+          ...(abilities?.cards ?? []).flatMap((card) => card.ranks.map((rank) => rank.text)),
+          ...(abilities?.ultimate?.ranks ?? []).map((rank) => rank.text),
+          ...(abilities?.passive?.text ? [abilities.passive.text] : []),
+          ...(abilities?.passive?.ultimateSteps ?? []).map((step) => step.text),
+          ...specials.flatMap(({ ability }) => [ability.text, ...(ability.ultimateSteps ?? []).map((step) => step.text)]),
+          ...relics.flatMap(({ relic }) => (relic.passive?.text.en ? [relic.passive.text.en] : [])),
+        ].flatMap(terms.targetsOf)
+      : [],
+  );
+
   // Le schede, nell'ordine in cui compaiono. Una scheda senza niente da dire
   // non c'e': 80 eroi non hanno una reliquia, e una scheda vuota da aprire per
   // scoprirlo farebbe perdere tempo. Info c'e' sempre: nome, id e altre
@@ -351,6 +380,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
           specials={specials}
           specialKinds={specialKinds}
           icons={icons}
+          termIds={terms?.ids}
         />
       ),
     });
@@ -375,6 +405,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
           conditions={passiveConditions}
           icons={icons}
           beastPages={beastPages}
+          termIds={terms?.ids}
         />
       ),
     });
@@ -516,6 +547,27 @@ export default async function HeroPage({ params, searchParams }: Props) {
         </header>
 
         <HeroTabs tabs={tabs} initial={typeof scheda === "string" ? scheda : undefined} label={t.schede} />
+
+        {/*
+          Le tendine delle parole blu stanno fuori dalle schede: una scheda
+          chiusa e' display:none, e una tendina dentro non si potrebbe aprire
+          da nessuna parte. Aperte stanno nel top layer, quindi il loro posto
+          nel documento non conta.
+        */}
+        {heroTerms ? (
+          <HeroTermPopovers
+            game={game}
+            locale={locale}
+            heroId={hero.id}
+            targets={termTargets}
+            index={heroTerms}
+            heroes={roster.heroes}
+            context={contextIndex}
+            abilities={abilityIndex}
+            specials={specialIndex}
+            relics={relicIndex}
+          />
+        ) : null}
       </article>
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">

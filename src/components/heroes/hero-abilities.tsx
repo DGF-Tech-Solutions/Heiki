@@ -9,6 +9,7 @@
 
 import { GameNotes, GameText } from "@/components/heroes/game-text";
 import { hasIcon, localized, textIn } from "@/components/heroes/hero-parts";
+import type { TermIds } from "@/components/heroes/hero-terms";
 import { cx, eyebrow, numeric } from "@/components/ui";
 import {
   gameIconSrc,
@@ -112,6 +113,22 @@ function stepsIn(
 }
 
 /**
+ * Le tendine delle parole blu di un testo che cambia col rango dell'ultimate
+ * (l'Unica, un Talento): una fila per versione, nell'ordine `[testo, ...passi]`
+ * di PassiveText.
+ */
+function versionTerms(
+  termIds: TermIds | undefined,
+  item: { text: string; textIt?: string; ultimateSteps?: readonly { text: string; textIt?: string }[] },
+  withSteps: boolean,
+  locale: Locale,
+): (readonly (string | null)[] | undefined)[] | undefined {
+  if (!termIds) return undefined;
+  const steps = withSteps ? (item.ultimateSteps ?? []) : [];
+  return [item, ...steps].map((version) => termIds(version.text, textIn(version, locale)));
+}
+
+/**
  * La scheda «Abilita'»: a sinistra l'Unica e sotto le abilita' speciali, a
  * destra le tre carte che l'eroe gioca, A, B e ultimate.
  *
@@ -145,6 +162,7 @@ export function HeroAbilities({
   specials,
   specialKinds,
   icons,
+  termIds,
 }: {
   game: string;
   locale: Locale;
@@ -157,6 +175,8 @@ export function HeroAbilities({
   specials: readonly { id: string; ability: HeroSpecialAbility }[];
   specialKinds: Readonly<Record<string, HeroSpecialKind>> | undefined;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
+  /** le tendine delle parole blu (hero-terms.tsx); senza, le parole restano testo */
+  termIds?: TermIds;
 }) {
   const t = TESTI[locale];
 
@@ -236,6 +256,12 @@ export function HeroAbilities({
                         context={context?.cards["passiva"]}
                         glossary={glossary}
                         icons={icons}
+                        terms={versionTerms(
+                          termIds,
+                          { ...abilities.passive, text: abilities.passive.text },
+                          (abilities.ultimate?.ranks.length ?? 0) > 1,
+                          locale,
+                        )}
                       />
                     ) : (
                       <p className="m-0 text-sm text-ink-3">{t.passivaSenzaTesto}</p>
@@ -265,6 +291,7 @@ export function HeroAbilities({
                     conditions={passiveConditions}
                     icons={icons}
                     reactive={(abilities?.ultimate?.ranks.length ?? 0) > 1}
+                    termIds={termIds}
                   />
                 </section>
               );
@@ -293,6 +320,7 @@ export function HeroAbilities({
                   context={card.slot ? context?.cards[card.slot] : undefined}
                   glossary={glossary}
                   icons={icons}
+                  termIds={termIds}
                 />
               </section>
             ))}
@@ -366,6 +394,7 @@ export function HeroAbilities({
                   glossary={glossary}
                   icons={icons}
                   artSrc={assets?.ultimate ? heroUltimateArtSrc(game, heroId) : undefined}
+                  termIds={termIds}
                 />
               </section>
             ) : null}
@@ -740,6 +769,7 @@ function SpecialAbility({
   conditions,
   icons,
   reactive,
+  termIds,
 }: {
   game: string;
   locale: Locale;
@@ -750,6 +780,7 @@ function SpecialAbility({
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   /** c'e' un rango dell'ultimate da seguire */
   reactive: boolean;
+  termIds?: TermIds;
 }) {
   const t = TESTI[locale];
   const fonti: Readonly<Record<string, Fonte | undefined>> = FONTE_ICONA_SPECIALE[locale];
@@ -804,6 +835,7 @@ function SpecialAbility({
           steps={reactive ? stepsIn(ability.ultimateSteps, locale) : undefined}
           icons={icons}
           subject={t.soggettoSpeciale(ability.kind, kind?.label)}
+          terms={versionTerms(termIds, ability, reactive, locale)}
         />
 
         {rules.length > 0 ? (
@@ -903,6 +935,7 @@ export function PassiveText({
   glossary,
   icons,
   subject,
+  terms,
 }: {
   game: string;
   locale: Locale;
@@ -914,6 +947,8 @@ export function PassiveText({
   context?: HeroCardContext;
   glossary?: Readonly<Record<string, HeroEffect>>;
   icons?: Readonly<Record<string, readonly string[]>>;
+  /** le tendine delle parole blu, una fila per versione come `[text, ...steps]` */
+  terms?: readonly (readonly (string | null)[] | undefined)[];
 }) {
   const t = TESTI[locale];
   const body = "text-sm leading-relaxed text-ink-2";
@@ -921,7 +956,7 @@ export function PassiveText({
   if (!steps || steps.length === 0) {
     return (
       <>
-        <GameText text={text} omitNotes className={body} />
+        <GameText text={text} omitNotes className={body} terms={terms?.[0]} />
         <Effects context={context} glossary={glossary} locale={locale} />
         <GameNotes texts={[text]} className="mt-2.5" />
       </>
@@ -966,7 +1001,7 @@ export function PassiveText({
 
       {versions.map((version, index) => (
         <div key={`testo-${version.fromUltimateRank}`} className={cx("hidden", ...shows[index]!)}>
-          <GameText text={version.text} omitNotes className={body} />
+          <GameText text={version.text} omitNotes className={body} terms={terms?.[index]} />
         </div>
       ))}
 
@@ -1120,7 +1155,7 @@ function RankButtons({
 }
 
 /** Il testo del rango scelto: uno solo alla volta, e lo decide il radio. */
-function RankPanels({ card, locale }: { card: HeroCard; locale: Locale }) {
+function RankPanels({ card, locale, termIds }: { card: HeroCard; locale: Locale; termIds?: TermIds }) {
   const ranks = card.ranks;
   if (ranks.length === 0) return null;
 
@@ -1128,7 +1163,12 @@ function RankPanels({ card, locale }: { card: HeroCard; locale: Locale }) {
   if (ranks.length === 1) {
     return (
       <div className="mt-2 text-[13px] leading-snug">
-        <GameText text={textIn(ranks[0]!, locale)} omitNotes className="[&>p]:m-0" />
+        <GameText
+          text={textIn(ranks[0]!, locale)}
+          omitNotes
+          className="[&>p]:m-0"
+          terms={termIds?.(ranks[0]!.text, textIn(ranks[0]!, locale))}
+        />
       </div>
     );
   }
@@ -1137,7 +1177,12 @@ function RankPanels({ card, locale }: { card: HeroCard; locale: Locale }) {
     <div className="mt-2 text-[13px] leading-snug">
       {ranks.map((rank, index) => (
         <div key={`panel-${rank.rank}`} className={cx("hidden", RANK_CLASSES[index]?.show)}>
-          <GameText text={textIn(rank, locale)} omitNotes className="[&>p]:m-0" />
+          <GameText
+            text={textIn(rank, locale)}
+            omitNotes
+            className="[&>p]:m-0"
+            terms={termIds?.(rank.text, textIn(rank, locale))}
+          />
         </div>
       ))}
     </div>
@@ -1160,6 +1205,7 @@ function CardRow({
   glossary,
   icons,
   artSrc,
+  termIds,
 }: {
   game: string;
   locale: Locale;
@@ -1170,6 +1216,7 @@ function CardRow({
   icons?: Readonly<Record<string, readonly string[]>>;
   /** l'illustrazione quando non e' uno sprite numerato: l'ultimate ha la sua cartella */
   artSrc?: string;
+  termIds?: TermIds;
 }) {
   const t = TESTI[locale];
   const fontiSprite: Readonly<Record<string, Fonte | undefined>> = FONTE_SPRITE[locale];
@@ -1247,7 +1294,7 @@ function CardRow({
           />
         ) : null}
 
-        <RankPanels card={card} locale={locale} />
+        <RankPanels card={card} locale={locale} termIds={termIds} />
 
         {/*
           Le definizioni dei termini stanno in fondo, una volta per carta. Il
