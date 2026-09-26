@@ -176,15 +176,9 @@ export interface HeroAssets {
   /** quante carte d'attacco, numerate da 1 */
   cards?: number;
   /**
-   * Le carte vengono da un accostamento piu' debole: stesso personaggio, ma
-   * sigla di rarita' diversa da quella dell'eroe. Vanno mostrate dicendolo.
-   */
-  cardsApprox?: boolean;
-  /**
-   * C'e' la carta dell'ultimate: `icon_<slug>_special_01`, 128x256 come quelle
-   * d'attacco. Viene dal wiki, che la cita nella pagina dell'eroe, oppure dallo
-   * slug quando la cartella del personaggio ne contiene una sola e nessun altro
-   * eroe la condivide: li' non c'e' niente da scegliere.
+   * C'e' la carta dell'ultimate: `icon_<slug>_special_NN`, di solito 128x256
+   * come quelle d'attacco. Quale sia lo dichiara il client
+   * (DB_skill_card_resource.icon), come per le carte A e B.
    */
   ultimate?: boolean;
 }
@@ -203,22 +197,12 @@ export interface HeroCard {
   /**
    * Quale sprite le corrisponde, numerato da 1: `carte/<id>/<n>.png`.
    *
-   * Il legame fra carta e immagine non sta nel client: lo decide la pipeline
-   * (accosta_carte.py) e `spriteSource` dice come. L'ultimate non ha il
-   * numero, il suo file e' `ultimate/<id>.png` e c'e' quando c'e'
+   * Il legame fra carta e immagine lo dichiara il client
+   * (DB_skill_card_resource.icon, letto da accosta_carte.py). L'ultimate non
+   * ha il numero, il suo file e' `ultimate/<id>.png` e c'e' quando c'e'
    * `HeroAssets.ultimate`.
    */
   sprite?: number;
-  /**
-   * Come si sa che l'illustrazione e' di questa carta.
-   *
-   * "wiki" la dichiara il wiki; "manuale" e' scelta a mano guardando le carte;
-   * le altre sono regole misurate contro il wiki: "cartella_propria" (53/53),
-   * "ordine_uscita" (55/57), "famiglia" per l'ultimate (139/145). Arriva fino
-   * in pagina perche' un accostamento dedotto e uno dichiarato non offrono la
-   * stessa garanzia.
-   */
-  spriteSource?: string;
   /**
    * Il nome nelle due lingue. `name` resta l'italiano col ripiego
    * sull'inglese; qui l'inglese e' sempre inglese, e l'italiano c'e' anche per

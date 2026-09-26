@@ -1,5 +1,5 @@
 {
- "_nota": "Scritto da rivedi_carte.py, e a mano se serve: heroId -> A, B, ultimate -> nome del file senza misura. Vince su wiki e regole, e accosta_carte.py non lo sovrascrive mai.",
+ "_nota": "Storico, non piu' letto dal 26/09: il client dichiara l'illustrazione di ogni carta (DB_skill_card_resource.icon) e 188 di queste 194 scelte coincidono. Scritto da rivedi_carte.py: heroId -> A, B, ultimate -> nome del file senza misura.",
  "1404001": {
   "B": "icon_arthur_sword_skill_02",
   "A": "icon_arthur_sword_skill_03"

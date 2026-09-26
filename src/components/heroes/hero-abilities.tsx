@@ -45,12 +45,6 @@ const ARTICOLO_SPECIALE: Readonly<Record<string, string>> = {
 const TESTI = testi({
   it: {
     carteAttacco: "Carte d’attacco",
-    illustrazioniAltreVersioni: (illustrazioni: number, carte: number) =>
-      `La cartella di questo personaggio contiene ${illustrazioni} illustrazioni, ma l’eroe ha ${carte} carte: le altre sono delle sue altre versioni. Quali siano le sue non si ricava dal client`,
-    illustrazioniCarte: (illustrazioni: number) =>
-      `Le ${illustrazioni} illustrazioni delle carte di quest’eroe. Quale appartenga a quale carta non si ricava dal client`,
-    gradoNonCombacia: ", e il grado di uscita non combacia",
-    gradoDaVerificare: "(stesso personaggio, grado di uscita diverso: da verificare)",
     fonteCarte:
       "Quali carte ha l’eroe e cosa fanno a ogni rango vengono dalle tabelle del client del gioco.",
     // Solo in italiano: in inglese i testi dei ranghi sono semplicemente nella
@@ -73,16 +67,9 @@ const TESTI = testi({
     valoriArancione: ": i valori in arancione sono quelli legati al rango",
     rango: (rango: number) => `Rango ${rango}`,
     carta: (slot: string) => `carta ${slot}`,
-    illustrazioneFonte: (breve: string) => `illustrazione ${breve}`,
   },
   en: {
     carteAttacco: "Skill cards",
-    illustrazioniAltreVersioni: (illustrazioni: number, carte: number) =>
-      `This character's folder holds ${illustrazioni} illustrations, but the hero has ${carte} ${carte === 1 ? "card" : "cards"}: the others belong to its other versions. Which ones are its own can't be told from the client`,
-    illustrazioniCarte: (illustrazioni: number) =>
-      `The ${illustrazioni} card ${illustrazioni === 1 ? "illustration" : "illustrations"} of this hero. Which one belongs to which card can't be told from the client`,
-    gradoNonCombacia: ", and the starting rarity doesn't match",
-    gradoDaVerificare: "(same character, different starting rarity: to be verified)",
     fonteCarte: "Which cards the hero has and what they do at each rank come from the game client's tables.",
     testiInInglese: null,
     ultimate: "Ultimate Move",
@@ -100,7 +87,6 @@ const TESTI = testi({
     valoriArancione: ": values in orange are the ones tied to the rank",
     rango: (rango: number) => `Rank ${rango}`,
     carta: (slot: string) => `card ${slot}`,
-    illustrazioneFonte: (breve: string) => `illustration: ${breve}`,
   },
 });
 
@@ -302,10 +288,8 @@ export function HeroAbilities({
         {right ? (
           <div className={column}>
             {/*
-              Una riga per carta, con la sua illustrazione. L'accostamento non
-              si ricava dai nomi dei file: lo decide la pipeline
-              (accosta_carte.py) fra wiki, scelte a mano e regole misurate
-              contro il wiki, e ogni carta dice da quale delle tre viene.
+              Una riga per carta, con la sua illustrazione: quale sia lo dichiara
+              il client (DB_skill_card_resource.icon, letto da accosta_carte.py).
             */}
             {cards.map((card, index) => (
               <section key={index}>
@@ -326,51 +310,18 @@ export function HeroAbilities({
             ))}
 
             {/*
-              Quando l'accostamento non si sa, le immagini restavano invisibili:
-              il testo aveva la sua riga e gli sprite non comparivano da nessuna
-              parte. Mostrarli qui sotto, staccati e dichiarati come non
-              attribuiti, li rende consultabili senza affermare il falso -
-              metterli accanto a un testo a caso sarebbe stata l'unica cosa
-              peggiore del non mostrarli.
-
-              MA NON SONO TUTTE SUE, e prima lo si diceva. Gli sprite stanno in
-              una cartella per PERSONAGGIO, che le versioni si spartiscono due a
-              due: nella cartella `ban_nunchaku` il wiki assegna 04 e 01 a un
-              Ban e 02 e 03 a un altro. Risultato: 170 eroi ne ricevono piu' di
-              quante carte abbiano - fino a 10 per 3 carte - e la frase «le N
-              illustrazioni di quest'eroe» era falsa per tutti loro.
-
-              Ridurle a due non si puo' senza indovinare: la regola posizionale
-              cade su Diane, Drole, Gil Thunder e Griamore, e la carta A ha
-              l'indice minore solo in 92 casi su 110. Anche l'eliminazione fra
-              fratelli non regge, perche' due versioni sconosciute nella stessa
-              cartella si contenderebbero gli stessi avanzi. L'unica fonte che
-              lo dichiari e' il wiki, e copre 114 eroi: allargare quello e' il
-              vero rimedio. Qui si dice come stanno le cose.
+              Fino al 26/09 qui c'era una galleria di illustrazioni «non
+              attribuite», per gli eroi di cui non si sapeva quale sprite fosse
+              quale carta. Il client lo dichiara per tutte: la galleria non
+              aveva piu' niente da mostrare, e la sua frase («non si ricava dal
+              client») era diventata falsa.
             */}
-            {cards.length > 0 && cardCount > 0 && cards.every((card) => card.sprite === undefined) ? (
-              <div>
-                <p className="m-0 mb-2 text-[13px] text-ink-3">
-                  {cardCount > cards.length
-                    ? t.illustrazioniAltreVersioni(cardCount, cards.length)
-                    : t.illustrazioniCarte(cardCount)}
-                  {assets?.cardsApprox ? t.gradoNonCombacia : null}.
-                </p>
-                <Sprites game={game} heroId={heroId} count={cardCount} />
-              </div>
-            ) : null}
-
             {cards.length === 0 && cardCount > 0 ? (
               /* Ripiego: ci sono gli sprite ma nessun testo. Vale per un modulo che
                  abbia le immagini e non ancora il database delle abilita'. */
               <section>
                 <h2 className={heading}>
                   {t.carteAttacco} · {cardCount}
-                  {assets?.cardsApprox ? (
-                    <span className="ml-2 normal-case tracking-normal text-ink-3">
-                      {t.gradoDaVerificare}
-                    </span>
-                  ) : null}
                 </h2>
                 <Sprites game={game} heroId={heroId} count={cardCount} />
               </section>
@@ -527,68 +478,7 @@ function EffectTag({
   );
 }
 
-/**
- * Come si sa che un'illustrazione e' di quella carta.
- *
- * In pagina la parola breve, al passaggio del puntatore la regola con la sua
- * misura: le misure sono contro gli accostamenti che il wiki dichiara.
- */
-const FONTE_SPRITE = testi({
-  it: {
-    wiki: {
-      breve: "dal wiki",
-      spiega: "Il wiki di community cita il file dell'illustrazione accanto a questa carta.",
-    },
-    manuale: {
-      breve: "verificata a mano",
-      spiega:
-        "Scelta a mano confrontando le carte del gioco. Dove il wiki la dichiara anche, coincide 25 volte su 25.",
-    },
-    cartella_propria: {
-      breve: "dedotta",
-      spiega:
-        "L'eroe è l'unico della sua cartella di carte: le prime due, ordinate per id d'abilità. Esatta 53 volte su 53 sulle carte che il wiki dichiara.",
-    },
-    ordine_uscita: {
-      breve: "dedotta",
-      spiega:
-        "Le versioni del personaggio, in ordine di uscita, prendono le carte a coppie. Esatta 55 volte su 57 sulle carte che il wiki dichiara.",
-    },
-    famiglia: {
-      breve: "dedotta",
-      spiega:
-        "Le versioni di un personaggio condividono la carta dell'ultimate. Esatta 139 volte su 145 sulle ultimate che il wiki dichiara.",
-    },
-  },
-  en: {
-    wiki: {
-      breve: "from the wiki",
-      spiega: "The community wiki cites the illustration file next to this card.",
-    },
-    manuale: {
-      breve: "checked by hand",
-      spiega:
-        "Picked by hand by comparing the game's cards. Where the wiki states it too, it matches 25 times out of 25.",
-    },
-    cartella_propria: {
-      breve: "inferred",
-      spiega:
-        "The hero is the only one in its card folder: the first two, sorted by skill id. Correct 53 times out of 53 on the cards the wiki states.",
-    },
-    ordine_uscita: {
-      breve: "inferred",
-      spiega:
-        "The character's versions, in release order, take the cards in pairs. Correct 55 times out of 57 on the cards the wiki states.",
-    },
-    famiglia: {
-      breve: "inferred",
-      spiega:
-        "A character's versions share the Ultimate Move card. Correct 139 times out of 145 on the Ultimate Moves the wiki states.",
-    },
-  },
-});
-
-/** La forma di una voce di FONTE_SPRITE e FONTE_ICONA_SPECIALE, per cercarle con la chiave del dato. */
+/** La forma di una voce di FONTE_ICONA_SPECIALE, per cercarla con la chiave del dato. */
 type Fonte = { breve: string; spiega: string };
 
 /**
@@ -1218,8 +1108,6 @@ function CardRow({
   artSrc?: string;
   termIds?: TermIds;
 }) {
-  const t = TESTI[locale];
-  const fontiSprite: Readonly<Record<string, Fonte | undefined>> = FONTE_SPRITE[locale];
   const art =
     artSrc ?? (card.sprite !== undefined ? heroCardArtSrc(game, heroId, card.sprite) : null);
 
@@ -1276,11 +1164,6 @@ function CardRow({
           riquadro.
         */}
         <p className="m-0 font-semibold">{localized(card.nameI18n, card.name, locale)}</p>
-        {art && card.spriteSource ? (
-          <p className="m-0 text-[12px] text-ink-3" title={fontiSprite[card.spriteSource]?.spiega}>
-            {t.illustrazioneFonte(fontiSprite[card.spriteSource]?.breve ?? card.spriteSource)}
-          </p>
-        ) : null}
 
         {/* Senza illustrazione non c'e' una carta sotto cui metterli: stanno sopra il testo. */}
         {art === null && picker ? (

@@ -826,36 +826,28 @@ ${entries.join("\n")}
 /* ------------------------------------------------------- carte agli eroi -- */
 
 /**
- * Quale carta e' di quale eroe: A, B e ultimate.
+ * Quale illustrazione ha ogni carta: A, B e ultimate.
  *
- * Lo decide `python accosta_carte.py` nella pipeline, che lo scrive in
- * eroi/accostamenti_carte.json con la fonte di ogni scelta:
+ * La scrive `python accosta_carte.py` nella pipeline, in
+ * eroi/accostamenti_carte.json, e dal 26/09 la prende dal client: la skin
+ * dell'eroe da' gli id delle carte (DB_skin_skill), e ogni carta dichiara il
+ * suo sprite (DB_skill_card_resource.icon). 1.125 carte su 1.125.
  *
- *   manuale            scelta a mano con rivedi_carte.py, guardando le carte
- *   wiki               il wiki cita il nome del file accanto alla carta
- *   cartella_propria   l'eroe e' l'unico della sua cartella: le prime due,
- *                      ordinate per id d'abilita'                        53/53
- *   ordine_uscita      le versioni per data d'uscita prendono le carte a
- *                      coppie consecutive                                55/57
- *   famiglia           l'ultimate con l'indice piu' basso della cartella 139/145
- *
- * Le misure sono contro gli accostamenti che il wiki dichiara. Qui non si
- * decide piu' niente: si copia, e la fonte arriva fino in pagina. Prima questa
- * sezione accostava da sola - per nome di carta dal wiki, e con "indice piu'
- * basso = carta A" all'84% - e arrivava a 478 carte su 746.
+ * Fino al 26/09 il legame stava nelle tabelle cifrate e si ricavava da wiki,
+ * regole e scelte a mano, con la fonte in pagina accanto a ogni carta: contro
+ * il client 25 carte erano sbagliate. Ora e' un dato del gioco come il testo
+ * della carta, e la fonte non si porta piu'.
  */
 interface SourceChoice {
   file: string;
-  fonte: string;
 }
 
 interface CardSprite {
   n: number;
-  source: string;
 }
 
 const choicesJson = resolve(SOURCE, "eroi/accostamenti_carte.json");
-/** eroe -> slot "A"/"B" -> numero del file in carte/<id>/, e fonte */
+/** eroe -> slot "A"/"B" -> numero del file in carte/<id>/ */
 const cardSprites = new Map<string, Map<string, CardSprite>>();
 /** eroe -> la carta dell'ultimate: si copia con gli altri asset */
 const ultimateChoice = new Map<string, SourceChoice>();
@@ -894,7 +886,7 @@ if (!existsSync(choicesJson)) {
       const n = perSlot.size + 1;
       copyFileSync(from, resolve(dir, `${n}.png`));
       copied++;
-      perSlot.set(slot, { n, source: choice.fonte });
+      perSlot.set(slot, { n });
     }
     if (perSlot.size > 0) cardSprites.set(hid, perSlot);
   }
@@ -1033,7 +1025,6 @@ if (!existsSync(databaseJson)) {
   let withStatSteps = 0;
   let italianCardNames = 0;
   let pairedSprites = 0;
-  const bySource: Record<string, number> = {};
   // I testi italiani: quanti se ne scrivono, quali mancano, e quanti eroi li
   // hanno tutti. `missingInHero` si azzera a ogni eroe e decide `textsInItalian`.
   let italianRanks = 0;
@@ -1082,20 +1073,15 @@ if (!existsSync(databaseJson)) {
       it: nameIt ? clean(nameIt) : null,
       en: card.nome?.en ? clean(card.nome.en) : null,
     };
-    // L'illustrazione si prende per SLOT dagli accostamenti. L'ultimate porta
-    // solo la fonte: il suo file e' ultimate/<id>.png, e c'e' quando c'e'
+    // L'illustrazione si prende per SLOT dagli accostamenti. L'ultimate non ha
+    // il numero: il suo file e' ultimate/<id>.png, e c'e' quando c'e'
     // `HeroAssets.ultimate`.
     const sprite = cardSprites.get(hid)?.get(card.tipo);
-    const source = card.tipo === "ultimate" ? ultimateChoice.get(hid)?.fonte : sprite?.source;
-    if (source) {
-      pairedSprites++;
-      bySource[source] = (bySource[source] ?? 0) + 1;
-    }
+    if (card.tipo === "ultimate" ? ultimateChoice.has(hid) : sprite) pairedSprites++;
     if (card.nome?.it) italianCardNames++;
     return (
       `{ name: ${JSON.stringify(name)}, slot: ${JSON.stringify(card.tipo)}` +
       (sprite ? `, sprite: ${sprite.n}` : "") +
-      (source ? `, spriteSource: ${JSON.stringify(source)}` : "") +
       `, nameI18n: ${JSON.stringify(nameI18n)}` +
       `, ranks: [${ranks}] }`
     );
@@ -1284,8 +1270,7 @@ ${statRows.join("\n")}
   );
   console.log(
     `  ${italianCardNames} nomi di carta in italiano dal database, ${italianNamesFromHub} dalla scheda italiana; ` +
-      `${pairedSprites} carte con la propria illustrazione ` +
-      `(${Object.entries(bySource).map(([fonte, n]) => `${fonte} ${n}`).join(", ")})`,
+      `${pairedSprites} carte con la propria illustrazione`,
   );
   if (italianHeroes.size > 0) {
     console.log(

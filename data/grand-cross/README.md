@@ -52,7 +52,7 @@ versionati. La pipeline li legge (e in parte li scrive) da qui, col percorso
 
 | file | cosa | chi lo scrive | chi lo legge |
 |---|---|---|---|
-| `accostamenti_manuali.json` | quale illustrazione è la carta A, la B e l'ultimate, per gli eroi che le regole non coprono: le scelte dell'utente | la pagina di `rivedi_carte.py` | `accosta_carte.py`, che la fa vincere su tutto |
+| `accostamenti_manuali.json` | quale illustrazione è la carta A, la B e l'ultimate: le 194 scelte dell'utente fatte con `rivedi_carte.py` fino al 26/09. **Non lo legge più nessuno**: dal 26/09 l'illustrazione di ogni carta la dichiara il client (`DB_skill_card_resource.icon`), e 188 scelte su 194 coincidono. Resta come storico | nessuno (la pagina è in `archivio/script_superati/` della pipeline) | nessuno |
 | `etichette_manuali.json` | i nomi dei codici che il client non consegna in nessuna lingua (la fazione 10 è Cross:IF, la 7 Dio) | l'utente; `contesto_eroi.py` semina solo le lacune e non sovrascrive | `contesto_eroi.py`, `concetti.py` |
 | `vocabolario_effetti.json` | le 598 voci del vocabolario degli effetti, con l'`asse` da compilare | l'utente; `estrai_effetti.py` aggiunge le voci nuove | `estrai_effetti.py` |
 | `uscite_storiche.json` | le date d'uscita dei 373 eroi noti al 16/09, prese una volta dall'archivio di 7dshub | congelato: nessuno lo riscrive | `date_uscita.py` |
