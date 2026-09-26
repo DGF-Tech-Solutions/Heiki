@@ -58,6 +58,7 @@ import { CREATURE_NEST } from "./creature-nest.generated";
 import { DEATH_MATCH } from "./death-match.generated";
 import { DEMON_KING } from "./demon-king.generated";
 import { ENDGAME_HEROES } from "./endgame-heroes.generated";
+import { ARTIFACTS } from "./artifacts.generated";
 import { SUPREME_DEITY } from "./supreme-deity.generated";
 import { GAME_ICONS } from "./game-icons.generated";
 import { HERO_STATS } from "./hero-stats.generated";
@@ -492,6 +493,7 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   demonKing: DEMON_KING,
   supremeDeity: SUPREME_DEITY,
   endgameHeroes: ENDGAME_HEROES,
+  artifacts: ARTIFACTS,
   icons: GAME_ICONS,
   resolveActor,
   computeDamage,

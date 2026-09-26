@@ -112,7 +112,7 @@ export interface GameSection {
    * ancora. Dichiararlo qui evita l'alternativa peggiore, cioe' una voce di
    * menu che porta a una pagina vuota.
    */
-  needs?: "roster" | "releases" | "deathMatch" | "creatureNest" | "demonKing" | "supremeDeity";
+  needs?: "roster" | "releases" | "artifacts" | "deathMatch" | "creatureNest" | "demonKing" | "supremeDeity";
 }
 
 export interface GameSectionGroup {
@@ -144,6 +144,24 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "Banners, dates, heroes and events, update by update",
         },
         needs: "releases",
+      },
+      {
+        path: "/set-artefatto",
+        label: { it: "Set artefatto", en: "Artifact Sets" },
+        hint: {
+          it: "I set bonus: carte, effetto livello per livello, potenziamento",
+          en: "The set bonuses: cards, effect level by level, enhancement",
+        },
+        needs: "artifacts",
+      },
+      {
+        path: "/carte-artefatto",
+        label: { it: "Carte artefatto", en: "Artifact Cards" },
+        hint: {
+          it: "Le carte: statistiche, set e pacchetti da cui si trovano",
+          en: "The cards: stats, sets and the packs they come from",
+        },
+        needs: "artifacts",
       },
       {
         path: "/personaggi",

@@ -29,8 +29,9 @@
     "db:reset": "docker compose down -v && node scripts/setup.mjs",
     "db:smoke": "tsx scripts/smoke-db.mts",
     "promote": "tsx scripts/promote.mts",
-    "eroi:import": "tsx scripts/import-heroes.mts && tsx scripts/import-endgame.mts",
+    "eroi:import": "tsx scripts/import-heroes.mts && tsx scripts/import-endgame.mts && tsx scripts/import-artifacts.mts",
     "endgame:import": "tsx scripts/import-endgame.mts",
+    "artefatti:import": "tsx scripts/import-artifacts.mts",
     "docker:app": "docker compose --profile app up --build"
   },
   "dependencies": {

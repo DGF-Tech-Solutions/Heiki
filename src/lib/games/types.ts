@@ -32,6 +32,7 @@ import type {
   EndgameHeroLink,
   SupremeDeityIndex,
 } from "./endgame-types";
+import type { ArtifactIndex } from "./artifact-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
 export interface DatasetInfo {
@@ -805,6 +806,13 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
   readonly supremeDeity?: SupremeDeityIndex;
   /** heroId -> i suoi legami con le quattro modalita', per la scheda */
   readonly endgameHeroes?: Readonly<Record<string, readonly EndgameHeroLink[]>>;
+
+  /**
+   * Le Carte artefatto e i Set artefatto, con i pacchetti di carte. Come
+   * l'Endgame lo legge il server; alle griglie arriva solo quello che filtrano.
+   * Il contratto sta in artifact-types.ts.
+   */
+  readonly artifacts?: ArtifactIndex;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

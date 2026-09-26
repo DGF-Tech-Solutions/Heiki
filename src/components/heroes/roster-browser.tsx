@@ -18,6 +18,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Chip, FilterRow } from "@/components/filter-chips";
 import { cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
 import {
   countHeroes,
@@ -324,91 +325,5 @@ function HeroCard({
         </figure>
       </Link>
     </li>
-  );
-}
-
-/* --------------------------------------------------------------- filtri -- */
-
-function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-      <span className={cx(eyebrow, "w-[74px] shrink-0")}>{label}</span>
-      {children}
-    </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  label,
-  count,
-  swatch,
-  iconSrc,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  count?: number;
-  /** quadrato del colore dell'attributo: il ripiego dove il gioco non da' l'icona */
-  swatch?: HeroAffinity;
-  /**
-   * L'icona del gioco. Quando c'e' prende il posto della scritta, non le si
-   * affianca: sono le stesse icone che il gioco mette sui propri filtri, e una
-   * fila di pulsanti si scorre a colpo d'occhio.
-   *
-   * La parola non sparisce davvero: resta nell'`alt`, nel `title` e
-   * nell'`aria-label` del pulsante, quindi il filtro si legge col mouse fermo
-   * e funziona con un lettore di schermo.
-   */
-  iconSrc?: string;
-}) {
-  const empty = count === 0;
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={empty}
-      aria-pressed={active}
-      aria-label={iconSrc ? label : undefined}
-      title={iconSrc ? label : undefined}
-      className={cx(
-        // h-9 e non h-7: i pulsanti dei filtri portano le icone del gioco, e a
-        // 22px in un pulsante da 28 non respiravano. L'altezza e' la stessa per
-        // tutti - anche per "Tutte" e per la riga Ordina, che di icona non ne
-        // hanno - perche' pulsanti di altezze diverse nella stessa fila si
-        // leggono come due gruppi diversi.
-        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-card border px-2.5",
-        "text-[12px] transition-colors disabled:cursor-not-allowed disabled:opacity-35",
-        active
-          ? "border-brand bg-brand-soft font-semibold text-ink"
-          : "border-rule bg-paper text-ink-2 hover:border-ink-3 hover:text-ink",
-      )}
-    >
-      {iconSrc ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={iconSrc} alt={label} width={22} height={22} className="block h-[22px] w-auto" />
-      ) : (
-        <>
-          {swatch ? (
-            <span
-              aria-hidden
-              className="h-2.5 w-2.5 shrink-0 rounded-[1px]"
-              style={{
-                background: swatch.colorAlt
-                  ? `linear-gradient(135deg, ${swatch.color} 50%, ${swatch.colorAlt} 50%)`
-                  : swatch.color,
-              }}
-            />
-          ) : null}
-          {label}
-        </>
-      )}
-
-      {count === undefined ? null : (
-        <span className={cx(numeric, "text-[10px] text-ink-3")}>{count}</span>
-      )}
-    </button>
   );
 }

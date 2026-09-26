@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { EndgameCard } from "@/components/endgame/endgame-card";
@@ -267,7 +268,18 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
         </div>
       </section>
 
-      <BossExtras boss={boss} scope={scope} t={t} />
+      <BossExtras
+        boss={boss}
+        scope={scope}
+        t={t}
+        // il set ha la sua pagina nella sezione Set artefatto: lo stesso nome del client
+        setHref={(() => {
+          const set = gameModule.artifacts?.sets.find(
+            (entry) => boss.artifactSet && entry.name.en === boss.artifactSet.name.en,
+          );
+          return set ? `/${game}/set-artefatto/${set.number}` : null;
+        })()}
+      />
 
       <section className="mt-10 border-t border-rule pt-6">
         <PartTitle>{t.altri}</PartTitle>
@@ -415,7 +427,18 @@ function LevelPanel({
 }
 
 /** Quello che non cambia con la difficolta': squadra IA, set di artefatti, costumi. */
-function BossExtras({ boss, scope, t }: { boss: DeathMatchBoss; scope: EndgameScope; t: T }) {
+function BossExtras({
+  boss,
+  scope,
+  t,
+  setHref,
+}: {
+  boss: DeathMatchBoss;
+  scope: EndgameScope;
+  t: T;
+  /** la pagina del set nella sezione Set artefatto, se c'e' */
+  setHref: string | null;
+}) {
   if (!boss.aiTeam && !boss.artifactSet && boss.costumeSets.length === 0) return null;
   return (
     <div className="mt-8 grid gap-5 border-t border-rule pt-6 lg:grid-cols-2">
@@ -434,7 +457,14 @@ function BossExtras({ boss, scope, t }: { boss: DeathMatchBoss; scope: EndgameSc
       {boss.artifactSet ? (
         <div className="min-w-0">
           <PartTitle>
-            {t.setArtefatti}: {sayPlain(boss.artifactSet.name, scope)}
+            {t.setArtefatti}:{" "}
+            {setHref ? (
+              <Link href={setHref} className="text-brand underline-offset-2 hover:underline">
+                {sayPlain(boss.artifactSet.name, scope)}
+              </Link>
+            ) : (
+              sayPlain(boss.artifactSet.name, scope)
+            )}
           </PartTitle>
           <Facts rows={[[t.carte, boss.artifactSet.cards.map((card) => sayPlain(card, scope)).join(" · ")]]} />
           {boss.artifactSet.levels.length > 0 ? (

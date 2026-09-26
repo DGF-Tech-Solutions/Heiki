@@ -51,8 +51,9 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi l'Endgame |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi l'Endgame e gli artefatti |
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
+| `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 
 ### Docker
@@ -133,7 +134,7 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 ### Navigazione a gruppi
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Eroi, Uscite, Personaggi, Nemici) · **Endgame** (Scontri finali, Bestie
+(Eroi, Uscite, Set artefatto, Carte artefatto, Personaggi, Nemici) · **Endgame** (Scontri finali, Bestie
 demoniache, Re Demone, Divinità Suprema) · **Strumenti** (Simulatore,
 Classifica) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
 
@@ -277,6 +278,19 @@ Il confine passa qui, e non è formale:
   pannello: con tutte le difficoltà nell'HTML gli Scontri finali pesavano 10,8 MB
   in sviluppo. Lamek, lo Scontro finale d'evento, non c'è. Le immagini vanno in
   `public/eroi/<gioco>/endgame/`
+- **gli artefatti** (Carte artefatto e Set artefatto) stanno in
+  `artifacts.generated.ts`, scritto da `scripts/import-artifacts.mts` dal JSON di
+  `_7dsgc/script/artefatti.py`; il contratto è in `src/lib/games/artifact-types.ts`.
+  Due voci, ognuna con una griglia coi filtri e una pagina per elemento
+  (`/set-artefatto/<numero>`, `/carte-artefatto/<id>`), come gli eroi. I filtri dei
+  set sono quelli del menu del gioco (contenuto, razza, caratteristica, varie). Due
+  cose sono **dedotte** e le pagine lo dicono: i punti di potenziamento come totali
+  per livello (le 306 squadre del computer che usano un set li confermano) e la
+  probabilità dei pacchetti come peso sulla somma dei pesi. Da quali modalità
+  dell'Endgame cade una carta non sta nel JSON: `cardSources()` lo cerca nei drop
+  che le pagine Endgame mostrano già. Le immagini arrivano dalla pipeline già
+  rimpicciolite (WebP a 512 e 256 px: 27 MB invece dei 150 degli originali) e vanno
+  in `public/eroi/<gioco>/artefatti/`
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

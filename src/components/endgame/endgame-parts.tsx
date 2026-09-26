@@ -163,6 +163,8 @@ export interface EndgameScope {
   readonly icons: Readonly<Record<string, readonly string[]>> | undefined;
   readonly races: Readonly<Record<string, HeroLabel>>;
   readonly attributes: Readonly<Record<string, HeroLabel>>;
+  /** gli id delle Carte artefatto: nei drop portano alla pagina della carta */
+  readonly artifactCards: ReadonlySet<string>;
 }
 
 export function endgameScope(
@@ -180,6 +182,7 @@ export function endgameScope(
     icons: gameModule.icons,
     races: gameModule.heroContext?.codes.race ?? {},
     attributes: gameModule.heroContext?.codes.attribute ?? {},
+    artifactCards: new Set((gameModule.artifacts?.cards ?? []).map((card) => card.id)),
   };
 }
 
@@ -348,9 +351,19 @@ export function ItemLabel({
           style={{ width: size, height: size }}
         />
       ) : null}
-      <span className="min-w-0" lang={langOf(item?.name, scope)}>
-        {name}
-      </span>
+      {scope.artifactCards.has(id) ? (
+        <Link
+          href={`/${scope.game}/carte-artefatto/${id}`}
+          className="min-w-0 text-brand underline-offset-2 hover:underline"
+          lang={langOf(item?.name, scope)}
+        >
+          {name}
+        </Link>
+      ) : (
+        <span className="min-w-0" lang={langOf(item?.name, scope)}>
+          {name}
+        </span>
+      )}
       {count !== undefined && count !== 1 ? (
         <span className={cx(numeric, "shrink-0 text-ink-3")}>×{formatNumber(count, scope.locale)}</span>
       ) : null}
