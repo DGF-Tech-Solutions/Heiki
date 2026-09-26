@@ -13,9 +13,12 @@ import type { HeroAffinity, HeroRoster } from "../types";
 import { HEROES } from "./heroes.generated";
 
 /**
- * Il triangolo degli attributi, poi Luce e Oscurita' che si contrastano fra
- * loro. L'ordine e' quello del gioco, non alfabetico: chi ci gioca lo legge
- * come una sequenza, e riordinarlo alfabeticamente lo renderebbe irriconoscibile.
+ * Il triangolo degli attributi (Forza batte PS, PS batte Velocita', Velocita'
+ * batte Forza), poi Luce e Oscurita', che nel codice del gioco stanno fuori dal
+ * triangolo: niente vantaggi ne' svantaggi, un effetto di squadra ciascuno
+ * (data/grand-cross/concetti/identita.json, «vantaggi»). L'ordine e' quello del
+ * gioco, non alfabetico: chi ci gioca lo legge come una sequenza, e riordinarlo
+ * alfabeticamente lo renderebbe irriconoscibile.
  *
  * I colori sono quelli con cui il gioco tinge le cornici, presi dagli asset.
  */

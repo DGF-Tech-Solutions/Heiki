@@ -6,6 +6,7 @@ import { currentViewer } from "@/lib/community/actions";
 import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
 import { listGames } from "@/lib/games/catalog";
+import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { getGameModule } from "@/lib/games/registry";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -15,11 +16,11 @@ const TESTI = testi({
     titoloPagina: "Cerca · GachaZone",
     ricerca: "Ricerca",
     cerca: "Cerca",
-    segnaposto: "Nome di un personaggio o parole di un post",
+    segnaposto: "Nome di un eroe o parole di un post",
     termini: "Termini di ricerca",
     dueCaratteri: "Scrivi almeno due caratteri.",
-    personaggi: "Personaggi",
-    nessunPersonaggio: "Nessun personaggio con questo nome.",
+    personaggi: "Eroi",
+    nessunPersonaggio: "Nessun eroe con questo nome.",
     discussioni: "Discussioni",
     nessunaDiscussione: "Nessuna discussione con queste parole.",
   },
@@ -27,11 +28,11 @@ const TESTI = testi({
     titoloPagina: "Search · GachaZone",
     ricerca: "Search",
     cerca: "Search",
-    segnaposto: "A character's name or words from a post",
+    segnaposto: "A hero's name or words from a post",
     termini: "Search terms",
     dueCaratteri: "Type at least two characters.",
-    personaggi: "Characters",
-    nessunPersonaggio: "No characters with this name.",
+    personaggi: "Heroes",
+    nessunPersonaggio: "No heroes with this name.",
     discussioni: "Discussions",
     nessunaDiscussione: "No discussions with these words.",
   },
@@ -50,7 +51,7 @@ interface Props {
  * Ricerca su post e personaggi.
  *
  * Il filtro e' in memoria e non in SQL: a questa scala i post sono al massimo
- * un centinaio e i personaggi una manciata, quindi una query full-text
+ * un centinaio e gli eroi qualche centinaio, quindi una query full-text
  * aggiungerebbe complessita' senza risolvere un problema che ancora non
  * esiste. Quando i numeri cresceranno, il punto da cambiare e' solo questo.
  */
@@ -58,7 +59,8 @@ export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
   const needle = query.toLowerCase();
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const viewer = await currentViewer();
   const store = await getStore();
@@ -82,9 +84,15 @@ export default async function SearchPage({ searchParams }: Props) {
           .flatMap((game) => {
             const gameModule = getGameModule(game.slug);
             if (!gameModule) return [];
-            return gameModule.characters
-              .filter((character) => character.name.toLowerCase().includes(needle))
-              .map((character) => ({ game, character }));
+            // Gli eroi del roster, per nome ed epiteto nelle due lingue. Fino al 27/09
+            // qui c'erano i «personaggi» del vecchio motore di simulazione: tre unita'
+            // segnaposto, tolte con le loro pagine.
+            return (gameModule.roster?.heroes ?? [])
+              .filter((hero) =>
+                [hero.name, hero.nameIt, hero.epithet, hero.epithetIt].some((text) => text?.toLowerCase().includes(needle)),
+              )
+              .slice(0, 30)
+              .map((hero) => ({ game, hero }));
           })
       : [];
 
@@ -112,15 +120,15 @@ export default async function SearchPage({ searchParams }: Props) {
               <Empty>{t.nessunPersonaggio}</Empty>
             ) : (
               <ul className="m-0 grid list-none gap-2 p-0">
-                {characters.map(({ game, character }) => (
-                  <li key={`${game.slug}-${character.id}`}>
+                {characters.map(({ game, hero }) => (
+                  <li key={`${game.slug}-${hero.id}`}>
                     <Link
-                      href={`/${game.slug}/personaggi/${character.id}`}
+                      href={`/${game.slug}/eroi/${hero.id}`}
                       className="flex flex-wrap items-center gap-3 rounded-card border border-rule bg-paper px-4 py-2.5 hover:border-brand"
                     >
-                      <span className="font-semibold">{character.name}</span>
+                      <span className="font-semibold">{heroName(hero, locale)}</span>
+                      <span className="text-ink-3">{heroEpithet(hero, locale)}</span>
                       <Tag>{game.shortName}</Tag>
-                      <Tag>{character.role}</Tag>
                     </Link>
                   </li>
                 ))}

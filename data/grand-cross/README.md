@@ -37,7 +37,7 @@ lo script si ferma senza scrivere niente.
 | file | risponde a |
 |---|---|
 | `statistiche.json` | quali statistiche esistono, come le chiama il gioco, in che gruppo stanno, come le chiamano la scheda degli eroi e gli enum |
-| `identita.json` | razze, attributi, fazioni, rarità: codici, nomi, quanti eroi |
+| `identita.json` | razze, attributi, fazioni, rarità: codici, nomi, quanti eroi; chi batte chi fra gli attributi e quanto vale (`vantaggi`) |
 | `carte.json` | slot delle abilità, tipi di attacco, gittate, bersagli |
 | `condizioni.json` | dove si attiva una passiva (codici 1-9) |
 | `contenuti.json` | i contenuti che i dati degli eroi nominano |
@@ -568,12 +568,16 @@ sono state rivedute.
 
 ## Lacune dichiarate
 
+Il **triangolo degli attributi** non è più una lacuna dal 27/09: chi batte chi l'ha letto nel
+codice del combattimento lo studio delle meccaniche (`MECCANICHE_COMBATTIMENTO.md` nella
+pipeline), e `identita.json` lo scrive in `vantaggi` con le prove. Forza batte PS, PS batte
+Velocità, Velocità batte Forza; Luce e Oscurità sono fuori dal triangolo e danno un effetto
+di squadra. Il vantaggio (0,3, fra gli aumenti del danno) e lo svantaggio (0,2, fra le
+riduzioni) si sommano agli altri aumenti e riduzioni, non si moltiplicano. I 1,25 e 0,8 di `src/lib/games/grand-cross/data.ts`
+restano segnaposto del vecchio calcolatore.
+
 Ogni file ha la sua lista `lacune`. Le più importanti:
 
-- il **triangolo dei vantaggi** fra attributi: `DB_config_game` ha i valori
-  (`attribute_advantage_per` 0,3, `attribute_disadvantage_per` 0,2), chi batte chi sta
-  nel codice e non è ancora letto. I 1,25 e 0,8 di `src/lib/games/grand-cross/data.ts`
-  sono segnaposto
 - i nomi di gittate e bersagli: nessun testo del client li nomina come categoria
 - **quale riga del gioco è un effetto «`.p`»**: il modello ne scrive i numeri a mano, e il
   testo non dice quale buff o opzione della carta sia (2.876 righe «`.p`»)

@@ -3,8 +3,8 @@ import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 const DESCRIZIONE = testi({
-  it: "Schede personaggio, simulazioni di danno verificabili e community per i giochi gacha.",
-  en: "Character sheets, verifiable damage simulations and community for gacha games.",
+  it: "Schede degli eroi, dati e meccaniche lette dal gioco, e community per i giochi gacha.",
+  en: "Hero pages, data and mechanics read from the game, and community for gacha games.",
 });
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {

@@ -30,6 +30,7 @@ import { termWords } from "@/lib/games/hero-markup";
 import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import { inGroup, parseTarget, searchText, targetId, textKey, type TermMember } from "@/lib/games/hero-terms";
 import type { HeroTermGroup, HeroTermsIndex } from "@/lib/games/hero-terms-types";
+import type { MechanicsIndex, MechanicsStacking } from "@/lib/games/mechanics-types";
 import type {
   HeroAbilities,
   HeroContextIndex,
@@ -61,6 +62,19 @@ const TESTI = testi({
     nessunRisultato: "Nessuno in questo elenco.",
     griglia: "Vedili nella griglia Eroi →",
     di: "di",
+    cumulo: "Cumulo",
+    regola: (s: MechanicsStacking) =>
+      s.rule === "accumula"
+        ? s.limit
+          ? `si accumula fino a ${s.limit} volte, e i valori si sommano`
+          : "si accumula senza tetto, e i valori si sommano"
+        : s.rule === "piu_basso"
+          ? "resta quello col valore più basso"
+          : s.rule === "cariche"
+            ? `le cariche si sommano fino a ${s.limit}`
+            : "resta il più forte; a parità si rinnova la durata",
+    carte: (n: number) => (n === 1 ? "1 carta" : `${n} carte`),
+    comeSiCumula: "Come si cumulano i buff",
   },
   en: {
     eroi: (n: number) => (n === 1 ? "1 hero" : `${n} heroes`),
@@ -82,6 +96,19 @@ const TESTI = testi({
     nessunRisultato: "Nobody in this list.",
     griglia: "See them in the Heroes grid →",
     di: "of",
+    cumulo: "Stacking",
+    regola: (s: MechanicsStacking) =>
+      s.rule === "accumula"
+        ? s.limit
+          ? `stacks up to ${s.limit} times, and the values add up`
+          : "stacks with no cap, and the values add up"
+        : s.rule === "piu_basso"
+          ? "the lowest value stays"
+          : s.rule === "cariche"
+            ? `charges add up to ${s.limit}`
+            : "the strongest stays; at equal value the duration is refreshed",
+    carte: (n: number) => (n === 1 ? "1 card" : `${n} cards`),
+    comeSiCumula: "How buffs stack",
   },
 });
 
@@ -130,6 +157,8 @@ interface Section {
   effect: boolean;
   /** la griglia Eroi gia' filtrata, per una razza o una caratteristica */
   grid: string | null;
+  /** come si cumulano i buff col nome di questo concetto (meccaniche), la regola piu' usata prima */
+  stacking: readonly MechanicsStacking[] | null;
 }
 
 /**
@@ -158,6 +187,7 @@ export function HeroTermPopovers({
   abilities,
   specials,
   relics,
+  stacking,
 }: {
   game: string;
   locale: Locale;
@@ -170,6 +200,8 @@ export function HeroTermPopovers({
   abilities: Readonly<Record<string, HeroAbilities>> | undefined;
   specials: HeroSpecialsIndex | undefined;
   relics: HeroRelicsIndex | undefined;
+  /** il cumulo dei buff per concetto (meccaniche): una riga sotto la definizione */
+  stacking?: MechanicsIndex["stacking"];
 }) {
   if (targets.size === 0) return null;
   const t = TESTI[locale];
@@ -246,6 +278,7 @@ export function HeroTermPopovers({
         rows: currentFirst([...grouped.values()]),
         effect: true,
         grid: null,
+        stacking: stacking?.[key] ?? null,
       });
     }
     for (const race of parts.races) {
@@ -255,6 +288,7 @@ export function HeroTermPopovers({
         inferred: false,
         rows: members((hero) => member(hero).race === race),
         effect: false,
+        stacking: null,
         grid: grid(`razza=${race}`),
       });
     }
@@ -265,6 +299,7 @@ export function HeroTermPopovers({
         inferred: false,
         rows: members((hero) => member(hero).factions.includes(faction)),
         effect: false,
+        stacking: null,
         grid: grid(`caratteristica=${faction}`),
       });
     }
@@ -277,6 +312,7 @@ export function HeroTermPopovers({
         inferred: false,
         rows: members((hero) => inGroup(group, member(hero), heroId)),
         effect: false,
+        stacking: null,
         grid: grid(gridQuery(group)),
       });
     }
@@ -305,6 +341,17 @@ export function HeroTermPopovers({
         </span>
       </p>
       {section.subtitle ? <p className="m-0 mt-0.5 text-[12px] leading-snug text-ink-2">{section.subtitle}</p> : null}
+      {section.stacking && section.stacking.length > 0 ? (
+        <p className="m-0 mt-1 text-[12px] leading-snug text-ink-2">
+          <span className="font-semibold text-ink">{t.cumulo}:</span>{" "}
+          {section.stacking.length === 1
+            ? t.regola(section.stacking[0]!)
+            : section.stacking.map((s) => `${t.regola(s)} (${t.carte(s.cards)})`).join(" · ")}{" "}
+          <Link href={`/${game}/meccaniche#cumulo`} className="text-brand hover:underline">
+            {t.comeSiCumula} →
+          </Link>
+        </p>
+      ) : null}
     </>
   );
 

@@ -208,7 +208,10 @@ export interface DeathMatchBoss {
   readonly regions: readonly string[];
   readonly race: number | null;
   readonly attribute: number | null;
-  /** l'attributo che lo batte, col triangolo del gioco: dedotto, il client non lo scrive */
+  /**
+   * l'attributo che lo batte: il client non lo scrive per il boss, lo calcola col
+   * triangolo, che si e' letto nel codice del combattimento (identita.json, «vantaggi»)
+   */
   readonly advantage: number | null;
   readonly guide: readonly HeroLabel[];
   /** avvisi della pipeline su dati che si contraddicono */

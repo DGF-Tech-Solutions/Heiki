@@ -31,12 +31,7 @@ const TESTI = testi({
     nessunaPatch: "Nessuno ha dichiarato in quale patch questi numeri sono stati controllati.",
     patchVecchia: (verificata: string, corrente: string) =>
       `I numeri di questa guida sono stati controllati sulla patch ${verificata}, il dataset attuale è ${corrente}.`,
-    metodoValido:
-      "Le indicazioni di metodo restano valide, i valori potrebbero non esserlo più. Il",
-    simulatore: "simulatore",
-    usaDataset: "usa sempre il dataset corrente.",
-    agganciata: "Questa guida è agganciata a",
-    numeriMotore: ": lì trovi i numeri calcolati dal motore sul dataset corrente.",
+    metodoValido: "Le indicazioni di metodo restano valide, i valori potrebbero non esserlo più.",
     cronologia: "Cronologia",
   },
   en: {
@@ -54,11 +49,7 @@ const TESTI = testi({
     nessunaPatch: "Nobody has declared which patch these numbers were checked on.",
     patchVecchia: (verificata: string, corrente: string) =>
       `The numbers in this guide were checked on patch ${verificata}; the current dataset is ${corrente}.`,
-    metodoValido: "The method advice still holds, but the values may not. The",
-    simulatore: "simulator",
-    usaDataset: "always uses the current dataset.",
-    agganciata: "This guide is linked to",
-    numeriMotore: ": there you'll find the numbers the engine computed on the current dataset.",
+    metodoValido: "The method advice still holds, but the values may not.",
     cronologia: "History",
   },
 });
@@ -115,10 +106,6 @@ export default async function GuidePage({ params }: Props) {
   const stale = isStale(guide.verifiedPatch, currentPatch);
   const headings = headingsOf(guide.body);
 
-  const character = guide.characterId
-    ? gameModule.characters.find((item) => item.id === guide.characterId)
-    : undefined;
-
   return (
     <main className="pt-6 pb-24">
       <Breadcrumb
@@ -138,7 +125,6 @@ export default async function GuidePage({ params }: Props) {
       <header className="mb-6 border-b border-rule pb-6" data-accent={guide.author.accent}>
         <p className={eyebrow}>
           {entry.shortName}
-          {character ? ` · ${character.name}` : ""}
         </p>
 
         <h1 className={cx(display, "mt-3 text-[clamp(26px,4vw,40px)]")}>{guide.title}</h1>
@@ -186,11 +172,7 @@ export default async function GuidePage({ params }: Props) {
             {guide.verifiedPatch === null
               ? t.nessunaPatch
               : t.patchVecchia(guide.verifiedPatch, currentPatch)}{" "}
-            {t.metodoValido}{" "}
-            <Link href={`/${game}/strumenti`} className="font-semibold text-brand hover:underline">
-              {t.simulatore}
-            </Link>{" "}
-            {t.usaDataset}
+            {t.metodoValido}
           </span>
         </Notice>
       ) : null}
@@ -198,19 +180,6 @@ export default async function GuidePage({ params }: Props) {
       <div className="grid items-start gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(0,200px)]">
         <article className="min-w-0">
           <Markdown source={guide.body} />
-
-          {character ? (
-            <p className="mt-9 rounded-card border border-rule bg-paper-2 p-4 text-sm text-ink-2">
-              {t.agganciata}{" "}
-              <Link
-                href={`/${game}/personaggi/${character.id}`}
-                className="font-semibold text-brand hover:underline"
-              >
-                {character.name}
-              </Link>
-              {t.numeriMotore}
-            </p>
-          ) : null}
 
           {guide.revisions.length > 0 ? (
             <section className="mt-10 border-t border-rule pt-6">

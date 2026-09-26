@@ -10,6 +10,7 @@
 import { GameNotes, GameText } from "@/components/heroes/game-text";
 import { hasIcon, localized, textIn } from "@/components/heroes/hero-parts";
 import type { TermIds } from "@/components/heroes/hero-terms";
+import { HeroDrawLine, HeroTeamEffect } from "@/components/heroes/hero-mechanics";
 import { cx, eyebrow, numeric } from "@/components/ui";
 import {
   gameIconSrc,
@@ -29,6 +30,7 @@ import type {
   HeroSpecialAbility,
   HeroSpecialKind,
 } from "@/lib/games/types";
+import type { MechanicsTeamEffect } from "@/lib/games/mechanics-types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
 
 /**
@@ -145,6 +147,8 @@ export function HeroAbilities({
   specialKinds,
   icons,
   termIds,
+  draw,
+  teamEffect,
 }: {
   game: string;
   locale: Locale;
@@ -159,6 +163,10 @@ export function HeroAbilities({
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   /** le tendine delle parole blu (hero-terms.tsx); senza, le parole restano testo */
   termIds?: TermIds;
+  /** i pesi di pesca delle carte A e B (meccaniche): una riga sotto le carte */
+  draw?: readonly [number, number];
+  /** l'effetto di squadra Luce/Oscurita' (meccaniche): un riquadro sotto l'Unica */
+  teamEffect?: { readonly light?: MechanicsTeamEffect; readonly dark?: MechanicsTeamEffect };
 }) {
   const t = TESTI[locale];
 
@@ -278,6 +286,8 @@ export function HeroAbilities({
                 </section>
               );
             })}
+
+            {teamEffect ? <HeroTeamEffect game={game} locale={locale} light={teamEffect.light} dark={teamEffect.dark} /> : null}
           </div>
         ) : null}
 
@@ -304,6 +314,10 @@ export function HeroAbilities({
                 />
               </section>
             ))}
+
+            {draw && cards.some((card) => card.slot === "A" || card.slot === "B") ? (
+              <HeroDrawLine game={game} locale={locale} weights={draw} />
+            ) : null}
 
             {/*
               Fino al 26/09 qui c'era una galleria di illustrazioni «non

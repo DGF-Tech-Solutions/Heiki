@@ -98,7 +98,7 @@ const TESTI = testi({
     vantaggio: "In vantaggio",
     svantaggio: "In svantaggio",
     vantaggioSpiega:
-      "Gli attributi che il client segna contro questo gruppo: il primo è forte contro di lui, il secondo debole. Il verso è dedotto dal triangolo degli attributi.",
+      "Gli attributi che il client segna contro questo gruppo: il primo è forte contro di lui, il secondo debole. Il verso viene dal triangolo degli attributi, che il gioco calcola nel codice del combattimento.",
     abilitaEfficaci: "Abilità efficaci",
     passiveSquadra: "Passive del gruppo",
     nemici: (n: number) => (n === 1 ? "1 nemico" : `${n} nemici`),
@@ -156,7 +156,7 @@ const TESTI = testi({
     vantaggio: "Advantaged",
     svantaggio: "Disadvantaged",
     vantaggioSpiega:
-      "The attributes the client marks against this group: the first is strong against it, the second weak. The direction is deduced from the attribute triangle.",
+      "The attributes the client marks against this group: the first is strong against it, the second weak. The direction comes from the attribute triangle, which the game computes in its combat code.",
     abilitaEfficaci: "Effective skills",
     passiveSquadra: "Group passives",
     nemici: (n: number) => (n === 1 ? "1 enemy" : `${n} enemies`),

@@ -6,8 +6,7 @@ import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
 import { listGames } from "@/lib/games/catalog";
 import { getGameModule } from "@/lib/games/registry";
-import { rankCharacters } from "@/lib/games/preview";
-import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
+import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 /**
@@ -21,35 +20,30 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: "GachaZone — build, calcoli e community per i giochi gacha",
+    titoloPagina: "GachaZone — schede, dati e community per i giochi gacha",
     descrizione:
-      "Schede personaggio, simulazioni di danno verificabili e community per Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero e Wuthering Waves.",
+      "Schede degli eroi, dati e meccaniche lette dal gioco, e community per Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero e Wuthering Waves.",
     giochi: "Giochi",
     previsti: (n: number) => `${n} previsti`,
     inArrivo: "in arrivo",
     attivo: "attivo",
-    personaggiDati: (n: number, patch: string) => `${n} personaggi · dati ${patch}`,
+    eroi: (n: number) => `${n} eroi`,
     ultimiPost: "Ultimi post",
     community: "Community →",
     nessunaDiscussione: "Ancora nessuna discussione.",
-    classifica: (gioco: string) => `Classifica ${gioco}`,
-    classificaCompleta: "Classifica completa →",
   },
   en: {
-    titoloPagina: "GachaZone — builds, calculations and community for gacha games",
+    titoloPagina: "GachaZone — pages, data and community for gacha games",
     descrizione:
-      "Character pages, verifiable damage simulations and community for Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero and Wuthering Waves.",
+      "Hero pages, data and mechanics read from the game, and community for Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero and Wuthering Waves.",
     giochi: "Games",
     previsti: (n: number) => `${n} planned`,
     inArrivo: "coming soon",
     attivo: "active",
-    personaggiDati: (n: number, patch: string) =>
-      `${n} ${n === 1 ? "character" : "characters"} · data ${patch}`,
+    eroi: (n: number) => `${n} ${n === 1 ? "hero" : "heroes"}`,
     ultimiPost: "Latest posts",
     community: "Community →",
     nessunaDiscussione: "No discussions yet.",
-    classifica: (gioco: string) => `${gioco} ranking`,
-    classificaCompleta: "Full ranking →",
   },
 });
 
@@ -77,7 +71,7 @@ export default async function Home() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((game) => {
             const gameModule = getGameModule(game.slug);
-            const characters = gameModule?.characters.length ?? 0;
+            const heroes = gameModule?.roster?.heroes.length ?? 0;
 
             if (!game.available) {
               return (
@@ -111,9 +105,7 @@ export default async function Home() {
                   <Tag tone="brand">{t.attivo}</Tag>
                 </div>
                 <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
-                <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>
-                  {t.personaggiDati(characters, gameModule?.dataset.patch ?? "")}
-                </p>
+                {heroes > 0 ? <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>{t.eroi(heroes)}</p> : null}
               </Link>
             );
           })}
@@ -144,56 +136,7 @@ export default async function Home() {
         )}
       </section>
 
-      <TopCharacters locale={locale} />
     </main>
   );
 }
 
-/** Estratto della classifica: e' la porta d'ingresso alle schede personaggio. */
-function TopCharacters({ locale }: { locale: Locale }) {
-  const game = listGames().find((entry) => entry.available);
-  const gameModule = game ? getGameModule(game.slug) : undefined;
-  if (!game || !gameModule) return null;
-
-  const ranked = rankCharacters(gameModule).slice(0, 5);
-  if (ranked.length === 0) return null;
-
-  const t = TESTI[locale];
-
-  return (
-    <section className="mt-11 border-t border-rule pt-9">
-      <SectionHead
-        title={t.classifica(game.shortName)}
-        aside={
-          <Link
-            href={`/${game.slug}/classifica`}
-            className={cx(eyebrow, "text-brand hover:underline")}
-          >
-            {t.classificaCompleta}
-          </Link>
-        }
-      />
-
-      <ol className="m-0 grid list-none gap-2 p-0">
-        {ranked.map((row, index) => (
-          <li
-            key={row.character.id}
-            className="flex flex-wrap items-center gap-3 rounded-card border border-rule bg-paper px-4 py-2.5"
-          >
-            <span className={cx(numeric, "w-5 text-ink-3")}>{index + 1}</span>
-            <Link
-              href={`/${game.slug}/personaggi/${row.character.id}`}
-              className="font-semibold hover:text-brand"
-            >
-              {row.character.name}
-            </Link>
-            <Tag>{row.character.role}</Tag>
-            <span className={cx(numeric, "ml-auto font-medium")}>
-              {Math.round(row.result.damage.median).toLocaleString(intlLocale(locale))}
-            </span>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}

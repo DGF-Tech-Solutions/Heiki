@@ -35,6 +35,7 @@ import type {
 import type { AccountBuffIndex } from "./account-buff-types";
 import type { ArtifactIndex } from "./artifact-types";
 import type { HeroTermsIndex } from "./hero-terms-types";
+import type { MechanicsIndex } from "./mechanics-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
 export interface DatasetInfo {
@@ -816,6 +817,15 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * server. Il contratto sta in hero-terms-types.ts.
    */
   readonly heroTerms?: HeroTermsIndex;
+
+  /**
+   * Le meccaniche di combattimento: le costanti del danno, il triangolo degli
+   * attributi, i pesi di pesca e gli effetti Luce/Oscurita' di ogni eroe, il
+   * cumulo dei buff per concetto delle parole blu. Le legge il server: la pagina
+   * «Meccaniche», la scheda eroe e le tendine. Il contratto sta in
+   * mechanics-types.ts.
+   */
+  readonly mechanics?: MechanicsIndex;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

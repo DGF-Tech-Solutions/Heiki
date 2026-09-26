@@ -29,8 +29,8 @@ const dmMono = DM_Mono({
 
 const TESTI = testi({
   it: {
-    titolo: `${SITE_NAME} — build, calcoli e community per i giochi gacha`,
-    descrizione: "Schede personaggio, simulazioni di danno verificabili e community per i giochi gacha.",
+    titolo: `${SITE_NAME} — schede, dati e community per i giochi gacha`,
+    descrizione: "Schede degli eroi, dati e meccaniche lette dal gioco, e community per i giochi gacha.",
     salta: "Salta al contenuto",
     collegamenti: "Collegamenti del sito",
     footer: [
@@ -40,11 +40,10 @@ const TESTI = testi({
       { href: "/legale/cookie", label: "Cookie" },
     ],
     affiliazione: `${SITE_NAME} non è affiliato né approvato da Netmarble, HoYoverse o Kuro Games. Tutti i marchi, i nomi e i contenuti di gioco appartengono ai rispettivi proprietari.`,
-    motore: "Motore v0.1 · dati di gioco segnaposto",
   },
   en: {
-    titolo: `${SITE_NAME} — builds, calculations and community for gacha games`,
-    descrizione: "Character sheets, verifiable damage simulations and community for gacha games.",
+    titolo: `${SITE_NAME} — pages, data and community for gacha games`,
+    descrizione: "Hero pages, data and mechanics read from the game, and community for gacha games.",
     salta: "Skip to content",
     collegamenti: "Site links",
     footer: [
@@ -54,7 +53,6 @@ const TESTI = testi({
       { href: "/legale/cookie", label: "Cookies" },
     ],
     affiliazione: `${SITE_NAME} is not affiliated with or endorsed by Netmarble, HoYoverse or Kuro Games. All trademarks, names and game content belong to their respective owners.`,
-    motore: "Engine v0.1 · placeholder game data",
   },
 });
 
@@ -115,8 +113,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 ))}
               </nav>
 
-              <p className="m-0 mb-1.5 max-w-[76ch]">{t.affiliazione}</p>
-              <p className="m-0 font-mono">{t.motore}</p>
+              <p className="m-0 max-w-[76ch]">{t.affiliazione}</p>
             </div>
           </footer>
 

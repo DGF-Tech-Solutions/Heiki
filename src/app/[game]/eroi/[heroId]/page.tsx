@@ -233,6 +233,8 @@ function lookup(game: string, heroId: string) {
     beastPages: Object.fromEntries((gameModule.creatureNest?.beasts ?? []).map((beast) => [beast.group, beast.key])),
     icons: gameModule.icons,
     accountBuff: gameModule.accountBuff,
+    // pesca delle carte A e B, effetto di squadra Luce/Oscurita', cumulo per le tendine
+    mechanics: gameModule.mechanics,
     // le parole blu, e gli indici interi che servono alle loro tendine: gli
     // elenchi nominano le carte, le abilita' speciali e le reliquie degli ALTRI eroi
     heroTerms: gameModule.heroTerms,
@@ -296,6 +298,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
     context,
     icons,
     accountBuff,
+    mechanics,
     heroTerms,
     abilityIndex,
     specialIndex,
@@ -381,6 +384,8 @@ export default async function HeroPage({ params, searchParams }: Props) {
           specialKinds={specialKinds}
           icons={icons}
           termIds={terms?.ids}
+          draw={mechanics?.draw[hero.id]}
+          teamEffect={mechanics?.teamEffects[hero.id]}
         />
       ),
     });
@@ -566,6 +571,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
             abilities={abilityIndex}
             specials={specialIndex}
             relics={relicIndex}
+            stacking={mechanics?.stacking}
           />
         ) : null}
       </article>

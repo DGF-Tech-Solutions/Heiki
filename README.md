@@ -1,12 +1,13 @@
 # GachaZone
 
-Piattaforma per i giochi gacha: schede personaggio, simulazioni di danno
-verificabili e community. Giochi previsti: Grand Cross, Genshin Impact, Honkai
-Star Rail, Zenless Zone Zero, Wuthering Waves.
+Piattaforma per i giochi gacha: schede degli eroi, dati e meccaniche letti dal
+client del gioco, e community. Giochi previsti: Grand Cross, Genshin Impact,
+Honkai Star Rail, Zenless Zone Zero, Wuthering Waves.
 
-Stato: **fondazione, account, community e struttura del sito**. Il motore di
-calcolo funziona; i dati di gioco sono segnaposto e il costruttore di rotazioni
-non c'è ancora.
+Stato: **Grand Cross ha roster, Endgame, artefatti, buff dell'account e
+meccaniche di combattimento dal client; account, community e guide funzionano**.
+Il vecchio motore di simulazione coi dati segnaposto non ha più pagine dal
+27/09/2026 (vedi «Il motore»).
 
 ---
 
@@ -51,8 +52,9 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi le parole blu, l'Endgame, gli artefatti e i buff dell'account |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi le parole blu, le meccaniche, l'Endgame, gli artefatti e i buff dell'account |
 | `npm run parole:import` | Rigenera solo le parole blu della scheda eroe (dopo gli eroi) |
+| `npm run meccaniche:import` | Rigenera solo le meccaniche di combattimento: costanti, pesca, effetti Luce/Oscurità, cumulo (dopo le parole blu) |
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
 | `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
 | `npm run buff:import` | Rigenera solo i buff dell'account: classe dell'account e costellazioni |
@@ -93,7 +95,7 @@ PostgreSQL · Auth.js v5 · Vitest. Alias `@/*` su `src/`.
 
 ```
 src/app/
-  page.tsx                    scelta gioco + ultimi post + classifica
+  page.tsx                    scelta gioco + ultimi post
   [game]/                     tutto il contenuto di un gioco
     layout.tsx                selettore gioco + barra laterale a gruppi
     page.tsx                  feed della community
@@ -101,14 +103,12 @@ src/app/
                               caratteristica (?razza=3, ?caratteristica=6 li scelgono)
     eroi/[heroId]/            scheda dell'eroe, a schede (Abilita', Statistiche, Reliquia,
                               Info; ?scheda=<nome> apre quella giusta): testi dal client
-    personaggi/[characterId]  scheda personaggio
-    nemici/                   bersagli usati nei calcoli
-    classifica/               ordinamento per danno simulato
-    strumenti/                simulatore di squadra
+    meccaniche/               danno, attributi, pesca delle carte, cumulo dei buff:
+                              le regole lette nel codice del client, i numeri dai dati
     guide/                    elenco, scrittura, revisione, patch verificata
     post/[postId]/            discussione
   u/[username]/               profilo pubblico
-  cerca/                      ricerca su personaggi e discussioni
+  cerca/                      ricerca su eroi e discussioni
   notifiche/                  risposte e nuovi seguaci
   moderazione/                coda segnalazioni, sospensioni, registro (MODERATOR+)
   admin/                      ruoli, slot sponsorizzati, stato dataset (ADMIN)
@@ -141,9 +141,9 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 ### Navigazione a gruppi
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Personaggi, Nemici) · **Endgame** (Scontri finali, Bestie
-demoniache, Re Demone, Divinità Suprema) · **Strumenti** (Simulatore,
-Classifica) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
+(Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
+(Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Guide** (Guide e
+rotazioni) · **Community** (Discussioni).
 
 Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
 ha un roster, dichiarato con `needs` in `GAME_GROUPS` e filtrato da
@@ -158,8 +158,8 @@ avuto pagine da mostrare.
 
 ### Il gioco è il primo segmento dell'URL
 
-`/grand-cross/personaggi/<id>`. Cambiare gioco cambia il contesto di tutto:
-feed, personaggi, classifica, strumenti. I cinque giochi previsti sono tutti
+`/grand-cross/eroi/<id>`. Cambiare gioco cambia il contesto di tutto:
+feed, eroi, Endgame, guide. I cinque giochi previsti sono tutti
 elencati nella barra; quelli senza modulo sono marcati "in arrivo" e i loro
 indirizzi rispondono 404.
 
@@ -171,6 +171,17 @@ sarebbe una bugia. Dichiarare il piano è l'unica opzione onesta delle tre.
 ## Le decisioni che reggono il progetto
 
 ### Il motore
+
+**Dal 27/09/2026 nessuna pagina ne mostra i risultati.** Personaggi, Nemici,
+Classifica danno e Simulatore squadra giravano su tre unità segnaposto
+(`grand-cross/data.ts`), e le loro regole contraddicevano quelle che la pipeline
+ha poi letto nel codice del gioco: triangolo al contrario, vantaggio moltiplicato
+invece che sommato, pesca 50/50 e sette carte nuove a ogni turno. Le pagine sono
+state tolte, su scelta dell'utente; le regole vere le spiega `/meccaniche`. Il
+motore resta nel codice finché lo usano la riverifica degli allegati della
+community (`community/verify.ts`, `demo-seed.ts`), la patch con cui le guide si
+dichiarano vecchie (`dataset.patch`), la pagina admin e lo script del database:
+toglierlo del tutto è un passo a parte.
 
 **Il risultato è sempre una distribuzione.** Un gioco deterministico produce una
 distribuzione degenere di un campione, uno stocastico una vera. Il tipo di
@@ -316,6 +327,18 @@ Il confine passa qui, e non è formale:
   patch. La classe di combattimento dell'eroe nella scheda è calcolata con la
   formula del client, senza equipaggiamento. Le immagini (simboli, pietre) vanno in
   `public/eroi/<gioco>/buff-account/`
+- **le meccaniche di combattimento** (le costanti del danno, il triangolo degli
+  attributi, i pesi di pesca e gli effetti Luce/Oscurità di ogni eroe, il cumulo dei
+  buff per concetto delle parole blu) stanno in `mechanics.generated.ts`, scritto da
+  `scripts/import-mechanics.mts` dal JSON di `_7dsgc/script/meccaniche.py`; il
+  contratto è in `src/lib/games/mechanics-types.ts`, le regole come funzioni in
+  `mechanics.ts` (gli esempi della pagina `/meccaniche` si calcolano con quelle). Le
+  regole le ha lette la pipeline nel **codice** del client, e lo studio con le prove è
+  `_7dsgc/MECCANICHE_COMBATTIMENTO.md`: il danno di un colpo passo per passo, chi
+  batte chi, la pesca (A 60, B 40, con reinserimento), il cumulo (per parola chiave:
+  resta il più forte, o si accumula fino a un tetto). La scheda eroe mostra i pesi
+  sotto le carte e l'effetto Luce/Oscurità sotto l'Unica, le tendine delle parole blu
+  come si cumula quel buff. Il legame buff -> concetto è per nome, quindi dedotto
 - **le parole blu** della scheda eroe (Perforazione, Evasione, alleati
   applicabili, Demoni, [Ragnarok]...) si cliccano e aprono una tendina con gli eroi
   legati: per un effetto chi ce l'ha e in quale abilità, per una razza, una
@@ -340,11 +363,9 @@ le rimette a posto da una copia locale della pipeline di estrazione, indicata
 dalla variabile `GC_ASSETS`. Chi clona senza quella copia vede il roster con i
 riquadri vuoti: nomi, filtri e conteggi funzionano lo stesso.
 
-Il roster è separato da **Personaggi** perché rispondono a due domande diverse.
-Personaggi elenca le unità che il motore sa simulare, e sono poche perché ognuna
-va calibrata a mano. Eroi le elenca tutte, perché per riconoscere un'unità e
-sapere che attributo ha non serve aver calibrato niente. Le due sezioni
-convergeranno man mano che il dataset cresce.
+Fino al 27/09/2026 accanto a Eroi c'era **Personaggi**, le unità che il vecchio
+motore sapeva simulare: tre segnaposto. È stata tolta insieme alle altre pagine del
+motore (vedi «Il motore»); la ricerca del sito cerca negli eroi.
 
 ### La riverifica degli allegati
 
@@ -542,29 +563,22 @@ Decisioni costose o impossibili da aggiungere dopo.
 
 ## Cosa NON è reale
 
-I valori in `src/lib/games/grand-cross/data.ts` sono **segnaposto**. Netmarble
-non pubblica dati strutturati e non esiste una community di datamining come per
-i giochi HoYo: ogni unità e ogni moltiplicatore va inserito a mano e calibrato
-sul gioco. Le tre unità presenti servono a validare il motore, non a produrre
-numeri corretti.
-
-Vanno calibrati anche i parametri in cima a quel file: carte pescate per turno,
-carte giocabili, moltiplicatori di rango, soglia dell'ultimate e valori del
-triangolo degli attributi.
-
-La classifica lo dichiara in pagina.
+I valori in `src/lib/games/grand-cross/data.ts` sono **segnaposto**, e dal 27/09/2026
+nessuna pagina li mostra: servono solo al vecchio motore, che resta per la
+riverifica degli allegati della community e per le guide. Le sue regole (triangolo,
+moltiplicatori, pesca) sono diverse da quelle del gioco, che la pipeline ha letto nel
+codice del client e che la pagina `/meccaniche` spiega.
 
 ---
 
 ## Prossimi passi
 
-1. Costruttore di rotazioni: scegliere l'ordine delle azioni invece di lasciarlo
-   alla priorità automatica. È anche ciò che rende sensato il gruppo *Strumenti*
+1. Togliere del tutto il vecchio motore (allegati della community, patch delle
+   guide, admin, script del database), o rifarlo sulle regole del gioco
 2. Primo modulo deterministico su un gioco HoYo, per validare il contratto sul
    secondo paradigma
 3. Descrizione della singola carta e delle passive: il client le contiene ma non
    le lega all'eroe, quindi serve una fonte esterna — vanno marcate come tale
-4. Statistiche reali al posto dei segnaposto in `data.ts`
 5. Card profilo condivisibile come OG image
 6. Incasso vero: `/premium` descrive il piano ma non lo vende, e non c'è nessun
    pulsante che finga di farlo

@@ -25,7 +25,7 @@ const TESTI = testi({
   it: {
     titoloPagina: (gioco: string) => `${gioco} — community · GachaZone`,
     descrizione: (gioco: string) =>
-      `Build, rotazioni e risultati di simulazione condivisi dai giocatori di ${gioco}.`,
+      `Discussioni, build e domande dei giocatori di ${gioco}.`,
     questoGioco: "questo gioco",
     demoTitolo: "Modalità dimostrativa.",
     demoTesto:
@@ -42,7 +42,6 @@ const TESTI = testi({
     sezioneVuota: "Ancora niente in questa sezione.",
     regole: "Regole della sezione",
     regolaNumeri: "Porta i numeri: mediana e intervallo, non aggettivi.",
-    regolaSeed: "Allega il seed, così chiunque rifà il calcolo.",
     regolaPatch: "Indica la patch su cui hai provato.",
     regolaRispetto: "Si smonta la build, non chi l'ha costruita.",
     serveProfilo: "Serve un profilo",
@@ -52,7 +51,7 @@ const TESTI = testi({
   en: {
     titoloPagina: (gioco: string) => `${gioco} — community · GachaZone`,
     descrizione: (gioco: string) =>
-      `Builds, rotations and simulation results shared by ${gioco} players.`,
+      `Discussions, builds and questions from ${gioco} players.`,
     questoGioco: "this game",
     demoTitolo: "Demo mode.",
     demoTesto:
@@ -69,7 +68,6 @@ const TESTI = testi({
     sezioneVuota: "Nothing in this section yet.",
     regole: "Section rules",
     regolaNumeri: "Bring numbers: median and range, not adjectives.",
-    regolaSeed: "Attach the seed, so anyone can redo the calculation.",
     regolaPatch: "State the patch you tested on.",
     regolaRispetto: "Take apart the build, not the person who made it.",
     serveProfilo: "You need a profile",
@@ -255,7 +253,6 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
               </h2>
               <ul className="mt-2.5 grid list-disc gap-1.5 pl-4.5 text-[13px] text-ink-2">
                 <li>{t.regolaNumeri}</li>
-                <li>{t.regolaSeed}</li>
                 <li>{t.regolaPatch}</li>
                 <li>{t.regolaRispetto}</li>
               </ul>

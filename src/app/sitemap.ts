@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site";
 import { listGames } from "@/lib/games/catalog";
-import { getGameModule } from "@/lib/games/registry";
 import { databaseReachable, db } from "@/lib/db";
 
 /**
@@ -32,21 +31,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     entries.push(
       { url: `${base}/${game.slug}`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
-      { url: `${base}/${game.slug}/personaggi`, changeFrequency: "weekly", priority: 0.8 },
-      { url: `${base}/${game.slug}/nemici`, changeFrequency: "weekly", priority: 0.5 },
-      { url: `${base}/${game.slug}/classifica`, changeFrequency: "weekly", priority: 0.7 },
-      { url: `${base}/${game.slug}/strumenti`, changeFrequency: "weekly", priority: 0.6 },
       { url: `${base}/${game.slug}/guide`, changeFrequency: "weekly", priority: 0.7 },
     );
-
-    const gameModule = getGameModule(game.slug);
-    for (const character of gameModule?.characters ?? []) {
-      entries.push({
-        url: `${base}/${game.slug}/personaggi/${character.id}`,
-        changeFrequency: "weekly",
-        priority: 0.8,
-      });
-    }
   }
 
   if (await databaseReachable()) {

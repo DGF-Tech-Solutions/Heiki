@@ -6,11 +6,14 @@
     "RatingType": "enum del client: C UC R SR SSR UR LR",
     "UI_text_hero_kind_NN / UI_attribute_filter_<colore> / DB_hero_job_group_NN": "testi del client coi nomi",
     "etichette_manuali.json": "le etichette che il client non consegna in nessuna lingua, scritte dall'utente; vincono sempre",
+    "codice del combattimento": "chi batte chi (vantaggi): letto nel .so JP, vedi MECCANICHE_COMBATTIMENTO.md",
+    "DB_config_game": "quanto vale un vantaggio o uno svantaggio d'attributo",
     "DB_hero_base / DB_skin_base": "razza, fazioni, attributo e rarita' di ogni eroe, dalle tabelle del client (scheda_client.py)"
   },
   "note": {
     "rarita": "rating e' il TETTO raggiungibile, non la rarita' di adesso: startRating e' come l'eroe esce dal gacha (eroi_escono), rating fin dove arriva (eroi_arrivano)",
     "fazioni": "un eroe puo' averne piu' d'una: e' un insieme, mai un valore singolo",
+    "batte": "negli attributi: batte e battuto_da vengono dal triangolo (vantaggi)",
     "forme_nel_testo_en": "come il testo inglese delle abilita' nomina il codice; serve a leggere a chi si applica un effetto"
   },
   "razze": {
@@ -142,7 +145,9 @@
       "colore_nel_client": "red",
       "forme_nel_testo_en": [
         "Strength attribute"
-      ]
+      ],
+      "batte": "2",
+      "battuto_da": "3"
     },
     "2": {
       "etichetta": {
@@ -160,7 +165,9 @@
       "colore_nel_client": "green",
       "forme_nel_testo_en": [
         "HP attribute"
-      ]
+      ],
+      "battuto_da": "1",
+      "batte": "3"
     },
     "3": {
       "etichetta": {
@@ -178,7 +185,9 @@
       "colore_nel_client": "blue",
       "forme_nel_testo_en": [
         "Speed attribute"
-      ]
+      ],
+      "battuto_da": "2",
+      "batte": "1"
     },
     "4": {
       "etichetta": {
@@ -496,10 +505,36 @@
       "prove": []
     }
   },
-  "lacune": [
-    {
-      "cosa": "triangolo dei vantaggi fra attributi",
-      "stato": "i valori sono in DB_config_game (attribute_advantage_per 0.3, attribute_disadvantage_per 0.2); chi batte chi sta nel codice del combattimento, non ancora letto. Nei testi del client c'e' solo un modificatore di una modalita' PvP (DB_gb_pvp_mode_desc_020: +30% con vantaggio, -40% con svantaggio). I 1.25 e 0.8 di src/lib/games/grand-cross/data.ts sono segnaposto scritti a mano"
-    }
-  ]
+  "vantaggi": {
+    "certezza": "dichiarato",
+    "prove": [
+      "ÌÜØÓÏÂÃÚÅ.ÉÜÕÜÂÝÍÒØ (RVA 0x2763E18, .so JP 2.112.0): RED batte GREEN, GREEN batte BLUE, BLUE batte RED; con YELLOW, PURPLE e YELLOW_PURPLE il confronto e' NONE",
+      "UIIngameMain.GetDamageType (0x410D8FC): col risultato STRENGTH il numero di danno ADD, con WEAKNESS il numero RESIST",
+      "UI_loseguide_attribute_detail_01: «Gli attributi Forza, PS e Velocita' hanno vantaggi e svantaggi contro gli altri eroi»"
+    ],
+    "batte": {
+      "1": "2",
+      "2": "3",
+      "3": "1"
+    },
+    "fuori_dal_triangolo": [
+      "4",
+      "5",
+      "6"
+    ],
+    "vantaggio": {
+      "valore": 0.3,
+      "da": "DB_config_game.attribute_advantage_per",
+      "come": "si SOMMA agli aumenti del danno (buff e passive «danni inflitti +%», Amplificazione danni); poi il danno si moltiplica per 1 + aumenti - riduzioni, con la differenza mai sotto -0.8. Da solo vale x1.30"
+    },
+    "svantaggio": {
+      "valore": 0.2,
+      "da": "DB_config_game.attribute_disadvantage_per",
+      "come": "si SOMMA alle riduzioni del danno (danni subiti -%, Resistenza ai danni). Da solo vale x0.80"
+    },
+    "sempre_in_vantaggio": "l'opzione di carta skill_ignore_attribute_per (solo mostri) e le passive pass_ignore_attribute_per_craft e pass_advantageous_attribute_effect(_craft), di due Reliquie sacre; la seconda vale anche in difesa: chi colpisce l'eroe e' sempre in svantaggio",
+    "luce": "ogni eroe Luce porta una passiva nascosta pass_dmg_dec_per_attribute_yellow (DB_skin_exclusive_passive.list_array_attribute_exclusive_passive_id): con uno in squadra, gli alleati Luce subiscono il 10% in meno da chi non e' Luce, e gli altri alleati il 10% in meno da chi e' in svantaggio contro di loro. Non si accumula",
+    "oscurita": "ogni eroe Oscurita' porta pass_dmg_inc_per_attribute_purple: gli alleati Oscurita' fanno il 10% in piu' a chi non e' Oscurita', gli altri alleati il 10% in piu' quando sono in vantaggio. Il testo del gioco (UI_attribute_effect_desc_02) dice «su personaggi con attributi che sono forti contro i tuoi alleati»: il codice fa il contrario, e vale il codice"
+  },
+  "lacune": []
 }

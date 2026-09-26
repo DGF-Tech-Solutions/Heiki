@@ -117,6 +117,7 @@ export interface GameSection {
     | "releases"
     | "artifacts"
     | "accountBuff"
+    | "mechanics"
     | "deathMatch"
     | "creatureNest"
     | "demonKing"
@@ -181,14 +182,13 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         needs: "accountBuff",
       },
       {
-        path: "/personaggi",
-        label: { it: "Personaggi", en: "Characters" },
-        hint: { it: "Statistiche, abilità e danno simulato", en: "Stats, skills and simulated damage" },
-      },
-      {
-        path: "/nemici",
-        label: { it: "Nemici", en: "Enemies" },
-        hint: { it: "Bersagli usati nei calcoli", en: "Targets used in the calculations" },
+        path: "/meccaniche",
+        label: { it: "Meccaniche", en: "Mechanics" },
+        hint: {
+          it: "Danno, attributi, pesca delle carte e cumulo dei buff, come li calcola il gioco",
+          en: "Damage, attributes, card draws and buff stacking, as the game computes them",
+        },
+        needs: "mechanics",
       },
     ],
   },
@@ -230,21 +230,6 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "Judgments, magic, Edicts and Archangels",
         },
         needs: "supremeDeity",
-      },
-    ],
-  },
-  {
-    label: { it: "Strumenti", en: "Tools" },
-    items: [
-      {
-        path: "/strumenti",
-        label: { it: "Simulatore squadra", en: "Team simulator" },
-        hint: { it: "Componi e calcola", en: "Build a team and calculate" },
-      },
-      {
-        path: "/classifica",
-        label: { it: "Classifica danno", en: "Damage ranking" },
-        hint: { it: "Ordinata dal motore, non a giudizio", en: "Ordered by the engine, not by opinion" },
       },
     ],
   },

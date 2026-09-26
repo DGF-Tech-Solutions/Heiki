@@ -15,6 +15,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { DEATH_MATCH } from "../grand-cross/death-match.generated";
 import { HERO_CONTEXT } from "../grand-cross/hero-context.generated";
 import { HERO_STATS } from "../grand-cross/hero-stats.generated";
 
@@ -148,6 +149,48 @@ describe("base dei concetti: i dati del sito ci stanno dentro", () => {
       if (!voce.rimanda_a) continue;
       const [file, sezione, chiave] = voce.rimanda_a.split(".");
       expect(DIZIONARI[`${file}.${sezione}`]?.[chiave!], `${codice} -> ${voce.rimanda_a}`).toBeDefined();
+    }
+  });
+});
+
+describe("base dei concetti: il triangolo degli attributi", () => {
+  // Il verso l'ha letto il 27/09 lo studio delle meccaniche di combattimento, nel
+  // codice del client: nessuna tabella lo scrive. I valori vengono da DB_config_game.
+  const { vantaggi } = carica<{
+    vantaggi: {
+      batte: Record<string, string>;
+      fuori_dal_triangolo: string[];
+      vantaggio: { valore: number };
+      svantaggio: { valore: number };
+    };
+  }>("identita.json");
+
+  it("e' un giro di tre: ognuno batte un attributo ed e' battuto da un altro", () => {
+    expect(Object.keys(vantaggi.batte).sort()).toEqual(["1", "2", "3"]);
+    expect(Object.values(vantaggi.batte).sort()).toEqual(["1", "2", "3"]);
+    for (const [forte, debole] of Object.entries(vantaggi.batte)) {
+      expect(forte).not.toBe(debole);
+      expect(identita.attributi[forte]!["batte"], forte).toBe(debole);
+      expect(identita.attributi[debole]!["battuto_da"], debole).toBe(forte);
+    }
+    for (const fuori of vantaggi.fuori_dal_triangolo) {
+      expect(identita.attributi[fuori]!["batte"], fuori).toBeUndefined();
+      expect(identita.attributi[fuori]!["battuto_da"], fuori).toBeUndefined();
+    }
+  });
+
+  it("vantaggio e svantaggio sono frazioni, il vantaggio piu' grande", () => {
+    expect(vantaggi.vantaggio.valore).toBeGreaterThan(0);
+    expect(vantaggi.vantaggio.valore).toBeLessThan(1);
+    expect(vantaggi.svantaggio.valore).toBeGreaterThan(0);
+    expect(vantaggi.svantaggio.valore).toBeLessThan(vantaggi.vantaggio.valore);
+  });
+
+  it("l'attributo che batte ogni boss degli Scontri finali e' quello del triangolo", () => {
+    const chiBatte = new Map(Object.entries(vantaggi.batte).map(([forte, debole]) => [debole, Number(forte)]));
+    for (const boss of DEATH_MATCH.bosses) {
+      const atteso = boss.attribute === null ? null : (chiBatte.get(String(boss.attribute)) ?? null);
+      expect(boss.advantage, boss.key).toBe(atteso);
     }
   });
 });

@@ -35,8 +35,8 @@ describe("etichette condivise nelle due lingue", () => {
 
   it("le sezioni dei giochi e gli attributi", () => {
     const en = gameGroups("grand-cross", "en");
-    expect(en.map((group) => group.label)).toContain("Tools");
-    expect(en.flatMap((group) => group.items).map((item) => item.label)).toContain("Heroes");
+    expect(en.map((group) => group.label)).toContain("Endgame");
+    expect(en.flatMap((group) => group.items).map((item) => item.label)).toEqual(expect.arrayContaining(["Heroes", "Mechanics"]));
     expect(gameGroups("grand-cross").map((group) => group.label)).toEqual(
       GAME_GROUPS.map((group) => group.label).filter((label) => gameGroups("grand-cross").some((g) => g.label === label)),
     );
