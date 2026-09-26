@@ -31,7 +31,8 @@ const TESTI = testi({
 /**
  * Il colore di ogni grado, preso dalle cornici delle carte del gioco
  * (Artifact_Frame_C ... _UR): bruno, bronzo, argento, oro, viola, rosa. Serve
- * al bordo della carta e alla sigla del grado, sul fondo scuro del sito.
+ * alla sigla del grado e al riquadro di una carta senza immagine; le carte vere
+ * hanno la cornice del gioco dentro l'immagine.
  */
 export const GRADE_COLORS: Readonly<Record<number, string>> = {
   1: "#a08c6a",
@@ -56,10 +57,17 @@ export function GradeBadge({ grade, index, className }: { grade: number; index: 
   );
 }
 
-/** L'immagine di una carta, col bordo del colore del grado; senza immagine un riquadro vuoto. */
+/**
+ * Una carta come nel gioco: l'illustrazione dentro la cornice del suo grado, gia'
+ * composta dalla pipeline, verticale. `frame` sono le misure dell'immagine
+ * (ArtifactIndex.images): da li' viene la proporzione, cosi' il riquadro ha la
+ * sua altezza prima che l'immagine arrivi. Senza immagine un riquadro vuoto
+ * della stessa forma, col bordo del colore del grado.
+ */
 export function CardImage({
   game,
   card,
+  frame,
   size,
   small,
   eager,
@@ -67,36 +75,42 @@ export function CardImage({
 }: {
   game: string;
   card: Pick<ArtifactCard, "id" | "grade" | "image">;
+  frame: { readonly width: number; readonly height: number };
+  /** la larghezza massima: sul telefono la carta si stringe invece di uscire dallo schermo */
   size: number;
-  /** la versione da 256 px: nelle griglie e nelle file di carte */
+  /** la carta delle liste (cornice piccola); senza, la carta grande della pagina */
   small?: boolean;
   eager?: boolean;
   className?: string;
 }) {
-  const color = GRADE_COLORS[card.grade];
-  // larga quanto il contenitore fino a `size`: sul telefono la carta grande della
-  // pagina si stringe invece di uscire dallo schermo
-  const style = { borderColor: color, width: "100%", maxWidth: size, height: "auto", aspectRatio: "1 / 1" };
+  const style = { width: "100%", maxWidth: size, height: "auto", aspectRatio: `${frame.width} / ${frame.height}` };
   if (!card.image) {
-    return <span aria-hidden className={cx("block rounded-[4px] border-2 bg-paper-2", className)} style={style} />;
+    return (
+      <span
+        aria-hidden
+        className={cx("block rounded-[6px] border-2 bg-paper-2", className)}
+        style={{ ...style, borderColor: GRADE_COLORS[card.grade] }}
+      />
+    );
   }
   return (
     /* eslint-disable-next-line @next/next/no-img-element */
     <img
       src={cardImageSrc(game, card.id, small)}
       alt=""
-      width={size}
-      height={size}
+      width={frame.width}
+      height={frame.height}
       loading={eager ? "eager" : "lazy"}
       decoding="async"
-      className={cx("block rounded-[4px] border-2 bg-paper-2 object-cover", className)}
+      className={cx("block", className)}
       style={style}
     />
   );
 }
 
 /**
- * Una carta in piccolo, che porta alla sua pagina: immagine, sigla, grado, nome.
+ * Una carta in piccolo, che porta alla sua pagina: immagine, sigla e nome. Il
+ * grado non si ripete sotto: lo dice gia' la cornice.
  * `current` la segna come quella della pagina, senza collegamento.
  */
 export function CardTile({
@@ -117,18 +131,15 @@ export function CardTile({
   const name = inLingua(card.name, locale) ?? card.id;
   const body = (
     <>
-      <CardImage game={game} card={card} size={size} small />
-      <span className="mt-1.5 flex items-center gap-1.5">
-        <span className={cx(numeric, "text-[11px] text-ink-3")}>{cardCode(index, card, locale)}</span>
-        <GradeBadge grade={card.grade} index={index} />
-      </span>
+      <CardImage game={game} card={card} frame={index.images.small} size={size} small />
+      <span className={cx(numeric, "mt-1.5 block text-[11px] text-ink-3")}>{cardCode(index, card, locale)}</span>
       <span className={cx("mt-0.5 block text-[12px] font-semibold leading-tight", !current && "group-hover:text-brand")}>
         {name}
       </span>
     </>
   );
   return current ? (
-    <div aria-current="page" className="block rounded-[4px] outline outline-2 outline-offset-2 outline-brand" style={{ width: size }}>
+    <div aria-current="page" className="block rounded-[6px] outline outline-2 outline-offset-2 outline-brand" style={{ width: size }}>
       {body}
     </div>
   ) : (

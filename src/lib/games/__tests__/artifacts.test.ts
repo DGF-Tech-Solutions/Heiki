@@ -132,6 +132,13 @@ describe("i dati di Grand Cross", () => {
     for (const entry of data.cards) if (entry.set) expect(inSets.has(entry.id)).toBe(true);
   });
 
+  it("le carte sono verticali, come nel gioco, non quadrate", () => {
+    for (const frame of [data.images.small, data.images.large]) {
+      expect(frame.height).toBeGreaterThan(frame.width * 1.1);
+      expect(frame.height).toBeLessThan(frame.width * 1.5);
+    }
+  });
+
   it("i numeri dei set sono unici e fanno l'indirizzo della pagina", () => {
     const numbers = data.sets.map((set) => set.number);
     expect(new Set(numbers).size).toBe(numbers.length);

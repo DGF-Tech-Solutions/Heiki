@@ -288,9 +288,10 @@ Il confine passa qui, e non è formale:
   per livello (le 306 squadre del computer che usano un set li confermano) e la
   probabilità dei pacchetti come peso sulla somma dei pesi. Da quali modalità
   dell'Endgame cade una carta non sta nel JSON: `cardSources()` lo cerca nei drop
-  che le pagine Endgame mostrano già. Le immagini arrivano dalla pipeline già
-  rimpicciolite (WebP a 512 e 256 px: 27 MB invece dei 150 degli originali) e vanno
-  in `public/eroi/<gioco>/artefatti/`
+  che le pagine Endgame mostrano già. Le carte arrivano dalla pipeline già
+  composte come nel gioco: l'illustrazione dentro la cornice del suo grado, presa
+  dall'atlante `atlas_artifact` (la piccola delle liste e la grande a nove fette),
+  verticali, in WebP; vanno in `public/eroi/<gioco>/artefatti/`
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

@@ -53,9 +53,12 @@ export function CardBrowser({
   cards,
   types,
   grades,
+  frame,
 }: {
   game: string;
   cards: readonly ArtifactCardSummary[];
+  /** le misure della carta delle liste (ArtifactIndex.images.small): la proporzione dei riquadri */
+  frame: { readonly width: number; readonly height: number };
   /** in ordine: codice e nome del tipo */
   types: readonly { readonly code: number; readonly name: string }[];
   grades: readonly { readonly code: number; readonly name: string }[];
@@ -81,6 +84,7 @@ export function CardBrowser({
   );
 
   const filtered = search !== "" || type !== null || grade !== null || inSet !== null;
+  const aspectRatio = `${frame.width} / ${frame.height}`;
 
   return (
     <>
@@ -173,29 +177,22 @@ export function CardBrowser({
                   <img
                     src={cardImageSrc(game, card.id, true)}
                     alt=""
-                    width={256}
-                    height={256}
+                    width={frame.width}
+                    height={frame.height}
                     loading="lazy"
                     decoding="async"
-                    className="block aspect-square w-full rounded-[4px] border-2 bg-paper-2 object-cover transition-transform group-hover:-translate-y-0.5"
-                    style={{ borderColor: GRADE_COLORS[card.grade] }}
+                    className="block h-auto w-full transition-transform group-hover:-translate-y-0.5"
+                    style={{ aspectRatio }}
                   />
                 ) : (
                   <span
                     aria-hidden
-                    className="block aspect-square w-full rounded-[4px] border-2 bg-paper-2"
-                    style={{ borderColor: GRADE_COLORS[card.grade] }}
+                    className="block w-full rounded-[6px] border-2 bg-paper-2"
+                    style={{ aspectRatio, borderColor: GRADE_COLORS[card.grade] }}
                   />
                 )}
-                <span className="mt-1.5 flex items-center gap-1.5">
-                  <span className={cx(numeric, "text-[11px] text-ink-3")}>{card.code}</span>
-                  <span
-                    className={cx(numeric, "rounded-[3px] border px-1 text-[10px] font-bold leading-[15px]")}
-                    style={{ color: GRADE_COLORS[card.grade], borderColor: GRADE_COLORS[card.grade] }}
-                  >
-                    {grades.find((entry) => entry.code === card.grade)?.name}
-                  </span>
-                </span>
+                {/* il grado non si ripete: lo dice gia' la cornice */}
+                <span className={cx(numeric, "mt-1.5 block text-[11px] text-ink-3")}>{card.code}</span>
                 <span className="mt-0.5 block text-[12px] font-semibold leading-tight group-hover:text-brand">
                   {card.name}
                 </span>

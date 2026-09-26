@@ -57,7 +57,18 @@ export interface SetFilterNames {
 
 type Group = "content" | "race" | "faction" | "misc";
 
-export function SetBrowser({ game, sets, names }: { game: string; sets: readonly ArtifactSetSummary[]; names: SetFilterNames }) {
+export function SetBrowser({
+  game,
+  sets,
+  names,
+  frame,
+}: {
+  game: string;
+  sets: readonly ArtifactSetSummary[];
+  names: SetFilterNames;
+  /** le misure della carta delle liste (ArtifactIndex.images.small) */
+  frame: { readonly width: number; readonly height: number };
+}) {
   const t = TESTI[useLocale()];
   const [search, setSearch] = useState("");
   const [chosen, setChosen] = useState<Record<Group, number | null>>({ content: null, race: null, faction: null, misc: null });
@@ -140,7 +151,14 @@ export function SetBrowser({ game, sets, names }: { game: string; sets: readonly
         <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
           {visible.map((set) => (
             <li key={set.number} className="min-w-0">
-              <SetCard game={game} set={set} names={names} levelLabel={t.livelloMassimo(set.levels)} eventLabel={t.evento} />
+              <SetCard
+                game={game}
+                set={set}
+                names={names}
+                frame={frame}
+                levelLabel={t.livelloMassimo(set.levels)}
+                eventLabel={t.evento}
+              />
             </li>
           ))}
         </ul>
@@ -153,18 +171,23 @@ function SetCard({
   game,
   set,
   names,
+  frame,
   levelLabel,
   eventLabel,
 }: {
   game: string;
   set: ArtifactSetSummary;
   names: SetFilterNames;
+  frame: { readonly width: number; readonly height: number };
   levelLabel: string;
   eventLabel: string;
 }) {
   const contents = set.contents
     .map((code) => names.contents.find((entry) => entry.code === code))
     .filter((entry) => entry !== undefined);
+  // le carte in miniatura, verticali come nel gioco
+  const width = 56;
+  const height = Math.round((width * frame.height) / frame.width);
   return (
     <Link
       href={`/${game}/set-artefatto/${set.number}`}
@@ -188,19 +211,19 @@ function SetCard({
               key={card.id}
               src={cardImageSrc(game, card.id, true)}
               alt=""
-              width={52}
-              height={52}
+              width={width}
+              height={height}
               loading="lazy"
               decoding="async"
-              className="block rounded-[3px] border-2 bg-paper object-cover"
-              style={{ width: 52, height: 52, borderColor: GRADE_COLORS[card.grade] }}
+              className="block"
+              style={{ width, height }}
             />
           ) : (
             <span
               key={card.id}
               aria-hidden
-              className="block rounded-[3px] border-2 bg-paper"
-              style={{ width: 52, height: 52, borderColor: GRADE_COLORS[card.grade] }}
+              className="block rounded-[4px] border-2 bg-paper"
+              style={{ width, height, borderColor: GRADE_COLORS[card.grade] }}
             />
           ),
         )}

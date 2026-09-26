@@ -134,7 +134,7 @@ export default async function ArtifactCardPage({ params }: Props) {
 
       <div className="mb-10 grid gap-6 md:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         <div className="min-w-0">
-          <CardImage game={game} card={card} size={360} eager />
+          <CardImage game={game} card={card} frame={data.images.large} size={360} eager />
         </div>
 
         <div className="min-w-0">

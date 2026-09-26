@@ -38,7 +38,10 @@ export interface ArtifactCard {
   readonly packs: readonly string[];
   /** il Pacchetto di carte del tempo (evento dei desideri): il suo peso, e quello se e' nella lista */
   readonly timePack: { readonly weight: number; readonly wishWeight: number } | null;
-  /** c'e' l'immagine in public/eroi/<gioco>/artefatti/carte/<id>.webp (e carte-piccole/) */
+  /**
+   * c'e' l'immagine in public/eroi/<gioco>/artefatti/carte/<id>.webp (e carte-piccole/):
+   * la carta gia' composta, l'illustrazione dentro la cornice del suo grado
+   */
   readonly image: boolean;
 }
 
@@ -85,6 +88,16 @@ export interface ArtifactPack {
 }
 
 export interface ArtifactIndex {
+  /**
+   * Le misure delle carte composte, in pixel: la piccola (cornice delle liste,
+   * a scala 2) e la grande (cornice della carta, allargata attorno
+   * all'illustrazione quadrata). Sono verticali come nel gioco; le pagine ne
+   * prendono le proporzioni.
+   */
+  readonly images: {
+    readonly small: { readonly width: number; readonly height: number };
+    readonly large: { readonly width: number; readonly height: number };
+  };
   /** i nomi del gioco: «Carte artefatto», «Set Artefatto», «Pacchetto carte Artefatto»... */
   readonly names: {
     readonly cards: HeroLabel;

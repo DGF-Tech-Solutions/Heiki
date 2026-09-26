@@ -173,7 +173,7 @@ export default async function ArtifactSetsPage({ params }: Props) {
         <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
       </header>
 
-      <SetBrowser game={game} sets={summaries} names={names} />
+      <SetBrowser game={game} sets={summaries} names={names} frame={data.images.small} />
 
       <section id="come-funziona" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
         <h2 className={cx(display, "text-2xl")}>{t.comeFunziona}</h2>

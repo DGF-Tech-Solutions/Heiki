@@ -138,7 +138,7 @@ export default async function ArtifactCardsPage({ params }: Props) {
         <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
       </header>
 
-      <CardBrowser game={game} cards={summaries} types={types} grades={grades} />
+      <CardBrowser game={game} cards={summaries} types={types} grades={grades} frame={data.images.small} />
 
       <section id="pacchetti" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
         <h2 className={cx(display, "text-2xl")}>{t.pacchetti}</h2>

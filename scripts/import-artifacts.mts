@@ -6,9 +6,10 @@
  * Legge dalla pipeline di estrazione (fuori dal repo, dentro _7dsgc):
  *
  *   eroi/artefatti.json     python script/artefatti.py
- *   artefatti/              le immagini gia' pronte per il sito (WebP a 512 e 256 px
- *                           per le carte, PNG per le icone): gli originali delle carte
- *                           sono PNG da 512 o 1024 px, circa 150 MB per 499 carte
+ *   artefatti/              le immagini gia' pronte per il sito: le carte composte
+ *                           come nel gioco, l'illustrazione dentro la cornice del suo
+ *                           grado (WebP, una piccola per le griglie e una grande per la
+ *                           pagina), le icone in PNG
  *
  * e scrive:
  *
@@ -86,6 +87,7 @@ interface SrcPack {
 }
 
 interface Src {
+  cornici: { piccola: { larghezza: number; altezza: number }; grande: { larghezza: number; altezza: number } };
   nomi: { carte: SrcLabel; set: SrcLabel; set_bonus: SrcLabel; pacchetto: SrcLabel };
   guida: SrcLabel[];
   placcate_testo: SrcLabel | null;
@@ -311,6 +313,10 @@ for (const pack of source.pacchetti) {
 
 const time = source.pacchetto_del_tempo;
 const index: ArtifactIndex = {
+  images: {
+    small: { width: source.cornici.piccola.larghezza, height: source.cornici.piccola.altezza },
+    large: { width: source.cornici.grande.larghezza, height: source.cornici.grande.altezza },
+  },
   names: {
     cards: required(source.nomi.carte, "nome delle carte"),
     set: required(source.nomi.set, "nome dei set"),
