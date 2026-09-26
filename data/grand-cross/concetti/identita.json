@@ -499,7 +499,7 @@
   "lacune": [
     {
       "cosa": "triangolo dei vantaggi fra attributi",
-      "stato": "non trovato nei testi del client. Ci sono solo un modificatore di una modalita' PvP (DB_gb_pvp_mode_desc_020: +30% con vantaggio, -40% con svantaggio) e la Bestia demoniaca che parla di attributo «debole». I 1.25 e 0.8 di src/lib/games/grand-cross/data.ts sono segnaposto scritti a mano"
+      "stato": "i valori sono in DB_config_game (attribute_advantage_per 0.3, attribute_disadvantage_per 0.2); chi batte chi sta nel codice del combattimento, non ancora letto. Nei testi del client c'e' solo un modificatore di una modalita' PvP (DB_gb_pvp_mode_desc_020: +30% con vantaggio, -40% con svantaggio). I 1.25 e 0.8 di src/lib/games/grand-cross/data.ts sono segnaposto scritti a mano"
     }
   ]
 }

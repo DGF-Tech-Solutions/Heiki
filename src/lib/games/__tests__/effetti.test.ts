@@ -33,13 +33,15 @@ interface Proposizione {
   parte?: string;
 }
 
+/** Un rango: le colonne della sua riga di DB_skill_card_base, e il testo. */
 interface RigaBase {
   slot: string;
   rango: number;
   eroi: string[];
+  tassonomia?: string[];
+  segnaposto?: Record<string, string>;
   proposizioni?: Proposizione[];
   schema?: string;
-  fonti: Record<string, string>;
   [campo: string]: unknown;
 }
 
@@ -83,13 +85,24 @@ interface Glossario {
   nomi_delle_note?: Record<string, number>;
 }
 
+/** Il legame fra un rango e un suo buff o opzione («<rango>.b<N>»), o un effetto che dice solo il testo («.p»). */
 interface RigaCollegata {
   carta?: string;
-  carte?: string[];
   posizione?: number;
+  id?: number;
   proposizione?: number;
   significato?: Significato[];
-  fonti: Record<string, string>;
+  fonti?: Record<string, string>;
+  [campo: string]: unknown;
+}
+
+/** Una riga vera di DB_skill_card_buff o DB_skill_card_option, con chi la usa. */
+interface RigaGioco {
+  effect_keyword: string;
+  ranghi?: string[];
+  da_opzioni?: string[];
+  da_buff?: string[];
+  nei_testi?: string[];
   [campo: string]: unknown;
 }
 
@@ -132,6 +145,8 @@ interface Segnaposto {
 const base = carica<Tabella<RigaBase>>("effetti/carte_base.json");
 const buff = carica<Tabella<RigaCollegata>>("effetti/carte_buff.json");
 const opzioni = carica<Tabella<RigaCollegata>>("effetti/carte_opzioni.json");
+const righeBuff = carica<Tabella<RigaGioco>>("effetti/buff.json");
+const righeOpzioni = carica<Tabella<RigaGioco>>("effetti/opzioni.json");
 const fileForme = carica<{
   forme: Record<string, Forma>;
   condizioni: Record<string, Glossario>;
@@ -141,7 +156,9 @@ const fileForme = carica<{
 const forme = fileForme.forme;
 const segnaposto = carica<{ segnaposto: Record<string, Segnaposto> }>("effetti/segnaposto.json").segnaposto;
 const carte = carica<Record<string, Record<string, unknown>>>("concetti/carte.json");
-const tassonomia = carica<{ voci: Record<string, unknown> }>("concetti/tassonomia.json").voci;
+const fileTassonomia = carica<{ voci: Record<string, unknown>; per_tag: Record<string, string> }>("concetti/tassonomia.json");
+const tassonomia = fileTassonomia.voci;
+const tassonomiaPerTag = fileTassonomia.per_tag;
 const statistiche = carica<Record<"statistiche" | "gruppi", Record<string, unknown>>>("concetti/statistiche.json");
 const ENUM_BERSAGLI = new Set(Object.values(carte["bersagli"] as Record<string, { enum: string }>).map((b) => b.enum));
 
@@ -205,27 +222,55 @@ describe("righe d'effetto delle carte: i file si citano senza buchi", () => {
     }
   });
 
-  it("buff e opzioni si legano a ranghi che esistono, e le chiavi sintetiche dicono carta e posizione", () => {
-    for (const [tabella, suffisso] of [
-      [buff, "b"],
-      [opzioni, "o"],
+  it("ogni buff e opzione della lista della carta ha il suo legame, con l'id della riga vera", () => {
+    for (const [tabella, suffisso, lista, righeGioco] of [
+      [buff, "b", "list_array_buff_id_list", righeBuff],
+      [opzioni, "o", "list_array_option_id_list", righeOpzioni],
     ] as const) {
+      const legati = new Set<string>();
       for (const [id, riga] of Object.entries(tabella.righe)) {
-        if (riga.carta !== undefined) {
-          expect(base.righe[riga.carta], id).toBeDefined();
-          if (riga.proposizione === undefined) {
-            expect(id, id).toBe(`${riga.carta}.${suffisso}${riga.posizione}`);
-          } else {
-            // una riga che dice solo la lettura: il posto nella lista dei buff il testo non lo dice
-            expect(id, id).toMatch(new RegExp(`^${riga.carta}\\.p${riga.proposizione}(e\\d+)?$`));
-            expect(base.righe[riga.carta]!.proposizioni?.[riga.proposizione - 1], id).toBeDefined();
-          }
+        const carta = base.righe[riga.carta ?? ""];
+        expect(carta, id).toBeDefined();
+        if (riga.proposizione === undefined) {
+          // l'N-esimo della lista della carta, come il segnaposto {buff_N_val} del modello
+          expect(id, id).toBe(`${riga.carta}.${suffisso}${riga.posizione}`);
+          expect((carta![lista] as number[])[riga.posizione! - 1], id).toBe(riga.id);
+          expect(righeGioco.righe[String(riga.id)], `${id} -> ${riga.id}`).toBeDefined();
+          legati.add(id);
         } else {
-          // una chiave di sole cifre e' l'id vero, scritto dentro un tag buff_data_*
-          expect(id).toMatch(/^\d+$/);
-          for (const carta of riga.carte ?? []) expect(base.righe[carta], `${id} -> ${carta}`).toBeDefined();
+          // un effetto che dice solo il testo: quale riga del gioco sia il testo non lo dice
+          expect(id, id).toMatch(new RegExp(`^${riga.carta}\\.p${riga.proposizione}(e\\d+)?$`));
+          expect(carta!.proposizioni?.[riga.proposizione - 1], id).toBeDefined();
+          expect(riga.id, id).toBeUndefined();
         }
       }
+      for (const [rid, riga] of righe) {
+        (riga[lista] as number[]).forEach((_, i) => expect(legati.has(`${rid}.${suffisso}${i + 1}`), rid).toBe(true));
+      }
+    }
+  });
+
+  it("le righe vere di buff e opzioni: chi le usa esiste, e i rimandi portano a righe che ci sono", () => {
+    for (const tabella of [righeBuff, righeOpzioni]) {
+      for (const [id, riga] of Object.entries(tabella.righe)) {
+        expect(typeof riga.effect_keyword, id).toBe("string");
+        for (const rid of [...(riga.ranghi ?? []), ...(riga.nei_testi ?? [])]) {
+          expect(base.righe[rid], `${id} -> ${rid}`).toBeDefined();
+        }
+        // una riga c'e' perche' qualcuno la usa
+        expect((riga.ranghi ?? []).length + (riga.da_opzioni ?? []).length + (riga.da_buff ?? []).length +
+          (riga.nei_testi ?? []).length, id).toBeGreaterThan(0);
+      }
+    }
+    for (const [id, riga] of Object.entries(righeOpzioni.righe)) {
+      for (const k of [1, 2, 3, 4, 5]) {
+        const b = riga[`use_buff_id_${k}`] as number;
+        if (b) expect(righeBuff.righe[String(b)]?.da_opzioni, `${id} -> ${b}`).toContain(id);
+      }
+    }
+    for (const [id, riga] of Object.entries(righeBuff.righe)) {
+      for (const o of riga.da_opzioni ?? []) expect(righeOpzioni.righe[o], `${id} <- ${o}`).toBeDefined();
+      for (const b of riga.da_buff ?? []) expect(righeBuff.righe[b], `${id} <- ${b}`).toBeDefined();
     }
   });
 });
@@ -233,25 +278,34 @@ describe("righe d'effetto delle carte: i file si citano senza buchi", () => {
 describe("righe d'effetto delle carte: colonne, fonti e dizionari", () => {
   const segnati = new Set(Object.values(segnaposto).map((s) => s.nel_testo));
 
-  it("ogni colonna riempita ha la sua fonte, e la fonte esiste", () => {
-    for (const tabella of [base, buff, opzioni] as Tabella<RigaBase | RigaCollegata>[]) {
-      const colonne = new Set(tabella.colonne.map((c) => c.nome));
+  it("le colonne dei ranghi sono della tabella; le righe «.p» hanno i numeri della lettura, con la sua fonte", () => {
+    const colonne = new Set(base.colonne.map((c) => c.nome));
+    for (const [id, riga] of righe) {
+      for (const c of ["range_type", "attack_type", "target", "atk_per", "list_array_buff_id_list", "list_array_option_id_list"]) {
+        expect(colonne.has(c), c).toBe(true);
+        expect(riga[c], `${id}.${c}`).toBeDefined();
+      }
+      // i segnaposto del modello: nomi che i testi del client usano
+      for (const chiave of Object.keys(riga.segnaposto ?? {})) {
+        expect(segnati.has(chiave.split(":")[0]!), `${id}: ${chiave}`).toBe(true);
+      }
+    }
+    for (const tabella of [buff, opzioni]) {
       for (const [id, riga] of Object.entries(tabella.righe)) {
-        for (const campo of Object.keys(riga)) {
-          if (colonne.has(campo) || campo === "valore") expect(riga.fonti[campo], `${id}.${campo}`).toBeDefined();
+        if (riga.proposizione === undefined) {
+          expect(riga.fonti, id).toBeUndefined();
+          continue;
         }
-        for (const [campo, fonte] of Object.entries(riga.fonti)) {
+        for (const [campo, fonte] of Object.entries(riga.fonti ?? {})) {
           expect(riga[campo], `${id}.${campo}`).toBeDefined();
-          if (fonte.startsWith("modello:")) expect(segnati.has(fonte.slice(8)), `${id}: ${fonte}`).toBe(true);
-          else if (fonte.startsWith("lettura:")) expect(forme[fonte.slice(8)]?.lettura, `${id}: ${fonte}`).toBeTruthy();
-          // "client": gittata e tipo d'attacco dalla tabella della carta (fino al 24/09 da 7dshub)
-          else expect(["client", "testo"], `${id}: ${fonte}`).toContain(fonte);
+          expect(fonte, id).toMatch(/^lettura:/);
+          expect(forme[fonte.slice(8)]?.lettura, `${id}: ${fonte}`).toBeTruthy();
         }
       }
     }
   });
 
-  it("slot, gittata, tipo d'attacco e bersaglio hanno una voce in concetti/carte.json", () => {
+  it("slot, gittata, tipo d'attacco, bersaglio e tag di ricerca hanno una voce nei dizionari", () => {
     for (const [id, riga] of righe) {
       expect(carte["slot"]![riga.slot], id).toBeDefined();
       for (const [campo, dizionario] of [
@@ -262,6 +316,12 @@ describe("righe d'effetto delle carte: colonne, fonti e dizionari", () => {
         if (riga[campo] === undefined) continue;
         expect(carte[dizionario]![String(riga[campo])], `${id}.${campo} = ${riga[campo]}`).toBeDefined();
       }
+      const tag = riga["list_array_skill_search_tag"] as number[];
+      expect(riga.tassonomia?.length, id).toBe(tag.length);
+      tag.forEach((t, i) => {
+        expect(tassonomiaPerTag[String(t)], `${id}: tag ${t}`).toBe(riga.tassonomia![i]);
+        expect(tassonomia[riga.tassonomia![i]!], `${id}: ${riga.tassonomia![i]}`).toBeDefined();
+      });
     }
   });
 

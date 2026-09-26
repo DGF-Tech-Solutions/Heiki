@@ -15,7 +15,8 @@ due test in `src/lib/games/__tests__/`: `concetti.test.ts` per i dizionari,
 I file in `concetti/` li scrive `concetti.py`, quelli in `effetti/` li scrive
 `righe_carte.py` con le regole di lettura di `letture_carte.py`, tutti nella
 pipeline `_7dsgc` (fuori dal repo), leggendo
-il client del gioco (enum e tabelle da `dump.cs`, testi decifrati) e 7dshub.
+il client del gioco: enum e forma delle tabelle da `dump.cs`, tabelle e testi
+decifrati dai bundle.
 **Non si modificano a mano**: si rigenerano.
 
     python script\concetti.py                    # dentro _7dsgc, dopo contesto_eroi.py
@@ -35,12 +36,12 @@ lo script si ferma senza scrivere niente.
 
 | file | risponde a |
 |---|---|
-| `statistiche.json` | quali statistiche esistono, come le chiama il gioco, in che gruppo stanno, come le chiamano 7dshub e gli enum |
+| `statistiche.json` | quali statistiche esistono, come le chiama il gioco, in che gruppo stanno, come le chiamano la scheda degli eroi e gli enum |
 | `identita.json` | razze, attributi, fazioni, rarità: codici, nomi, quanti eroi |
 | `carte.json` | slot delle abilità, tipi di attacco, gittate, bersagli |
 | `condizioni.json` | dove si attiva una passiva (codici 1-9) |
 | `contenuti.json` | i contenuti che i dati degli eroi nominano |
-| `tassonomia.json` | le 238 voci con cui il gioco filtra gli effetti delle abilità |
+| `tassonomia.json` | le 319 voci con cui il gioco filtra gli effetti delle abilità, coi tag che le carte citano |
 
 ## I file scritti a mano (`manuali/`)
 
@@ -121,8 +122,9 @@ nomina e ne elenca i membri. I costumi lo confermano sui dati: 2.833 armi,
 3.708 corpi e 3.049 teste portano solo statistiche del proprio gruppo, 0 fuori.
 «Basic Stats» sono Attacco, Difesa e PS; «All Stats» i tre gruppi.
 
-7dshub porta anche campi che il client non nomina (`atkIncPer`, `atkAdd`,
-`fPower`…): i valori sono misurati, il significato resta `null`.
+La scheda degli eroi (`scheda_client.py`, che scrive le statistiche coi nomi che
+usava 7dshub) porta anche campi che non sono statistiche dei costumi (`atkIncPer`,
+`atkAdd`, `fPower`…): i valori sono misurati, il significato resta `null`.
 
 **Identità.** I codici vengono dagli enum `TeamUnitData`, i nomi dai testi del
 client o da `etichette_manuali.json`. La fazione 10 (Cross:IF) esiste nei dati
@@ -135,120 +137,89 @@ Talenti, con gli stessi numeri delle icone `ability_icon_10..15`. **`RANGE_TYPE`
 non è il numero di bersagli**: le carte `melee` colpiscono un nemico solo nel
 72% dei ranghi, le `range` tutti i nemici nel 48%.
 
-**Condizioni e contenuti.** Il legame codice → icona sta in una tabella cifrata:
-è dedotto, con le prove dai testi delle passive. I contenuti per ora sono i tre
+**Condizioni e contenuti.** Il legame codice → icona → frase è la tabella
+`DB_skill_passive_condition_icon`: dichiarato. Fino al 26/09 era cifrata e il
+legame era dedotto dai testi delle passive; la tabella gli dà ragione 9 codici su 9. I contenuti per ora sono i tre
 che le condizioni citano: PvP, Scontro finale, Battaglia Bestia demoniaca.
 
-**Tassonomia.** 238 voci: nomi leggibili 237 in italiano e 230 in inglese,
-descrizioni 238 in tutte e due le lingue. Erano 175, 158 e 234 prima che la
-decifratura dei testi (`estrai_testi.py`, 15/09 sera) scegliesse fra le 19
-letture possibili anche con la forma del testo e le parole note del client. 15 voci rimandano a una voce degli
-altri dizionari (`rimanda_a`).
+**Tassonomia.** 319 voci. 308 sono le righe di `DB_skill_search_info`, la tabella
+dei filtri del gioco, con `tag` (l'id che le carte citano in
+`list_array_skill_search_tag`), `gruppo` (Effetti Attacco, Debuff, Buff, Altri) e
+`ordine`; le altre 11 hanno solo il testo. 77 sono delle collaborazioni, con un
+prefisso nel codice (`ffx_266`): fino al 26/09 si scartavano (trappola 63), e le
+regole di lettura delle forme ancora non le guardano, perché molte ripetono il
+nome di una voce del gioco e cambierebbero letture già riviste. 15 voci rimandano
+a una voce degli altri dizionari (`rimanda_a`).
 
 ## Le righe d'effetto delle carte (`effetti/`)
 
-Il gioco tiene le carte in tre tabelle, e la base le ricalca: una riga per rango
-in `DBSkillCardBaseRow`, e le righe dei buff e delle opzioni (gli effetti
-istantanei) in `DBSkillCardBuffRow` e `DBSkillCardOptionRow`, legate al rango con
-`carta` (scelta dell'utente, 15/09). Le tabelle vere stanno nei bundle cifrati:
-qui si riempiono dai testi, e **una colonna si riempie solo se un testo la dice**.
-Se un giorno i bundle si aprono, si sostituiscono le righe e lo schema resta.
+Il gioco tiene le carte in tre tabelle: una riga per rango in `DB_skill_card_base`,
+e le righe dei buff e delle opzioni (gli effetti istantanei) in
+`DB_skill_card_buff` e `DB_skill_card_option`, che la carta elenca per id. **Dal
+26/09 la base le prende dal client** (`tabelle/DB_*.json`, letti da
+`leggi_tabelle.py`). Fino ad allora le tabelle erano cifrate e le colonne si
+ricavavano dai testi: `atk_per` e `target` dai segnaposto del modello o dalla
+lettura della forma, e una riga di buff per segnaposto, con un `valore` che non
+era una colonna del gioco.
 
 | file | cosa c'è |
 |---|---|
-| `carte_base.json` | 4.044 ranghi (A 1.119, B 1.119, ultimate 1.674, coop 132): colonne, proposizioni, schema |
-| `carte_buff.json` | 2.189 righe di buff: 1.205 nominate dai modelli del client, 984 dette solo dalla lettura delle forme |
-| `carte_opzioni.json` | 2.929 righe di opzioni: 913 dai modelli del client, 2.016 dalla lettura delle forme |
-| `forme_carte.json` | 739 forme di proposizione, ognuna scritta una volta; 597 con una lettura delle regole; in coda il glossario italiano di condizioni e precisazioni |
+| `carte_base.json` | 4.062 ranghi (A 1.125, B 1.125, ultimate 1.680, coop 132): le colonne della loro riga di `DB_skill_card_base`, e il testo (modello, segnaposto, proposizioni, schema) |
+| `buff.json` | le 1.092 righe di `DB_skill_card_buff` che le carte degli eroi usano, e quelle a cui rimandano: una volta per id, con chi le usa |
+| `opzioni.json` | le 753 righe di `DB_skill_card_option` che le carte degli eroi usano |
+| `carte_buff.json` | per ogni rango i suoi buff: «`<rango>.b<N>`» è l'N-esimo della sua lista (1.728), con quello che il testo della carta ne dice; più le righe «`.p`» degli effetti che dice solo il testo |
+| `carte_opzioni.json` | lo stesso per le opzioni (4.686 legami) |
+| `forme_carte.json` | 734 forme di proposizione, ognuna scritta una volta; 594 con una lettura delle regole; in coda il glossario italiano di condizioni, precisazioni e termini |
 | `segnaposto.json` | i 51 segnaposto dei modelli di testo (`TAG_SKILLEXPLAIN`) e da quale colonna viene il loro valore |
-| `conferme_letture.json` | le decisioni dell'utente sulle letture, dalla pagina di revisione: compilato a mano, nessuno script lo sovrascrive; non c'è finché non si decide la prima frase |
+| `conferme_letture.json` | le decisioni dell'utente sulle letture, dalla pagina di revisione: compilato a mano, nessuno script lo sovrascrive |
 | `revisione_claude.json` | le letture riviste da Claude coi criteri di quelle che l'utente ha approvato, a parte dalle sue decisioni: le scrive `revisione_claude.py` della pipeline, solo per le forme lette e nominate |
 
-Le righe di tabella stanno una per riga di file: 4.044 ranghi con `indent=2`
-sarebbero illeggibili, e così un diff dopo una patch mostra solo i ranghi
-cambiati.
+Le righe di tabella stanno una per riga di file: un diff dopo una patch mostra
+solo i ranghi cambiati.
 
-### Da dove viene ogni colonna
+### Un rango, i suoi buff e quello che ne dice il testo
 
-| colonna | fonte | ranghi |
-|---|---|---|
-| `range_type`, `attack_type` | 7dshub | 4.044 |
-| `target` | il segnaposto `{target_val}` del modello del client | 3.387 |
-| `target` | l'unico span bianco del testo: **dedotto**, perché nei 3.573 ranghi col modello gli span bianchi del corpo sono tutti `{target_val}` e nessuno è scritto a mano | 429 |
-| `atk_per` | il segnaposto `{melee_val}` | 3.194 |
-| `atk_per` | la lettura della forma, dove il modello non c'è o scrive il valore a mano: **dedotto** | 421, di cui 418 dei 471 ranghi senza modello o in conflitto |
-| `target` | la lettura della forma, per un bersaglio scritto senza colore («on all enemies»): **dedotto** | 30 |
-| righe di buff e opzioni | `{buff_N_val}`, `{turn_N_val}`, `{opt_N_val}`, `{buff_data_turn}ID{/buff_data_turn}`… | dai 3.573 ranghi col modello |
-| righe di buff e opzioni | la lettura delle forme, per gli effetti con un numero: **dedotto** (sotto, «La lettura delle forme») | 499 buff e 1.665 opzioni nuove |
+La carta B di Derieri al rango 2, «Increases basic stats by 30% for 2 turn(s) and
+gains Evasion for 1 turn(s). ※Evasion: …»:
 
-Ogni riga ha `fonti`, che per ogni colonna dice da dove viene: `7dshub`, `testo`,
-`modello:<segnaposto>` o `lettura:<forma>`. `testi` tiene il valore come lo scrive
-il gioco («200%»), perché la scala intera delle colonne è ignota. 198 ranghi non
-hanno `target`: il corpo non nomina nessun bersaglio.
+```json
+"171012": {"slot": "B", "rango": 2, "eroi": ["1575001"], "range_type": 2, "attack_type": 2, "target": 0,
+  "atk_per": 0.0, "atk_per_add": 0.0, "list_array_option_id_list": [],
+  "list_array_buff_id_list": [31037, 33057, 35019, 35051], "force_range_type": 0,
+  "list_array_skill_search_tag": [], "tassonomia": [],
+  "modello": {"esito": "dal client", "chiave": "DB_hero_skill_buff_desc_40202"},
+  "segnaposto": {"buff_1_val": "30%", "turn_1_val": "2 turn(s)", "turn_4_val": "1 turn(s)"},
+  "proposizioni": [{"forma": "pb9a2f064", "valori": ["30%", "2 turn(s)"]}, ...], "schema": "{1} and {2}.\n\n※Evasion: {3}."}
+```
 
-**I modelli.** Il client ha 1.032 descrizioni di abilità coi segnaposto
-(`Inflicts damage equal to {melee_val} of Attack on {target_val}`), tutte
-leggibili da quando la decifratura sceglie fra le 19 letture possibili anche con
-la forma del testo (15/09 sera; prima 9 uscivano illeggibili). **Le loro chiavi non sono gli id dei ranghi**: il client salva un
-testo per ogni testo diverso, e i ranghi che dicono la stessa cosa con numeri
-diversi ne usano uno solo. L'ultimate di Mael Angelo della disperazione usa la
-chiave …591 ai ranghi 1–2, la …592 ai 3–4, la …593 ai 5–6, e le chiavi …594–596
-non esistono. Quale chiave usi un rango lo dice una colonna cifrata
-(`skill_explain`); qui il modello di un rango è quello che, coi valori del rango,
-ridà il testo di 7dshub identico, colori compresi (`modelli_abilita.py` nella
-pipeline).
+La frase «Increases basic stats by 30%» nel gioco sono **tre righe**: 31037
+Aumento Attacco, 33057 Aumento Difesa, 35019 Aumento PS, tutte `effect_value` 30
+per 2 turni (`buff.json`). Il modello nomina solo la prima (`{buff_1_val}`), e la
+lettura della frase va su `171012.b1`; `.b2` e `.b3` restano senza significato,
+perché nessuna frase le dice da sole. L'Evasione è `35051` (`buff_dodge_per`),
+detta da `{turn_4_val}`.
 
-| esito sui 4.044 ranghi | |
+### Da dove viene ogni cosa
+
+| cosa | fonte |
 |---|---|
-| la chiave ha l'id del rango | 369 |
-| una chiave della stessa carta | 425 |
-| la chiave di un'altra carta, con lo stesso testo | 2.779 |
-| più modelli che leggono i valori in modo diverso: nessuna scelta | 24 |
-| nessun modello | 447 |
+| le colonne di un rango (`range_type`, `force_range_type`, `attack_type`, `target`, `atk_per`, `atk_per_add`, le liste di buff, opzioni e tag) | la sua riga di `DB_skill_card_base` |
+| `tassonomia` di un rango | i tag di ricerca della carta (`list_array_skill_search_tag`, righe di `DB_skill_search_info`) come codici di `concetti/tassonomia.json`: cosa fa la carta secondo i filtri del gioco |
+| `modello` | la chiave che dichiara `skill_explain`: 4.062 ranghi su 4.062, e il suo testo coi valori ridà quello della carta |
+| `segnaposto` | i segnaposto del modello col valore che il testo scrive. `{buff_N_val}` è l'N-esimo buff della lista, `{opt_N_val}` l'N-esima opzione: così li riempie il gioco (`UnitSkillCardData.ChangeText`, rifatto in `modelli_client.py`) |
+| le righe di `buff.json` e `opzioni.json` | le tabelle, senza effetti visivi e suoni; `name`, `explain`, `effect_name` col testo nelle due lingue invece della chiave |
+| `significato` nei legami | le letture delle forme (sotto): cosa ne dice il testo di **quella** carta, nella sua lingua. Sta nel legame e non nella riga del gioco perché la stessa riga è spesso di più carte (un'opzione di 291 ranghi) |
+| le righe «`.p`» | un effetto con un numero che il modello scrive a mano: quale riga del gioco sia il testo non lo dice. I numeri vengono dalla lettura (`fonti`: «`lettura:<forma>`»), e `valore` **non è una colonna del gioco** (può essere `buff_per` o `effect_value`) |
 
-Fino al 15/09 pomeriggio si prendeva la chiave con l'id del rango: 370 modelli,
-e 35 ranghi il cui modello «non combaciava» sembravano versioni diverse del
-testo. Erano varianti usate da altri ranghi. Restano **17 chiavi con l'id di un
-rango che nessun rango usa**:
-
-- Lancelot giovane cavaliere (1005092–96): l'ultimate **più** i pezzi che
-  cambiano col suo rango. I numeri sono quelli che 7dshub mette nella passiva al
-  livello speciale di uno in meno (rango 2 → livello 1: 70%; rango 6 → livello 5:
-  20% e 100%). 7dshub separa ultimate e passiva, il gioco le scrive insieme, e la
-  regola «livello speciale k vale dal rango k+1» dell'import ha così una prova
-  scritta dal gioco stesso
-- Percival piccolo eroe (1004692–95): lo stesso, meno ordinato
-- Divinità Guardiana Camila (193902–06): un'altra versione dell'ultimate, senza
-  legame con la passiva
-- Estarossa furioso (1000001–03): la famiglia «debuff_atk», mentre i ranghi usano
-  la «atk»
-
-Il testo di riferimento resta quello di 7dshub; quale testo mostri il gioco per
-quelle chiavi si vede solo in gioco.
-
-**Quale colonna.** Da quale colonna venga il valore di un segnaposto lo dicono i
-nomi, quindi è sempre `dedotto`. Dove i nomi lasciano due colonne la colonna
-resta vuota e il valore va in `valore`, che **non è una colonna del gioco**:
-`BUFF_N_VALUE` può essere `buff_per` o `effect_value`, `OPTION_N_VALUE`
-`option_per` o `effect_value`.
-
-**Perché i ranghi senza modello non hanno valori.** Prima di trovare le varianti
-si era provato a trasferire la lettura dei segnaposto dai ranghi col modello
-agli altri. Misurato e scartato, e ora non serve più:
-
-| prova | esito |
-|---|---|
-| per frase intera | letture coerenti (270 forme su 271), ma copre il 32% dei valori |
-| per 2–3 parole attorno al valore, metà degli eroi insegna e l'altra metà si misura | sbaglia 23 decisioni su 284 con 2 parole, 12 su 268 con 3 |
-| «il numero cambia fra i ranghi, quindi è un segnaposto» | a caso: 397 / 229 / 387 / 287 |
-| «ha una durata, quindi è un buff» | 9 buff su 22 non hanno turni |
-
-Il client scrive molti valori a mano dentro il testo di ogni rango, quindi
-letterale o segnaposto non è una proprietà stabile del valore: «Increases basic
-stats by <V> for <V>» ha il primo valore marcato `{buff_1_val}` in 11 ranghi e
-scritto a mano in 36. Per questo i valori dei ranghi senza modello non si
-trasferiscono da un rango all'altro: li dice la lettura della forma, scritta una
-volta e da confermare a mano (sotto).
+**I modelli.** Il client ha 1.337 descrizioni di abilità coi segnaposto
+(`Inflicts damage equal to {melee_val} of Attack on {target_val}`), comprese
+quelle delle collaborazioni, che hanno un prefisso nella chiave
+(`sao_DB_hero_skill_…`). **Le loro chiavi non sono gli id dei ranghi**: il client
+salva un testo per ogni testo diverso, e i ranghi che dicono la stessa cosa con
+numeri diversi ne usano uno solo. Fino al 26/09 il modello di un rango si
+cercava fra tutte le descrizioni (`modelli_abilita.py`): la ricerca non ha mai
+sbagliato, ma lasciava senza modello 469 ranghi (445 di collaborazioni, 24 con
+due modelli che leggono il testo in modo diverso).
 
 ### Proposizioni e forme
 
@@ -267,16 +238,8 @@ Una **forma** è la proposizione con tre tipi di slot:
   termini azzurri restano nella forma: sostituirli tutti fonderebbe «Removes
   Buffs» con «Removes Debuffs»
 
-La carta B di Derieri al rango 2 («Increases basic stats by 30% for 2 turn(s) and
-gains Evasion for 1 turn(s).»):
-
-```json
-"171012": {"slot": "B", "rango": 2, "eroi": ["1575001"], "range_type": 2, "attack_type": 2,
-  "proposizioni": [{"forma": "pb9a2f064", "valori": ["30%", "2 turn(s)"]},
-                   {"forma": "p00c04ea2", "valori": ["1 turn(s)"], "termini": ["Evasion"], "minuscola": true},
-                   {"forma": "pae05dfc0", "parte": "nota"}],
-  "schema": "{1} and {2}.\n\n※Evasion: {3}.", "fonti": {"range_type": "7dshub", "attack_type": "7dshub"}}
-```
+La carta B di Derieri qui sopra ha tre proposizioni: «Increases basic stats by `<V>` for
+`<V>`», «gains `<K>` for `<V>`» (minuscola, dopo «and») e la nota che spiega Evasion.
 
 | | |
 |---|---|
@@ -538,10 +501,9 @@ verso.
 Le letture sono in inglese, come le frasi da cui vengono. Condizioni e precisazioni hanno
 anche l'italiano del gioco (scelte dell'utente, 15/09 notte).
 
-**Da dove viene.** Dal testo italiano di ogni rango su 7dshub, che la pipeline scarica con
-`scarica_7dshub_it.py` (`?lang=it`). C'è per 4.041 ranghi su 4.044: gli altri 3 dicono
-«NONE_DB». Dove il client ha il modello italiano, è lo stesso testo coi valori al posto dei
-segnaposto in 3.511 ranghi su 3.567.
+**Da dove viene.** Dal testo italiano di ogni rango, dalla scheda italiana del client
+(`scheda_client.py`: il modello italiano riempito coi valori delle tabelle, come fa il
+gioco). C'è per tutti i 4.062 ranghi. Fino al 25/09 veniva da 7dshub in italiano.
 
 **Come si ritaglia** (`italiano_carte.py`), carta per carta:
 - si prendono la frase inglese e la frase italiana nello stesso posto del testo (righe,
@@ -589,46 +551,45 @@ sono state rivedute.
 ### Le prove che fermano lo script
 
 - forme e valori rifanno il testo senza colori di ogni rango, identico
-- il modello di un rango, coi valori letti, rifà il testo del gioco, colori
-  compresi
-- nei modelli trovati nessuno span bianco del corpo è scritto a mano: è la
-  prova del `target` letto dal testo
-- lo stesso buff citato per id da più ranghi ha lo stesso valore in tutti
+- il modello che il rango dichiara (`skill_explain`), coi valori letti, rifà il testo
+  del gioco, colori compresi: per tutti i ranghi
+- `{target_val}` è il `target` della riga del rango, `{melee_val}` il suo `atk_per`
+  arrotondato per eccesso, e ogni `{buff_N_*}`, `{turn_N_val}`, `{opt_N_val}` cade
+  dentro la lista della carta
+- nei modelli nessuno span bianco del corpo è scritto a mano
+- la gittata e il tipo del database degli eroi sono quelli della tabella, e ogni tag
+  di ricerca di una carta ha la sua voce nella tassonomia
+- ogni buff e opzione che le carte usano, e ogni buff a cui rimandano, è nelle tabelle
 - lo stesso rango ha lo stesso testo in ogni eroe che lo usa
-- un buco che una lettura mette in una colonna, nei ranghi col modello, è marcato
-  col segnaposto di quella colonna o scritto a mano; una riga di buff o opzione non
-  riceve due valori diversi. Le contraddizioni si raccolgono tutte in
-  `eroi/righe_carte_contraddizioni.txt` e fermano il giro alla fine
+- un buco che una lettura mette in una colonna, nei ranghi col modello, è marcato col
+  segnaposto di quella colonna o scritto a mano; una riga «`.p`» non riceve due valori
+  diversi. Le contraddizioni si raccolgono tutte in `eroi/righe_carte_contraddizioni.txt`
+  e fermano il giro alla fine
 
 ## Lacune dichiarate
 
 Ogni file ha la sua lista `lacune`. Le più importanti:
 
-- il **triangolo dei vantaggi** fra attributi non è nei testi del client: i 1,25
-  e 0,8 di `src/lib/games/grand-cross/data.ts` sono segnaposto
-- a quale gruppo di ricerca appartenga ogni voce della tassonomia: la tabella è
-  cifrata
+- il **triangolo dei vantaggi** fra attributi: `DB_config_game` ha i valori
+  (`attribute_advantage_per` 0,3, `attribute_disadvantage_per` 0,2), chi batte chi sta
+  nel codice e non è ancora letto. I 1,25 e 0,8 di `src/lib/games/grand-cross/data.ts`
+  sono segnaposto
 - i nomi di gittate e bersagli: nessun testo del client li nomina come categoria
-- i **valori dei ranghi senza modello** (447) o con letture in conflitto (24):
-  la lettura delle forme dà `atk_per` a 431 di loro e almeno una riga di buff o
-  opzione a 443, da confermare a mano; il resto aspetta le forme non lette
-- **142 forme senza lettura** (598 proposizioni): frasi condizionali lunghe che nessuna
-  regola prende per intero («If the hero is participating in battle and…»),
-  trasformazioni, note di termini che la tassonomia non ha («※Titan Formation: Fully
-  restores HP»), parentesi di cui non si sa dire cosa precisano («(Only the effects
-  applied by the hero are counted)»)
-- da quale colonna vengano `BUFF_N_VALUE` e `OPTION_N_VALUE`: due candidate
-  ciascuno, nessun testo scioglie il dubbio
-- **17 chiavi del client che nessun rango usa** (Lancelot, Percival, Camila,
-  Estarossa furioso), elencate in `carte_base.json`: quale testo mostri il gioco
-  si vede solo in gioco
+- **quale riga del gioco è un effetto «`.p`»**: il modello ne scrive i numeri a mano, e il
+  testo non dice quale buff o opzione della carta sia (2.876 righe «`.p`»)
+- **140 forme senza lettura**: frasi condizionali lunghe che nessuna regola prende per
+  intero («If the hero is participating in battle and…»), trasformazioni, note di termini
+  che la tassonomia non ha, parentesi di cui non si sa dire cosa precisano
+- **21 chiavi del client che nessun rango dichiara** (Lancelot, Percival, Camila,
+  Estarossa furioso…), elencate in `carte_base.json`
 
 ## Le tappe successive
 
-- **B.** righe d'effetto con lo schema delle tabelle del gioco. **Carte: fatto lo
-  strato del testo** (`effetti/`) **e la lettura delle forme** (597 forme, 94%
-  delle proposizioni, con le precisazioni fra parentesi); restano 142 forme non lette. Poi reliquie e passive
-  (`DBSkillPassiveRow`), che vanno scomposte per pezzi
+- **B.** righe d'effetto con lo schema delle tabelle del gioco. **Carte: fatto**, dal
+  26/09 con le righe vere delle tabelle, e con la lettura delle forme (594 forme, il 94,5%
+  delle proposizioni) per quello che il testo dice. Poi reliquie e passive
+  (`DB_skill_passive`), che ora si leggono dalla tabella: bersagli, razze,
+  caratteristiche e attributi richiesti sono colonne
 - **C.** pagina di revisione delle letture, divisa per forma di frase, con le
   conferme in un file scritto a mano: **fatta** (`rivedi_letture.py`, sopra «La
   revisione delle letture»); le decisioni spettano all'utente

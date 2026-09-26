@@ -6,7 +6,7 @@
     "DB_activeskill_desc_* e DB_hero_skill_*_desc_*": "descrizioni delle abilita' nel client, coi tag"
   },
   "note": {
-    "certezza": "il codice e' dichiarato dall'enum; come si scrive nel testo e da quale colonna viene sono dedotti dai nomi, con le prove",
+    "certezza": "il codice e' dichiarato dall'enum; da quale colonna viene lo dice il codice del gioco (UnitSkillCardData.ChangeText, rifatto in modelli_client.py): dichiarato. Come si scrive nel testo e' il nome in minuscolo, misurato sulle descrizioni",
     "colonna": "null dove i nomi lasciano due colonne possibili: sono in colonne_possibili"
   },
   "segnaposto": {
@@ -25,15 +25,15 @@
         "atk_per_add"
       ],
       "uso": {
-        "descrizioni_client": 747,
-        "ranghi_col_modello": 3214
+        "descrizioni_client": 982,
+        "ranghi_col_modello": 3652
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "«{melee_val}» e' il nome del tag in minuscolo: compare in 747 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 3.214",
-        "DBSkillCardBaseRow: il valore d'attacco della carta: atk_per_add ha il suffisso degli incrementi, come effect_value_add accanto a effect_value",
-        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.157 volte su 3.214"
+        "«{melee_val}» e' il nome del tag in minuscolo: compare in 982 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 3.652",
+        "DBSkillCardBaseRow: il valore d'attacco della carta: atk_per_add ha il suffisso degli incrementi, come effect_value_add accanto a effect_value (UnitSkillCardData.ChangeText, modelli_client.py)",
+        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.529 volte su 3.652"
       ]
     },
     "TARGET_VALUE": {
@@ -50,14 +50,14 @@
         "target"
       ],
       "uso": {
-        "descrizioni_client": 876,
-        "ranghi_col_modello": 3413
+        "descrizioni_client": 1110,
+        "ranghi_col_modello": 3840
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "«{target_val}» e' il nome del tag in minuscolo: compare in 876 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' bersaglio 3.413",
-        "DBSkillCardBaseRow: stesso nome della colonna"
+        "«{target_val}» e' il nome del tag in minuscolo: compare in 1.110 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' bersaglio 3.840",
+        "DBSkillCardBaseRow: stesso nome della colonna (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "OPTION_1_VALUE": {
@@ -69,20 +69,20 @@
       "codice": 3,
       "nel_testo": "opt_1_val",
       "tabella": "DBSkillCardOptionRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "option_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
-        "descrizioni_client": 222,
-        "ranghi_col_modello": 823
+        "descrizioni_client": 271,
+        "ranghi_col_modello": 912
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 222 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 595, intero 228",
-        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+        "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 271 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 673, intero 239",
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list: effect_value + effect_value_add x (livello - 1), una cifra decimale (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "OPTION_2_VALUE": {
@@ -94,20 +94,20 @@
       "codice": 4,
       "nel_testo": "opt_2_val",
       "tabella": "DBSkillCardOptionRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "option_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
         "descrizioni_client": 53,
-        "ranghi_col_modello": 113
+        "ranghi_col_modello": 122
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{opt_2_val}» e' il nome del tag in minuscolo: compare in 53 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 75, intero 34, altro 4",
-        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+        "nei ranghi col modello il valore e' percentuale 75, intero 43, altro 4",
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list: effect_value + effect_value_add x (livello - 1), una cifra decimale (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "OPTION_3_VALUE": {
@@ -119,19 +119,19 @@
       "codice": 5,
       "nel_testo": "opt_3_val",
       "tabella": "DBSkillCardOptionRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "option_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
         "descrizioni_client": 7,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{opt_3_val}» e' il nome del tag in minuscolo: compare in 7 descrizioni di abilita' del client",
-        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list: effect_value + effect_value_add x (livello - 1), una cifra decimale (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "OPTION_4_VALUE": {
@@ -143,18 +143,18 @@
       "codice": 6,
       "nel_testo": null,
       "tabella": "DBSkillCardOptionRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "option_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list: effect_value + effect_value_add x (livello - 1), una cifra decimale (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "OPTION_5_VALUE": {
@@ -166,18 +166,18 @@
       "codice": 7,
       "nel_testo": null,
       "tabella": "DBSkillCardOptionRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "option_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list; due colonne di valore possibili"
+        "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list: effect_value + effect_value_add x (livello - 1), una cifra decimale (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_1_VALUE": {
@@ -189,20 +189,20 @@
       "codice": 8,
       "nel_testo": "buff_1_val",
       "tabella": "DBSkillCardBuffRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "buff_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
-        "descrizioni_client": 310,
-        "ranghi_col_modello": 631
+        "descrizioni_client": 339,
+        "ranghi_col_modello": 663
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "«{buff_1_val}» e' il nome del tag in minuscolo: compare in 310 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 604, intero 27",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+        "«{buff_1_val}» e' il nome del tag in minuscolo: compare in 339 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 636, intero 27",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list: effect_value + effect_value_add x (livello - 1), per eccesso (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_2_VALUE": {
@@ -214,20 +214,20 @@
       "codice": 9,
       "nel_testo": "buff_2_val",
       "tabella": "DBSkillCardBuffRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "buff_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
-        "descrizioni_client": 67,
-        "ranghi_col_modello": 108
+        "descrizioni_client": 71,
+        "ranghi_col_modello": 111
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "«{buff_2_val}» e' il nome del tag in minuscolo: compare in 67 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 96, intero 12",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+        "«{buff_2_val}» e' il nome del tag in minuscolo: compare in 71 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 99, intero 12",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list: effect_value + effect_value_add x (livello - 1), per eccesso (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_3_VALUE": {
@@ -239,20 +239,20 @@
       "codice": 10,
       "nel_testo": "buff_3_val",
       "tabella": "DBSkillCardBuffRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "buff_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
-        "descrizioni_client": 11,
-        "ranghi_col_modello": 12
+        "descrizioni_client": 14,
+        "ranghi_col_modello": 21
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "«{buff_3_val}» e' il nome del tag in minuscolo: compare in 11 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 12",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+        "«{buff_3_val}» e' il nome del tag in minuscolo: compare in 14 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 21",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list: effect_value + effect_value_add x (livello - 1), per eccesso (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_4_VALUE": {
@@ -264,20 +264,20 @@
       "codice": 11,
       "nel_testo": "buff_4_val",
       "tabella": "DBSkillCardBuffRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "buff_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
         "descrizioni_client": 2,
         "ranghi_col_modello": 2
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{buff_4_val}» e' il nome del tag in minuscolo: compare in 2 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' percentuale 2",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list: effect_value + effect_value_add x (livello - 1), per eccesso (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_5_VALUE": {
@@ -289,20 +289,20 @@
       "codice": 12,
       "nel_testo": "buff_5_val",
       "tabella": "DBSkillCardBuffRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "buff_per",
-        "effect_value"
+        "effect_value",
+        "effect_value_add"
       ],
       "uso": {
         "descrizioni_client": 2,
         "ranghi_col_modello": 7
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{buff_5_val}» e' il nome del tag in minuscolo: compare in 2 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' percentuale 7",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; due colonne di valore possibili"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list: effect_value + effect_value_add x (livello - 1), per eccesso (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "TURN_1_VALUE": {
@@ -319,14 +319,14 @@
         "buff_turn"
       ],
       "uso": {
-        "descrizioni_client": 401,
-        "ranghi_col_modello": 1027
+        "descrizioni_client": 439,
+        "ranghi_col_modello": 1085
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "«{turn_1_val}» e' il nome del tag in minuscolo: compare in 401 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' turni 1.027",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+        "«{turn_1_val}» e' il nome del tag in minuscolo: compare in 439 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' turni 1.085",
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento) (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "TURN_2_VALUE": {
@@ -346,11 +346,11 @@
         "descrizioni_client": 12,
         "ranghi_col_modello": 27
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{turn_2_val}» e' il nome del tag in minuscolo: compare in 12 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' turni 27",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento) (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "TURN_3_VALUE": {
@@ -370,9 +370,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento) (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "TURN_4_VALUE": {
@@ -392,11 +392,11 @@
         "descrizioni_client": 1,
         "ranghi_col_modello": 6
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{turn_4_val}» e' il nome del tag in minuscolo: compare in 1 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' turni 6",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento) (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "TURN_5_VALUE": {
@@ -416,11 +416,11 @@
         "descrizioni_client": 1,
         "ranghi_col_modello": 6
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{turn_5_val}» e' il nome del tag in minuscolo: compare in 1 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' turni 6",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento)"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento) (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "NUMBER_1_VALUE": {
@@ -440,11 +440,11 @@
         "descrizioni_client": 3,
         "ranghi_col_modello": 3
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{number_1_val}» e' il nome del tag in minuscolo: compare in 3 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' altro 3",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "NUMBER_2_VALUE": {
@@ -464,10 +464,10 @@
         "descrizioni_client": 4,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{number_2_val}» e' il nome del tag in minuscolo: compare in 4 descrizioni di abilita' del client",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "NUMBER_3_VALUE": {
@@ -487,9 +487,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "NUMBER_4_VALUE": {
@@ -509,9 +509,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "NUMBER_5_VALUE": {
@@ -531,9 +531,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_number e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "INGAME_BUFF_VALUE": {
@@ -625,10 +625,10 @@
         "descrizioni_client": 5,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{buff_1_sub_val}» e' il nome del tag in minuscolo: compare in 5 descrizioni di abilita' del client",
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_2_SUB_VALUE": {
@@ -648,9 +648,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_3_SUB_VALUE": {
@@ -670,9 +670,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_4_SUB_VALUE": {
@@ -692,9 +692,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_5_SUB_VALUE": {
@@ -714,9 +714,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome"
+        "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; sub_value e' l'unica colonna con quel nome (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_1_OFFSET": {
@@ -898,11 +898,11 @@
         "descrizioni_client": 17,
         "ranghi_col_modello": 28
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{buff_data_turn}» e' il nome del tag in minuscolo: compare in 17 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' intero 28",
-        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag"
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_DATA_VALUE": {
@@ -914,20 +914,19 @@
       "codice": 42,
       "nel_testo": "buff_data_value",
       "tabella": "DBSkillCardBuffRow",
-      "colonna": null,
+      "colonna": "effect_value",
       "colonne_possibili": [
-        "buff_per",
         "effect_value"
       ],
       "uso": {
         "descrizioni_client": 8,
         "ranghi_col_modello": 9
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
         "«{buff_data_value}» e' il nome del tag in minuscolo: compare in 8 descrizioni di abilita' del client",
         "nei ranghi col modello il valore e' intero 9",
-        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag; due colonne di valore possibili"
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag: effect_value (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_DATA_SUB_VALUE": {
@@ -947,9 +946,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag"
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "BUFF_DATA_EFFECT_VALUE_ADD": {
@@ -969,9 +968,9 @@
         "descrizioni_client": 0,
         "ranghi_col_modello": 0
       },
-      "certezza": "dedotto",
+      "certezza": "dichiarato",
       "prove": [
-        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag; stesso nome della colonna"
+        "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag; stesso nome della colonna (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
     "PASSIVE_LEVEL_VALUE_DATA": {
