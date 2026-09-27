@@ -199,3 +199,18 @@
     transparent 10px 20px
   );
 }
+
+/*
+ * "Indovina l'eroe": le caselle di un tentativo si girano una dopo l'altra, come
+ * in Loldle. Solo con motion-safe: chi chiede meno movimento le vede comparire.
+ */
+@keyframes indovina-gira {
+  from {
+    transform: perspective(400px) rotateX(-90deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}

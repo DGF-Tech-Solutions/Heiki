@@ -85,7 +85,7 @@ function haystack(hero: HeroEntry): string {
  * "meliodas ira" trova "The Wrath of Meliodas" senza doverne indovinare la
  * forma esatta.
  */
-export function filterHeroes(heroes: readonly HeroEntry[], filter: HeroFilter): HeroEntry[] {
+export function filterHeroes<T extends HeroEntry>(heroes: readonly T[], filter: HeroFilter): T[] {
   const words = normalize(filter.search ?? "").split(" ").filter(Boolean);
 
   return heroes.filter((hero) => {

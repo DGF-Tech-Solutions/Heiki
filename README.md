@@ -144,7 +144,7 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
 (Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
 (Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Strumenti**
-(Randomizer) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
+(Randomizer, Indovina l'eroe) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
 
 Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
 ha un roster, dichiarato con `needs` in `GAME_GROUPS` e filtrato da
@@ -367,6 +367,23 @@ Il confine passa qui, e non è formale:
   averne una non specifica; gli associati restano a caso, e l'Effetto associazione si
   mostra quando capita un legame), anche senza le collaborazioni. Le regole del sorteggio stanno in `src/lib/games/randomizer.ts`,
   coi test
+- **Indovina l'eroe** (`/indovina`) è il gioco degli indizi sul modello di Loldle:
+  si scrive un eroe e otto caselle dicono cosa ha in comune con quello da
+  indovinare (personaggio, attributo, razza, caratteristiche, grado d'uscita e
+  massimo, abilità speciale, data d'uscita globale), verde, giallo o rosso, con la
+  freccia dove i valori hanno un ordine. L'eroe del giorno è lo stesso per tutti
+  (un'impronta della data sul roster in ordine d'id, senza server) e i tentativi
+  restano nel browser; la partita libera pesca a caso.
+  Dopo 4 e 8 tentativi sbagliati si scoprono l'icona e il nome dell'Unica. Come le
+  altre modalità di Loldle ci sono tre sottosezioni, con le schede in cima:
+  **Carta** (`/indovina/carta`, l'illustrazione di una carta A o B, ingrandita e a
+  mosaico, che si allarga e si schiarisce a ogni errore; le carte dell'ultimate no,
+  perché molte versioni dello stesso personaggio le condividono), **Unica**
+  (`/indovina/unica`, l'icona, anche lei a mosaico; il mosaico si può spegnere) e
+  **Testo** (`/indovina/testo`, il testo dell'Unica col nome dell'eroe nascosto).
+  Ogni modalità ha il suo eroe del giorno. Nessun dato nuovo: le regole stanno in
+  `src/lib/games/hero-guess.ts`, coi test; la partita comune alle modalità in
+  `src/components/hero-guess/guess-game.tsx`
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

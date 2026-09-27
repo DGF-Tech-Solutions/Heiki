@@ -247,6 +247,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         },
         needs: "heroFates",
       },
+      {
+        path: "/indovina",
+        label: { it: "Indovina l'eroe", en: "Guess the Hero" },
+        hint: {
+          it: "Il gioco degli indizi, come Loldle: attributo, razza, caratteristiche, grado, uscita",
+          en: "The clue game, like Loldle: attribute, race, characteristics, grade, release",
+        },
+        needs: "releases",
+      },
     ],
   },
   {
