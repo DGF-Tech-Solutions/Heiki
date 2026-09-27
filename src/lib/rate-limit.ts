@@ -60,6 +60,13 @@ export const RULES = {
   post: { limit: 10, windowSeconds: 3600 },
   comment: { limit: 30, windowSeconds: 3600 },
   report: { limit: 20, windowSeconds: 3600 },
+  /**
+   * L'account di gioco si salva da solo mentre si muovono gli slider (dopo un
+   * attimo di pausa): il tetto ferma un ciclo impazzito, non una persona.
+   */
+  accountSave: { limit: 60, windowSeconds: 600 },
+  /** Chiedere l'eroe del giorno, cambiarlo, caricare una schermata. */
+  verification: { limit: 12, windowSeconds: 3600 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RuleName = keyof typeof RULES;

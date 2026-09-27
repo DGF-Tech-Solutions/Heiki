@@ -12,6 +12,7 @@ import { relations } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
 import {
   boolean,
+  customType,
   index,
   integer,
   jsonb,
@@ -24,6 +25,13 @@ import {
   uuid,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
+
+/** Byte grezzi (le schermate delle verifiche): postgres.js li restituisce come Buffer. */
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 // ------------------------------------------------------------------- enum
 
@@ -388,12 +396,25 @@ export const gameAccounts = pgTable(
     gameId: uuid("game_id")
       .notNull()
       .references(() => games.id, { onDelete: "cascade" }),
+    /** il codice con cui il gioco ti fa cercare (Grand Cross: il Codice amico); "" se non dato */
     uid: text("uid").notNull(),
     region: text("region"),
     nickname: text("nickname"),
     trust: badgeTrustEnum("trust").default("DECLARED").notNull(),
     lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+    /** la classe di combattimento dell'account come la scrive l'utente */
+    accountPower: integer("account_power"),
+    /**
+     * Quello che il sito tiene anche nel browser (classe e costellazioni, forma
+     * decisa dal modulo di gioco): qui per ritrovarlo su un altro dispositivo.
+     */
+    setup: jsonb("setup").$type<Record<string, unknown>>(),
+    /** l'ultima classe confermata da un moderatore, e quando */
+    verifiedPower: integer("verified_power"),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    /** vince sulla copia del browser se e' piu' recente (e viceversa) */
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("game_accounts_user_game_uid_key").on(table.userId, table.gameId, table.uid),
@@ -423,6 +444,81 @@ export const rosterEntries = pgTable(
     index("roster_entries_account_favorite_idx").on(table.gameAccountId, table.favorite),
   ],
 );
+
+/**
+ * OPEN      l'utente ha un eroe del giorno da mettere nei preferiti, niente schermata
+ * PENDING   schermata caricata, aspetta un moderatore
+ * APPROVED  / REJECTED  deciso da un moderatore (la schermata non c'e' piu')
+ * CANCELLED ritirata dall'utente, o sostituita da una nuova
+ */
+export const verificationStatusEnum = pgEnum("verification_status", [
+  "OPEN",
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "CANCELLED",
+]);
+
+/**
+ * La verifica della classe di combattimento dell'account.
+ *
+ * Il gioco non ha API e non mostra a nessuno la classe dell'account di un altro
+ * (solo dentro l'Ordine dei Cavalieri), quindi si prova con una schermata. Perche'
+ * sia fatta oggi, apposta e da chi ha l'account in mano, il sito pesca un eroe
+ * (`challengeHeroId`, del giorno `challengeDay`, diverso per ogni utente) da
+ * mettere nei preferiti: nella lista Eroi del gioco, ordinata per preferiti, si
+ * vedono insieme l'eroe e la classe dell'account. Idea dell'utente, 27/09.
+ *
+ * Decide un moderatore, che scrive il numero letto (`verifiedPower`). La schermata
+ * sta in `verificationScreenshots` e si cancella alla decisione; resta l'impronta
+ * del file (`screenshotHash`), per riconoscere chi ricarica la stessa immagine.
+ */
+export const powerVerifications = pgTable(
+  "power_verifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gameId: uuid("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    gameAccountId: uuid("game_account_id")
+      .notNull()
+      .references(() => gameAccounts.id, { onDelete: "cascade" }),
+    status: verificationStatusEnum("status").default("OPEN").notNull(),
+    /** giorno UTC, AAAA-MM-GG: la schermata va caricata lo stesso giorno */
+    challengeDay: text("challenge_day").notNull(),
+    challengeHeroId: text("challenge_hero_id").notNull(),
+    /** gli eroi scartati con «non ce l'ho», in ordine */
+    skippedHeroIds: jsonb("skipped_hero_ids").$type<string[]>().default([]).notNull(),
+    /** la classe che l'utente dichiara quando carica la schermata */
+    declaredPower: integer("declared_power"),
+    screenshotHash: text("screenshot_hash"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    reviewerId: uuid("reviewer_id").references(() => users.id, { onDelete: "set null" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    verifiedPower: integer("verified_power"),
+    /** il motivo di un rifiuto, per chi l'ha chiesta */
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("power_verifications_status_idx").on(table.status, table.submittedAt),
+    index("power_verifications_user_game_idx").on(table.userId, table.gameId, table.createdAt),
+    index("power_verifications_hash_idx").on(table.screenshotHash),
+  ],
+);
+
+/** A parte, per non caricare i byte con le righe e per cancellarli con una riga sola. */
+export const verificationScreenshots = pgTable("verification_screenshots", {
+  verificationId: uuid("verification_id")
+    .primaryKey()
+    .references(() => powerVerifications.id, { onDelete: "cascade" }),
+  mime: text("mime").notNull(),
+  bytes: bytea("bytes").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const builds = pgTable(
   "builds",
@@ -767,6 +863,9 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   // ha raggiunto 50 voti") ha senso. Il valore resta perche' aggiungerlo dopo
   // richiede una migrazione dell'enum, che in Postgres non e' gratis.
   "POST_VOTED",
+  // l'esito della verifica della classe dell'account (actorId = il moderatore)
+  "POWER_VERIFIED",
+  "POWER_REJECTED",
 ]);
 
 /**
@@ -794,6 +893,9 @@ export const notifications = pgTable(
     type: notificationTypeEnum("type").notNull(),
     postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
     commentId: uuid("comment_id").references(() => comments.id, { onDelete: "cascade" }),
+    verificationId: uuid("verification_id").references(() => powerVerifications.id, {
+      onDelete: "cascade",
+    }),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1042,6 +1144,16 @@ export const gameAccountsRelations = relations(gameAccounts, ({ one, many }) => 
   user: one(users, { fields: [gameAccounts.userId], references: [users.id] }),
   game: one(games, { fields: [gameAccounts.gameId], references: [games.id] }),
   roster: many(rosterEntries),
+  verifications: many(powerVerifications),
+}));
+
+export const powerVerificationsRelations = relations(powerVerifications, ({ one }) => ({
+  user: one(users, { fields: [powerVerifications.userId], references: [users.id] }),
+  game: one(games, { fields: [powerVerifications.gameId], references: [games.id] }),
+  gameAccount: one(gameAccounts, {
+    fields: [powerVerifications.gameAccountId],
+    references: [gameAccounts.id],
+  }),
 }));
 
 export const rosterEntriesRelations = relations(rosterEntries, ({ one }) => ({
@@ -1153,6 +1265,10 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   actor: one(users, { fields: [notifications.actorId], references: [users.id], relationName: "notificationsCaused" }),
   post: one(posts, { fields: [notifications.postId], references: [posts.id] }),
   comment: one(comments, { fields: [notifications.commentId], references: [comments.id] }),
+  verification: one(powerVerifications, {
+    fields: [notifications.verificationId],
+    references: [powerVerifications.id],
+  }),
 }));
 
 export const attachmentChecksRelations = relations(attachmentChecks, ({ one }) => ({

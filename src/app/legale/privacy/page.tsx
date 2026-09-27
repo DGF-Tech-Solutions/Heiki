@@ -89,6 +89,16 @@ function PrivacyIt() {
             <td>Consenso — li inserisci tu</td>
           </tr>
           <tr>
+            <td>Account di gioco: nickname, Codice amico, server, classe dell&apos;account, costellazioni</td>
+            <td>Le statistiche delle schede degli eroi e il profilo pubblico</td>
+            <td>Consenso — li inserisci tu</td>
+          </tr>
+          <tr>
+            <td>Schermata per la verifica della classe</td>
+            <td>Permettere a un moderatore di confermare la classe dell&apos;account</td>
+            <td>Consenso — la carichi tu</td>
+          </tr>
+          <tr>
             <td>Dati di pagamento</td>
             <td>Gestire abbonamento e acquisti</td>
             <td>Esecuzione del contratto</td>
@@ -122,6 +132,11 @@ function PrivacyIt() {
         <li>
           Post e commenti: restano dopo l&apos;eliminazione dell&apos;account, ma privati del
           collegamento alla tua identità. Cancellarli spezzerebbe discussioni altrui.
+        </li>
+        <li>
+          Schermate della verifica della classe: finché un moderatore decide, o finché ritiri la
+          richiesta. Poi si cancellano; resta solo un&apos;impronta del file, da cui l&apos;immagine
+          non si ricostruisce, per riconoscere chi ricarica la stessa schermata.
         </li>
         <li>Documenti fiscali degli acquisti: per il periodo imposto dalla legge.</li>
       </ul>
@@ -203,6 +218,16 @@ function PrivacyEn() {
             <td>Consent — you enter them yourself</td>
           </tr>
           <tr>
+            <td>Game account: nickname, Friend Code, server, Account Combat Class, constellations</td>
+            <td>The hero pages&apos; stats and the public profile</td>
+            <td>Consent — you enter them yourself</td>
+          </tr>
+          <tr>
+            <td>Screenshot for the class verification</td>
+            <td>Let a moderator confirm the Account Combat Class</td>
+            <td>Consent — you upload it yourself</td>
+          </tr>
+          <tr>
             <td>Payment data</td>
             <td>Manage subscriptions and purchases</td>
             <td>Performance of the contract</td>
@@ -235,6 +260,11 @@ function PrivacyEn() {
         <li>
           Posts and comments: they remain after the account is deleted, but no longer linked to
           your identity. Deleting them would break other people&apos;s discussions.
+        </li>
+        <li>
+          Class verification screenshots: until a moderator decides, or until you withdraw the
+          request. Then they are deleted; only a fingerprint of the file remains, from which the
+          image cannot be rebuilt, to recognize someone uploading the same screenshot again.
         </li>
         <li>Tax records of purchases: for the period required by law.</li>
       </ul>

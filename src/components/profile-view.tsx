@@ -39,6 +39,12 @@ export interface ProfileGameAccount {
   nickname?: string | null;
   trust: BadgeTrust;
   shown?: boolean;
+  /** il server, gia' nella lingua di chi legge */
+  server?: string | null;
+  /** la classe di combattimento dell'account dichiarata, e l'ultima verificata con la data */
+  power?: number | null;
+  verifiedPower?: number | null;
+  verifiedAt?: string | null;
 }
 
 export interface ProfileBuild {
@@ -89,6 +95,10 @@ const TESTI = testi({
     condivise: (n: number) => `${n} condivise`,
     nessunaBuild: "Nessuna build pubblica.",
     mediana: "mediana",
+    classe: "Classe dell'account",
+    verificataIl: (quando: string) => `verificata il ${quando}`,
+    dichiarata: "dichiarata",
+    verificataPrima: (n: string, quando: string) => `verificata ${n} il ${quando}`,
   },
   en: {
     fiducia: {
@@ -113,8 +123,39 @@ const TESTI = testi({
     condivise: (n: number) => `${n} shared`,
     nessunaBuild: "No public builds.",
     mediana: "median",
+    classe: "Account Combat Class",
+    verificataIl: (quando: string) => `verified on ${quando}`,
+    dichiarata: "declared",
+    verificataPrima: (n: string, quando: string) => `verified ${n} on ${quando}`,
   },
 });
+
+/**
+ * La classe dell'account sotto il nome del gioco: il numero verificato con la sua
+ * data, o quello dichiarato (e l'ultimo verificato, se diverso).
+ */
+function AccountPower({ account, locale }: { account: ProfileGameAccount; locale: Locale }) {
+  const t = TESTI[locale];
+  const numberLocale = intlLocale(locale);
+  const power = account.power ?? account.verifiedPower ?? null;
+  if (!power) return null;
+  const when = account.verifiedAt ? new Date(account.verifiedAt).toLocaleDateString(numberLocale) : null;
+  const verifiedNow = account.verifiedPower === power && when;
+  return (
+    <span className="mt-0.5 block text-xs text-ink-2">
+      {t.classe}: <span className={cx(numeric, "text-ink")}>{power.toLocaleString(numberLocale)}</span>
+      {verifiedNow ? (
+        <span className="text-ink-3"> · {t.verificataIl(when)}</span>
+      ) : (
+        <span className="text-ink-3">
+          {" "}
+          · {t.dichiarata}
+          {account.verifiedPower && when ? ` · ${t.verificataPrima(account.verifiedPower.toLocaleString(numberLocale), when)}` : ""}
+        </span>
+      )}
+    </span>
+  );
+}
 
 export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; locale?: Locale }) {
   const t = TESTI[locale];
@@ -299,8 +340,10 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
                   {account.nickname ? (
                     <span className="text-ink-3"> · {account.nickname}</span>
                   ) : null}
+                  {account.server ? <span className="text-ink-3"> · {account.server}</span> : null}
+                  <AccountPower account={account} locale={locale} />
                 </span>
-                <span className={cx(numeric, "text-xs text-ink-3")}>UID {account.uid}</span>
+                {account.uid ? <span className={cx(numeric, "text-xs text-ink-3")}>#{account.uid}</span> : null}
                 <Tag tone={account.trust === "VERIFIED" ? "accent" : "neutral"}>
                   {t.fiducia[account.trust]}
                 </Tag>

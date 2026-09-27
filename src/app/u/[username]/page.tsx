@@ -17,7 +17,8 @@ import { currentViewer } from "@/lib/community/actions";
 import { cx, Empty, eyebrow, SectionHead, Stat, StatGrid } from "@/components/ui";
 import { listGameModules } from "@/lib/games/registry";
 import { normalizeCustomization } from "@/lib/profile/customization";
-import { testi } from "@/lib/i18n/locale";
+import { testi, type Locale } from "@/lib/i18n/locale";
+import { SERVER_NAMES, isServer } from "@/lib/games/game-account";
 import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
@@ -64,7 +65,7 @@ export default async function ProfilePage({ params }: Props) {
   const t = TESTI[locale];
 
   const handle = username.toLowerCase();
-  const data = await loadProfile(handle, t.gioco);
+  const data = await loadProfile(handle, t.gioco, locale);
   if (data === null) notFound();
 
   const session = await safeSession();
@@ -184,7 +185,7 @@ async function hasActivePremium(userId: string): Promise<boolean> {
  * Un database non ancora migrato non deve produrre una schermata di errore
  * grezza: si tratta come profilo inesistente, e la pagina 404 lo dice in chiaro.
  */
-async function loadProfile(username: string, unknownGame: string): Promise<ProfileViewData | null> {
+async function loadProfile(username: string, unknownGame: string, locale: Locale): Promise<ProfileViewData | null> {
   try {
     const row = await db.query.users.findFirst({
       where: eq(users.username, username),
@@ -193,7 +194,7 @@ async function loadProfile(username: string, unknownGame: string): Promise<Profi
         profile: true,
         badges: { with: { badge: true } },
         showcase: true,
-        gameAccounts: true,
+        gameAccounts: { with: { game: { columns: { slug: true } } } },
         builds: true,
       },
     });
@@ -203,6 +204,7 @@ async function loadProfile(username: string, unknownGame: string): Promise<Profi
     // I nomi dei giochi vengono dai moduli registrati, non dal database: e' il
     // modulo la fonte di verita' su come si chiama un gioco.
     const gameNames = new Map(listGameModules().map((gameModule) => [gameModule.id, gameModule.name]));
+    const gameNamesBySlug = new Map(listGameModules().map((gameModule) => [gameModule.slug, gameModule.name]));
 
     // La vetrina decide cosa si vede e in che ordine. Se non e' mai stata
     // configurata si mostrano tutti i badge, cosi' un profilo nuovo non appare
@@ -237,10 +239,15 @@ async function loadProfile(username: string, unknownGame: string): Promise<Profi
         })),
       gameAccounts: row.gameAccounts.map((account) => ({
         id: account.id,
-        game: gameNames.get(account.gameId) ?? unknownGame,
+        // il gioco si riconosce dallo slug: `gameId` e' l'id del database, non quello del modulo
+        game: gameNamesBySlug.get(account.game.slug) ?? unknownGame,
         uid: account.uid,
         nickname: account.nickname,
         trust: account.trust,
+        server: isServer(account.region) ? SERVER_NAMES[account.region][locale] : null,
+        power: account.accountPower,
+        verifiedPower: account.verifiedPower,
+        verifiedAt: account.verifiedAt?.toISOString() ?? null,
       })),
       builds: row.builds
         .filter((build) => build.isPublic)

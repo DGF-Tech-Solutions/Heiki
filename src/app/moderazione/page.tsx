@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { LiftButton, QueueRowActions, SuspendForm } from "./queue-actions";
+import { VerificationReview, type ReviewItem } from "./verification-review";
 import { auth } from "@/lib/auth";
 import { can } from "@/lib/auth/permissions";
 import { databaseReachable } from "@/lib/db";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
 import { activeSuspensions, recentModActions, reportQueue } from "@/lib/moderation/actions";
+import { verificationQueue } from "@/lib/game-account/server";
+import { SERVER_NAMES, isServer } from "@/lib/games/game-account";
+import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
+import { getGameModule } from "@/lib/games/registry";
 import { reportReasonLabel } from "@/lib/moderation/reasons";
 import { relativeTime } from "@/lib/community/ranking";
 import { intlLocale, testi } from "@/lib/i18n/locale";
@@ -48,6 +53,10 @@ const TESTI = testi({
     },
     unPost: "un post",
     unCommento: "un commento",
+    verifiche: "Verifiche della classe dell'account",
+    verificheIntro:
+      "Schermate dell'Elenco eroi con l'eroe del giorno nei preferiti. Scrivi la classe che leggi e conferma, o rifiuta con un motivo. La schermata si cancella alla decisione.",
+    nessunaVerifica: "Nessuna schermata da guardare.",
   },
   en: {
     titoloPagina: "Moderation",
@@ -83,6 +92,10 @@ const TESTI = testi({
     },
     unPost: "a post",
     unCommento: "a comment",
+    verifiche: "Account Combat Class verifications",
+    verificheIntro:
+      "Hero List screenshots with the hero of the day in the favorites. Enter the class you read and confirm, or reject with a reason. The screenshot is deleted on decision.",
+    nessunaVerifica: "No screenshots to review.",
   },
 });
 
@@ -119,16 +132,37 @@ export default async function ModerationPage() {
   // esiste. Un "non hai i permessi" e' un indizio su dove attaccare.
   if (!can(session.user.role, "moderate")) notFound();
 
-  const [queue, suspended, log] = await Promise.all([
+  const [queue, suspended, log, verifications] = await Promise.all([
     reportQueue(),
     activeSuspensions(),
     recentModActions(),
+    verificationQueue(),
   ]);
 
   const locale = await getLocale();
   const t = TESTI[locale];
   const actionLabels: Record<string, string> = t.azioni;
   const now = new Date();
+
+  const reviewItems: ReviewItem[] = verifications.map((item) => {
+    const roster = getGameModule(item.gameSlug)?.roster?.heroes ?? [];
+    const label = (id: string) => {
+      const hero = roster.find((entry) => entry.id === id);
+      return hero ? `[${heroEpithet(hero, locale)}] ${heroName(hero, locale)}` : id;
+    };
+    const server = isServer(item.server) ? SERVER_NAMES[item.server][locale] : item.server;
+    return {
+      id: item.id,
+      requester: item.displayName,
+      profileHref: `/u/${item.username}`,
+      account: [item.nickname, item.friendCode && `#${item.friendCode}`, server].filter(Boolean).join(" · "),
+      declaredPower: item.declaredPower,
+      previous: item.previousPower && item.previousAt ? { power: item.previousPower, at: item.previousAt } : null,
+      hero: { name: label(item.challengeHeroId), card: heroCardSrc(item.gameSlug, item.challengeHeroId) },
+      skipped: item.skippedHeroIds.map(label),
+      challengeDay: item.challengeDay,
+    };
+  });
 
   return (
     <main className="mx-auto w-full max-w-[1000px] px-6 pt-9 pb-24">
@@ -137,6 +171,23 @@ export default async function ModerationPage() {
         <h1 className={cx(display, "mt-2.5 text-[32px]")}>{t.titolo}</h1>
         <p className="mt-3 max-w-[62ch] text-sm text-ink-2">{t.introduzione}</p>
       </header>
+
+      <section className="mb-12">
+        <SectionHead
+          title={t.verifiche}
+          aside={<Meta>{reviewItems.length === 0 ? t.codaVuota : t.daGuardare(reviewItems.length)}</Meta>}
+        />
+        <p className="mt-0 mb-4 max-w-[70ch] text-sm text-ink-2">{t.verificheIntro}</p>
+        {reviewItems.length === 0 ? (
+          <Empty>{t.nessunaVerifica}</Empty>
+        ) : (
+          <ul className="m-0 grid list-none gap-3.5 p-0">
+            {reviewItems.map((item) => (
+              <VerificationReview key={item.id} item={item} locale={locale} />
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="mb-12">
         <SectionHead

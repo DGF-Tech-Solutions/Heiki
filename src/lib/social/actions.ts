@@ -122,6 +122,9 @@ export async function followedUserIds(userId: string): Promise<string[]> {
 
 type NotificationType = "POST_REPLY" | "COMMENT_REPLY" | "NEW_FOLLOWER" | "POST_VOTED";
 
+/** Anche quelle che non nascono qui: l'esito della verifica della classe (`game-account/actions.ts`). */
+type AnyNotificationType = NotificationType | "POWER_VERIFIED" | "POWER_REJECTED";
+
 /**
  * Registra una notifica, salvo il caso in cui l'attore e il destinatario siano
  * la stessa persona: nessuno vuole essere avvisato di quello che ha appena
@@ -149,11 +152,13 @@ export async function notify(
 
 export interface NotificationItem {
   id: string;
-  type: NotificationType;
+  type: AnyNotificationType;
   actor: { username: string; displayName: string };
   postId: string | null;
   postTitle: string | null;
   gameSlug: string | null;
+  /** per l'esito di una verifica: la classe confermata */
+  verifiedPower: number | null;
   read: boolean;
   createdAt: string;
 }
@@ -169,6 +174,7 @@ export async function listNotifications(limit = 30): Promise<NotificationItem[]>
     with: {
       actor: { with: { profile: true } },
       post: { with: { hub: { with: { game: true } } } },
+      verification: { columns: { verifiedPower: true }, with: { game: { columns: { slug: true } } } },
     },
   });
 
@@ -181,7 +187,8 @@ export async function listNotifications(limit = 30): Promise<NotificationItem[]>
     },
     postId: row.postId,
     postTitle: row.post?.title ?? null,
-    gameSlug: row.post?.hub.game?.slug ?? null,
+    gameSlug: row.post?.hub.game?.slug ?? row.verification?.game.slug ?? null,
+    verifiedPower: row.verification?.verifiedPower ?? null,
     read: row.readAt != null,
     createdAt: row.createdAt.toISOString(),
   }));

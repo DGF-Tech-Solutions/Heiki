@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
   experimental: {
     // Il motore di calcolo gira lato client: niente di esso deve finire nel bundle server.
     optimizePackageImports: ["@/lib/engine"],
+    // La schermata della verifica della classe viaggia in un'azione del server:
+    // il limite di serie (1 MB) e' poco per una schermata del telefono anche
+    // ridotta. Il server ne accetta al massimo 3 MB (SCREENSHOT_MAX_BYTES).
+    serverActions: { bodySizeLimit: "4mb" },
   },
 };
 

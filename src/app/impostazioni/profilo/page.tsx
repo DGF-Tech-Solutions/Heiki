@@ -12,7 +12,8 @@ import { display, eyebrow } from "@/components/ui";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { saveProfileAction } from "@/lib/profile/actions";
 import { listGameModules } from "@/lib/games/registry";
-import { testi } from "@/lib/i18n/locale";
+import { testi, type Locale } from "@/lib/i18n/locale";
+import { SERVER_NAMES, isServer } from "@/lib/games/game-account";
 import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
@@ -55,9 +56,10 @@ export default async function ProfileSettingsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/entra");
 
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
-  const data = await loadOwnProfile(session.user.id, t.gioco);
+  const data = await loadOwnProfile(session.user.id, t.gioco, locale);
   if (data === null) redirect("/entra");
 
   const premiumActive =
@@ -98,7 +100,7 @@ async function hasActivePremium(userId: string): Promise<boolean> {
 }
 
 /** `unknownGame` e' il nome da mostrare per un gioco non piu' registrato, nella lingua di chi legge. */
-async function loadOwnProfile(userId: string, unknownGame: string): Promise<ProfileViewData | null> {
+async function loadOwnProfile(userId: string, unknownGame: string, locale: Locale): Promise<ProfileViewData | null> {
   try {
     const row = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -107,7 +109,7 @@ async function loadOwnProfile(userId: string, unknownGame: string): Promise<Prof
         profile: true,
         badges: { with: { badge: true } },
         showcase: true,
-        gameAccounts: true,
+        gameAccounts: { with: { game: { columns: { slug: true } } } },
         builds: true,
       },
     });
@@ -115,6 +117,7 @@ async function loadOwnProfile(userId: string, unknownGame: string): Promise<Prof
     if (!row) return null;
 
     const gameNames = new Map(listGameModules().map((gameModule) => [gameModule.id, gameModule.name]));
+    const gameNamesBySlug = new Map(listGameModules().map((gameModule) => [gameModule.slug, gameModule.name]));
     const showcased = new Set(row.showcase.map((slot) => slot.badgeId));
     const order = new Map(row.showcase.map((slot) => [slot.badgeId, slot.position]));
     const hasShowcase = row.showcase.length > 0;
@@ -145,10 +148,15 @@ async function loadOwnProfile(userId: string, unknownGame: string): Promise<Prof
         })),
       gameAccounts: row.gameAccounts.map((account) => ({
         id: account.id,
-        game: gameNames.get(account.gameId) ?? unknownGame,
+        // il gioco si riconosce dallo slug: `gameId` e' l'id del database, non quello del modulo
+        game: gameNamesBySlug.get(account.game.slug) ?? unknownGame,
         uid: account.uid,
         nickname: account.nickname,
         trust: account.trust,
+        server: isServer(account.region) ? SERVER_NAMES[account.region][locale] : null,
+        power: account.accountPower,
+        verifiedPower: account.verifiedPower,
+        verifiedAt: account.verifiedAt?.toISOString() ?? null,
         shown: true,
       })),
       builds: row.builds.map((build) => ({

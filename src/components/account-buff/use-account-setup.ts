@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { markLocalChange } from "@/components/game-account/local-account";
 import { EMPTY_SETUP, parseSetup, setupStorageKey, type AccountSetup } from "@/lib/games/account-setup";
 
 /**
@@ -14,6 +15,10 @@ import { EMPTY_SETUP, parseSetup, setupStorageKey, type AccountSetup } from "@/l
  *
  * Il localStorage puo' mancare o rifiutare (navigazione privata, dati bloccati):
  * allora l'account resta in memoria finche' la pagina e' aperta.
+ *
+ * Dal 27/09 ogni salvataggio mette anche il timbro dell'account di gioco
+ * (`markLocalChange`): per chi e' entrato, la sincronizzazione lo manda al
+ * database. `storeSetup` scrive senza timbro, per la copia che arriva dal database.
  */
 
 const EVENT = "gachazone:buff-account";
@@ -49,6 +54,28 @@ function subscribe(notify: () => void): () => void {
   };
 }
 
+/** Scrive l'account senza timbro: la usa la sincronizzazione col database. */
+export function storeSetup(gameSlug: string, next: AccountSetup): void {
+  const key = setupStorageKey(gameSlug);
+  const raw = JSON.stringify(next);
+  try {
+    window.localStorage.setItem(key, raw);
+    memory.delete(key);
+  } catch {
+    memory.set(key, raw);
+  }
+  window.dispatchEvent(new Event(EVENT));
+}
+
+export function readSetup(gameSlug: string): AccountSetup {
+  return snapshot(setupStorageKey(gameSlug));
+}
+
+/** C'e' un account salvato in questo browser (anche vuoto, se l'utente l'ha azzerato). */
+export function hasStoredSetup(gameSlug: string): boolean {
+  return readRaw(setupStorageKey(gameSlug)) !== null;
+}
+
 export function useAccountSetup(gameSlug: string): readonly [AccountSetup, (next: AccountSetup) => void] {
   const key = setupStorageKey(gameSlug);
   const setup = useSyncExternalStore(
@@ -58,16 +85,10 @@ export function useAccountSetup(gameSlug: string): readonly [AccountSetup, (next
   );
   const save = useCallback(
     (next: AccountSetup) => {
-      const raw = JSON.stringify(next);
-      try {
-        window.localStorage.setItem(key, raw);
-        memory.delete(key);
-      } catch {
-        memory.set(key, raw);
-      }
-      window.dispatchEvent(new Event(EVENT));
+      storeSetup(gameSlug, next);
+      markLocalChange(gameSlug);
     },
-    [key],
+    [gameSlug],
   );
   return [setup, save] as const;
 }

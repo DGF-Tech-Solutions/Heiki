@@ -259,6 +259,22 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
     ],
   },
   {
+    // 27/09: la sezione degli account. Per ora il tuo account e la verifica della
+    // classe; gli eroi posseduti entreranno qui
+    label: { it: "Il tuo account", en: "Your account" },
+    items: [
+      {
+        path: "/account",
+        label: { it: "Il mio account", en: "My account" },
+        hint: {
+          it: "Nickname, Codice amico, classe dell'account e costellazioni, e la verifica della classe",
+          en: "Nickname, Friend Code, Account Combat Class and constellations, and the class verification",
+        },
+        needs: "accountBuff",
+      },
+    ],
+  },
+  {
     label: { it: "Guide", en: "Guides" },
     items: [
       {

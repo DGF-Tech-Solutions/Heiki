@@ -146,7 +146,8 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
 (Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
 (Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Strumenti**
-(Randomizer, Indovina l'eroe) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
+(Randomizer, Indovina l'eroe) · **Il tuo account** (Il mio account) · **Guide** (Guide e
+rotazioni) · **Community** (Discussioni).
 
 Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
 ha un roster, dichiarato con `needs` in `GAME_GROUPS` e filtrato da
@@ -157,7 +158,8 @@ voce che non c'è.
 modalità boss di Grand Cross, dalle tabelle del client. Fino ad allora non c'era
 apposta: un gruppo vuoto in navigazione promette qualcosa che non c'è, e chi ci
 clicca una volta non ci clicca più. *Guide* è entrato allo stesso modo, quando ha
-avuto pagine da mostrare, e *Strumenti* il 27/09/2026 col Randomizer.
+avuto pagine da mostrare, *Strumenti* il 27/09/2026 col Randomizer, e *Il tuo
+account* lo stesso giorno con la pagina del tuo account di gioco.
 
 ### Il gioco è il primo segmento dell'URL
 
@@ -324,8 +326,10 @@ Il confine passa qui, e non è formale:
   fissi; né gli uni né le altre entrano nella classe di combattimento né nella
   schermata delle statistiche del gioco, contano in battaglia. Le posizioni delle
   pietre vengono dai prefab delle mappe del gioco. Il tuo account (classe e
-  costellazioni) si sceglie nella pagina `/buff-account` o nel calcolatore della
-  scheda eroe e si salva nel browser (`localStorage`, `account-setup.ts`): la scheda
+  costellazioni) si sceglie nella pagina `/buff-account`, in `/account` o nel
+  calcolatore della scheda eroe e si salva nel browser (`localStorage`,
+  `account-setup.ts`), e per chi è entrato anche nel database (vedi «L'account di
+  gioco e la verifica della classe»): la scheda
   legge i totali già sommati, con l'impronta dei dati (`version`) per accorgersi di
   una patch. La classe di combattimento dell'eroe nella scheda è calcolata con la
   formula del client, con l'equipaggiamento scelto nel calcolatore. Le immagini
@@ -496,6 +500,41 @@ Quello che c'è, e perché è fatto così:
   l'unico modo per distinguere una decisione da un clic sbagliato su un'azione
   irreversibile.
 
+### L'account di gioco e la verifica della classe
+
+La pagina **`/<gioco>/account`** («Il mio account», 27/09/2026) tiene chi sei nel
+gioco (nickname, Codice amico, server) accanto alla classe di combattimento
+dell'account e alle costellazioni che le schede degli eroi usano già.
+
+- **Browser e database.** Tutto resta nel `localStorage` anche per chi non è
+  entrato. Per chi è entrato, `AccountSync` (nel guscio `src/app/[game]/layout.tsx`)
+  confronta la copia del browser con quella di `game_accounts` e vince la più
+  recente (`syncDirection` in `src/lib/games/game-account.ts`); ogni modifica fatta
+  nel browser parte verso il database dopo 1,5 secondi di pausa. Il browser ricorda
+  di chi è la sua copia, così i dati di una persona non finiscono nell'account di
+  un'altra che entra dallo stesso computer.
+- **Perché una schermata.** Il gioco non ha API e non mostra la classe
+  dell'account di un altro giocatore (solo dentro l'Ordine dei Cavalieri); i titoli
+  della classe, che la direbbero, non si possono mettere in mostra. Il metodo è
+  dell'utente: il sito assegna un **eroe del giorno** (uno per utente e per giorno
+  UTC, fra i 30 eroi che escono SR senza collaborazioni, al massimo due cambi), lo
+  si mette nei preferiti, e una schermata dell'Elenco eroi ordinato per «Preferiti»
+  mostra insieme l'eroe e la classe. Una schermata vecchia o di un altro non può
+  avere quell'eroe.
+- **Decide un moderatore** (`/moderazione`), che scrive la classe che legge. La
+  classe confermata diventa quella dell'account (e del browser, alla prossima
+  sincronizzazione), compare sul profilo con la data, e arriva una notifica.
+- **La schermata** passa ridotta a WebP dal browser (lato lungo 2560 px, senza i
+  metadati del file), il server la riconosce dai primi byte (PNG, JPEG, WebP, al
+  massimo 3 MB), la tiene in `verification_screenshots` e la **cancella alla
+  decisione** o al ritiro. Resta l'impronta SHA-256: la stessa immagine vale solo
+  per chi l'ha caricata e solo nel giorno del suo eroe. La vedono solo i moderatori
+  e chi l'ha caricata (`/api/verifiche/<id>/schermata`, 404 per gli altri, senza
+  cache).
+- Codice: regole pure in `src/lib/games/game-account.ts`, letture in
+  `src/lib/game-account/server.ts`, scritture in `src/lib/game-account/actions.ts`,
+  interfaccia in `src/components/game-account/`.
+
 ### Le guide
 
 Una guida qui non è un articolo: è un contenuto che **dichiara in quale patch è
@@ -539,6 +578,9 @@ servono non c'è tempo di scriverli.
   spegnere una sospensione a termine.
 - **Ogni azione finisce nel registro**, in fondo a `/moderazione`. Un moderatore
   che agisce senza traccia è un problema più grande di quello che sta risolvendo.
+- **Le verifiche della classe dell'account** stanno in cima a `/moderazione`:
+  schermata, eroe del giorno (e quelli scartati), classe dichiarata e l'ultima
+  confermata. Chi modera non può decidere la propria.
 - **`/moderazione` e `/admin` rispondono 404**, non 403, a chi non ha il ruolo:
   un "non hai i permessi" è un indizio su dove attaccare.
 

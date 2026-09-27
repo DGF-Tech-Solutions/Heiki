@@ -36,6 +36,13 @@
       "when": 1789048938889,
       "tag": "0004_gigantic_lila_cheney",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790500316464,
+      "tag": "0005_verifica_classe_account",
+      "breakpoints": true
     }
   ]
 }

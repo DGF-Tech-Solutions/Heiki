@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
-import { testi } from "@/lib/i18n/locale";
+import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { listNotifications, markAllReadAction } from "@/lib/social/actions";
 import { relativeTime } from "@/lib/community/ranking";
@@ -26,6 +26,9 @@ const TESTI = testi({
       POST_VOTED: "ha votato il tuo post",
     } as Readonly<Record<string, string>>,
     interagito: "ha interagito",
+    verificata: (n: string) => `La classe di combattimento del tuo account è stata verificata: ${n}.`,
+    rifiutata: "La verifica della classe del tuo account non è stata accettata.",
+    ilMioAccount: "Il mio account",
   },
   en: {
     titoloPagina: "Notifications · GachaZone",
@@ -41,6 +44,9 @@ const TESTI = testi({
       POST_VOTED: "voted on your post",
     },
     interagito: "interacted with you",
+    verificata: (n: string) => `Your Account Combat Class has been verified: ${n}.`,
+    rifiutata: "The verification of your account's class was not accepted.",
+    ilMioAccount: "My account",
   },
 });
 
@@ -107,10 +113,31 @@ export default async function NotificationsPage() {
                 item.read ? "border-rule bg-paper" : "border-brand bg-brand-soft",
               )}
             >
-              <Link href={`/u/${item.actor.username}`} className="font-semibold hover:text-brand">
-                {item.actor.displayName}
-              </Link>
-              <span className="text-ink-2">{t.azioni[item.type] ?? t.interagito}</span>
+              {item.type === "POWER_VERIFIED" || item.type === "POWER_REJECTED" ? (
+                // l'esito lo firma la moderazione, non una persona: niente nome del moderatore
+                <>
+                  <span className="text-ink">
+                    {item.type === "POWER_VERIFIED"
+                      ? t.verificata((item.verifiedPower ?? 0).toLocaleString(intlLocale(locale)))
+                      : t.rifiutata}
+                  </span>
+                  {item.gameSlug ? (
+                    <Link
+                      href={`/${item.gameSlug}/account`}
+                      className="text-ink-2 underline decoration-rule hover:text-brand"
+                    >
+                      {t.ilMioAccount}
+                    </Link>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <Link href={`/u/${item.actor.username}`} className="font-semibold hover:text-brand">
+                    {item.actor.displayName}
+                  </Link>
+                  <span className="text-ink-2">{t.azioni[item.type] ?? t.interagito}</span>
+                </>
+              )}
 
               {item.postId && item.gameSlug ? (
                 <Link

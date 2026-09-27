@@ -17,6 +17,7 @@
  * Si puo' decidere cosa esporre e in che ordine: quella e' presentazione.
  */
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ProfileViewData } from "./profile-view";
 import {
@@ -30,6 +31,11 @@ import {
 import { Button, cx, display, Empty, Field, Input, Textarea } from "./ui";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
+
+/** I giochi con la pagina «Il mio account» (sta nel modulo del gioco, che qui nel browser non si carica). */
+const ACCOUNT_PAGES: readonly { game: string; href: string }[] = [
+  { game: "Grand Cross", href: "/grand-cross/account" },
+];
 
 const TESTI = testi({
   it: {
@@ -59,11 +65,9 @@ const TESTI = testi({
     esponi: "esponi",
     profiliGioco: "Profili di gioco",
     profiliGiocoNota:
-      "Solo UID pubblici. Non chiediamo mai le credenziali del tuo account di gioco, e il livello di fiducia lo assegna la verifica automatica.",
-    collegaProfilo: "Collega un profilo",
-    gioco: "Gioco",
-    uid: "UID",
-    nickname: "Nickname",
+      "Solo quello che scrivi tu: nickname, Codice amico, server e classe dell'account. Non chiediamo mai le credenziali del tuo account di gioco.",
+    profiliGiocoDove: "Si scrivono nella pagina «Il mio account» di ogni gioco, dove chiedi anche la verifica della classe:",
+    ilMioAccount: "Il mio account",
     mostra: "mostra",
     build: "Build",
     buildNota: "Decidi quali rendere pubbliche sul profilo",
@@ -105,11 +109,9 @@ const TESTI = testi({
     esponi: "show",
     profiliGioco: "Game profiles",
     profiliGiocoNota:
-      "Public UIDs only. We never ask for your game account credentials, and the trust level is assigned by automatic verification.",
-    collegaProfilo: "Link a profile",
-    gioco: "Game",
-    uid: "UID",
-    nickname: "Nickname",
+      "Only what you enter: nickname, Friend Code, server and Account Combat Class. We never ask for your game account credentials.",
+    profiliGiocoDove: "They are entered on each game's «My account» page, where you also request the class verification:",
+    ilMioAccount: "My account",
     mostra: "show",
     build: "Builds",
     buildNota: "Choose which ones are public on your profile",
@@ -359,53 +361,23 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         )}
       </Group>
 
-      <ListGroup
-        title={t.profiliGioco}
-        hint={t.profiliGiocoNota}
-        items={value.gameAccounts}
-        onChange={(gameAccounts) => patch({ gameAccounts })}
-        create={() => ({
-          id: `acc-${Date.now()}`,
-          game: "",
-          uid: "",
-          nickname: "",
-          trust: "DECLARED" as const,
-          shown: true,
-        })}
-        addLabel={t.collegaProfilo}
-        renderFields={(account, update) => (
-          <>
-            <MiniInput
-              value={account.game}
-              placeholder={t.gioco}
-              maxLength={40}
-              onChange={(game) => update({ ...account, game })}
-            />
-            <span className="flex gap-1.5">
-              <MiniInput
-                mono
-                value={account.uid}
-                placeholder={t.uid}
-                maxLength={24}
-                onChange={(uid) => update({ ...account, uid })}
-              />
-              <MiniInput
-                value={account.nickname ?? ""}
-                placeholder={t.nickname}
-                maxLength={30}
-                onChange={(nickname) => update({ ...account, nickname })}
-              />
-            </span>
-          </>
-        )}
-        renderAside={(account, update) => (
-          <Toggle
-            checked={account.shown !== false}
-            label={t.mostra}
-            onChange={(shown) => update({ ...account, shown })}
-          />
-        )}
-      />
+      {/*
+        Gli account di gioco non si scrivono qui (prima c'era un elenco che non si
+        salvava): hanno una pagina loro per gioco, che li tiene nel browser e nel
+        database e li fa verificare. Qui si rimanda a quella.
+      */}
+      <Group title={t.profiliGioco} hint={t.profiliGiocoNota}>
+        <p className="m-0 text-sm text-ink-2">{t.profiliGiocoDove}</p>
+        <ul className="mt-2 mb-0 grid list-none gap-1 p-0 text-sm">
+          {ACCOUNT_PAGES.map((page) => (
+            <li key={page.href}>
+              <Link href={page.href} className="font-semibold text-brand underline-offset-2 hover:underline">
+                {page.game}: {t.ilMioAccount} →
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Group>
 
       <ListGroup
         title={t.build}

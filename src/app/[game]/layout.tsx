@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
+import { AccountSync } from "@/components/game-account/account-sync";
 import { GameSwitcher } from "@/components/game-nav";
 import { GameSidebar } from "@/components/game-sidebar";
+import { auth } from "@/lib/auth";
+import { accountCopy } from "@/lib/game-account/server";
 import { findGame, gameGroups, isPlayable } from "@/lib/games/catalog";
+import { getGameModule } from "@/lib/games/registry";
 import { getLocale } from "@/lib/i18n/server";
 
 /**
@@ -29,8 +33,15 @@ export default async function GameLayout({
 
   const locale = await getLocale();
 
+  // Il tuo account di gioco segue chi e' entrato su ogni dispositivo: la copia del
+  // database arriva qui, e AccountSync la confronta con quella del browser.
+  const session = getGameModule(game)?.accountBuff ? await auth().catch(() => null) : null;
+  const userId = session?.user?.id;
+  const server = userId ? await accountCopy(userId, game) : null;
+
   return (
     <>
+      {userId ? <AccountSync gameSlug={game} userId={userId} server={server} /> : null}
       <GameSwitcher game={game} />
 
       {/*
