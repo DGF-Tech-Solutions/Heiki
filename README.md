@@ -52,7 +52,8 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi le parole blu, le meccaniche, l'Endgame, gli artefatti e i buff dell'account |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi i legami, le parole blu, le meccaniche, l'Endgame, gli artefatti e i buff dell'account |
+| `npm run legami:import` | Rigenera solo i legami degli eroi associati, per il Randomizer (dopo gli eroi) |
 | `npm run parole:import` | Rigenera solo le parole blu della scheda eroe (dopo gli eroi) |
 | `npm run meccaniche:import` | Rigenera solo le meccaniche di combattimento: costanti, pesca, effetti Luce/Oscurità, cumulo (dopo le parole blu) |
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
@@ -142,8 +143,8 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
 (Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
-(Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Guide** (Guide e
-rotazioni) · **Community** (Discussioni).
+(Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Strumenti**
+(Randomizer) · **Guide** (Guide e rotazioni) · **Community** (Discussioni).
 
 Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
 ha un roster, dichiarato con `needs` in `GAME_GROUPS` e filtrato da
@@ -154,7 +155,7 @@ voce che non c'è.
 modalità boss di Grand Cross, dalle tabelle del client. Fino ad allora non c'era
 apposta: un gruppo vuoto in navigazione promette qualcosa che non c'è, e chi ci
 clicca una volta non ci clicca più. *Guide* è entrato allo stesso modo, quando ha
-avuto pagine da mostrare.
+avuto pagine da mostrare, e *Strumenti* il 27/09/2026 col Randomizer.
 
 ### Il gioco è il primo segmento dell'URL
 
@@ -355,6 +356,17 @@ Il confine passa qui, e non è formale:
   un componente client le mette sotto la parola e accende la ricerca negli elenchi
   da 8 eroi in su (nome ed epiteto nelle due lingue, personaggio, abilità). Per
   una razza o una caratteristica, in fondo c'è la griglia Eroi già filtrata
+- **i legami** (gli Eroi associati: con chi un eroe attiva l'Effetto associazione, e
+  quali legami danno l'Attacco combinato) stanno in `hero-fates.generated.ts`, scritto
+  da `scripts/import-hero-fates.mts` dalle schede del client (`fates` di
+  `_7dsgc/eroi/client/abilita.json` e `abilita_it.json`, da `DB_fate`); il contratto è
+  in `src/lib/games/hero-fates-types.ts`. Li usa il **Randomizer** (`/randomizer`):
+  quattro eroi in campo e quattro nei loro Slot associazione, pescati dal browser, a
+  caso o con una sinergia per forza fra i quattro in campo (almeno tre hanno un'Unica
+  che nomina alleati applicabili e ognuna vale per tutti gli altri; il quarto può
+  averne una non specifica; gli associati restano a caso, e l'Effetto associazione si
+  mostra quando capita un legame), anche senza le collaborazioni. Le regole del sorteggio stanno in `src/lib/games/randomizer.ts`,
+  coi test
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

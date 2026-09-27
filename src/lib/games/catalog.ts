@@ -97,7 +97,8 @@ export function defaultGameSlug(): string {
  * Bestie demoniache, Re Demone e Divinita' Suprema. Prima non c'era apposta: un
  * gruppo vuoto in navigazione promette qualcosa che non c'e', e chi ci clicca
  * una volta non ci clicca piu'. "Guide" e' entrato allo stesso modo, quando la
- * sezione ha avuto pagine da mostrare.
+ * sezione ha avuto pagine da mostrare, e "Strumenti" il 27/09 col Randomizer
+ * (c'era stato fino a quel giorno con le pagine del vecchio motore, tolte).
  */
 export interface GameSection {
   path: string;
@@ -118,6 +119,7 @@ export interface GameSection {
     | "artifacts"
     | "accountBuff"
     | "mechanics"
+    | "heroFates"
     | "deathMatch"
     | "creatureNest"
     | "demonKing"
@@ -230,6 +232,20 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "Judgments, magic, Edicts and Archangels",
         },
         needs: "supremeDeity",
+      },
+    ],
+  },
+  {
+    label: { it: "Strumenti", en: "Tools" },
+    items: [
+      {
+        path: "/randomizer",
+        label: { it: "Randomizer", en: "Randomizer" },
+        hint: {
+          it: "Quattro eroi e i loro associati pescati a caso, anche con le Uniche in sinergia",
+          en: "Four heroes and their associates drawn at random, also with their Uniques in synergy",
+        },
+        needs: "heroFates",
       },
     ],
   },

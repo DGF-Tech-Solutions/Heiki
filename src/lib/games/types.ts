@@ -34,6 +34,7 @@ import type {
 } from "./endgame-types";
 import type { AccountBuffIndex } from "./account-buff-types";
 import type { ArtifactIndex } from "./artifact-types";
+import type { HeroFatesIndex } from "./hero-fates-types";
 import type { HeroTermsIndex } from "./hero-terms-types";
 import type { MechanicsIndex } from "./mechanics-types";
 
@@ -817,6 +818,13 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * server. Il contratto sta in hero-terms-types.ts.
    */
   readonly heroTerms?: HeroTermsIndex;
+
+  /**
+   * I legami: per ogni eroe, gli eroi associati con cui si attiva l'Effetto
+   * associazione, e quali danno l'Attacco combinato. Li legge il Randomizer. Il
+   * contratto sta in hero-fates-types.ts.
+   */
+  readonly heroFates?: HeroFatesIndex;
 
   /**
    * Le meccaniche di combattimento: le costanti del danno, il triangolo degli
