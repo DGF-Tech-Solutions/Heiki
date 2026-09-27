@@ -516,14 +516,20 @@ export default async function HeroPage({ params, searchParams }: Props) {
             alt={t.altCard(name)}
             width={128}
             height={128}
-            className="w-20 rounded-card bg-paper-2 sm:w-32"
+            className="w-20 rounded-card bg-paper-2 shadow-[4px_4px_0_var(--color-brand)] sm:w-32"
           />
 
           <div className="min-w-0">
-            <p className={eyebrow} style={affinity ? { color: affinity.color } : undefined}>
-              {epithet}
+            <p
+              className="flex max-w-full items-stretch gap-1 text-ink-3"
+              style={affinity ? { color: affinity.color } : undefined}
+            >
+              <span aria-hidden="true" className="p5-cut-sm w-2.5 shrink-0 bg-current" />
+              <span className="p5-cut inline-block min-w-0 bg-ink px-3 py-1 font-display text-[13px] leading-tight font-black tracking-[0.06em] text-paper uppercase empty:hidden [font-variation-settings:'wdth'_75]">
+                {epithet}
+              </span>
             </p>
-            <h1 className={cx(display, "mt-2 text-[clamp(24px,3.4vw,34px)]")}>{name}</h1>
+            <h1 className={cx(display, "mt-2 text-[clamp(30px,5.2vw,58px)] [overflow-wrap:anywhere]")}>{name}</h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {/*

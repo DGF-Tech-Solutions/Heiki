@@ -420,7 +420,7 @@ export function StatCalculator({
             type="button"
             onClick={() => setAllRows((current) => !current)}
             aria-expanded={allRows}
-            className="mt-1.5 text-[12px] text-brand hover:underline"
+            className="mt-1.5 text-[12px] font-semibold text-brand hover:underline"
           >
             {allRows ? t.principali : t.tutte(rows.length + extraRows)}
           </button>

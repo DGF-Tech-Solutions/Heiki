@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Archivo, DM_Mono, Public_Sans } from "next/font/google";
+import { Archivo, Atkinson_Hyperlegible_Next, DM_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { CookieBanner } from "@/components/cookie-banner";
 import { LocaleProvider } from "@/lib/i18n/client";
@@ -14,12 +14,18 @@ import "./globals.css";
  *
  * Archivo ha un asse di larghezza variabile: i titoli si stringono e si fanno
  * pesanti senza cambiare famiglia, e sembrano copertine sportive invece che
- * intestazioni di documento. Public Sans regge il testo lungo. DM Mono e'
+ * intestazioni di documento. Il testo lungo e' in Atkinson Hyperlegible Next,
+ * disegnato per la leggibilita' (I, l e 1 non si confondono; prima era Public
+ * Sans, che sul fondo a retino del tema Persona si leggeva peggio). DM Mono e'
  * riservato ai numeri: in un sito che vende calcoli le cifre devono
  * incolonnarsi, e il monospaziato le distingue subito dalla prosa.
  */
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo", display: "swap" });
-const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-public", display: "swap" });
+const bodyFace = Atkinson_Hyperlegible_Next({
+  subsets: ["latin"],
+  variable: "--font-atkinson",
+  display: "swap",
+});
 const dmMono = DM_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -86,7 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang={locale}
-      className={`${archivo.variable} ${publicSans.variable} ${dmMono.variable}`}
+      className={`${archivo.variable} ${bodyFace.variable} ${dmMono.variable}`}
     >
       <body>
         <LocaleProvider locale={locale}>
@@ -103,7 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <div id="contenuto">{children}</div>
 
-          <footer className="border-t-2 border-ink bg-paper-2 pt-7 pb-10 text-xs text-ink-3">
+          <footer className="border-t-[3px] border-brand bg-paper pt-7 pb-10 text-xs text-ink-3">
             <div className="mx-auto w-full max-w-shell px-6">
               <nav aria-label={t.collegamenti} className="mb-4 flex flex-wrap gap-4">
                 {t.footer.map((link) => (

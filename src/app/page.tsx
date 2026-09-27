@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PostCard } from "@/components/community/post-card";
-import { cx, display, Empty, eyebrow, numeric, SectionHead, Tag } from "@/components/ui";
+import { buttonClass, cx, display, Empty, numeric, SectionHead, Tag } from "@/components/ui";
 import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
 import { listGames } from "@/lib/games/catalog";
@@ -66,9 +66,26 @@ export default async function Home() {
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 pt-8 pb-20">
       <section>
-        <SectionHead title={t.giochi} aside={<span className={eyebrow}>{t.previsti(games.length)}</span>} />
+        {/* Cartello alla Persona: la parola su una lama rossa, con la sagoma
+            bianca sfalsata dietro (drop-shadow sul contenitore, perche' il
+            clip-path della lama taglierebbe un box-shadow) */}
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b-[3px] border-ink pb-4">
+          <div className="drop-shadow-[6px_6px_0_var(--color-ink)]">
+            <h2
+              className={cx(
+                display,
+                "p5-cut bg-brand px-6 py-1.5 text-5xl text-white [text-shadow:0.05em_0.05em_0_var(--color-paper)] sm:text-7xl",
+              )}
+            >
+              {t.giochi}
+            </h2>
+          </div>
+          <span className="p5-cut-sm bg-ink px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-paper">
+            {t.previsti(games.length)}
+          </span>
+        </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((game) => {
             const gameModule = getGameModule(game.slug);
             const heroes = gameModule?.roster?.heroes.length ?? 0;
@@ -77,11 +94,12 @@ export default async function Home() {
               return (
                 <div
                   key={game.slug}
-                  className="rounded-card border border-dashed border-rule bg-paper-2 p-4"
+                  className="p5-corner border border-dashed border-rule bg-paper-2 p-4"
                 >
                   <div className="flex items-baseline justify-between gap-2">
                     <h3
-                      className={cx(display, "text-base text-ink-3 [font-variation-settings:'wdth'_92]")}
+                      // senza la sagoma rossa: sul grigio dei giochi non ancora pronti impastava le lettere
+                      className={cx(display, "text-base text-ink-3 [font-variation-settings:'wdth'_92] [text-shadow:none]")}
                     >
                       {game.shortName}
                     </h3>
@@ -96,29 +114,33 @@ export default async function Home() {
               <Link
                 key={game.slug}
                 href={`/${game.slug}`}
-                className="rounded-card border border-rule bg-paper p-4 transition-colors hover:border-brand"
+                className="group block h-full transition-[filter] duration-150 hover:drop-shadow-[5px_5px_0_var(--color-brand)] focus-visible:drop-shadow-[5px_5px_0_var(--color-brand)]"
               >
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className={cx(display, "text-base [font-variation-settings:'wdth'_92]")}>
-                    {game.shortName}
-                  </h3>
-                  <Tag tone="brand">{t.attivo}</Tag>
+                <div className="p5-corner h-full border border-rule bg-paper p-4 transition-colors group-hover:border-brand">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className={cx(display, "text-xl")}>{game.shortName}</h3>
+                    <Tag tone="brand">{t.attivo}</Tag>
+                  </div>
+                  <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
+                  {heroes > 0 ? <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>{t.eroi(heroes)}</p> : null}
+                  <span
+                    aria-hidden
+                    className="p5-cut-sm mt-4 block h-1.5 w-10 bg-brand transition-[width] duration-200 group-hover:w-full"
+                  />
                 </div>
-                <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
-                {heroes > 0 ? <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>{t.eroi(heroes)}</p> : null}
               </Link>
             );
           })}
         </div>
       </section>
 
-      <section className="mt-11 border-t border-rule pt-9">
+      <section className="mt-12 border-t-[3px] border-brand pt-9">
         <SectionHead
           title={t.ultimiPost}
           aside={
             <Link
               href={`/${games.find((game) => game.available)?.slug ?? ""}`}
-              className={cx(eyebrow, "text-brand hover:underline")}
+              className={buttonClass("outline", "sm", "shrink-0")}
             >
               {t.community}
             </Link>

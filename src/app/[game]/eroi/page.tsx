@@ -134,9 +134,11 @@ export default async function HeroesPage({ params, searchParams }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.eroi }]} />
 
-      <header className="mb-5 border-b border-rule pb-5">
-        <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.eroi}</h1>
+      <header className="mb-5 border-b-2 border-brand pb-5">
+        <p className={cx(eyebrow, "p5-cut-sm inline-block bg-brand px-2.5 py-0.5 text-paper!")}>
+          {entry.shortName}
+        </p>
+        <h1 className={cx(display, "mt-3 text-[clamp(30px,5vw,54px)]")}>{t.eroi}</h1>
         <p className="mt-2.5 max-w-[68ch] text-sm text-ink-2">
           {t.introduzione(roster.heroes.length, counted, rarest ?? "")}
         </p>
@@ -148,7 +150,7 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         {releases ? (
           <p className="mt-1.5 max-w-[68ch] text-sm text-ink-2">
             {t.ordine}{" "}
-            <Link href={`/${game}/uscite`} className="text-ink underline-offset-2 hover:text-brand hover:underline">
+            <Link href={`/${game}/uscite`} className="font-bold text-ink underline decoration-brand decoration-2 underline-offset-4 hover:text-brand">
               {t.uscite}
             </Link>
             .

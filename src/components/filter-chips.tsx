@@ -82,11 +82,13 @@ export function Chip({
         // tutti - anche per "Tutte" e per la riga Ordina, che di icona non ne
         // hanno - perche' pulsanti di altezze diverse nella stessa fila si
         // leggono come due gruppi diversi.
-        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-card border px-2.5",
-        "text-[12px] transition-colors disabled:cursor-not-allowed disabled:opacity-35",
+        // Persona: lama nera obliqua, rossa col testo bianco quando e' scelta
+        // (col rosso #e61421 il bianco fa 4.7:1), bianca al passaggio.
+        "p5-cut-sm group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3",
+        "text-[12px] uppercase tracking-[0.04em] transition-colors disabled:cursor-not-allowed disabled:opacity-35",
         active
-          ? "border-brand bg-brand-soft font-semibold text-ink"
-          : "border-rule bg-paper text-ink-2 hover:border-ink-3 hover:text-ink",
+          ? "bg-brand font-bold text-white"
+          : "bg-paper-3 font-semibold text-ink-2 enabled:hover:bg-ink enabled:hover:text-paper",
       )}
     >
       {iconOnly ? (
@@ -116,7 +118,15 @@ export function Chip({
       )}
 
       {count === undefined ? null : (
-        <span className={cx(numeric, "text-[10px] text-ink-3")}>{count}</span>
+        <span
+          className={cx(
+            numeric,
+            "text-[10px]",
+            active ? "text-white" : "text-ink-3 group-enabled:group-hover:text-paper",
+          )}
+        >
+          {count}
+        </span>
       )}
     </button>
   );

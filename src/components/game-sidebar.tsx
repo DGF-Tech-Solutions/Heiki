@@ -44,9 +44,13 @@ export function GameSidebar({
     <nav aria-label={t.sezioni} className="grid gap-5">
       {groups.map((group) => (
         <div key={group.label}>
-          <p className={cx(eyebrow, "mb-2")}>{group.label}</p>
+          {/* il nome del gruppo e' una targhetta bianca tagliata, come le
+              intestazioni dei menu di Persona */}
+          <p className={cx(eyebrow, "p5-cut-sm mb-2 inline-block bg-ink px-2.5 py-0.5 text-paper")}>
+            {group.label}
+          </p>
 
-          <ul className="m-0 grid list-none gap-px p-0">
+          <ul className="m-0 grid list-none gap-0.5 p-0">
             {group.items.map((item) => {
               const href = `${base}${item.path}`;
               // La sezione senza percorso e' la radice del gioco: va confrontata
@@ -59,11 +63,11 @@ export function GameSidebar({
                     href={href}
                     title={item.hint}
                     aria-current={active ? "page" : undefined}
+                    // lama bianca al passaggio, lama rossa con la sagoma sfalsata
+                    // sulla voce attiva: le disegna .p5-menu-item in globals.css
                     className={cx(
-                      "block rounded-sm px-2.5 py-1.5 text-[13px] transition-colors",
-                      active
-                        ? "bg-brand-soft font-semibold text-brand-deep"
-                        : "text-ink-2 hover:bg-paper-2 hover:text-ink",
+                      "p5-menu-item block px-3 py-1.5 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82]",
+                      active ? "text-white" : "text-ink-2",
                     )}
                   >
                     {item.label}

@@ -91,10 +91,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const CHIP = "inline-flex h-8 items-center rounded-card border px-3 text-[13px] transition-colors";
+// Filtri come lame tagliate: rossa quella scelta, scure le altre (bianche al passaggio)
+const CHIP =
+  "p5-cut-sm inline-flex h-8 items-center px-3.5 font-display text-[13px] font-extrabold uppercase " +
+  "tracking-[0.03em] [font-variation-settings:'wdth'_85] transition-colors";
 
-const CHIP_ON = "border-brand bg-brand-soft font-medium text-ink";
-const CHIP_OFF = "border-rule text-ink-2 hover:border-ink-3 hover:text-ink";
+const CHIP_ON = "bg-brand text-white";
+const CHIP_OFF = "bg-paper-3 text-ink-2 hover:bg-ink hover:text-paper";
 
 export default async function GameFeedPage({ params, searchParams }: Props) {
   const { game } = await params;
@@ -145,15 +148,13 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
         ) : null}
 
         {session?.user ? (
-          <nav className="mb-4 flex gap-5 border-b border-rule" aria-label={t.vista}>
+          <nav className="mb-5 flex gap-3 border-b-[3px] border-ink pb-2" aria-label={t.vista}>
             <Link
               href={link(hub, sort, false)}
               aria-current={!onlyFollowed ? "page" : undefined}
               className={cx(
-                "-mb-px border-b-2 pb-2.5 text-sm",
-                onlyFollowed
-                  ? "border-transparent text-ink-2 hover:text-ink"
-                  : "border-brand font-semibold text-ink",
+                "p5-menu-item px-4 py-1.5 font-display text-base font-black uppercase tracking-[0.02em] [font-variation-settings:'wdth'_80]",
+                onlyFollowed ? "text-ink-2 hover:text-paper" : "text-white",
               )}
             >
               {t.tutti}
@@ -162,10 +163,8 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
               href={link(hub, sort, true)}
               aria-current={onlyFollowed ? "page" : undefined}
               className={cx(
-                "-mb-px border-b-2 pb-2.5 text-sm",
-                onlyFollowed
-                  ? "border-brand font-semibold text-ink"
-                  : "border-transparent text-ink-2 hover:text-ink",
+                "p5-menu-item px-4 py-1.5 font-display text-base font-black uppercase tracking-[0.02em] [font-variation-settings:'wdth'_80]",
+                onlyFollowed ? "text-white" : "text-ink-2 hover:text-paper",
               )}
             >
               {t.seguiti}
@@ -221,7 +220,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
                         <li key={person.username}>
                           <Link
                             href={`/u/${person.username}`}
-                            className="flex items-center gap-2.5 rounded-card border border-rule px-3 py-2 text-sm hover:border-brand"
+                            className="p5-corner flex items-center gap-2.5 border border-rule bg-paper px-3 py-2 text-sm transition-colors hover:border-brand hover:bg-brand-soft"
                           >
                             <span className="font-semibold">{person.displayName}</span>
                             <span className="font-mono text-[11px] text-ink-3">

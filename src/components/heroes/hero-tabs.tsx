@@ -47,32 +47,32 @@ export interface HeroTab {
 const TAB_CLASSES = [
   {
     hook: "tab1",
-    chip: "group-has-[.tab1:checked]/schede:border-brand group-has-[.tab1:checked]/schede:text-ink group-has-[.tab1:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab1:checked]/schede:bg-brand group-has-[.tab1:checked]/schede:text-ink group-has-[.tab1:focus-visible]/schede:outline-2",
     show: "group-has-[.tab1:checked]/schede:block",
   },
   {
     hook: "tab2",
-    chip: "group-has-[.tab2:checked]/schede:border-brand group-has-[.tab2:checked]/schede:text-ink group-has-[.tab2:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab2:checked]/schede:bg-brand group-has-[.tab2:checked]/schede:text-ink group-has-[.tab2:focus-visible]/schede:outline-2",
     show: "group-has-[.tab2:checked]/schede:block",
   },
   {
     hook: "tab3",
-    chip: "group-has-[.tab3:checked]/schede:border-brand group-has-[.tab3:checked]/schede:text-ink group-has-[.tab3:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab3:checked]/schede:bg-brand group-has-[.tab3:checked]/schede:text-ink group-has-[.tab3:focus-visible]/schede:outline-2",
     show: "group-has-[.tab3:checked]/schede:block",
   },
   {
     hook: "tab4",
-    chip: "group-has-[.tab4:checked]/schede:border-brand group-has-[.tab4:checked]/schede:text-ink group-has-[.tab4:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab4:checked]/schede:bg-brand group-has-[.tab4:checked]/schede:text-ink group-has-[.tab4:focus-visible]/schede:outline-2",
     show: "group-has-[.tab4:checked]/schede:block",
   },
   {
     hook: "tab5",
-    chip: "group-has-[.tab5:checked]/schede:border-brand group-has-[.tab5:checked]/schede:text-ink group-has-[.tab5:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab5:checked]/schede:bg-brand group-has-[.tab5:checked]/schede:text-ink group-has-[.tab5:focus-visible]/schede:outline-2",
     show: "group-has-[.tab5:checked]/schede:block",
   },
   {
     hook: "tab6",
-    chip: "group-has-[.tab6:checked]/schede:border-brand group-has-[.tab6:checked]/schede:text-ink group-has-[.tab6:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab6:checked]/schede:bg-brand group-has-[.tab6:checked]/schede:text-ink group-has-[.tab6:focus-visible]/schede:outline-2",
     show: "group-has-[.tab6:checked]/schede:block",
   },
 ] as const;
@@ -110,7 +110,7 @@ export function HeroTabs({
       <div
         role="radiogroup"
         aria-label={label}
-        className="sticky top-[60px] z-10 mb-5 flex gap-1 overflow-x-auto border-b border-rule bg-paper [scrollbar-width:none]"
+        className="sticky top-[60px] z-10 mb-5 flex gap-1 overflow-x-auto border-b-2 border-brand bg-paper py-1.5 [scrollbar-width:none]"
       >
         {tabs.map((tab, index) => (
           <input
@@ -128,8 +128,8 @@ export function HeroTabs({
             key={`label-${tab.key}`}
             htmlFor={`${ID}-${tab.key}`}
             className={cx(
-              "-mb-px shrink-0 cursor-pointer border-b-2 border-transparent px-3 py-2.5 whitespace-nowrap",
-              "text-[14px] font-medium text-ink-3 outline-offset-[-2px] outline-brand transition-colors hover:text-ink",
+              "p5-cut shrink-0 cursor-pointer px-4 py-2 whitespace-nowrap",
+              "font-display text-[15px] font-black uppercase tracking-[0.04em] [font-variation-settings:'wdth'_75] text-ink outline-offset-[-4px] outline-ink transition-colors hover:bg-ink hover:text-paper",
               TAB_CLASSES[index]!.chip,
             )}
           >

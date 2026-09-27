@@ -210,7 +210,7 @@ export function Panel({ title, children, action }: { title: string; children: Re
 
 export function LinkButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className="text-[12px] text-brand hover:underline">
+    <button type="button" onClick={onClick} className="text-[12px] font-semibold text-brand hover:underline">
       {children}
     </button>
   );

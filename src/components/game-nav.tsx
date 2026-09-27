@@ -31,7 +31,7 @@ export async function GameSwitcher({ game }: { game: string }) {
   const t = TESTI[await getLocale()];
 
   return (
-    <div className="border-b border-rule bg-paper-2">
+    <div className="border-b border-rule bg-paper">
       <nav
         aria-label={t.gioco}
         className="mx-auto flex w-full max-w-shell flex-wrap items-center gap-1 px-6 py-2"
@@ -42,11 +42,13 @@ export async function GameSwitcher({ game }: { game: string }) {
               key={entry.slug}
               href={`/${entry.slug}`}
               aria-current={entry.slug === game ? "true" : undefined}
+              // il gioco scelto e' una lama rossa tagliata, gli altri si
+              // accendono di bianco al passaggio: lo stesso gesto della barra laterale
               className={cx(
-                "rounded-sm px-2.5 py-1 text-[13px] font-semibold transition-colors",
+                "p5-cut px-3.5 py-1 font-display text-[13px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82]",
                 entry.slug === game
-                  ? "bg-ink text-paper"
-                  : "text-ink-2 hover:bg-paper-3 hover:text-ink",
+                  ? "bg-brand text-white"
+                  : "text-ink-2 hover:bg-ink hover:text-paper",
               )}
             >
               {entry.shortName}

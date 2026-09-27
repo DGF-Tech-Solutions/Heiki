@@ -186,15 +186,16 @@ export function RosterBrowser({
 
   return (
     <>
-      <div className="mb-5 grid gap-3.5 rounded-card border border-rule bg-paper-2 p-4">
+      <div className="p5-corner mb-5 grid gap-3.5 border border-l-4 border-rule border-l-brand bg-paper-2 p-4">
         <div className="flex flex-wrap items-center gap-3">
+          {/* la ricerca e' un campo bianco tagliato: CONTROL lo darebbe nero, da qui gli `!` */}
           <Input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t.cercaSegnaposto}
             aria-label={t.cercaEtichetta}
-            className="h-9 max-w-[320px] flex-1 bg-paper text-sm"
+            className="p5-cut h-9 max-w-[320px] flex-1 border-ink! bg-ink! px-4 text-sm font-semibold text-paper! placeholder:text-paper/60 focus:shadow-[inset_0_-3px_0_var(--color-brand)]"
           />
 
           <div className="flex items-center gap-1.5">
@@ -298,7 +299,9 @@ export function RosterBrowser({
 
       <div className="mb-3.5 flex items-baseline justify-between gap-3">
         <p className="m-0 text-[13px] text-ink-2">
-          <strong className={cx(numeric, "font-semibold text-ink")}>{visible.length}</strong>{" "}
+          <strong className={cx(numeric, "p5-cut-sm inline-block bg-brand px-2 font-bold text-paper")}>
+            {visible.length}
+          </strong>{" "}
           {t.eroi(visible.length)}
           {filtered ? t.suTotale(heroes.length) : null}
         </p>
@@ -307,7 +310,7 @@ export function RosterBrowser({
           <button
             type="button"
             onClick={reset}
-            className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 underline-offset-2 hover:text-brand hover:underline"
+            className="cursor-pointer border-0 bg-transparent p-0 font-mono text-[12px] font-bold uppercase tracking-[0.08em] text-ink-2 underline-offset-2 hover:text-brand hover:underline"
           >
             {t.azzera}
           </button>
@@ -380,7 +383,7 @@ function HeroCard({
             height={128}
             loading="lazy"
             decoding="async"
-            className="block w-full rounded-[3px] bg-paper-2 transition-transform group-hover:-translate-y-0.5"
+            className="block w-full rounded-[3px] bg-paper-2 transition duration-150 group-hover:-translate-y-1 group-hover:shadow-[4px_4px_0_var(--color-brand)]"
           />
 
           <figcaption className="mt-1.5">
@@ -392,7 +395,7 @@ function HeroCard({
               {epithet}
             </p>
             <p
-              className="m-0 text-[12px] font-semibold leading-tight group-hover:text-brand"
+              className="m-0 font-display text-[13px] font-black uppercase leading-tight tracking-[0.01em] [font-variation-settings:'wdth'_75] group-hover:text-brand"
               title={name}
             >
               {name}

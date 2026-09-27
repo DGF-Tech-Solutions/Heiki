@@ -7,6 +7,10 @@ import { unreadCount } from "@/lib/social/actions";
 import { LanguageSwitch } from "./language-switch";
 import { buttonClass, cx, Tag } from "./ui";
 
+// Sul telefono i bottoni dell'intestazione si stringono: in maiuscolo e col
+// taglio obliquo «Iscriviti» finiva fuori dallo schermo, nella barra che scorre
+const PHONE = "max-sm:px-2 max-sm:text-[12px]";
+
 const TESTI = testi({
   it: {
     cerca: "Cerca",
@@ -47,13 +51,17 @@ export async function SiteHeader() {
   const t = TESTI[locale];
 
   return (
-    <header className="sticky top-0 z-20 border-b-2 border-ink bg-paper">
-      <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-3 px-6 sm:gap-6">
+    <header className="sticky top-0 z-20 border-b-[3px] border-brand bg-paper">
+      <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-2 px-4 sm:gap-6 sm:px-6">
+        {/* il marchio: GACHA in bianco, ZONE su una lama rossa tagliata */}
         <Link
           href="/"
-          className="shrink-0 whitespace-nowrap font-display text-xl font-extrabold uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_78]"
+          className="group flex shrink-0 items-center whitespace-nowrap font-display text-[17px] font-black sm:text-[22px] uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_70]"
         >
-          Gacha<span className="text-brand">Zone</span>
+          <span className="text-ink">Gacha</span>
+          <span className="p5-cut ml-1 bg-brand px-1.5 text-white sm:px-2 transition-colors group-hover:bg-ink group-hover:text-paper">
+            Zone
+          </span>
         </Link>
 
         <form action="/cerca" className="ml-auto hidden md:block">
@@ -61,7 +69,7 @@ export async function SiteHeader() {
             name="q"
             placeholder={t.cerca}
             aria-label={t.cerca}
-            className="h-8 w-44 rounded-card border border-rule bg-paper px-3 text-[13px] focus:border-brand focus:outline-none"
+            className="p5-cut h-8 w-48 bg-ink px-3.5 text-[13px] font-semibold text-paper placeholder:text-paper/55 focus:bg-white focus:outline-none"
           />
         </form>
 
@@ -74,14 +82,14 @@ export async function SiteHeader() {
           `min-w-0` e `overflow-x-auto` sono la rete: con un nome utente lungo, o
           i pulsanti in piu' di chi modera, a scorrere e' la barra e non la pagina.
         */}
-        <nav className="ml-auto flex min-w-0 items-center gap-3 overflow-x-auto py-1 text-sm font-medium whitespace-nowrap [scrollbar-width:none] sm:gap-5 md:ml-0">
+        <nav className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto py-1 text-sm font-medium whitespace-nowrap [scrollbar-width:none] sm:gap-5 md:ml-0">
           <Link href="/" className="hidden text-ink-2 hover:text-brand sm:inline">
             {t.giochi}
           </Link>
 
           <LanguageSwitch />
 
-          <span className="flex items-center gap-2.5 sm:border-l sm:border-rule sm:pl-5">
+          <span className="flex items-center gap-1 sm:gap-2.5 sm:border-l sm:border-rule sm:pl-5">
             {user ? (
               <>
                 {/* Le aree riservate compaiono solo a chi le puo' aprire: un
@@ -135,10 +143,10 @@ export async function SiteHeader() {
               </>
             ) : (
               <>
-                <Link href="/entra" className={buttonClass("ghost", "sm")}>
+                <Link href="/entra" className={buttonClass("ghost", "sm", PHONE)}>
                   {t.entra}
                 </Link>
-                <Link href="/registrati" className={buttonClass("primary", "sm")}>
+                <Link href="/registrati" className={buttonClass("primary", "sm", PHONE)}>
                   {t.iscriviti}
                 </Link>
               </>

@@ -28,26 +28,37 @@
  * esprimere. Tutto il resto vive nei componenti, in classi Tailwind.
  */
 
+/*
+ * 27/09 — direzione «Persona»: nero pieno, bianco carta, UN rosso. I grigi
+ * perdono la tinta blu da software gestionale e diventano neutri caldi, perche'
+ * accanto al rosso il blu-grigio sporca; il rosso e' quello pieno delle
+ * copertine, non un corallo (e abbastanza scuro da reggere il bianco sopra). La forma la danno i tagli obliqui (.p5-*, sotto):
+ * parallelogrammi, ombre piene sfalsate, trama a retino. I colori del GIOCO
+ * (attributi, tinte delle abilita') restano fuori da tutto questo.
+ */
 @theme {
-  --color-paper: #0f1117;
-  --color-paper-2: #171a22;
-  --color-paper-3: #232733;
+  --color-paper: #0b0a0a;
+  --color-paper-2: #151313;
+  --color-paper-3: #221f1f;
 
-  --color-ink: #f2f4f8;
-  --color-ink-2: #b4bbca;
-  --color-ink-3: #838b9c;
+  --color-ink: #f6f3ee;
+  /* i grigi del testo secondario schiariti: le descrizioni sono in ink-2 */
+  --color-ink-2: #d9d3cb;
+  --color-ink-3: #a59e95;
 
-  --color-rule: #2b3140;
-  --color-rule-2: #1e222c;
+  --color-rule: #332e2d;
+  --color-rule-2: #1f1b1b;
 
-  --color-brand: #8b5cff;
-  --color-brand-deep: #6425ff;
-  --color-brand-soft: #241a45;
+  /* #e61421 e non un rosso piu' acceso: il bianco sopra deve fare almeno 4.5:1
+     (4.7:1), e i bottoni e le voci attive sono bianco su rosso */
+  --color-brand: #e61421;
+  --color-brand-deep: #ff5560;
+  --color-brand-soft: #3d0a0e;
 
-  --color-hot: #ff5c8a;
-  --color-hot-soft: #3a1622;
-  --color-gold: #f0b429;
-  --color-gold-soft: #332608;
+  --color-hot: #ff4f9a;
+  --color-hot-soft: #3a1224;
+  --color-gold: #ffd21f;
+  --color-gold-soft: #332a06;
 
   /* quanto sale o scende un numero nel calcolatore della scheda eroe: il verde
      e' quello dei bonus del gioco ([00FF31]) spento per il fondo scuro */
@@ -55,10 +66,11 @@
   --color-down: #ff7a9c;
 
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-public), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-dm-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  --radius-card: 3px;
+  /* spigoli vivi: nel mondo scelto non ci sono angoli arrotondati */
+  --radius-card: 0px;
 
   /*
    * Larghezza del guscio: intestazione, barra dei giochi, banner, pie' di
@@ -81,13 +93,33 @@
     --accent: var(--color-brand);
   }
 
+  /*
+   * Il fondo non e' un nero piatto: un retino di punti rossi che sfuma dall'alto
+   * e una lama obliqua dietro l'intestazione, fissi mentre la pagina scorre.
+   * Tutto a bassa opacita': i testi lunghi della scheda eroe ci stanno sopra
+   * e devono restare leggibili (contrasto misurato sul nero pieno).
+   */
   body {
-    background: var(--color-paper);
+    background-color: var(--color-paper);
+    background-image:
+      linear-gradient(
+        160deg,
+        transparent 0 58%,
+        color-mix(in srgb, var(--color-brand) 9%, transparent) 58% 62%,
+        transparent 62%
+      ),
+      radial-gradient(color-mix(in srgb, var(--color-brand) 16%, transparent) 1px, transparent 1.6px);
+    background-size:
+      100% 100%,
+      9px 9px;
+    background-attachment: fixed;
     color: var(--color-ink);
+    caret-color: var(--color-brand);
     font-family: var(--font-body);
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    scrollbar-color: var(--color-brand) var(--color-paper-2);
   }
 
   ::selection {
@@ -96,8 +128,82 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-brand);
+    outline: 2px solid var(--color-ink);
     outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--color-brand);
+  }
+}
+
+/*
+ * Le forme «Persona». Classi e non utility perche' sono FORME composte (taglio
+ * obliquo + ombra piena sfalsata + stato), usate da ui.tsx e dal guscio: una
+ * forma cambiata qui cambia ogni bottone, etichetta e voce di menu del sito.
+ *
+ * L'ombra piena senza sfocatura qui e' voluta: e' il linguaggio del mondo
+ * scelto (i menu di Persona stampano sagome sfalsate), non una profondita'.
+ * Il taglio usa clip-path, che non occupa spazio: niente sforamenti sul
+ * telefono, a differenza di un transform: skew sul blocco.
+ */
+@layer components {
+  .p5-cut {
+    clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  }
+  .p5-cut-sm {
+    clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  }
+  .p5-corner {
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  }
+
+  /* titolo: bianco con la sagoma rossa sfalsata dietro. In em e non in px:
+     3px fissi impastavano le lettere dei titoli piccoli (18px) */
+  .p5-title {
+    text-shadow: 0.06em 0.06em 0 var(--color-brand);
+  }
+
+  /* voce di menu: al passaggio una lama bianca, attiva una lama rossa */
+  .p5-menu-item {
+    position: relative;
+    isolation: isolate;
+  }
+  .p5-menu-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--color-ink);
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .p5-menu-item:hover::before {
+    transform: scaleX(1);
+  }
+  .p5-menu-item:hover {
+    color: var(--color-paper);
+  }
+  .p5-menu-item[aria-current="page"] {
+    color: #fff;
+  }
+  .p5-menu-item[aria-current="page"]::before {
+    background: var(--color-brand);
+    transform: scaleX(1);
+    box-shadow: none;
+  }
+  .p5-menu-item[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset: 3px -4px -3px 4px;
+    z-index: -2;
+    background: var(--color-ink);
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .p5-menu-item::before {
+      transition: none;
+    }
   }
 }
 

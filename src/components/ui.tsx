@@ -19,7 +19,7 @@ export function cx(...parts: (string | false | null | undefined)[]): string {
 
 /** Titolo: pesante, stretto, maiuscolo. La voce della pagina. */
 export const display =
-  "font-display font-extrabold uppercase leading-[1.02] tracking-[-0.03em] [font-variation-settings:'wdth'_88]";
+  "p5-title font-display font-black uppercase leading-[1.02] tracking-[-0.02em] [font-variation-settings:'wdth'_80]";
 
 /** Etichetta strutturale: sempre monospaziata, mai decorativa. */
 export const eyebrow =
@@ -37,24 +37,27 @@ export function Eyebrow({ children, className }: { children: ReactNode; classNam
 type ButtonVariant = "primary" | "outline" | "ghost";
 type ButtonSize = "md" | "sm";
 
+// Tagliati in obliquo come i comandi dei menu di Persona: il taglio e' clip-path
+// (p5-cut, in globals.css), quindi la misura del bottone non cambia.
 const BUTTON_BASE =
-  "inline-flex items-center justify-center gap-2 rounded-card font-body font-semibold " +
+  "p5-cut inline-flex items-center justify-center gap-2 font-display font-extrabold uppercase " +
+  "tracking-[0.03em] [font-variation-settings:'wdth'_85] " +
   "transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand text-white border-[1.5px] border-brand hover:bg-brand-deep hover:border-brand-deep " +
-    "disabled:hover:bg-brand disabled:hover:border-brand",
+    "bg-brand text-white hover:bg-ink hover:text-paper " +
+    "disabled:hover:bg-brand disabled:hover:text-white",
   outline:
-    "bg-paper text-ink border-[1.5px] border-ink hover:bg-ink hover:text-paper " +
-    "disabled:hover:bg-paper disabled:hover:text-ink",
+    "bg-ink text-paper hover:bg-brand hover:text-white " +
+    "disabled:hover:bg-ink disabled:hover:text-paper",
   ghost:
-    "bg-transparent text-ink-2 border-[1.5px] border-transparent font-medium hover:bg-paper-2 hover:text-ink",
+    "bg-transparent text-ink-2 hover:bg-ink hover:text-paper",
 };
 
 const BUTTON_SIZE: Record<ButtonSize, string> = {
-  md: "h-[38px] px-[18px] text-sm",
-  sm: "h-8 px-3 text-[13px]",
+  md: "h-[38px] px-[22px] text-sm",
+  sm: "h-8 px-3.5 text-[13px]",
 };
 
 export function buttonClass(
@@ -79,9 +82,9 @@ export function Button({
 type TagTone = "neutral" | "brand" | "gold" | "accent";
 
 const TAG_TONE: Record<TagTone, string> = {
-  neutral: "bg-paper-3 text-ink-2",
+  neutral: "bg-ink text-paper",
   brand: "bg-brand text-white",
-  gold: "bg-gold text-white",
+  gold: "bg-gold text-paper",
   accent: "bg-[var(--accent)] text-white",
 };
 
@@ -101,7 +104,7 @@ export function Tag({
   return (
     <span
       className={cx(
-        "inline-flex h-5 items-center gap-1 whitespace-nowrap rounded-[2px] px-[7px]",
+        "p5-cut-sm inline-flex h-5 items-center gap-1 whitespace-nowrap px-[9px]",
         "font-mono text-[10px] font-medium uppercase tracking-[0.06em]",
         TAG_TONE[tone],
         className,
@@ -127,7 +130,7 @@ export function Card({
   return (
     <div
       className={cx(
-        "rounded-card border border-rule bg-paper p-5",
+        "p5-corner border border-rule bg-paper-2 p-5",
         accent && "border-t-[3px] border-t-brand",
         className,
       )}
@@ -148,7 +151,7 @@ export function SectionHead({
 }) {
   return (
     <div className={cx("mb-6 flex items-baseline justify-between gap-5", className)}>
-      <h2 className={cx(display, "text-2xl [font-variation-settings:'wdth'_90]")}>{title}</h2>
+      <h2 className={cx(display, "text-2xl")}>{title}</h2>
       {aside}
     </div>
   );
@@ -277,12 +280,14 @@ export function Notice({
   return (
     <div
       className={cx(
-        "flex gap-3 rounded-card border border-rule border-l-4 px-4 py-3 text-[13px]",
+        // Il filo colorato a sinistra e' diventato l'angolo tagliato del riquadro;
+        // i testi erano scuri su fondo scuro (resti del tema chiaro): ora chiari
+        "p5-corner flex gap-3 border px-4 py-3 text-[13px]",
         tone === "error"
-          ? "border-l-hot bg-hot-soft text-[#9c0f3c]"
+          ? "border-hot bg-hot-soft text-[#ffc2dc]"
           : tone === "warn"
-            ? "border-l-gold bg-gold-soft text-[#7a5100]"
-            : "border-l-brand bg-brand-soft text-ink-2",
+            ? "border-gold bg-gold-soft text-[#ffe890]"
+            : "border-brand bg-brand-soft text-ink",
         className,
       )}
       role={tone === "error" ? "alert" : undefined}
