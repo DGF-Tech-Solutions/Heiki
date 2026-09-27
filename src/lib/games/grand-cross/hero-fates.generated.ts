@@ -4,29 +4,31 @@
  *
  * FONTE: il client, via python script/scheda_client.py (eroi/client/abilita.json
  * e abilita_it.json, campo `fates`), che li legge da DB_fate: `main_hero_id`,
- * `fate_hero_id`, la passiva del grado UR e le carte combinate.
+ * `fate_hero_id`, la passiva del grado UR e le carte combinate; i valori a ogni
+ * grado dell'associato e l'effetto comune da python script/associazioni.py.
  *
  * GENERATO DA scripts/import-hero-fates.mts - NON MODIFICARE A MANO.
  *
- * Un legame e' [eroe associato, effetto, attacco combinato]: l'effetto e' la
- * posizione in EFFECTS, perche' in tutto il gioco gli effetti sono 12.
+ * Un legame e' [eroe associato, effetto, attacco combinato, effetto LR se e'
+ * diverso]: l'effetto e' la posizione in EFFECTS, perche' in tutto il gioco gli
+ * effetti sono 12.
  */
 
 import type { HeroFatesIndex } from "../hero-fates-types";
 
 const EFFECTS: HeroFatesIndex["effects"] = [
-  {"name":{"it":"Attacco superiore","en":"Superior Attack"},"text":{"it":"Attacco [00FF31]+280[-]","en":"Attack [00FF31]+280[-]"}},
-  {"name":{"it":"Resistenza superiore","en":"Superior Resistance"},"text":{"it":"Resistenza [00FF31]+24.6%[-]","en":"Resistance [00FF31]+24.6%[-]"}},
-  {"name":{"it":"Furto di vita superiore","en":"Superior Lifesteal"},"text":{"it":"Furto di vita [00FF31]+12%[-]","en":"Lifesteal [00FF31]+12%[-]"}},
-  {"name":{"it":"Velocità di rigenerazione superiore","en":"Superior Regeneration Rate"},"text":{"it":"Velocità di rigenerazione [00FF31]+12%[-]","en":"Regeneration Rate [00FF31]+12%[-]"}},
-  {"name":{"it":"Possibilità critico superiore","en":"Superior Crit Chance"},"text":{"it":"Possibilità critico [00FF31]+19.2%[-]","en":"Crit Chance [00FF31]+19.2%[-]"}},
-  {"name":{"it":"Perforazione superiore","en":"Superior Pierce Rate"},"text":{"it":"Perforazione [00FF31]+19.2%[-]","en":"Pierce Rate [00FF31]+19.2%[-]"}},
-  {"name":{"it":"Difesa superiore","en":"Superior Defense"},"text":{"it":"Difesa [00FF31]+340[-]","en":"Defense [00FF31]+340[-]"}},
-  {"name":{"it":"Danno critico superiore","en":"Superior Crit Damage"},"text":{"it":"Danno critico [00FF31]+23.4%[-]","en":"Crit Damage [00FF31]+23.4%[-]"}},
-  {"name":{"it":"PS superiore","en":"Superior HP"},"text":{"it":"PS [00FF31]+1440[-]","en":"HP [00FF31]+1440[-]"}},
-  {"name":{"it":"Velocità di recupero superiore","en":"Superior Recovery Rate"},"text":{"it":"Velocità di recupero [00FF31]+19.8%[-]","en":"Recovery Rate [00FF31]+19.8%[-]"}},
-  {"name":{"it":"Resistenza critico superiore","en":"Superior Crit Resistance"},"text":{"it":"Resistenza critico [00FF31]+24.6%[-]","en":"Crit Resistance [00FF31]+24.6%[-]"}},
-  {"name":{"it":"Difesa critico superiore","en":"Superior Crit Defense"},"text":{"it":"Difesa critico [00FF31]+27%[-]","en":"Crit Defense [00FF31]+27%[-]"}},
+  {"name":{"it":"Attacco superiore","en":"Superior Attack"},"text":{"it":"Attacco [00FF31]+280[-]","en":"Attack [00FF31]+280[-]"},"stat":"atk","mode":"flat","grades":[160,200,240,280]},
+  {"name":{"it":"Resistenza superiore","en":"Superior Resistance"},"text":{"it":"Resistenza [00FF31]+24.6%[-]","en":"Resistance [00FF31]+24.6%[-]"},"stat":"fixedDefPer","mode":"points","grades":[16.4,19.7,23,24.6]},
+  {"name":{"it":"Furto di vita superiore","en":"Superior Lifesteal"},"text":{"it":"Furto di vita [00FF31]+12%[-]","en":"Lifesteal [00FF31]+12%[-]"},"stat":"hpStealPer","mode":"points","grades":[7.8,9.2,10.6,12]},
+  {"name":{"it":"Velocità di rigenerazione superiore","en":"Superior Regeneration Rate"},"text":{"it":"Velocità di rigenerazione [00FF31]+12%[-]","en":"Regeneration Rate [00FF31]+12%[-]"},"stat":"hpRegenPer","mode":"points","grades":[7.8,9.2,10.6,12]},
+  {"name":{"it":"Possibilità critico superiore","en":"Superior Crit Chance"},"text":{"it":"Possibilità critico [00FF31]+19.2%[-]","en":"Crit Chance [00FF31]+19.2%[-]"},"stat":"critPer","mode":"points","grades":[12.8,15.4,17.9,19.2]},
+  {"name":{"it":"Perforazione superiore","en":"Superior Pierce Rate"},"text":{"it":"Perforazione [00FF31]+19.2%[-]","en":"Pierce Rate [00FF31]+19.2%[-]"},"stat":"fixedAtkPer","mode":"points","grades":[12.8,15.4,17.9,19.2]},
+  {"name":{"it":"Difesa superiore","en":"Superior Defense"},"text":{"it":"Difesa [00FF31]+340[-]","en":"Defense [00FF31]+340[-]"},"stat":"def","mode":"flat","grades":[190,240,290,340]},
+  {"name":{"it":"Danno critico superiore","en":"Superior Crit Damage"},"text":{"it":"Danno critico [00FF31]+23.4%[-]","en":"Crit Damage [00FF31]+23.4%[-]"},"stat":"critAtkPer","mode":"points","grades":[15.6,18.7,21.8,23.4]},
+  {"name":{"it":"PS superiore","en":"Superior HP"},"text":{"it":"PS [00FF31]+1440[-]","en":"HP [00FF31]+1440[-]"},"stat":"hp","mode":"flat","grades":[780,1000,1220,1440]},
+  {"name":{"it":"Velocità di recupero superiore","en":"Superior Recovery Rate"},"text":{"it":"Velocità di recupero [00FF31]+19.8%[-]","en":"Recovery Rate [00FF31]+19.8%[-]"},"stat":"hpRecoveryPer","mode":"points","grades":[13.2,15.8,18.5,19.8]},
+  {"name":{"it":"Resistenza critico superiore","en":"Superior Crit Resistance"},"text":{"it":"Resistenza critico [00FF31]+24.6%[-]","en":"Crit Resistance [00FF31]+24.6%[-]"},"stat":"critResPer","mode":"points","grades":[16.4,19.7,23,24.6]},
+  {"name":{"it":"Difesa critico superiore","en":"Superior Crit Defense"},"text":{"it":"Difesa critico [00FF31]+27%[-]","en":"Crit Defense [00FF31]+27%[-]"},"stat":"critDefPer","mode":"points","grades":[18,21.6,25.2,27]},
 ];
 
 const HEROES: HeroFatesIndex["heroes"] = {
@@ -53,7 +55,7 @@ const HEROES: HeroFatesIndex["heroes"] = {
   "1055001": [["1024002",9,0],["1024001",9,0],["1425002",9,0],["1425001",9,0],["1095003",5,0],["1095002",5,0],["1095001",5,0],["1165001",8,1],["1164001",8,1],["1164002",8,1],["1165002",8,1]],
   "1055002": [["1024002",9,0],["1024001",9,0],["1425002",9,0],["1425001",9,0],["1095003",5,0],["1095002",5,0],["1095001",5,0],["1165001",8,1],["1164001",8,1],["1164002",8,1],["1165002",8,1]],
   "1055003": [["1024002",9,0],["1024001",9,0],["1425002",9,0],["1425001",9,0],["1095003",5,0],["1095002",5,0],["1095001",5,0],["1165001",8,1],["1164001",8,1],["1164002",8,1],["1165002",8,1]],
-  "1055004": [["1024002",9,0],["1024001",9,0],["1425002",9,0],["1425001",9,0],["1095003",5,0],["1095002",5,0],["1095001",5,0],["1165001",6,1],["1164001",8,1],["1164002",8,1],["1165002",8,1]],
+  "1055004": [["1024002",9,0],["1024001",9,0],["1425002",9,0],["1425001",9,0],["1095003",5,0],["1095002",5,0],["1095001",5,0],["1165001",6,1,8],["1164001",8,1],["1164002",8,1],["1165002",8,1]],
   "1056501": [["1105002",8,0],["1105003",8,0],["1105001",8,0],["1165001",8,0],["1164001",8,0],["1164002",8,0],["1165002",8,0]],
   "1056502": [["1105002",8,0],["1105003",8,0],["1105001",8,0],["1165001",8,0],["1164001",8,0],["1164002",8,0],["1165002",8,0]],
   "1056503": [["1105002",8,0],["1105003",8,0],["1105001",8,0],["1165001",8,0],["1164001",8,0],["1164002",8,0],["1165002",8,0]],
@@ -406,4 +408,8 @@ const HEROES: HeroFatesIndex["heroes"] = {
   "2016501": [["1015001",0,0],["1015003",0,0],["1015002",0,0],["1475001",1,0],["1475002",1,0]],
 };
 
-export const HERO_FATES: HeroFatesIndex = { effects: EFFECTS, heroes: HEROES };
+export const HERO_FATES: HeroFatesIndex = {
+  effects: EFFECTS,
+  heroes: HEROES,
+  common: {"base":5,"perLevel":1,"name":{"it":"Effetto associazione (comune)","en":"(Common) Association Effect"},"description":{"it":"Statistiche aumentate grazie agli effetti dell'Associazione degli Eroi.","en":"Stats increased due to the heroes' Association effects."},"basicStats":{"it":"Le statistiche di base sono la somma di [FF5D38]Attacco[-], [FF5D38]Difesa[-] e [FF5D38]PS[-].","en":"Basic stats are a total sum of [FF5D38]Attack[-], [FF5D38]Defense[-], and [FF5D38]HP[-]."}},
+};

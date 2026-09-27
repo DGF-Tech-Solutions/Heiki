@@ -21,5 +21,6 @@ export const GAME_ICONS: Readonly<Record<string, readonly string[]>> = {
   "attributo": ["1","2","3","4","5"],
   "rarita": ["R","SR","SSR","UR","LR"],
   "carta": ["stella","pietra_1","pietra_2","pietra_3","pietra_4","pietra_5","pietra_6"],
+  "risveglio": ["super_stella","vero_1","vero_2"],
   "condizione": ["start_combat","sub","pvp_only","pvp_except","destroy_only","destroy_except","all_contents","creaturenest","creaturenest_except"],
 };

@@ -9,12 +9,16 @@ import { GameIcon, hasIcon, localized } from "@/components/heroes/hero-parts";
 import { Relics } from "@/components/heroes/hero-relics";
 import { HeroTermPopovers, termResolver } from "@/components/heroes/hero-terms";
 import { HeroTabs, type HeroTab } from "@/components/heroes/hero-tabs";
-import { StatSlider } from "@/components/heroes/stat-slider";
+import { StatCalculator } from "@/components/heroes/calculator/stat-calculator";
+import { STAT_ROWS, formatStat } from "@/components/heroes/calculator/stat-rows";
+import { HeroAssociations } from "@/components/heroes/hero-associations";
+import { HeroCostumes } from "@/components/heroes/hero-costumes";
 import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { sliderData } from "@/lib/games/account-buff";
 import type { AccountBuffIndex } from "@/lib/games/account-buff-types";
 import { findGame } from "@/lib/games/catalog";
 import type { EndgameHeroLink } from "@/lib/games/endgame-types";
+import { calculatorDataFor, type CalculatorData } from "@/lib/games/hero-build";
 import { plainHeroText } from "@/lib/games/hero-markup";
 import { gameIconSrc, heroCardSrc, heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
 import { requireGameModule } from "@/lib/games/registry";
@@ -63,15 +67,17 @@ const TESTI = testi({
     rarita: (rarita: string) => `rarità ${rarita}`,
     percorsoRarita: (da: string, a: string, puoArrivare: boolean) =>
       `esce come ${da}, ${puoArrivare ? "può arrivare a" : "arriva a"} ${a}`,
-    statisticheTitolo: "Statistiche, senza equipaggiamento",
+    statisticheTitolo: "Calcolatore delle statistiche",
     statisticheFonte:
-      "Calcolate dalle tabelle del client, come le somma il gioco: base e crescita per livello, i Risvegli, i Super risvegli, la Reliquia sacra e i cinque costumi migliori per tipo. Si parte da tutto al massimo. Restano fuori l’equipaggiamento, uguale per tutti gli eroi, e il Vero risveglio, che aggiunge resistenza ai danni e non tocca queste righe.",
+      "Calcolate dalle tabelle del client, come le somma il gioco (SkinData.GetTotalStatWithoutPassive e GetApplyPassiveStat): base e crescita per livello, Risvegli, Super risvegli, Reliquia sacra, costumi registrati, e l’equipaggiamento pezzo per pezzo. Si parte da tutto al massimo, coi cinque costumi migliori per tipo e l’equipaggiamento PS/Difesa. Il Vero risveglio aggiunge resistenza ai danni e non tocca queste righe.",
     statisticheFonteMassimo:
       "Calcolate dalle tabelle del client: livello massimo, Risvegli, Super risvegli, Reliquia sacra e i cinque costumi migliori per tipo.",
     schede: "Parti della scheda",
     schedaAbilita: "Abilità",
     schedaStatistiche: "Statistiche",
     schedaReliquia: (quante: number): string => (quante > 1 ? "Reliquie" : "Reliquia"),
+    schedaCostumi: "Costumi",
+    schedaAssociazioni: "Associazioni",
     schedaInfo: "Info",
   },
   en: {
@@ -101,15 +107,17 @@ const TESTI = testi({
     rarita: (rarita: string) => `rarity ${rarita}`,
     percorsoRarita: (da: string, a: string, puoArrivare: boolean) =>
       `starts as ${da}, ${puoArrivare ? "can reach" : "reaches"} ${a}`,
-    statisticheTitolo: "Stats, without gear",
+    statisticheTitolo: "Stats calculator",
     statisticheFonte:
-      "Computed from the client's tables the way the game adds them up: base and growth per level, Awakenings, Super Awakenings, the Holy Relic and the five best costumes of each type. It starts with everything maxed. Left out are gear, the same for every hero, and True Awakening, which adds damage resistance and doesn't touch these rows.",
+      "Computed from the client's tables the way the game adds them up (SkinData.GetTotalStatWithoutPassive and GetApplyPassiveStat): base and growth per level, Awakenings, Super Awakenings, Holy Relic, registered costumes, and gear piece by piece. It starts with everything maxed, the five best costumes of each type and HP/Defense gear. True Awakening adds damage resistance and doesn't touch these rows.",
     statisticheFonteMassimo:
       "Computed from the client's tables: max level, Awakenings, Super Awakenings, Holy Relic and the five best costumes of each type.",
     schede: "Hero page sections",
     schedaAbilita: "Skills",
     schedaStatistiche: "Stats",
     schedaReliquia: (quante: number) => (quante > 1 ? "Holy Relics" : "Holy Relic"),
+    schedaCostumi: "Costumes",
+    schedaAssociazioni: "Associations",
     schedaInfo: "Info",
   },
 });
@@ -233,6 +241,12 @@ function lookup(game: string, heroId: string) {
     beastPages: Object.fromEntries((gameModule.creatureNest?.beasts ?? []).map((beast) => [beast.group, beast.key])),
     icons: gameModule.icons,
     accountBuff: gameModule.accountBuff,
+    // il calcolatore: l'equipaggiamento, i costumi, i legami, e le statistiche di
+    // tutti gli eroi per scegliere l'associato
+    gear: gameModule.gear,
+    costumes: gameModule.costumes,
+    fates: gameModule.heroFates,
+    allStats: gameModule.heroStats,
     // pesca delle carte A e B, effetto di squadra Luce/Oscurita', cumulo per le tendine
     mechanics: gameModule.mechanics,
     // le parole blu, e gli indici interi che servono alle loro tendine: gli
@@ -298,6 +312,10 @@ export default async function HeroPage({ params, searchParams }: Props) {
     context,
     icons,
     accountBuff,
+    gear,
+    costumes,
+    fates,
+    allStats,
     mechanics,
     heroTerms,
     abilityIndex,
@@ -354,6 +372,25 @@ export default async function HeroPage({ params, searchParams }: Props) {
       : [],
   );
 
+  // Il calcolatore: i dati di questo eroe soltanto, e di ogni altro eroe quanto
+  // basta a sceglierlo come associato
+  const calculator = calculatorDataFor({
+    heroId: hero.id,
+    steps: stats?.steps,
+    gear,
+    costumes,
+    relics,
+    fates,
+    roster: roster.heroes.map((entry) => ({
+      id: entry.id,
+      rarity: entry.rarity,
+      obtainedAs: entry.obtainedAs,
+      // l'epiteto distingue le versioni: «Demone Meliodas» sono tre eroi diversi
+      name: [heroName(entry, locale), heroEpithet(entry, locale)].filter(Boolean).join(" · "),
+    })),
+    heroStats: allStats,
+  });
+
   // Le schede, nell'ordine in cui compaiono. Una scheda senza niente da dire
   // non c'e': 80 eroi non hanno una reliquia, e una scheda vuota da aprire per
   // scoprirlo farebbe perdere tempo. Info c'e' sempre: nome, id e altre
@@ -394,7 +431,9 @@ export default async function HeroPage({ params, searchParams }: Props) {
     tabs.push({
       key: "statistiche",
       label: t.schedaStatistiche,
-      content: <Stats game={game} stats={stats} locale={locale} icons={icons} accountBuff={accountBuff} />,
+      content: (
+        <Stats game={game} stats={stats} locale={locale} icons={icons} accountBuff={accountBuff} calculator={calculator} />
+      ),
     });
   }
   if (relics.length > 0) {
@@ -413,6 +452,20 @@ export default async function HeroPage({ params, searchParams }: Props) {
           termIds={terms?.ids}
         />
       ),
+    });
+  }
+  if (gear && costumes?.heroes[hero.id]) {
+    tabs.push({
+      key: "costumi",
+      label: t.schedaCostumi,
+      content: <HeroCostumes game={game} locale={locale} heroId={hero.id} costumes={costumes} icons={gear.icons} />,
+    });
+  }
+  if (fates) {
+    tabs.push({
+      key: "associazioni",
+      label: t.schedaAssociazioni,
+      content: <HeroAssociations game={game} locale={locale} hero={hero} name={name} fates={fates} roster={roster.heroes} />,
     });
   }
   tabs.push({
@@ -858,17 +911,16 @@ function AffinityTag({
 }
 
 /**
- * Le statistiche dell'eroe, senza equipaggiamento, con lo slider del livello.
+ * Le statistiche dell'eroe: dal 27/09 il calcolatore (scelta dell'utente), con
+ * livello e risvegli come lo slider di prima, l'equipaggiamento pezzo per pezzo
+ * coi set pronti, i costumi registrati, l'associato e l'account; la tabella dice
+ * senza, con e differenza. Lo disegna StatCalculator nel browser coi dati di
+ * questo eroe (calculatorDataFor). Se il dataset non ha i pezzi resta la tabella
+ * del massimo.
  *
- * Fino al 25/09 era una tabella del solo massimo. Ora si sceglie il livello, i
- * Risvegli e i Super risvegli fatti, e se contare reliquia e costumi: i numeri
- * li somma `StatSlider` nel browser coi pezzi di questo eroe, e si parte da
- * tutto al massimo, cioe' dalla tabella di prima. Se il dataset non ha i pezzi
- * resta quella tabella.
- *
- * La colonna con l'equipaggiamento e' stata tolta il 15/09, su richiesta
- * dell'utente: la differenza e' lo stesso pacchetto per tutti gli eroi, quindi
- * non diceva niente dell'eroe. Il dato resta in `maxGeared`.
+ * La colonna con l'equipaggiamento era stata tolta il 15/09: allora era lo stesso
+ * pacchetto per tutti gli eroi (quello di 7dshub), e non diceva niente dell'eroe.
+ * Ora l'equipaggiamento si sceglie, e PS/Difesa al massimo ridà quel numero.
  *
  * Stava in fondo alla pagina, dopo reliquia e altre versioni: sul telefono a
  * 5.000px dall'alto. Dal 26/09 e' la seconda scheda, subito dopo le abilita',
@@ -880,12 +932,14 @@ function Stats({
   locale,
   icons,
   accountBuff,
+  calculator,
 }: {
   game: string;
   stats: HeroStats | undefined;
   locale: Locale;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   accountBuff: AccountBuffIndex | undefined;
+  calculator: CalculatorData | null;
 }) {
   if (!stats) return null;
   const t = TESTI[locale];
@@ -897,24 +951,54 @@ function Stats({
   const gems = [1, 2, 3, 4, 5, 6].every((rank) => hasIcon(icons, "carta", `pietra_${rank}`))
     ? [1, 2, 3, 4, 5, 6].map((rank) => gameIconSrc(game, "carta", `pietra_${rank}`))
     : undefined;
+  // i risvegli con le insegne del gioco: la stella rossa del Super risveglio, le due
+  // sfere del Vero risveglio (Re Demone, Divinita' Suprema)
+  const superStar = hasIcon(icons, "risveglio", "super_stella") ? gameIconSrc(game, "risveglio", "super_stella") : undefined;
+  const exceed = [1, 2].every((n) => hasIcon(icons, "risveglio", `vero_${n}`))
+    ? ([gameIconSrc(game, "risveglio", "vero_1"), gameIconSrc(game, "risveglio", "vero_2")] as const)
+    : undefined;
 
   return (
     <section>
       <h2 className={cx(eyebrow, "mb-2.5")}>{t.statisticheTitolo}</h2>
-      <StatSlider
-        steps={stats.steps}
-        max={stats.max}
-        starSrc={star}
-        // i buff dell'account ridotti ai totali: poche centinaia di numeri invece delle 1.463 pietre
-        account={accountBuff ? sliderData(accountBuff, game, locale) : undefined}
-        gameSlug={game}
-        accountHref={`/${game}/buff-account`}
-        gemSrcs={gems}
-      />
+      {calculator ? (
+        <StatCalculator
+          game={game}
+          data={calculator}
+          starSrc={star}
+          superStarSrc={superStar}
+          trueAwakeningSrcs={exceed}
+          // i buff dell'account ridotti ai totali: poche centinaia di numeri invece delle 1.463 pietre
+          account={accountBuff ? sliderData(accountBuff, game, locale) : undefined}
+          accountHref={`/${game}/buff-account`}
+          gemSrcs={gems}
+        />
+      ) : (
+        <MaxTable max={stats.max} locale={locale} />
+      )}
       <p className="mt-3 max-w-[70ch] text-[13px] text-ink-3">
-        {stats.steps ? t.statisticheFonte : t.statisticheFonteMassimo}
+        {calculator ? t.statisticheFonte : t.statisticheFonteMassimo}
       </p>
     </section>
+  );
+}
+
+/** Il massimo senza equipaggiamento, quando il dataset non ha i pezzi del calcolatore. */
+function MaxTable({ max, locale }: { max: Readonly<Record<string, number>>; locale: Locale }) {
+  return (
+    <table className="w-full max-w-[460px] border-collapse text-[13px]">
+      <tbody>
+        {STAT_ROWS.filter((row) => !row.extra && max[row.key] !== undefined).map((row) => (
+          <tr key={row.key} className="border-b border-rule/60">
+            <td className="py-1.5 pr-3 text-ink-2">{row.label[locale]}</td>
+            <td className={cx(numeric, "py-1.5 text-right font-medium")}>
+              {formatStat(max[row.key]!, locale)}
+              {row.percent ? "%" : ""}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 

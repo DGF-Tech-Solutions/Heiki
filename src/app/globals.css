@@ -49,6 +49,11 @@
   --color-gold: #f0b429;
   --color-gold-soft: #332608;
 
+  /* quanto sale o scende un numero nel calcolatore della scheda eroe: il verde
+     e' quello dei bonus del gioco ([00FF31]) spento per il fondo scuro */
+  --color-up: #5fd38a;
+  --color-down: #ff7a9c;
+
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-public), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-dm-mono), ui-monospace, "SFMono-Regular", monospace;

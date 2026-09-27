@@ -228,7 +228,7 @@ export function gameItemSrc(gameSlug: string, itemId: string): string {
 }
 
 /** Le famiglie di icone che il gioco usa per etichettare un eroe. */
-export type IconFamily = "razza" | "attributo" | "rarita" | "carta" | "condizione";
+export type IconFamily = "razza" | "attributo" | "rarita" | "carta" | "condizione" | "risveglio";
 
 /**
  * Icona del gioco per un valore: `public/eroi/<gioco>/icone/<famiglia>/<chiave>.png`.

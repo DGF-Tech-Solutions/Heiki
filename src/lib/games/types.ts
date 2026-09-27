@@ -34,6 +34,7 @@ import type {
 } from "./endgame-types";
 import type { AccountBuffIndex } from "./account-buff-types";
 import type { ArtifactIndex } from "./artifact-types";
+import type { CostumeIndex, GearIndex } from "./gear-types";
 import type { HeroFatesIndex } from "./hero-fates-types";
 import type { HeroTermsIndex } from "./hero-terms-types";
 import type { MechanicsIndex } from "./mechanics-types";
@@ -825,6 +826,15 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * contratto sta in hero-fates-types.ts.
    */
   readonly heroFates?: HeroFatesIndex;
+
+  /**
+   * L'equipaggiamento (set, parti, valori, effetti bonus, gli strati delle icone)
+   * e i costumi di ogni eroe: il calcolatore della scheda eroe e la scheda
+   * Costumi. Li legge il server; al calcolatore arrivano solo quelli dell'eroe. Il
+   * contratto sta in gear-types.ts, i conti in gear.ts.
+   */
+  readonly gear?: GearIndex;
+  readonly costumes?: CostumeIndex;
 
   /**
    * Le meccaniche di combattimento: le costanti del danno, il triangolo degli

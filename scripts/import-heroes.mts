@@ -1991,6 +1991,12 @@ const ICONS: readonly { family: string; key: string; file: string; dir?: string 
     file: `pietra_${n}.png`,
     dir: STAR_SOURCE,
   })),
+  // I risvegli dell'eroe (dal 27/09): la stella rossa del Super risveglio e le due
+  // sfere del Vero risveglio, 1 coi materiali del Re Demone e 2 della Divinita'
+  // (exceed_type di DB_skin_exceed). Le ritaglia stella_carte.py da atlas_common e
+  // atlas_awaken_vfx.
+  { family: "risveglio", key: "super_stella", file: "super_stella.png", dir: STAR_SOURCE },
+  ...[1, 2].map((n) => ({ family: "risveglio", key: `vero_${n}`, file: `vero_risveglio_${n}.png`, dir: STAR_SOURCE })),
   // Dove si attiva una passiva: le icone del riquadro dell'abilita' unica.
   ...passiveConditionIcons().map((icon) => ({
     family: "condizione",

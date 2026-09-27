@@ -52,8 +52,9 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi i legami, le parole blu, le meccaniche, l'Endgame, gli artefatti e i buff dell'account |
-| `npm run legami:import` | Rigenera solo i legami degli eroi associati, per il Randomizer (dopo gli eroi) |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi i legami, l'equipaggiamento e i costumi, le parole blu, le meccaniche, l'Endgame, gli artefatti e i buff dell'account |
+| `npm run legami:import` | Rigenera solo i legami degli eroi associati, per il Randomizer e la scheda eroe (dopo gli eroi) |
+| `npm run equipaggiamento:import` | Rigenera solo l'equipaggiamento e i costumi del calcolatore della scheda eroe, con le loro immagini (dopo gli eroi) |
 | `npm run parole:import` | Rigenera solo le parole blu della scheda eroe (dopo gli eroi) |
 | `npm run meccaniche:import` | Rigenera solo le meccaniche di combattimento: costanti, pesca, effetti Luce/Oscurità, cumulo (dopo le parole blu) |
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
@@ -133,7 +134,8 @@ src/lib/db/                   schema Drizzle e client
 src/components/ui.tsx         primitive dell'interfaccia
 src/components/heroes/        sfoglia il roster: filtri e griglia; le schede della pagina
                               dell'eroe (hero-tabs, e un file per scheda: hero-abilities,
-                              hero-relics, stat-slider). Una funzione nuova = una scheda.
+                              hero-relics, hero-costumes, hero-associations; calculator/ e'
+                              il calcolatore delle statistiche). Una funzione nuova = una scheda.
                               hero-terms: le tendine delle parole blu
 scripts/                      setup, migrazioni, seed, verifica di fumo,
                               ruoli, importazione roster
@@ -322,12 +324,38 @@ Il confine passa qui, e non è formale:
   fissi; né gli uni né le altre entrano nella classe di combattimento né nella
   schermata delle statistiche del gioco, contano in battaglia. Le posizioni delle
   pietre vengono dai prefab delle mappe del gioco. Il tuo account (classe e
-  costellazioni) si sceglie nella pagina `/buff-account` o nello slider della scheda
-  eroe e si salva nel browser (`localStorage`, `account-setup.ts`): la scheda legge
-  i totali già sommati, con l'impronta dei dati (`version`) per accorgersi di una
-  patch. La classe di combattimento dell'eroe nella scheda è calcolata con la
-  formula del client, senza equipaggiamento. Le immagini (simboli, pietre) vanno in
-  `public/eroi/<gioco>/buff-account/`
+  costellazioni) si sceglie nella pagina `/buff-account` o nel calcolatore della
+  scheda eroe e si salva nel browser (`localStorage`, `account-setup.ts`): la scheda
+  legge i totali già sommati, con l'impronta dei dati (`version`) per accorgersi di
+  una patch. La classe di combattimento dell'eroe nella scheda è calcolata con la
+  formula del client, con l'equipaggiamento scelto nel calcolatore. Le immagini
+  (simboli, pietre) vanno in `public/eroi/<gioco>/buff-account/`
+- **l'equipaggiamento e i costumi** stanno in `gear.generated.ts` e
+  `costumes.generated.ts`, scritti da `scripts/import-gear.mts` dai JSON di
+  `_7dsgc/script/equipaggiamento.py` e `costumi.py`; il contratto è in
+  `src/lib/games/gear-types.ts`, i conti in `gear.ts` (pezzi, set, effetti bonus,
+  costumi, associazione) e `hero-build.ts` (la configurazione del calcolatore e il
+  conto completo). Le regole le ha lette la pipeline nel **codice** del client, e gli
+  studi sono `_7dsgc/EQUIPAGGIAMENTO.md` e `_7dsgc/COSTUMI_ASSOCIAZIONI.md`: la
+  statistica di un pezzo è tiro + miglioramenti (30, cioè cinque risvegli con «+5»)
+  per il passo della sua rarità; l'«UR» è un SSR inciso per un eroe; set ed effetti
+  bonus sono passive che si sommano per statistica e moltiplicano Attacco, Difesa e
+  PS; un set vale ogni `pezzi / pezzi del set` volte. Dei costumi contano solo i
+  registrati (cinque per tipo e la reliquia), e il loro valore piatto viene dalla
+  tabella del potenziamento, uguale per tutti al massimo: cambiano le percentuali.
+  La scheda Statistiche è il **calcolatore** (`src/components/heroes/calculator/`):
+  livello e risvegli, i sei pezzi come nel gioco coi set pronti PS/Difesa,
+  Attacco/Difesa, Attacco/Critico, ogni pezzo modificabile, i costumi registrati
+  scelti fra tutti quelli dell'eroe, la reliquia, e in battaglia l'account e l'Eroe
+  associato; la tabella dice senza, con e differenza. La configurazione si salva
+  nel browser per ogni eroe. Si parte da tutto al massimo: senza equipaggiamento
+  sono i numeri di sempre, con PS/Difesa il «massimo con equipaggiamento» che
+  usava 7dshub (i test lo controllano eroe per eroe). Le icone di pezzi e costumi
+  sono quelle del gioco: la pipeline prepara gli strati del componente IconItem
+  (sfondo e cornice della rarità, lettera, stelle, «+N», glifo del set, marchio del
+  costume) già al loro posto, e il sito li impila (`item-icon.tsx`). Le immagini
+  vanno in `public/eroi/<gioco>/equipaggiamento/` e `costumi/`; la scheda
+  **Costumi** li mostra tutti
 - **le meccaniche di combattimento** (le costanti del danno, il triangolo degli
   attributi, i pesi di pesca e gli effetti Luce/Oscurità di ogni eroe, il cumulo dei
   buff per concetto delle parole blu) stanno in `mechanics.generated.ts`, scritto da
@@ -360,7 +388,11 @@ Il confine passa qui, e non è formale:
   quali legami danno l'Attacco combinato) stanno in `hero-fates.generated.ts`, scritto
   da `scripts/import-hero-fates.mts` dalle schede del client (`fates` di
   `_7dsgc/eroi/client/abilita.json` e `abilita_it.json`, da `DB_fate`); il contratto è
-  in `src/lib/games/hero-fates-types.ts`. Li usa il **Randomizer** (`/randomizer`):
+  in `src/lib/games/hero-fates-types.ts`; i valori a ogni grado dell'associato e
+  l'effetto comune (5-10% delle statistiche dell'associato, con qualunque eroe)
+  vengono da `_7dsgc/script/associazioni.py`. Li mostra la scheda **Associazioni**
+  della pagina dell'eroe (i suoi associati, e di chi è associato lui), li conta il
+  calcolatore nella colonna «In battaglia», e li usa il **Randomizer** (`/randomizer`):
   quattro eroi in campo e quattro nei loro Slot associazione, pescati dal browser, a
   caso o con una sinergia per forza fra i quattro in campo (almeno tre hanno un'Unica
   che nomina alleati applicabili e ognuna vale per tutti gli altri; il quarto può

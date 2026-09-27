@@ -63,6 +63,8 @@ import { DEMON_KING } from "./demon-king.generated";
 import { ENDGAME_HEROES } from "./endgame-heroes.generated";
 import { ACCOUNT_BUFF } from "./account-buff.generated";
 import { ARTIFACTS } from "./artifacts.generated";
+import { COSTUMES } from "./costumes.generated";
+import { GEAR } from "./gear.generated";
 import { SUPREME_DEITY } from "./supreme-deity.generated";
 import { GAME_ICONS } from "./game-icons.generated";
 import { HERO_STATS } from "./hero-stats.generated";
@@ -502,6 +504,8 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   endgameHeroes: ENDGAME_HEROES,
   artifacts: ARTIFACTS,
   accountBuff: ACCOUNT_BUFF,
+  gear: GEAR,
+  costumes: COSTUMES,
   icons: GAME_ICONS,
   resolveActor,
   computeDamage,
