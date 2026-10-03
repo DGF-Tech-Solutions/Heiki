@@ -32,9 +32,11 @@ export async function GameSwitcher({ game }: { game: string }) {
 
   return (
     <div className="border-b border-rule bg-paper">
+      {/* sul telefono una riga sola che scorre: a capo, i giochi «in arrivo»
+          prendevano tre righe sopra ogni pagina */}
       <nav
         aria-label={t.gioco}
-        className="mx-auto flex w-full max-w-shell flex-wrap items-center gap-1 px-6 py-2"
+        className="mx-auto flex w-full max-w-shell items-center gap-1 overflow-x-auto px-6 py-2 whitespace-nowrap [scrollbar-width:none] *:shrink-0 sm:flex-wrap"
       >
         {games.map((entry) =>
           entry.available ? (

@@ -5,33 +5,44 @@ import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { unreadCount } from "@/lib/social/actions";
 import { LanguageSwitch } from "./language-switch";
+import { PopoverPanel } from "./popover-panel";
 import { buttonClass, cx, Tag } from "./ui";
 
 // Sul telefono i bottoni dell'intestazione si stringono: in maiuscolo e col
 // taglio obliquo «Iscriviti» finiva fuori dallo schermo, nella barra che scorre
 const PHONE = "max-sm:px-2 max-sm:text-[12px]";
 
+// una voce del pannello dell'utente: come le voci della barra laterale
+const MENU_VOCE =
+  "p5-menu-item flex items-center px-3 py-2 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink-2 [font-variation-settings:'wdth'_82]";
+
 const TESTI = testi({
   it: {
     cerca: "Cerca",
+    sezioni: "Sezioni del gioco",
     giochi: "Giochi",
     coda: "Coda",
     admin: "Admin",
     notifiche: "Notifiche",
     daLeggere: (n: number) => `Notifiche: ${n} da leggere`,
     personalizza: "Personalizza",
+    profilo: "Il tuo profilo",
+    menuDi: (nome: string) => `Menu di ${nome}`,
     esci: "Esci",
     entra: "Entra",
     iscriviti: "Iscriviti",
   },
   en: {
     cerca: "Search",
+    sezioni: "Game sections",
     giochi: "Games",
     coda: "Queue",
     admin: "Admin",
     notifiche: "Notifications",
     daLeggere: (n: number) => `Notifications: ${n} unread`,
     personalizza: "Customize",
+    profilo: "Your profile",
+    menuDi: (nome: string) => `${nome}'s menu`,
     esci: "Log out",
     entra: "Log in",
     iscriviti: "Sign up",
@@ -53,6 +64,24 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b-[3px] border-brand bg-paper">
       <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-2 px-4 sm:gap-6 sm:px-6">
+        {/*
+          Il menu del gioco sul telefono. L'intestazione non sa in che gioco si
+          e' (sta nel layout radice): il pulsante compare quando nella pagina c'e'
+          il pannello del gioco, `#menu-sezioni` di game-menu.tsx, e solo sotto
+          i 1024px, dove la barra laterale non c'e'. Lo apre il browser.
+        */}
+        <button
+          type="button"
+          popoverTarget="menu-sezioni"
+          aria-label={t.sezioni}
+          className="p5-cut hidden h-8 w-10 shrink-0 cursor-pointer place-items-center bg-brand text-white transition-colors hover:bg-ink hover:text-paper max-lg:[body:has(#menu-sezioni)_&]:grid"
+        >
+          {/* tre lame oblique al posto delle tre righe dritte */}
+          <svg aria-hidden viewBox="0 0 18 14" className="h-3.5 w-[18px]">
+            <path d="M3 0h15l-2 3H1zM3 5.5h15l-2 3H1zM3 11h15l-2 3H1z" fill="currentColor" />
+          </svg>
+        </button>
+
         {/* il marchio: GACHA in bianco, ZONE su una lama rossa tagliata */}
         <Link
           href="/"
@@ -81,6 +110,12 @@ export async function SiteHeader() {
 
           `min-w-0` e `overflow-x-auto` sono la rete: con un nome utente lungo, o
           i pulsanti in piu' di chi modera, a scorrere e' la barra e non la pagina.
+
+          Dal 03/10, col pulsante del menu del gioco a sinistra, sotto sm non ci
+          stanno piu' due pulsanti: chi non e' entrato vede «Entra» (la pagina di
+          accesso porta all'iscrizione), chi e' entrato un pulsante che apre le
+          sue voci in un pannello. Prima, da entrato, le cinque voci scorrevano
+          dentro la barra e le ultime non si vedevano.
         */}
         <nav className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto py-1 text-sm font-medium whitespace-nowrap [scrollbar-width:none] sm:gap-5 md:ml-0">
           <Link href="/" className="hidden text-ink-2 hover:text-brand sm:inline">
@@ -92,61 +127,78 @@ export async function SiteHeader() {
           <span className="flex items-center gap-1 sm:gap-2.5 sm:border-l sm:border-rule sm:pl-5">
             {user ? (
               <>
-                {/* Le aree riservate compaiono solo a chi le puo' aprire: un
-                    collegamento visibile a tutti sarebbe una porta annunciata. */}
-                {can(user.role, "moderate") ? (
-                  <Link
-                    href="/moderazione"
-                    className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot hover:underline"
+                {/* sul telefono: un pulsante solo, col numero delle notifiche */}
+                <span className="relative sm:hidden">
+                  <button
+                    type="button"
+                    popoverTarget="menu-utente"
+                    aria-label={unread > 0 ? `${t.menuDi(user.username)} · ${t.daLeggere(unread)}` : t.menuDi(user.username)}
+                    className="p5-cut grid h-8 w-10 cursor-pointer place-items-center bg-ink text-paper transition-colors hover:bg-brand hover:text-white"
                   >
-                    {t.coda}
-                  </Link>
-                ) : null}
-                {can(user.role, "administer") ? (
-                  <Link
-                    href="/admin"
-                    className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
-                  >
-                    {t.admin}
-                  </Link>
-                ) : null}
-
-                <Link
-                  href="/notifiche"
-                  className={cx(buttonClass("ghost", "sm"), "relative")}
-                  aria-label={unread > 0 ? t.daLeggere(unread) : t.notifiche}
-                >
-                  {t.notifiche}
+                    <svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4">
+                      <circle cx="8" cy="5" r="3.2" fill="currentColor" />
+                      <path d="M1.5 16c.6-3.9 3.2-6 6.5-6s5.9 2.1 6.5 6z" fill="currentColor" />
+                    </svg>
+                  </button>
                   {unread > 0 ? (
-                    <span className="grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
+                    <span className="pointer-events-none absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
                       {unread > 9 ? "9+" : unread}
                     </span>
                   ) : null}
-                </Link>
-                <Link href="/impostazioni/profilo" className={buttonClass("ghost", "sm")}>
-                  {t.personalizza}
-                </Link>
-                <Link href={`/u/${user.username}`} className={buttonClass("ghost", "sm")}>
-                  {user.username}
-                  <Tag>{roleLabel(user.role, locale)}</Tag>
-                </Link>
-                <form
-                  action={async () => {
-                    "use server";
-                    await signOut({ redirectTo: "/" });
-                  }}
-                >
-                  <button type="submit" className={buttonClass("ghost", "sm")}>
-                    {t.esci}
-                  </button>
-                </form>
+                </span>
+
+                <span className="hidden sm:contents">
+                  {/* Le aree riservate compaiono solo a chi le puo' aprire: un
+                      collegamento visibile a tutti sarebbe una porta annunciata. */}
+                  {can(user.role, "moderate") ? (
+                    <Link
+                      href="/moderazione"
+                      className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot hover:underline"
+                    >
+                      {t.coda}
+                    </Link>
+                  ) : null}
+                  {can(user.role, "administer") ? (
+                    <Link
+                      href="/admin"
+                      className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+                    >
+                      {t.admin}
+                    </Link>
+                  ) : null}
+
+                  <Link
+                    href="/notifiche"
+                    className={cx(buttonClass("ghost", "sm"), "relative")}
+                    aria-label={unread > 0 ? t.daLeggere(unread) : t.notifiche}
+                  >
+                    {t.notifiche}
+                    {unread > 0 ? (
+                      <span className="grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
+                        {unread > 9 ? "9+" : unread}
+                      </span>
+                    ) : null}
+                  </Link>
+                  <Link href="/impostazioni/profilo" className={buttonClass("ghost", "sm")}>
+                    {t.personalizza}
+                  </Link>
+                  <Link href={`/u/${user.username}`} className={buttonClass("ghost", "sm")}>
+                    {user.username}
+                    <Tag>{roleLabel(user.role, locale)}</Tag>
+                  </Link>
+                  <form action={esci}>
+                    <button type="submit" className={buttonClass("ghost", "sm")}>
+                      {t.esci}
+                    </button>
+                  </form>
+                </span>
               </>
             ) : (
               <>
                 <Link href="/entra" className={buttonClass("ghost", "sm", PHONE)}>
                   {t.entra}
                 </Link>
-                <Link href="/registrati" className={buttonClass("primary", "sm", PHONE)}>
+                <Link href="/registrati" className={buttonClass("primary", "sm", cx(PHONE, "max-sm:hidden"))}>
                   {t.iscriviti}
                 </Link>
               </>
@@ -154,8 +206,67 @@ export async function SiteHeader() {
           </span>
         </nav>
       </div>
+
+      {user ? (
+        // le voci di chi e' entrato, sul telefono: le stesse della riga qui sopra
+        <PopoverPanel
+          id="menu-utente"
+          className="inset-auto top-[64px] right-3 m-0 w-[min(84vw,280px)] border-2 border-ink bg-paper p-0 text-ink shadow-[6px_6px_0_0_var(--color-brand)] backdrop:bg-black/50"
+        >
+          <div className="flex items-center gap-2 border-b border-rule px-4 py-3">
+            <span className="min-w-0 truncate font-display text-[16px] font-extrabold">{user.username}</span>
+            <Tag>{roleLabel(user.role, locale)}</Tag>
+          </div>
+          <ul className="m-0 grid list-none gap-0.5 p-2">
+            <li>
+              <Link href="/notifiche" className={MENU_VOCE}>
+                {t.notifiche}
+                {unread > 0 ? (
+                  <span className="ml-2 inline-grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                ) : null}
+              </Link>
+            </li>
+            <li>
+              <Link href={`/u/${user.username}`} className={MENU_VOCE}>
+                {t.profilo}
+              </Link>
+            </li>
+            <li>
+              <Link href="/impostazioni/profilo" className={MENU_VOCE}>
+                {t.personalizza}
+              </Link>
+            </li>
+            {can(user.role, "moderate") ? (
+              <li>
+                <Link href="/moderazione" className={cx(MENU_VOCE, "text-hot")}>
+                  {t.coda}
+                </Link>
+              </li>
+            ) : null}
+            {can(user.role, "administer") ? (
+              <li>
+                <Link href="/admin" className={MENU_VOCE}>
+                  {t.admin}
+                </Link>
+              </li>
+            ) : null}
+          </ul>
+          <form action={esci} className="border-t border-rule p-2">
+            <button type="submit" className={cx(MENU_VOCE, "w-full cursor-pointer text-left")}>
+              {t.esci}
+            </button>
+          </form>
+        </PopoverPanel>
+      ) : null}
     </header>
   );
+}
+
+async function esci() {
+  "use server";
+  await signOut({ redirectTo: "/" });
 }
 
 async function safeSession() {

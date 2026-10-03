@@ -162,6 +162,16 @@ clicca una volta non ci clicca più. *Guide* è entrato allo stesso modo, quando
 avuto pagine da mostrare, *Strumenti* il 27/09/2026 col Randomizer, e *Il tuo
 account* lo stesso giorno con la pagina del tuo account di gioco.
 
+**Sul telefono** (sotto i 1024px) la barra laterale non c'è: le stesse voci, con
+la ricerca, stanno in un pannello che entra da sinistra (`game-menu.tsx`), aperto
+dal pulsante a sinistra del marchio. Lo apre e lo chiude il browser (`popover`):
+il pulsante sta nell'intestazione, che non sa in che gioco si è, e compare solo
+quando la pagina contiene il pannello (`body:has(#menu-sezioni)`). Sotto i 640px
+anche le voci di chi è entrato (Notifiche, profilo, Personalizza, Coda, Esci)
+passano in un pannello, e chi non è entrato vede solo «Entra». Tutti e due i
+pannelli si chiudono quando si tocca una voce (`popover-panel.tsx`): il guscio
+resta montato mentre si naviga.
+
 ### Il gioco è il primo segmento dell'URL
 
 `/grand-cross/eroi/<id>`. Cambiare gioco cambia il contesto di tutto:

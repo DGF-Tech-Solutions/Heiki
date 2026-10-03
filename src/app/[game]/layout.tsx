@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AccountSync } from "@/components/game-account/account-sync";
+import { GameMenu } from "@/components/game-menu";
 import { GameSwitcher } from "@/components/game-nav";
 import { GameSidebar } from "@/components/game-sidebar";
 import { auth } from "@/lib/auth";
@@ -29,9 +30,11 @@ export default async function GameLayout({
   params: Promise<{ game: string }>;
 }) {
   const { game } = await params;
-  if (!findGame(game) || !isPlayable(game)) notFound();
+  const entry = findGame(game);
+  if (!entry || !isPlayable(game)) notFound();
 
   const locale = await getLocale();
+  const groups = gameGroups(game, locale);
 
   // Il tuo account di gioco segue chi e' entrato su ogni dispositivo: la copia del
   // database arriva qui, e AccountSync la confronta con quella del browser.
@@ -43,6 +46,8 @@ export default async function GameLayout({
     <>
       {userId ? <AccountSync gameSlug={game} userId={userId} server={server} /> : null}
       <GameSwitcher game={game} />
+      {/* sul telefono la barra laterale non c'e': le stesse voci in un pannello */}
+      <GameMenu game={game} title={entry.shortName} groups={groups} />
 
       {/*
         La barra laterale sale da 180 a 210px e il guscio si allarga: dentro
@@ -52,7 +57,7 @@ export default async function GameLayout({
       */}
       <div className="mx-auto grid w-full max-w-shell items-start gap-9 px-6 lg:grid-cols-[minmax(0,210px)_minmax(0,1fr)]">
         <aside className="hidden pt-6 lg:sticky lg:top-[110px] lg:block">
-          <GameSidebar game={game} groups={gameGroups(game, locale)} />
+          <GameSidebar game={game} groups={groups} />
         </aside>
 
         <div className="min-w-0">{children}</div>
