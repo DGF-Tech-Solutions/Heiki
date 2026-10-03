@@ -120,6 +120,7 @@ export interface GameSection {
     | "accountBuff"
     | "mechanics"
     | "heroFates"
+    | "team"
     | "deathMatch"
     | "creatureNest"
     | "demonKing"
@@ -246,6 +247,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "Four heroes and their associates drawn at random, also with their Uniques in synergy",
         },
         needs: "heroFates",
+      },
+      {
+        path: "/squadra",
+        label: { it: "Squadra", en: "Team Builder" },
+        hint: {
+          it: "Forma una squadra e guarda come si influenzano gli eroi: Uniche, reliquie, abilità speciali, associati",
+          en: "Build a team and see how the heroes affect each other: Uniques, relics, special abilities, associates",
+        },
+        needs: "team",
       },
       {
         path: "/indovina",

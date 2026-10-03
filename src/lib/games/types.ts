@@ -38,6 +38,7 @@ import type { CostumeIndex, GearIndex } from "./gear-types";
 import type { HeroFatesIndex } from "./hero-fates-types";
 import type { HeroTermsIndex } from "./hero-terms-types";
 import type { MechanicsIndex } from "./mechanics-types";
+import type { TeamIndex } from "./team-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
 export interface DatasetInfo {
@@ -826,6 +827,14 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * contratto sta in hero-fates-types.ts.
    */
   readonly heroFates?: HeroFatesIndex;
+
+  /**
+   * La squadra: per ogni passiva che conta per i compagni (Unica, abilita'
+   * speciali, Reliquia sacra) chi riceve l'effetto e chi lo fa scattare, frase
+   * per frase. Lo legge la pagina «Squadra». Il contratto sta in team-types.ts,
+   * la valutazione in team.ts.
+   */
+  readonly team?: TeamIndex;
 
   /**
    * L'equipaggiamento (set, parti, valori, effetti bonus, gli strati delle icone)

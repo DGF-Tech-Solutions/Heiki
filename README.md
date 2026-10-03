@@ -56,6 +56,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run legami:import` | Rigenera solo i legami degli eroi associati, per il Randomizer e la scheda eroe (dopo gli eroi) |
 | `npm run equipaggiamento:import` | Rigenera solo l'equipaggiamento e i costumi del calcolatore della scheda eroe, con le loro immagini (dopo gli eroi) |
 | `npm run parole:import` | Rigenera solo le parole blu della scheda eroe (dopo gli eroi) |
+| `npm run squadra:import` | Rigenera solo la lettura delle passive per la pagina Squadra: chi riceve e chi fa scattare (dopo le parole blu) |
 | `npm run meccaniche:import` | Rigenera solo le meccaniche di combattimento: costanti, pesca, effetti Luce/Oscurità, cumulo (dopo le parole blu) |
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
 | `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
@@ -146,7 +147,7 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
 (Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
 (Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Strumenti**
-(Randomizer, Indovina l'eroe) · **Il tuo account** (Il mio account) · **Guide** (Guide e
+(Randomizer, Squadra, Indovina l'eroe) · **Il tuo account** (Il mio account) · **Guide** (Guide e
 rotazioni) · **Community** (Discussioni).
 
 Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
@@ -403,6 +404,25 @@ Il confine passa qui, e non è formale:
   averne una non specifica; gli associati restano a caso, e l'Effetto associazione si
   mostra quando capita un legame), anche senza le collaborazioni. Le regole del sorteggio stanno in `src/lib/games/randomizer.ts`,
   coi test
+- **Squadra** (`/squadra`, dal 03/10/2026): si scelgono quattro eroi e i loro associati,
+  e per ognuno la pagina dice cosa dà ai compagni e cosa riceve da loro con le passive
+  (Unica, Reliquia sacra classica, Comandamenti, Grazie, Unità, Talenti), quali
+  passive dei compagni accende, e quali restano spente e perché: dove si gioca (PvE,
+  PvP, Scontro finale, Bestia demoniaca, coi codici del client e le frasi «In PVP»),
+  la panchina (il quarto eroe può partire nello slot secondario), il rango della Mossa
+  finale, le reliquie, e le regole del gioco su Comandamenti, Grazie e Unità (vale
+  quella dell'eroe più a sinistra). Per un posto libero suggerisce gli eroi che si
+  incastrano meglio, contati solo sulle passive (scelta dell'utente); per un associato,
+  i legami. La squadra sta nell'indirizzo (`?s=…&a=…&c=pvp&p=0&u=6&r=1`) e il browser
+  ricorda l'ultima. La lettura delle passive la fa la pipeline
+  (`_7dsgc/script/squadra.py` → `eroi/squadra.json`): frase per frase, dal testo
+  inglese del gioco, a chi va l'effetto (alleati applicabili, alleati di una razza o
+  caratteristica, tutti gli alleati) e quali compagni lo fanno scattare («per ogni»,
+  «quando», «se», «se tutti sono»), confrontata con le colonne delle passive del
+  client; l'import (`scripts/import-team.mts`) la lega ai testi del sito, controlla di
+  dividere le frasi allo stesso modo e appaia l'italiano per posizione, e scrive
+  `team.generated.ts`. Contratto in `src/lib/games/team-types.ts`, valutazione e
+  suggerimenti in `src/lib/games/team.ts`, coi test
 - **Indovina l'eroe** (`/indovina`) è il gioco degli indizi sul modello di Loldle:
   si scrive un eroe e otto caselle dicono cosa ha in comune con quello da
   indovinare (personaggio, attributo, razza, caratteristiche, grado d'uscita e
