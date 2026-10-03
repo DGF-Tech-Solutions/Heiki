@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site";
-import { listGames } from "@/lib/games/catalog";
+import { gameGroups, listGames } from "@/lib/games/catalog";
+import { getGameModule } from "@/lib/games/registry";
 import { databaseReachable, db } from "@/lib/db";
 
 /**
@@ -13,7 +14,20 @@ import { databaseReachable, db } from "@/lib/db";
  * Le discussioni si leggono dal database, che potrebbe non esserci: in quel caso
  * si pubblica la parte statica invece di far fallire la generazione. Una sitemap
  * incompleta e' meglio di una sitemap assente.
+ *
+ * Dal 27/09 (via le pagine del vecchio motore) le schede non c'erano piu': fino
+ * al 03/10 qui stavano solo la radice, le guide e le pagine legali. Ora le
+ * sezioni e le pagine di ogni eroe, boss, bestia, set e carta.
+ *
+ * Si costruisce a ogni richiesta (`force-dynamic`): altrimenti Next la genera una
+ * volta durante la build, senza database e con l'indirizzo di ripiego
+ * (localhost), e cosi' resta.
  */
+export const dynamic = "force-dynamic";
+
+/** sezioni del gioco che non vanno in un indice: sono di chi le apre */
+const PERSONALI = new Set(["/account"]);
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
   const now = new Date();
@@ -28,11 +42,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const game of listGames()) {
     if (!game.available) continue;
+    const root = `${base}/${game.slug}`;
+    const gameModule = getGameModule(game.slug);
 
-    entries.push(
-      { url: `${base}/${game.slug}`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
-      { url: `${base}/${game.slug}/guide`, changeFrequency: "weekly", priority: 0.7 },
-    );
+    entries.push({ url: root, lastModified: now, changeFrequency: "hourly", priority: 0.9 });
+
+    // le sezioni della barra laterale, dalla stessa fonte: una sezione nuova entra
+    // qui da sola. Fuori la radice (gia' sopra) e le pagine personali.
+    for (const group of gameGroups(game.slug)) {
+      for (const item of group.items) {
+        if (item.path === "" || PERSONALI.has(item.path)) continue;
+        entries.push({ url: `${root}${item.path}`, changeFrequency: "weekly", priority: 0.7 });
+      }
+    }
+
+    // le pagine di ogni eroe, boss, bestia, set e carta: sono quelle che si cercano
+    for (const hero of gameModule?.roster?.heroes ?? []) {
+      entries.push({ url: `${root}/eroi/${hero.id}`, changeFrequency: "weekly", priority: 0.8 });
+    }
+    for (const boss of gameModule?.deathMatch?.bosses ?? []) {
+      entries.push({ url: `${root}/scontri-finali/${boss.key}`, changeFrequency: "monthly", priority: 0.6 });
+    }
+    for (const beast of gameModule?.creatureNest?.beasts ?? []) {
+      entries.push({ url: `${root}/bestie-demoniache/${beast.key}`, changeFrequency: "monthly", priority: 0.6 });
+    }
+    for (const set of gameModule?.artifacts?.sets ?? []) {
+      entries.push({ url: `${root}/set-artefatto/${set.number}`, changeFrequency: "monthly", priority: 0.5 });
+    }
+    for (const card of gameModule?.artifacts?.cards ?? []) {
+      entries.push({ url: `${root}/carte-artefatto/${card.id}`, changeFrequency: "monthly", priority: 0.4 });
+    }
   }
 
   if (await databaseReachable()) {

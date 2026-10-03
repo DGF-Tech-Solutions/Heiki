@@ -8,6 +8,10 @@ import { siteUrl } from "@/lib/site";
  * (impostazioni, notifiche), quelle dimostrative e quelle riservate. La ricerca
  * resta fuori per non generare migliaia di pagine con lo stesso contenuto.
  */
+// a ogni richiesta: generato durante la build, l'indirizzo della sitemap restava
+// quello di ripiego (localhost)
+export const dynamic = "force-dynamic";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {

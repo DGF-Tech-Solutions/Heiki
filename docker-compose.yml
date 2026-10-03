@@ -26,6 +26,19 @@ services:
       timeout: 5s
       retries: 10
 
+  # Applica le migrazioni e si ferma; il sito parte solo se sono andate a buon fine.
+  migrate:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://gachazone:gachazone@postgres:5432/gachazone
+
   app:
     profiles: ["app"]
     build:
@@ -36,17 +49,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       # Dentro la rete di compose il database si chiama "postgres", non localhost.
       DATABASE_URL: postgresql://gachazone:gachazone@postgres:5432/gachazone
-      AUTH_URL: http://localhost:3000
+      AUTH_URL: ${AUTH_URL_APP:-http://localhost:3000}
       # Il segreto arriva dal .env locale, che non e' versionato. Il valore di
       # riserva vuoto e' deliberato: senza, l'interpolazione fallirebbe anche per
       # chi vuole solo il database, e il primo comando dopo il clone non
       # funzionerebbe. Se manca, se ne lamenta Auth.js all'avvio dell'app.
       AUTH_SECRET: ${AUTH_SECRET:-}
     ports:
-      - "3000:3000"
+      # APP_PORT per provarla accanto a `npm run dev`, che tiene la 3000:
+      #   APP_PORT=3200 AUTH_URL_APP=http://localhost:3200 docker compose --profile app up --build
+      # (AUTH_URL_APP e non AUTH_URL: compose legge anche il .env, dove AUTH_URL
+      # e' quello del server di sviluppo)
+      - "${APP_PORT:-3000}:3000"
 
 volumes:
   gachazone-pgdata:

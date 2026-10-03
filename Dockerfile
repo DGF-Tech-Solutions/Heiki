@@ -27,8 +27,29 @@ COPY . .
 
 # La build non tocca il database: le pagine sono tutte rese su richiesta e il
 # client Postgres apre la connessione solo alla prima query.
+#
+# NEXT_PUBLIC_SITE_URL qui NON va passata: Next scrive nel codice le variabili
+# NEXT_PUBLIC_ presenti durante la build, e l'indirizzo resterebbe quello della
+# build. Senza, siteUrl() la legge all'avvio, o ripiega su AUTH_URL.
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# public/ nel repo non c'e' (contiene solo le immagini del gioco, ignorate da git):
+# senza, la COPY dello stadio finale si fermerebbe su un clone pulito
+RUN mkdir -p public && npm run build
+
+# ------------------------------------------------------------- migrazioni
+# Un'immagine a parte, da lanciare una volta prima di ogni versione nuova:
+#
+#     docker build --target migrate -t gachazone-migrate .
+#     docker run --rm -e DATABASE_URL=... gachazone-migrate
+#
+# Sta fuori dall'immagine del sito perche' quella contiene solo l'output
+# standalone di Next, senza drizzle-orm/migrator ne' tsx. E tenerla separata
+# evita che due copie del sito, avviandosi insieme, migrino in parallelo.
+FROM deps AS migrate
+WORKDIR /app
+COPY drizzle ./drizzle
+COPY scripts/migrate.mts scripts/env.mts ./scripts/
+CMD ["npx", "tsx", "scripts/migrate.mts"]
 
 # ----------------------------------------------------------------- runtime
 FROM node:22-alpine AS runner
@@ -45,8 +66,17 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# L'output standalone non porta con se' public/: senza questa riga online
+# mancavano icona, manifest e tutte le immagini del gioco. public/eroi/ non e' nel
+# repo (si rigenera con `npm run eroi:import`): un'immagine costruita da un clone
+# pulito, come quella dei controlli su GitHub, funziona ma senza immagini.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 EXPOSE 3000
+
+# Il servizio che ospitera' il sito puo' chiederlo da solo; qui lo usa Docker.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/api/salute > /dev/null || exit 1
 
 CMD ["node", "server.js"]

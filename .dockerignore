@@ -9,3 +9,9 @@ coverage
 *.html
 Dockerfile
 .dockerignore
+# cartelle di build di prova e di strumenti locali: niente di questo serve all'immagine
+.next-*
+graphify-out
+.claude
+CLAUDE.md
+backups

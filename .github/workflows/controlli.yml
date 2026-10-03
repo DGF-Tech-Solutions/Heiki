@@ -1,0 +1,51 @@
+# I controlli che si fanno a mano prima di ogni commit, fatti da GitHub a ogni push
+# e a ogni pull request: tipi, lint, test, build di produzione.
+#
+# Girano su un clone pulito, quindi senza public/eroi/ (le immagini del gioco non
+# sono nel repo) e senza la pipeline 7DSGC: se un test o la build ne dipendessero
+# per sbaglio, si vede qui. I dataset generati (*.generated.ts) e data/grand-cross/
+# invece sono nel repo, e i test li leggono.
+#
+# Il database non serve: la build non lo apre e i test non lo toccano.
+
+name: Controlli
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# un push nuovo sullo stesso ramo ferma i controlli di quello prima
+concurrency:
+  group: controlli-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  controlli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # la stessa dell'immagine Docker
+          node-version: 22
+          cache: npm
+
+      # --legacy-peer-deps come nel Dockerfile: next-auth v5 e' in beta
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+
+      - name: Tipi
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build di produzione
+        run: npm run build

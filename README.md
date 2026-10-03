@@ -62,6 +62,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
 | `npm run buff:import` | Rigenera solo i buff dell'account: classe dell'account e costellazioni |
 | `npm run docker:app` | Tutto in container, senza Node locale |
+| `npm run db:backup` | Copia del database in `backups/` (tiene le ultime 14; serve Docker) |
 
 ### Docker
 
@@ -86,6 +87,53 @@ codice.
 un archivio in memoria con contenuti di esempio e lo dichiara in cima al feed:
 si può pubblicare, commentare e votare, ma i contenuti spariscono al riavvio.
 Serve per valutare la community senza installare niente.
+
+### La messa online
+
+Il sito non è ancora online. Il 03/10/2026 si è scelto di preparare tutto quello
+che non dipende dal servizio che lo ospiterà, e di scegliere il servizio dopo.
+
+**L'immagine.** `docker build -t gachazone .` dà il sito (output standalone di
+Next, con `public/`); `docker build --target migrate -t gachazone-migrate .` dà le
+migrazioni, da lanciare una volta prima di ogni versione nuova. Le immagini del
+gioco (`public/eroi/`, circa 290 MB) non sono nel repo: entrano nell'immagine solo
+se la si costruisce dal computer dove gira `npm run eroi:import`. Costruita da un
+clone pulito l'immagine funziona, ma senza immagini.
+
+**Le variabili, lette all'avvio:**
+
+| Variabile | |
+|---|---|
+| `DATABASE_URL` | il Postgres di produzione |
+| `AUTH_SECRET` | `npx auth secret`, diverso da quello di sviluppo |
+| `AUTH_URL` | l'indirizzo pubblico, con `https://`. Fa anche da indirizzo del sito (sitemap, robots, link del recupero password) e dice ad Auth.js di fidarsi dell'host |
+| `AUTH_DISCORD_ID`/`_SECRET`, `AUTH_GOOGLE_ID`/`_SECRET` | facoltative; nell'app di Discord o Google va registrato `<AUTH_URL>/api/auth/callback/discord` (o `/google`) |
+
+`NEXT_PUBLIC_SITE_URL` non va messa nell'ambiente della **build**: Next scrive nel
+codice le variabili `NEXT_PUBLIC_` che trova in quel momento. Se manca,
+`siteUrl()` usa `AUTH_URL`.
+
+**Una versione nuova, in ordine:** `npm run db:backup` sul database di produzione
+(`DATABASE_URL=... npm run db:backup`), poi le migrazioni, poi il sito nuovo.
+
+**Salute.** `/api/salute` risponde 200 se il sito e il database rispondono, 503
+se il database no. Lo usa il `HEALTHCHECK` dell'immagine; serve anche al servizio
+che ospiterà il sito e a un controllo esterno.
+
+**Controlli su GitHub.** `.github/workflows/controlli.yml`: tipi, lint, test e
+build a ogni push su `main` e a ogni pull request, su un clone pulito.
+
+**Da sapere per scegliere il servizio:**
+- il limite di tentativi è in memoria del processo (vedi «Limite di tentativi»):
+  con un solo processo vale com'è, con più istanze, o con funzioni serverless
+  come quelle di Vercel, va spostato su un archivio condiviso
+- le schermate della verifica della classe stanno nel database (bytea), quindi
+  il sito non ha bisogno di un disco suo
+- le immagini del gioco o viaggiano nell'immagine Docker o vanno su uno spazio a
+  parte (un disco del servizio, Cloudflare R2...): il codice le chiede a
+  `/eroi/...`, quindi nel secondo caso serve un rimando o un prefisso
+- provarla in locale, accanto a `npm run dev`:
+  `APP_PORT=3200 AUTH_URL_APP=http://localhost:3200 docker compose --profile app up --build`
 
 ---
 
