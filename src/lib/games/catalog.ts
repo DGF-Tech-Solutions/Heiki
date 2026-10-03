@@ -116,6 +116,7 @@ export interface GameSection {
   needs?:
     | "roster"
     | "releases"
+    | "changes"
     | "artifacts"
     | "accountBuff"
     | "mechanics"
@@ -156,6 +157,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "Banners, dates, heroes and events, update by update",
         },
         needs: "releases",
+      },
+      {
+        path: "/cambiamenti",
+        label: { it: "Cambiamenti", en: "Changes" },
+        hint: {
+          it: "Cosa cambia negli eroi a ogni patch, dai dati del gioco",
+          en: "What changes for the heroes with every patch, from the game data",
+        },
+        needs: "changes",
       },
       {
         path: "/set-artefatto",

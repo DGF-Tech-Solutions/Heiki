@@ -52,7 +52,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run db:reset` | Azzera e ricostruisce |
 | `npm run db:studio` | Interfaccia web sul database |
 | `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi i legami, l'equipaggiamento e i costumi, le parole blu, le meccaniche, l'Endgame, gli artefatti e i buff dell'account |
+| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi i legami, l'equipaggiamento e i costumi, le parole blu, le meccaniche, l'Endgame, gli artefatti, i buff dell'account e i cambiamenti di patch |
 | `npm run legami:import` | Rigenera solo i legami degli eroi associati, per il Randomizer e la scheda eroe (dopo gli eroi) |
 | `npm run equipaggiamento:import` | Rigenera solo l'equipaggiamento e i costumi del calcolatore della scheda eroe, con le loro immagini (dopo gli eroi) |
 | `npm run parole:import` | Rigenera solo le parole blu della scheda eroe (dopo gli eroi) |
@@ -61,6 +61,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
 | `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
 | `npm run buff:import` | Rigenera solo i buff dell'account: classe dell'account e costellazioni |
+| `npm run cambiamenti:import` | Rigenera solo i cambiamenti di patch, dall'archivio delle patch della pipeline |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 | `npm run db:backup` | Copia del database in `backups/` (tiene le ultime 14; serve Docker) |
 
@@ -193,7 +194,7 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 ### Navigazione a gruppi
 
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Eroi, Uscite, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
+(Eroi, Uscite, Cambiamenti, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
 (Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Strumenti**
 (Randomizer, Squadra, Indovina l'eroe) · **Il tuo account** (Il mio account) · **Guide** (Guide e
 rotazioni) · **Community** (Discussioni).
@@ -270,6 +271,26 @@ Zero modifiche al resto.
   `computeDamage`. Il risolutore di rotazioni condiviso fa il resto.
 - **Stocastico** (Grand Cross): implementa anche `simulateOnce`, che il runner
   ripete in Monte Carlo.
+
+### I cambiamenti di patch
+
+La pagina **Cambiamenti** (`/grand-cross/cambiamenti`) e la sezione in fondo alla scheda
+Info di ogni eroe dicono cosa è cambiato negli eroi a ogni patch: il testo di ogni rango
+delle carte, l'Unica coi suoi livelli, le abilità speciali, le statistiche al massimo, le
+reliquie, i legami e i costumi. Il resto del client (eventi, missioni, negozio...) è solo
+contato, per gruppo di tabelle. Scelte dell'utente, 03/10/2026.
+
+Da dove viene. La pipeline tiene una copia delle tabelle e dei testi del client per ogni
+patch (`script/archivio_patch.py`, in `storico_patch/`), dal 23/09/2026: le patch prima
+non sono state conservate, e la pagina lo dice. `script/cambiamenti.py` costruisce le
+schede degli eroi di due patch con **lo stesso codice** e le confronta voce per voce: le
+differenze vengono dai dati, non da una correzione della pipeline. Un testo che cambia solo
+nei codici di colore del gioco è un «ritocco di formattazione», non un cambiamento
+dell'eroe. I pezzi del confronto parola per parola ricompongono il testo di prima e quello
+di dopo: c'è un test che lo controlla (`changes.test.ts`).
+
+Dopo una patch, nella pipeline: `archivio_patch.py salva` subito dopo `testi_client.py`, poi
+a fine catena `cambiamenti.py`, poi `npm run eroi:import` (o `cambiamenti:import`).
 
 ### Il roster e gli asset del gioco
 

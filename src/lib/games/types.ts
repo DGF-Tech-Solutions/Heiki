@@ -37,6 +37,7 @@ import type { ArtifactIndex } from "./artifact-types";
 import type { CostumeIndex, GearIndex } from "./gear-types";
 import type { HeroFatesIndex } from "./hero-fates-types";
 import type { HeroTermsIndex } from "./hero-terms-types";
+import type { ChangesIndex } from "./changes-types";
 import type { MechanicsIndex } from "./mechanics-types";
 import type { TeamIndex } from "./team-types";
 
@@ -853,6 +854,14 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * mechanics-types.ts.
    */
   readonly mechanics?: MechanicsIndex;
+
+  /**
+   * I cambiamenti da una patch all'altra, eroe per eroe, dall'archivio delle
+   * patch della pipeline (che comincia il 23/09/2026). Li leggono la pagina
+   * «Cambiamenti» e la scheda Info dell'eroe. Il contratto sta in
+   * changes-types.ts.
+   */
+  readonly changes?: ChangesIndex;
 
   /**
    * Quali icone del gioco sono state estratte, per famiglia.

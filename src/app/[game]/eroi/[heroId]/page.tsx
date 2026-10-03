@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { HeroChanges } from "@/components/changes/hero-changes";
 import { HeroEndgameLine } from "@/components/endgame/hero-endgame";
 import { GameText } from "@/components/heroes/game-text";
 import { HeroAbilities } from "@/components/heroes/hero-abilities";
@@ -17,6 +18,7 @@ import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { sliderData } from "@/lib/games/account-buff";
 import type { AccountBuffIndex } from "@/lib/games/account-buff-types";
 import { findGame } from "@/lib/games/catalog";
+import { heroHistory } from "@/lib/games/changes";
 import type { EndgameHeroLink } from "@/lib/games/endgame-types";
 import { calculatorDataFor, type CalculatorData } from "@/lib/games/hero-build";
 import { plainHeroText } from "@/lib/games/hero-markup";
@@ -255,6 +257,10 @@ function lookup(game: string, heroId: string) {
     abilityIndex: gameModule.heroAbilities,
     specialIndex: gameModule.heroSpecials,
     contextIndex: gameModule.heroContext,
+    // le patch in cui e' arrivato o cambiato, per la scheda Info
+    changes: gameModule.changes
+      ? { history: heroHistory(gameModule.changes, heroId), firstPatch: gameModule.changes.patches[0] }
+      : undefined,
     context: gameModule.heroContext?.heroes[heroId],
     affinity: roster.affinities.find((item) => item.id === hero.affinity),
   };
@@ -321,6 +327,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
     abilityIndex,
     specialIndex,
     contextIndex,
+    changes,
   } = found;
 
   /**
@@ -483,6 +490,17 @@ export default async function HeroPage({ params, searchParams }: Props) {
         endgame={endgame}
         icons={icons}
         others={others}
+        changes={
+          changes?.firstPatch ? (
+            <HeroChanges
+              game={game}
+              locale={locale}
+              history={changes.history}
+              firstPatch={changes.firstPatch}
+              heroes={new Map(roster.heroes.map((entry) => [entry.id, entry]))}
+            />
+          ) : null
+        }
       />
     ),
   });
@@ -662,6 +680,7 @@ function HeroInfo({
   endgame,
   icons,
   others,
+  changes,
 }: {
   game: string;
   locale: Locale;
@@ -673,6 +692,8 @@ function HeroInfo({
   endgame: readonly EndgameHeroLink[] | undefined;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   others: readonly HeroEntry[];
+  /** la sezione dei cambiamenti di patch, gia' pronta */
+  changes: React.ReactNode;
 }) {
   const t = TESTI[locale];
 
@@ -730,6 +751,8 @@ function HeroInfo({
           </div>
         </div>
       </div>
+
+      {changes}
 
       {others.length > 0 ? (
         <section className="mt-7 border-t border-rule-2 pt-5">

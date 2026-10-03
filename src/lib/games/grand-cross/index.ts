@@ -57,6 +57,7 @@ import { HERO_TERMS } from "./hero-terms.generated";
 import { HERO_FATES } from "./hero-fates.generated";
 import { TEAM } from "./team.generated";
 import { MECHANICS } from "./mechanics.generated";
+import { CHANGES } from "./changes.generated";
 import { RELEASES } from "./releases.generated";
 import { CREATURE_NEST } from "./creature-nest.generated";
 import { DEATH_MATCH } from "./death-match.generated";
@@ -498,6 +499,7 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   heroFates: HERO_FATES,
   team: TEAM,
   mechanics: MECHANICS,
+  changes: CHANGES,
   releases: RELEASES,
   deathMatch: DEATH_MATCH,
   creatureNest: CREATURE_NEST,
