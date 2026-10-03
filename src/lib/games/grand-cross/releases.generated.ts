@@ -4,7 +4,7 @@
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  *
  * FONTE: il foglio della community di thefilght (Reddit) / dreamer_plays (Discord), copia del
- * 2026-09-25, letto da date_uscita.py (calendario_uscite.json). Due calendari:
+ * 2026-10-03, letto da date_uscita.py (calendario_uscite.json). Due calendari:
  *   jp      la scheda [UPDATE SCHEDULE], Giappone e Corea
  *   global  la scheda GLOBAL SCHEDULE fino all'allineamento (2024-11-22), poi le righe
  *           giapponesi (`fromJp`), lo stesso giorno; le poche uscite nel globale il
@@ -20,7 +20,7 @@
 import type { ReleaseCalendar } from "../types";
 
 export const RELEASES: ReleaseCalendar = {
-  source: {"title":"Seven Deadly Sins: Grand Cross - Japan/Korea hero release tracker + other milestones","authors":"thefilght (Reddit) / dreamer_plays (Discord)","url":"https://docs.google.com/spreadsheets/d/1gjTr5MOsGAmNllHHsQ_bofhJ_R56f_jR_JKedHaKPjo/edit#gid=1047536762","downloaded":"2026-09-25","globalTitle":"Seven Deadly Sins: Grand Cross - Global hero release tracker + other milestones"},
+  source: {"title":"Seven Deadly Sins: Grand Cross - Japan/Korea hero release tracker + other milestones","authors":"thefilght (Reddit) / dreamer_plays (Discord)","url":"https://docs.google.com/spreadsheets/d/1gjTr5MOsGAmNllHHsQ_bofhJ_R56f_jR_JKedHaKPjo/edit#gid=1047536762","downloaded":"2026-10-03","globalTitle":"Seven Deadly Sins: Grand Cross - Global hero release tracker + other milestones"},
   sync: "2024-11-22",
   schedules: {
     global: [
