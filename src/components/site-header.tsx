@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { QuickSearch } from "@/components/quick-search";
 import { auth, signOut } from "@/lib/auth";
 import { can, roleLabel } from "@/lib/auth/permissions";
+import { listGames } from "@/lib/games/catalog";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { unreadCount } from "@/lib/social/actions";
@@ -65,22 +67,9 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-20 border-b-[3px] border-brand bg-paper">
       <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-2 px-4 sm:gap-6 sm:px-6">
         {/*
-          Il menu del gioco sul telefono. L'intestazione non sa in che gioco si
-          e' (sta nel layout radice): il pulsante compare quando nella pagina c'e'
-          il pannello del gioco, `#menu-sezioni` di game-menu.tsx, e solo sotto
-          i 1024px, dove la barra laterale non c'e'. Lo apre il browser.
+          Il menu del gioco sul telefono stava qui, in alto a sinistra: dal 10/10
+          e' nella barra in basso (mobile-bar.tsx), dove arriva il pollice.
         */}
-        <button
-          type="button"
-          popoverTarget="menu-sezioni"
-          aria-label={t.sezioni}
-          className="p5-cut hidden h-8 w-10 shrink-0 cursor-pointer place-items-center bg-brand text-white transition-colors hover:bg-ink hover:text-paper max-lg:[body:has(#menu-sezioni)_&]:grid"
-        >
-          {/* tre lame oblique al posto delle tre righe dritte */}
-          <svg aria-hidden viewBox="0 0 18 14" className="h-3.5 w-[18px]">
-            <path d="M3 0h15l-2 3H1zM3 5.5h15l-2 3H1zM3 11h15l-2 3H1z" fill="currentColor" />
-          </svg>
-        </button>
 
         {/* il marchio: GACHA in bianco, ZONE su una lama rossa tagliata */}
         <Link
@@ -93,14 +82,12 @@ export async function SiteHeader() {
           </span>
         </Link>
 
-        <form action="/cerca" className="ml-auto hidden md:block">
-          <input
-            name="q"
-            placeholder={t.cerca}
-            aria-label={t.cerca}
-            className="p5-cut h-8 w-48 bg-ink px-3.5 text-[13px] font-semibold text-paper placeholder:text-paper/55 focus:bg-white focus:outline-none"
-          />
-        </form>
+        {/*
+          La ricerca rapida (10/10): un pannello che trova mentre si scrive eroi,
+          pagine, boss e artefatti, anche coi tasti «/» e Ctrl+K. Prima era un
+          modulo verso /cerca, e sul telefono non c'era.
+        */}
+        <QuickSearch games={listGames().filter((game) => game.available).map((game) => game.slug)} />
 
         {/*
           Sul telefono questa riga sforava: a 390px chiedeva 12px in piu', e con
@@ -118,7 +105,7 @@ export async function SiteHeader() {
           dentro la barra e le ultime non si vedevano.
         */}
         <nav className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto py-1 text-sm font-medium whitespace-nowrap [scrollbar-width:none] sm:gap-5 md:ml-0">
-          <Link href="/" className="hidden text-ink-2 hover:text-brand sm:inline">
+          <Link href="/" className="hidden text-ink-2 hover:text-brand-deep sm:inline">
             {t.giochi}
           </Link>
 
@@ -141,7 +128,7 @@ export async function SiteHeader() {
                     </svg>
                   </button>
                   {unread > 0 ? (
-                    <span className="pointer-events-none absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
+                    <span className="pointer-events-none absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-white">
                       {unread > 9 ? "9+" : unread}
                     </span>
                   ) : null}
@@ -153,7 +140,7 @@ export async function SiteHeader() {
                   {can(user.role, "moderate") ? (
                     <Link
                       href="/moderazione"
-                      className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot hover:underline"
+                      className="font-mono text-[11px] uppercase tracking-[0.08em] text-hot hover:underline"
                     >
                       {t.coda}
                     </Link>
@@ -161,7 +148,7 @@ export async function SiteHeader() {
                   {can(user.role, "administer") ? (
                     <Link
                       href="/admin"
-                      className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+                      className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
                     >
                       {t.admin}
                     </Link>
@@ -174,7 +161,7 @@ export async function SiteHeader() {
                   >
                     {t.notifiche}
                     {unread > 0 ? (
-                      <span className="grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
+                      <span className="grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-white">
                         {unread > 9 ? "9+" : unread}
                       </span>
                     ) : null}
@@ -222,7 +209,7 @@ export async function SiteHeader() {
               <Link href="/notifiche" className={MENU_VOCE}>
                 {t.notifiche}
                 {unread > 0 ? (
-                  <span className="ml-2 inline-grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 font-mono text-[10px] leading-none text-white">
+                  <span className="ml-2 inline-grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-white">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 ) : null}

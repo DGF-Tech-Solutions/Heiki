@@ -5,7 +5,8 @@ import { GradeBadge } from "@/components/artifacts/artifact-parts";
 import { CardBrowser } from "@/components/artifacts/card-browser";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { GameText } from "@/components/heroes/game-text";
-import { cx, display, eyebrow, numeric } from "@/components/ui";
+import { IconChevronRight } from "@/components/icons";
+import { Card, cx, display, numeric, PageHeader } from "@/components/ui";
 import {
   artifactImageSrc,
   cardCode,
@@ -27,15 +28,15 @@ import { getLocale } from "@/lib/i18n/server";
  * alla sua pagina (scelta dell'utente, 26/09). Sotto, i pacchetti di carte del
  * gioco con quello che contengono, e il Pacchetto di carte del tempo. I
  * pacchetti di una carta sola (quelli degli eventi) stanno nella pagina della
- * carta: qui sarebbero 242 righe da una carta ciascuna.
+ * carta: qui sarebbero 242 righe da una carta ciascuna. La fonte sta in fondo,
+ * coi diritti: in testa veniva prima della griglia (10/10).
  */
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Carte artefatto di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Carte artefatto di ${gioco}`,
     descrizione: (gioco: string) =>
       `Le Carte artefatto di ${gioco}: statistiche, grado, set di cui fanno parte e pacchetti da cui si trovano.`,
-    database: "Database",
     titolo: "Carte artefatto",
     introduzione: (carte: number, tipi: string) =>
       `${carte} carte, di cinque tipi (${tipi}) e sei gradi, da C a UR. Equipaggiate su una squadra ne alzano Attacco, Difesa e PS; tre o cinque carte precise fanno un set, che aggiunge un effetto.`,
@@ -53,10 +54,9 @@ const TESTI = testi({
     diritti: (editore: string) => `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Artifact Cards · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Artifact Cards`,
     descrizione: (gioco: string) =>
       `${gioco} Artifact Cards: stats, grade, the set they belong to and the packs they come from.`,
-    database: "Database",
     titolo: "Artifact Cards",
     introduzione: (carte: number, tipi: string) =>
       `${carte} cards, of five types (${tipi}) and six grades, from C to UR. Equipped on a team they raise its Attack, Defense and HP; three or five specific cards make a set, which adds an effect.`,
@@ -124,26 +124,23 @@ export default async function ArtifactCardsPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{t.database}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione(data.cards.length, typeCounts)}</p>
-        <p className="mt-1.5 max-w-[72ch] text-sm text-ink-2">
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione(data.cards.length, typeCounts)}</p>
+        <p className="mt-1">
           {t.set}{" "}
-          <Link href={`/${game}/set-artefatto`} className="text-brand underline-offset-2 hover:underline">
+          <Link href={`/${game}/set-artefatto`} className="text-ink underline decoration-brand underline-offset-2 hover:text-brand-deep">
             {t.setVoce}
           </Link>
           .
         </p>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
-      </header>
+      </PageHeader>
 
       <CardBrowser game={game} cards={summaries} types={types} grades={grades} frame={data.images.small} />
 
-      <section id="pacchetti" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.pacchetti}</h2>
-        <p className="mt-2 max-w-[72ch] text-sm text-ink-2">{t.pacchettiIntro}</p>
-        <ul className="m-0 mt-4 grid list-none items-start gap-3 p-0 lg:grid-cols-2">
+      <section id="pacchetti" className="mt-16 scroll-mt-20 border-t border-rule pt-10">
+        <h2 className={cx(display, "text-[30px]")}>{t.pacchetti}</h2>
+        <p className="m-0 mt-2.5 max-w-[48ch] text-sm leading-relaxed text-ink-2">{t.pacchettiIntro}</p>
+        <ul className="m-0 mt-5 grid list-none items-start gap-3 p-0 lg:grid-cols-2">
           {packs.map(([id, pack]) => {
             const perGrade = new Map<number, number>();
             for (const entry of pack.cards) {
@@ -151,7 +148,7 @@ export default async function ArtifactCardsPage({ params }: Props) {
               if (grade) perGrade.set(grade, (perGrade.get(grade) ?? 0) + 1);
             }
             return (
-              <li key={id} className="min-w-0 rounded-card border border-rule bg-paper-2 p-3.5">
+              <li key={id} className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
                 <div className="flex items-start gap-3">
                   {pack.icon ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
@@ -165,7 +162,9 @@ export default async function ArtifactCardsPage({ params }: Props) {
                     />
                   ) : null}
                   <div className="min-w-0">
-                    <p className="m-0 text-[14px] font-semibold">{say(pack.name)}</p>
+                    <p className="m-0 font-display text-[16px] font-extrabold uppercase leading-snug tracking-[0.01em] [font-variation-settings:'wdth'_85]">
+                      {say(pack.name)}
+                    </p>
                     {pack.description ? <p className="m-0 mt-0.5 text-[12px] text-ink-3">{say(pack.description)}</p> : null}
                     <p className="m-0 mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-ink-2">
                       <span className="mr-1">{t.carteNelPacchetto(pack.cards.length)}</span>
@@ -180,8 +179,11 @@ export default async function ArtifactCardsPage({ params }: Props) {
                     </p>
                   </div>
                 </div>
-                <details className="mt-2">
-                  <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-brand">{t.elenco}</summary>
+                <details className="group/elenco mt-3 border-t border-rule-2 pt-2">
+                  <summary className="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-[13px] font-semibold text-ink-2 hover:text-ink [&::-webkit-details-marker]:hidden">
+                    <IconChevronRight size={14} className="transition-transform group-open/elenco:rotate-90" />
+                    {t.elenco}
+                  </summary>
                   <table className="mt-1.5 w-full border-collapse text-[13px]">
                     <tbody>
                       {[...pack.cards]
@@ -195,7 +197,7 @@ export default async function ArtifactCardsPage({ params }: Props) {
                               <td className="py-1 pr-2">
                                 <Link
                                   href={`/${game}/carte-artefatto/${card.id}`}
-                                  className="inline-flex items-center gap-1.5 underline-offset-2 hover:text-brand hover:underline"
+                                  className="inline-flex items-center gap-1.5 underline-offset-2 hover:text-brand-deep hover:underline"
                                 >
                                   <span className={cx(numeric, "text-[12px] text-ink-3")}>{cardCode(data, card, locale)}</span>
                                   {say(card.name)}
@@ -219,8 +221,8 @@ export default async function ArtifactCardsPage({ params }: Props) {
         </ul>
 
         {data.timePack ? (
-          <div className="mt-6 max-w-[72ch] rounded-card border border-rule bg-paper-2 p-4">
-            <h3 className="m-0 text-[15px] font-semibold">{t.tempo}</h3>
+          <Card className="mt-8 max-w-[72ch]">
+            <h3 className={cx(display, "m-0 text-[19px]")}>{t.tempo}</h3>
             {data.timePack.title ? <p className="m-0 mt-0.5 text-[12px] text-ink-3">{say(data.timePack.title)}</p> : null}
             <p className="m-0 mt-2 text-[13px] text-ink-2">
               {t.tempoIntro(data.timePack.cards, data.timePack.cost ? say(data.timePack.cost) : null)}
@@ -230,11 +232,14 @@ export default async function ArtifactCardsPage({ params }: Props) {
                 <GameText key={position} text={say(rule)} />
               ))}
             </div>
-          </div>
+          </Card>
         ) : null}
       </section>
 
-      <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
+      <div className="mt-12 grid gap-1 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
+        <p className="m-0">{t.fonte}</p>
+        <p className="m-0">{t.diritti(entry.publisher)}</p>
+      </div>
     </main>
   );
 }

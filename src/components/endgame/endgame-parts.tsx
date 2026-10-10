@@ -16,7 +16,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { readableColor } from "@/components/heroes/game-color";
 import { GameNotes, GameText } from "@/components/heroes/game-text";
-import { cx, eyebrow, numeric, Tag } from "@/components/ui";
+import { IconChevronRight } from "@/components/icons";
+import { chipClass, cx, display, eyebrow, numeric, Tag } from "@/components/ui";
 import {
   dropChance,
   endgameImageSrc,
@@ -278,6 +279,28 @@ export function RaceLabel({ code, scope }: { code: number | null; scope: Endgame
   );
 }
 
+/** L'icona dell'attributo col suo nome accanto: nelle targhette del palco, dove l'icona da sola non basta. */
+export function AttributeLabel({ code, scope }: { code: number | null; scope: EndgameScope }) {
+  if (code === null) return null;
+  const name = say(scope.attributes[String(code)], scope) || String(code);
+  return (
+    <span className="inline-flex items-center gap-1">
+      {hasIcon(scope, "attributo", String(code)) ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={gameIconSrc(scope.game, "attributo", code)}
+          alt=""
+          width={18}
+          height={18}
+          className="inline-block shrink-0"
+          style={{ width: 18, height: "auto" }}
+        />
+      ) : null}
+      {name}
+    </span>
+  );
+}
+
 /** L'icona che il gioco mette accanto alla passiva per dire dove si attiva. */
 export function ConditionIcon({ condition, scope, size = 18 }: { condition: string; scope: EndgameScope; size?: number }) {
   if (!hasIcon(scope, "condizione", condition)) return null;
@@ -299,12 +322,17 @@ export function skillKindLabel(kind: string, scope: EndgameScope): string {
   return TESTI[scope.locale].tipi[kind] ?? kind;
 }
 
-/** Il rango di una carta con le stelle del gioco, come i pulsanti della scheda eroe; senza l'icona, la sigla. */
-export function RankStars({ rank, scope }: { rank: number; scope: EndgameScope }) {
+/**
+ * Il rango di una carta con le stelle del gioco, come i pulsanti della scheda
+ * eroe; senza l'icona, la sigla. `label` per le stelle che non sono un rango
+ * (le Battaglie boss di uno Scontro finale): prima erano un «☆» scritto.
+ */
+export function RankStars({ rank, scope, label }: { rank: number; scope: EndgameScope; label?: string }) {
   const t = TESTI[scope.locale];
-  if (!hasIcon(scope, "carta", "stella")) return <span className={numeric}>R{rank}</span>;
+  const name = label ?? t.rango(rank);
+  if (!hasIcon(scope, "carta", "stella")) return <span className={numeric}>{label ? `${rank}` : `R${rank}`}</span>;
   return (
-    <span className="inline-flex items-center" title={t.rango(rank)}>
+    <span className="inline-flex items-center" title={label ? undefined : name}>
       {Array.from({ length: rank }, (_, star) => (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
@@ -316,7 +344,7 @@ export function RankStars({ rank, scope }: { rank: number; scope: EndgameScope }
           className="h-auto w-[12px]"
         />
       ))}
-      <span className="sr-only">{t.rango(rank)}</span>
+      <span className="sr-only">{name}</span>
     </span>
   );
 }
@@ -347,14 +375,14 @@ export function ItemLabel({
           width={size}
           height={size}
           loading="lazy"
-          className="shrink-0 rounded-[2px] bg-paper-2"
+          className="shrink-0 bg-paper-2"
           style={{ width: size, height: size }}
         />
       ) : null}
       {scope.artifactCards.has(id) ? (
         <Link
           href={`/${scope.game}/carte-artefatto/${id}`}
-          className="min-w-0 text-brand underline-offset-2 hover:underline"
+          className="min-w-0 text-brand-deep underline-offset-2 hover:underline"
           lang={langOf(item?.name, scope)}
         >
           {name}
@@ -456,9 +484,13 @@ export function DropTable({
   );
 }
 
-/** La nota sotto le probabilita': si dice una volta per pagina, non sotto ogni tabella. */
+/**
+ * La nota sulle probabilita': si dice una volta per pagina, non sotto ogni
+ * tabella, e sta nel «Da dove vengono i dati» in fondo (10/10), da cui prende
+ * la forma del testo.
+ */
 export function DropNote({ scope }: { scope: EndgameScope }) {
-  return <p className="m-0 text-[12px] text-ink-3">{TESTI[scope.locale].probabilitaNota}</p>;
+  return <p>{TESTI[scope.locale].probabilitaNota}</p>;
 }
 
 /* -------------------------------------------------------------- nemici -- */
@@ -495,7 +527,7 @@ export function FoeCard({
   const name = sayPlain(monster.name, scope) || fallbackName;
 
   return (
-    <div className="min-w-0 rounded-card border border-rule bg-paper p-3">
+    <div className="p5-corner min-w-0 border border-rule bg-paper p-3 sm:p-4">
       <div className="flex min-w-0 items-start gap-3">
         {monster.icon ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -505,11 +537,11 @@ export function FoeCard({
             width={56}
             height={56}
             loading="lazy"
-            className="h-14 w-14 shrink-0 rounded-[3px] bg-paper-2"
+            className="h-14 w-14 shrink-0 bg-paper-2"
           />
         ) : null}
         <div className="min-w-0 flex-1">
-          {heading ? <p className={cx(eyebrow, "m-0")}>{heading}</p> : null}
+          {heading ? <Tag className="mb-1.5">{heading}</Tag> : null}
           <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[15px] font-semibold leading-tight">
             <span lang={langOf(monster.name, scope)} title={monster.nameDeduced ? t.nomeDedotto : undefined}>
               {name || t.senzaNome}
@@ -533,9 +565,9 @@ export function FoeCard({
       */}
       {foe.extraPassives?.length ? (
         <details className="mt-2.5" open={foe.extraPassives.length <= 2}>
-          <summary className={cx(eyebrow, "cursor-pointer hover:text-brand")}>
+          <Summary className={eyebrow}>
             {t.passiveDellaFase} ({foe.extraPassives.length})
-          </summary>
+          </Summary>
           <div className="mt-1.5">
             <PassiveList ids={foe.extraPassives} scope={scope} />
           </div>
@@ -544,7 +576,7 @@ export function FoeCard({
 
       {monster.skills.length > 0 ? (
         <details className="mt-2.5" open={open}>
-          <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-brand">{t.abilita(monster.skills.length)}</summary>
+          <Summary>{t.abilita(monster.skills.length)}</Summary>
           {monster.draw ? <p className="m-0 mt-1.5 text-[12px] text-ink-3">{t.pesca(monster.draw.a, monster.draw.b)}</p> : null}
           <ul className="m-0 mt-2 grid list-none gap-2.5 p-0">
             {monster.skills.map((skill, index) => (
@@ -558,10 +590,10 @@ export function FoeCard({
 
       {monster.passives.length > 0 || monster.hiddenPassives > 0 ? (
         <details className="mt-1.5">
-          <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-brand">
+          <Summary>
             {t.passive(monster.passives.length)}
             {monster.hiddenPassives > 0 ? ` ${t.nascoste(monster.hiddenPassives)}` : null}
-          </summary>
+          </Summary>
           <div className="mt-2">
             <PassiveList ids={monster.passives} scope={scope} />
           </div>
@@ -597,7 +629,7 @@ function FoeStats({ foe, scope }: { foe: EndgameFoe; scope: EndgameScope }) {
           <Tag>{t.stima}</Tag>
         </span>
       </p>
-      <p className={cx(numeric, "m-0 mt-0.5 text-[11px] text-ink-3")}>{multipliers}</p>
+      <p className={cx(numeric, "m-0 mt-0.5 text-[12px] text-ink-3")}>{multipliers}</p>
     </div>
   );
 }
@@ -652,7 +684,7 @@ function SkillRow({ skill, scope }: { skill: EndgameSkill; scope: EndgameScope }
           width={32}
           height={64}
           loading="lazy"
-          className="h-16 w-8 shrink-0 rounded-[2px] bg-paper-2 object-cover"
+          className="h-16 w-8 shrink-0 bg-paper-2 object-cover"
         />
       ) : null}
       <div className="min-w-0 flex-1 text-[13px] leading-snug">
@@ -660,7 +692,7 @@ function SkillRow({ skill, scope }: { skill: EndgameSkill; scope: EndgameScope }
           <span className="font-semibold" lang={langOf(skill.name, scope)}>
             {sayPlain(skill.name, scope) || t.slot[skill.slot]}
           </span>
-          <span className={cx(eyebrow, "text-[10px]")}>{t.slot[skill.slot]}</span>
+          <span className={cx(eyebrow, "text-[12px]")}>{t.slot[skill.slot]}</span>
           {kind ? <Tag>{kind}</Tag> : null}
         </p>
         {distinct.length <= 1 ? (
@@ -672,7 +704,7 @@ function SkillRow({ skill, scope }: { skill: EndgameSkill; scope: EndgameScope }
             {texts.map((text, index) =>
               text ? (
                 <li key={index} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2">
-                  <span className={cx(numeric, "pt-px text-[11px] text-ink-3")} title={t.rango(index + 1)}>
+                  <span className={cx(numeric, "pt-px text-[12px] text-ink-3")} title={t.rango(index + 1)}>
                     R{index + 1}
                   </span>
                   <GameText text={text} omitNotes className="[&>p]:m-0" />
@@ -718,7 +750,7 @@ export function HeroChip({ id, scope, meta }: { id: string; scope: EndgameScope;
   return (
     <Link
       href={`/${scope.game}/eroi/${hero.id}`}
-      className="group flex min-w-0 items-center gap-2.5 rounded-card border border-rule bg-paper p-1.5 transition-colors hover:border-ink-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      className="group flex min-w-0 items-center gap-2.5 border border-rule bg-paper p-1.5 transition-colors hover:border-ink-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -729,16 +761,16 @@ export function HeroChip({ id, scope, meta }: { id: string; scope: EndgameScope;
         height={44}
         loading="lazy"
         decoding="async"
-        className="h-11 w-11 shrink-0 rounded-[3px] bg-paper-2"
+        className="h-11 w-11 shrink-0 bg-paper-2"
       />
       <span className="min-w-0">
         <span
-          className="block truncate text-[11px] leading-tight text-ink-3"
+          className="block truncate text-[12px] leading-tight text-ink-3"
           style={affinity ? { color: affinity.color } : undefined}
         >
           {heroEpithet(hero, scope.locale)}
         </span>
-        <span className="block text-[13px] font-semibold leading-tight group-hover:text-brand">
+        <span className="block text-[13px] font-semibold leading-tight group-hover:text-brand-deep">
           {heroName(hero, scope.locale)}
         </span>
         {meta}
@@ -816,12 +848,15 @@ export function DifficultyLinks({
   current: number;
 }) {
   if (tabs.length === 0) return null;
+  // La forma delle scelte del sito (chipClass, «quiet»: una difficolta' c'e'
+  // sempre, quindi bianca quando e' scelta, non rossa come un filtro). Il colore
+  // del gioco passa dal testo al quadratino: sul bianco della scelta e del
+  // passaggio un testo azzurro o arancione non si leggeva (10/10). Il titolo
+  // visibile lo mette la sezione; qui resta il nome per chi non vede.
   return (
     <nav aria-label={legend}>
-      <p className={cx(eyebrow, "m-0 mb-1.5")}>{legend}</p>
       <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
         {tabs.map((tab, index) => {
-          const color = tab.color ? readableColor(tab.color) : undefined;
           const active = index === current;
           return (
             <li key={tab.href}>
@@ -829,12 +864,10 @@ export function DifficultyLinks({
                 href={tab.href}
                 scroll={false}
                 aria-current={active ? "true" : undefined}
-                className={cx(
-                  "inline-flex h-9 items-center rounded-card border px-3 text-[13px] font-semibold transition-colors",
-                  active ? "border-brand bg-brand-soft" : "border-rule bg-paper hover:border-ink-3",
-                )}
+                className={chipClass(active, true, "text-[13px]")}
               >
-                <span style={color ? { color } : undefined}>{tab.label}</span>
+                <LevelSwatch color={tab.color} />
+                {tab.label}
               </Link>
             </li>
           );
@@ -844,7 +877,109 @@ export function DifficultyLinks({
   );
 }
 
+/** Il colore che il gioco da' a una difficolta' o a un piano, in un quadratino tagliato. */
+export function LevelSwatch({ color }: { color: string | null }) {
+  if (!color) return null;
+  return (
+    <span
+      aria-hidden
+      className="p5-cut-sm inline-block h-3 w-3.5 shrink-0"
+      style={{ backgroundColor: readableColor(color) }}
+    />
+  );
+}
+
+/**
+ * Il nome di una difficolta' nella tabella di confronto, che porta alla
+ * difficolta' come i pulsanti: la riga che si sta leggendo e' gia' la scelta.
+ */
+export function LevelCell({
+  label,
+  color,
+  href,
+  active,
+}: {
+  label: string;
+  color: string | null;
+  href: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={active ? "true" : undefined}
+      className={cx(
+        "inline-flex min-h-9 items-center gap-2 font-semibold underline-offset-4 hover:underline",
+        active ? "text-ink" : "text-ink-2 hover:text-ink",
+      )}
+    >
+      <LevelSwatch color={color} />
+      {label}
+    </Link>
+  );
+}
+
 /* ------------------------------------------------------------- impaginazione -- */
+
+/**
+ * Il riassunto di un `<details>`: la freccia disegnata del sito al posto del
+ * triangolo del browser, come in «Come funziona» (ui.tsx). La freccia gira solo
+ * col SUO details aperto: un `group-open` girerebbe anche quelle dei details
+ * chiusi dentro uno aperto (le carte dei nemici dentro un gruppo).
+ */
+export function Summary({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  /** misura e colore del testo; senza, quelli delle righe «5 abilità» */
+  className?: string;
+}) {
+  return (
+    <summary
+      className={cx(
+        "flex min-h-8 cursor-pointer list-none items-center gap-1.5 hover:text-ink [&::-webkit-details-marker]:hidden",
+        className ?? "text-[13px] text-ink-2",
+      )}
+    >
+      <IconChevronRight size={14} className="shrink-0 transition-transform [details[open]>summary>&]:rotate-90" />
+      <span className="min-w-0">{children}</span>
+    </summary>
+  );
+}
+
+/**
+ * I salti dentro una pagina lunga, nella forma delle scelte del sito: la
+ * Divinita' Suprema arriva a nove schermi, e le parti della difficolta' scelta
+ * stavano tutte sotto la tabella.
+ */
+export function InPageNav({ label, links }: { label: string; links: readonly (readonly [string, string] | null | false)[] }) {
+  const shown = links.filter((link): link is readonly [string, string] => !!link);
+  if (shown.length === 0) return null;
+  return (
+    <nav aria-label={label} className="mb-10">
+      <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
+        {shown.map(([href, text]) => (
+          <li key={href}>
+            <a href={href} className={chipClass(false, true)}>
+              {text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+/** Il titolo di una sezione della pagina: la voce di Persona, piu' spazio sopra che sotto. */
+export function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
+  return (
+    <h2 id={id} className={cx(display, "m-0 mb-5 scroll-mt-20 text-[clamp(24px,3vw,32px)]")}>
+      {children}
+    </h2>
+  );
+}
 
 /**
  * Righe di fatti: etichetta e valore, in una griglia a due colonne. Sul
@@ -866,10 +1001,13 @@ export function Facts({ rows }: { rows: readonly (readonly [string, ReactNode] |
   );
 }
 
-/** Il titolo di una parte dentro una sezione. */
+/** Il titolo di una parte dentro una sezione: la voce dei comandi, piu' piccola del titolo di sezione. */
 export function PartTitle({ children, id }: { children: ReactNode; id?: string }) {
   return (
-    <h3 id={id} className="m-0 mb-2.5 scroll-mt-20 text-[15px] font-semibold">
+    <h3
+      id={id}
+      className="m-0 mb-3 scroll-mt-20 font-display text-[17px] font-extrabold uppercase leading-tight tracking-[0.02em] [font-variation-settings:'wdth'_85]"
+    >
       {children}
     </h3>
   );

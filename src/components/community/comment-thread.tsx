@@ -113,16 +113,16 @@ function CommentItem({
         />
 
         <div className="min-w-0 flex-1">
-          <p className="m-0 mb-1 flex flex-wrap items-center gap-2 text-[11px] text-ink-3">
+          <p className="m-0 mb-1 flex flex-wrap items-center gap-2 text-[12px] text-ink-3">
             <Link
               href={`/u/${comment.author.username}`}
               className="inline-flex items-center gap-1.5 font-medium text-ink-2 hover:text-ink"
             >
-              <span className="size-[7px] flex-none rounded-full bg-[var(--accent)]" aria-hidden />
+              <span className="size-[7px] flex-none bg-[var(--accent)] [clip-path:polygon(2px_0,100%_0,calc(100%-2px)_100%,0_100%)]" aria-hidden />
               {comment.author.displayName}
             </Link>
             {comment.author.role !== "USER" ? (
-              <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--accent)]">
+              <span className="font-mono text-[11px] uppercase tracking-[0.09em] text-[var(--accent)]">
                 {roleLabel(comment.author.role, locale)}
               </span>
             ) : null}

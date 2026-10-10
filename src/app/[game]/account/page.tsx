@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { GameAccountEditor, type ChallengeHero } from "@/components/game-account/game-account-editor";
-import { cx, display, eyebrow } from "@/components/ui";
+import { IconChevronRight } from "@/components/icons";
+import { cx, display, PageHeader } from "@/components/ui";
 import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
 import {
@@ -35,24 +37,33 @@ import { getLocale } from "@/lib/i18n/server";
  *
  * Salvato nel browser, e per chi e' entrato anche nel database (`AccountSync` nel
  * guscio delle pagine del gioco).
+ *
+ * In cima, prima dei campi, la porta per «I tuoi eroi» (il box): chiesta
+ * dall'utente il 10/10, perche' dall'account non ci si arrivava se non dal menu.
  */
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Il mio account di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Il mio account di ${gioco}`,
     descrizione: (gioco: string) =>
       `${gioco}: il tuo account di gioco sul sito, con la classe di combattimento dell'account, le costellazioni e la verifica della classe.`,
     titolo: "Il mio account",
     introduzione:
       "Il tuo account del gioco, sul sito: chi sei, la classe di combattimento dell'account e le costellazioni. Le schede degli eroi le usano per le statistiche in battaglia, e la classe verificata compare sul tuo profilo.",
+    box: "I tuoi eroi",
+    boxRiga: "Il tuo box: chi hai nel gioco e a che punto è. Le schede degli eroi partono dai tuoi numeri.",
+    apriBox: "Apri il box",
   },
   en: {
-    titoloPagina: (gioco: string) => `My ${gioco} account · GachaZone`,
+    titoloPagina: (gioco: string) => `My ${gioco} account`,
     descrizione: (gioco: string) =>
       `${gioco}: your game account on the site, with the Account Combat Class, the constellations and the class verification.`,
     titolo: "My account",
     introduzione:
       "Your game account, on the site: who you are, the Account Combat Class and the constellations. The hero pages use them for in-battle stats, and the verified class appears on your profile.",
+    box: "Your heroes",
+    boxRiga: "Your box: who you have in the game and how far along. The hero pages start from your numbers.",
+    apriBox: "Open the box",
   },
 });
 
@@ -100,17 +111,57 @@ export default async function GameAccountPage({ params }: Props) {
     if (hero) heroes[id] = { name: heroName(hero, locale), epithet: heroEpithet(hero, locale), card: heroCardSrc(game, id) };
   }
 
+  // le card della porta del box: gli ultimi eroi usciti, come la prima fila della griglia Eroi
+  const boxCards = roster.heroes.slice(0, 4);
+
   return (
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[68ch] text-sm text-ink-2">{t.introduzione}</p>
-      </header>
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione}</p>
+      </PageHeader>
 
       <div className="max-w-[860px]">
+        {/*
+          La porta del box: tutta la fascia e' il collegamento, con la lama rossa e
+          le card come il palco della griglia Eroi. Sta sopra i campi perche' e'
+          quello che si apre piu' spesso; i campi si scrivono una volta.
+        */}
+        <Link
+          href={`/${game}/account/eroi`}
+          className="group relative isolate mb-5 flex min-h-[132px] items-center gap-4 overflow-hidden border border-rule bg-paper-2 p-4 text-ink no-underline transition-colors hover:border-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 sm:p-5"
+        >
+          <span
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-[radial-gradient(color-mix(in_srgb,var(--color-brand)_34%,transparent)_1.1px,transparent_1.8px)] bg-[length:8px_8px] [mask-image:linear-gradient(110deg,transparent_30%,#000_100%)]"
+          />
+          <span aria-hidden className="absolute inset-0 -z-10 bg-brand [clip-path:polygon(72%_0,100%_0,100%_100%,60%_100%)] sm:[clip-path:polygon(66%_0,100%_0,100%_100%,54%_100%)]" />
+          <span className="min-w-0 flex-1">
+            <span className={cx(display, "block text-[clamp(24px,3.4vw,34px)]")}>{t.box}</span>
+            <span className="mt-1.5 block max-w-[46ch] text-[13px] leading-snug text-ink-2">{t.boxRiga}</span>
+            <span className="p5-cut mt-3 inline-flex h-9 items-center gap-1.5 bg-ink px-4 font-display text-[13px] font-extrabold tracking-[0.03em] text-paper uppercase [font-variation-settings:'wdth'_85] transition-colors group-hover:bg-brand group-hover:text-white">
+              {t.apriBox}
+              <IconChevronRight size={14} />
+            </span>
+          </span>
+          {/* le card in fila, sovrapposte: solo da 640px, sul telefono la fascia resta testo e comando */}
+          <span aria-hidden className="hidden shrink-0 sm:flex">
+            {boxCards.map((hero, i) => (
+              // eslint-disable-next-line @next/next/no-img-element -- card gia' pronte in due densita'
+              <img
+                key={hero.id}
+                src={heroCardSrc(game, hero.id)}
+                srcSet={`${heroCardSrc(game, hero.id)} 1x, ${heroCardSrc(game, hero.id, 2)} 2x`}
+                alt=""
+                width={76}
+                height={76}
+                className={cx("block h-[76px] w-[76px] bg-paper-2 shadow-[4px_4px_0_var(--color-paper)] transition-transform group-hover:-translate-y-0.5", i > 0 && "-ml-5")}
+              />
+            ))}
+          </span>
+        </Link>
+
         <GameAccountEditor
           gameSlug={game}
           locale={locale}

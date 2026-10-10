@@ -22,8 +22,8 @@ export async function SponsorSlot({ items }: { items: readonly SponsorItem[] }) 
   const t = TESTI[await getLocale()];
 
   return (
-    <aside className="rounded-card border border-dashed border-rule p-4" aria-label={t.contenuto}>
-      <span className="mb-2.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-ink-3">
+    <aside className="p5-corner border border-rule bg-paper-2 p-4" aria-label={t.contenuto}>
+      <span className="mb-2.5 block font-mono text-[11px] uppercase tracking-[0.14em] text-ink-3">
         {t.etichetta}
       </span>
 
@@ -40,7 +40,7 @@ export async function SponsorSlot({ items }: { items: readonly SponsorItem[] }) 
             {item.title}
           </a>
           {item.body ? <p className="mt-1.5 text-xs leading-relaxed text-ink-3">{item.body}</p> : null}
-          <span className="mt-2 block font-mono text-[10px] text-ink-3">{item.advertiser}</span>
+          <span className="mt-2 block font-mono text-[11px] text-ink-3">{item.advertiser}</span>
         </div>
       ))}
     </aside>

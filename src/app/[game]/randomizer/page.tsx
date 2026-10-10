@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { TeamRandomizer, type RandomizerHero } from "@/components/randomizer/team-randomizer";
-import { cx, display, eyebrow } from "@/components/ui";
+import { HowItWorks, PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { isCollab, unicaLeaders } from "@/lib/games/randomizer";
@@ -26,7 +26,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Randomizer di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Randomizer di ${gioco}`,
     descrizione: (gioco: string) =>
       `${gioco}: quattro eroi e i loro eroi associati pescati a caso, anche con le Uniche dei quattro in campo in sinergia.`,
     titolo: "Randomizer",
@@ -41,7 +41,7 @@ const TESTI = testi({
       `«Senza collaborazioni» toglie da tutti e otto i posti gli eroi che il gioco segna come collaborazione: ${eroi} eroi, ${personaggi} personaggi.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Randomizer · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Randomizer`,
     descrizione: (gioco: string) =>
       `${gioco}: four heroes and their associated heroes drawn at random, also with the Uniques of the four on the field in synergy.`,
     titolo: "Randomizer",
@@ -109,20 +109,18 @@ export default async function RandomizerPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[68ch] text-sm text-ink-2">{t.introduzione}</p>
-      </header>
+      {/* il titolo e cosa fa; poi subito il sorteggio, e le regole in fondo, chiuse (10/10) */}
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione}</p>
+      </PageHeader>
 
       <TeamRandomizer game={game} heroes={heroes} leaders={leaders} groups={groups} fates={heroFates} />
 
-      <section className="mt-12 max-w-[68ch] border-t border-rule pt-5 text-sm text-ink-2">
-        <h2 className={cx(eyebrow, "m-0")}>{t.comeFunziona}</h2>
-        <p className="mt-2.5">{t.sinergia(new Set(leaders.map((leader) => leader.hero)).size)}</p>
-        <p className="mt-2">{t.esclusi}</p>
-        <p className="mt-2">{t.collab(collab.length, new Set(collab.map((hero) => hero.group)).size)}</p>
-      </section>
+      <HowItWorks summary={t.comeFunziona} className="mt-12 max-w-[1100px]">
+        <p>{t.sinergia(new Set(leaders.map((leader) => leader.hero)).size)}</p>
+        <p>{t.esclusi}</p>
+        <p>{t.collab(collab.length, new Set(collab.map((hero) => hero.group)).size)}</p>
+      </HowItWorks>
     </main>
   );
 }

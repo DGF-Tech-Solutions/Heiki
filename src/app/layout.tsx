@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Archivo, Atkinson_Hyperlegible_Next, DM_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
+import { BackToTop } from "@/components/back-to-top";
 import { CookieBanner } from "@/components/cookie-banner";
+import { gameGroups, listGames } from "@/lib/games/catalog";
 import { LocaleProvider } from "@/lib/i18n/client";
 import { ogLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -19,8 +21,12 @@ import "./globals.css";
  * Sans, che sul fondo a retino del tema Persona si leggeva peggio). DM Mono e'
  * riservato ai numeri: in un sito che vende calcoli le cifre devono
  * incolonnarsi, e il monospaziato le distingue subito dalla prosa.
+ *
+ * `axes: ["wdth"]`: next/font di suo scarica solo il peso, e fino al 10/10 il
+ * file servito aveva `font-stretch: 100%`. Tutti i `'wdth' 75-85` dei titoli
+ * non stringevano niente: i titoli «stretti» erano larghi quanto il testo.
  */
-const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo", display: "swap" });
+const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo", display: "swap", axes: ["wdth"] });
 const bodyFace = Atkinson_Hyperlegible_Next({
   subsets: ["latin"],
   variable: "--font-atkinson",
@@ -109,11 +115,39 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <div id="contenuto">{children}</div>
 
-          <footer className="border-t-[3px] border-brand bg-paper pt-7 pb-10 text-xs text-ink-3">
+          {/*
+            Il pie' di pagina ripete le sezioni dei giochi (10/10): prima aveva solo
+            le voci legali, e da fondo pagina non si andava da nessuna parte. Sul
+            telefono lascia lo spazio della barra in basso.
+          */}
+          <footer className="border-t-[3px] border-brand bg-paper pt-8 pb-10 text-xs text-ink-3 max-lg:pb-24">
             <div className="mx-auto w-full max-w-shell px-6">
-              <nav aria-label={t.collegamenti} className="mb-4 flex flex-wrap gap-4">
+              {listGames()
+                .filter((game) => game.available)
+                .map((game) => (
+                  <nav key={game.slug} aria-label={game.name} className="mb-7 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
+                    {gameGroups(game.slug, locale).map((group) => (
+                      <div key={group.label}>
+                        <p className="m-0 mb-2 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3">{group.label}</p>
+                        <ul className="m-0 grid list-none gap-1 p-0">
+                          {group.items.map((item) => (
+                            <li key={item.path}>
+                              <Link
+                                href={`/${game.slug}${item.path}`}
+                                className="font-display text-[13px] font-extrabold uppercase text-ink-2 [font-variation-settings:'wdth'_85] hover:text-brand-deep"
+                              >
+                                {item.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </nav>
+                ))}
+              <nav aria-label={t.collegamenti} className="mb-4 flex flex-wrap gap-4 border-t border-rule-2 pt-4">
                 {t.footer.map((link) => (
-                  <Link key={link.href} href={link.href} className="font-medium hover:text-brand">
+                  <Link key={link.href} href={link.href} className="font-medium hover:text-brand-deep">
                     {link.label}
                   </Link>
                 ))}
@@ -124,6 +158,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </footer>
 
           <CookieBanner />
+          <BackToTop />
         </LocaleProvider>
       </body>
     </html>

@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { GameText } from "@/components/heroes/game-text";
+import { cx, display } from "@/components/ui";
 import {
   GuessControls,
   GuessEnd,
@@ -146,10 +147,10 @@ export function PuzzleGuess({
       {/* quello da indovinare */}
       {answer ? (
         <section className="mt-5 max-w-[640px]">
-          <h2 className="m-0 text-[15px] font-semibold text-ink">{t.domanda[kind]}</h2>
+          <h2 className={cx(display, "m-0 text-[clamp(20px,2.6vw,26px)]")}>{t.domanda[kind]}</h2>
           {kind === "carta" && card ? (
             <figure className="m-0 mt-3">
-              <div className="overflow-hidden rounded-[4px] border border-rule bg-paper-2 w-fit">
+              <div className="w-fit overflow-hidden border border-rule bg-paper-2 shadow-[5px_5px_0_var(--color-brand)]">
                 <MosaicImage
                   src={heroCardArtSrc(game, answer.id, card.sprite)}
                   width={180}
@@ -168,7 +169,7 @@ export function PuzzleGuess({
             </figure>
           ) : null}
           {kind === "unica" ? (
-            <div className="mt-3 grid h-[148px] w-[148px] place-items-center rounded-[4px] border border-rule bg-paper-2">
+            <div className="mt-3 grid h-[148px] w-[148px] place-items-center border border-rule bg-paper-2 shadow-[5px_5px_0_var(--color-brand)]">
               {answer.uniqueIcon ? (
                 <MosaicImage
                   src={heroSkillIconSrc(game, answer.id)}
@@ -196,7 +197,7 @@ export function PuzzleGuess({
             </label>
           ) : null}
           {kind === "testo" && answer.text ? (
-            <div className="mt-3 rounded-card border border-rule bg-paper-2 p-4 text-[14px] leading-relaxed text-ink-2">
+            <div className="p5-corner mt-3 border border-rule bg-paper-2 p-4 text-[14px] leading-relaxed text-ink-2">
               <GameText text={answer.text} />
               {answer.text.includes("???") ? <p className="m-0 mt-2 text-[12px] text-ink-3">{t.nascosto}</p> : null}
             </div>

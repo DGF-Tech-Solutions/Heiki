@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { cx, numeric } from "@/components/ui";
 import type { Costume, CostumeKind, ItemIconLayers } from "@/lib/games/gear-types";
 import {
@@ -110,7 +110,7 @@ export function CostumePanel({
         type="button"
         aria-pressed={active}
         onClick={() => setSelected({ kind, index: i })}
-        className={cx("rounded-[4px] p-0.5", active ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
+        className={cx("p-0.5", active ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
       >
         {choice && costume ? (
           <ItemIcon
@@ -127,7 +127,7 @@ export function CostumePanel({
           <span
             role="img"
             aria-label={`${label}: ${t.vuoto}`}
-            className="grid h-[52px] w-[52px] place-items-center rounded-[6px] border border-dashed border-rule bg-paper text-[18px] text-ink-3"
+            className="grid h-[52px] w-[52px] place-items-center border border-dashed border-rule bg-paper text-[18px] text-ink-3"
           >
             +
           </span>
@@ -158,7 +158,7 @@ export function CostumePanel({
                 type="button"
                 aria-pressed={selected === "relic"}
                 onClick={() => setSelected("relic")}
-                className={cx("rounded-[4px] p-0.5", selected === "relic" ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
+                className={cx("p-0.5", selected === "relic" ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
               >
                 <RelicThumb game={game} data={data} relic={build.relic} label={t.reliquia} empty={t.vuoto} />
               </button>
@@ -206,7 +206,7 @@ function RelicThumb({
       <span
         role="img"
         aria-label={`${label}: ${empty}`}
-        className="grid h-[52px] w-[52px] place-items-center rounded-[6px] border border-dashed border-rule bg-paper text-[18px] text-ink-3"
+        className="grid h-[52px] w-[52px] place-items-center border border-dashed border-rule bg-paper text-[18px] text-ink-3"
       >
         +
       </span>
@@ -214,9 +214,9 @@ function RelicThumb({
   }
   return found.image ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={`/eroi/${game}/reliquie/${found.id}.png`} alt={label} width={52} height={52} className="h-[52px] w-[52px] rounded-[6px] bg-paper object-contain" />
+    <img src={`/eroi/${game}/reliquie/${found.id}.png`} alt={label} width={52} height={52} className="h-[52px] w-[52px] bg-paper object-contain" />
   ) : (
-    <span className="grid h-[52px] w-[52px] place-items-center rounded-[6px] bg-paper text-[11px] text-ink-2">{label}</span>
+    <span className="grid h-[52px] w-[52px] place-items-center bg-paper text-[12px] text-ink-2">{label}</span>
   );
 }
 
@@ -232,7 +232,8 @@ function RelicEditor({
   locale: Locale;
 }) {
   const t = TESTI[locale];
-  const id = useId();
+  // id fissi, non useId(): vedi stat-calculator.tsx
+  const id = "calc-reliquia";
   const found = relic ? data.relics.find((r) => r.id === relic.id) : undefined;
   return (
     <div className="grid gap-3 border-t border-rule pt-3">
@@ -282,7 +283,8 @@ function CostumeEditor({
   locale: Locale;
 }) {
   const t = TESTI[locale];
-  const id = useId();
+  // id fissi, non useId(): vedi stat-calculator.tsx
+  const id = `calc-costume-${kind}-${slot}`;
   const index = costumeIndexOf(data);
   const choice = build[kind][slot] ?? null;
   const costume = choice ? data.costumes.items[choice.id] : undefined;
@@ -343,7 +345,7 @@ function CostumeEditor({
                   type="button"
                   disabled={already}
                   onClick={() => put({ id: cid, step: costumeMaxStep(index, other) })}
-                  className="flex w-full items-center gap-2 rounded-[4px] p-1 text-left hover:bg-paper-3 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="flex w-full items-center gap-2 p-1 text-left hover:bg-paper-3 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <ItemIcon
                     game={game}
@@ -357,7 +359,7 @@ function CostumeEditor({
                   />
                   <span className="min-w-0">
                     <span className="block truncate text-[12px] text-ink">{costumeName(other, cid, locale)}</span>
-                    <span className="block text-[11px] leading-tight text-ink-3">
+                    <span className="block text-[12px] leading-tight text-ink-3">
                       {already ? t.registrato : percentsText(other, locale)}
                     </span>
                   </span>

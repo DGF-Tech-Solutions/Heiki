@@ -123,9 +123,11 @@ export type TermIds = (en: string, shown: string) => readonly (string | null)[] 
  * blu di un testo, e quali bersagli ha la pagina.
  *
  * Il legame e' sul testo INGLESE (e' quello che la pipeline ha letto); il testo
- * mostrato, se e' la traduzione, si lega per posizione, e solo se ha tante
- * parole blu quante l'inglese. Se no le sue parole restano testo: meglio una
- * parola che non si clicca che una che apre l'elenco di un'altra.
+ * mostrato, se e' la traduzione, prende il legame che l'import ha fatto parola
+ * per parola (`italian`). Fino al 10/10 era per posizione, e dove il gioco in
+ * italiano colora parole diverse la tendina finiva sulla parola sbagliata. Una
+ * parola senza legame resta testo: meglio una parola che non si clicca che una
+ * che apre l'elenco di un'altra.
  */
 export function termResolver(index: HeroTermsIndex | undefined): {
   ids: TermIds;
@@ -134,10 +136,16 @@ export function termResolver(index: HeroTermsIndex | undefined): {
   const targetsOf = (en: string) =>
     (index?.texts[textKey(en)] ?? []).filter((target): target is string => target !== null);
   const ids: TermIds = (en, shown) => {
-    const targets = index?.texts[textKey(en)];
+    const enKey = textKey(en);
+    const targets = index?.texts[enKey];
     if (!targets) return undefined;
-    if (shown !== en && termWords(shown).length !== targets.length) return undefined;
-    return targets.map((target) => (target ? targetId(target) : null));
+    const asIds = targets.map((target) => (target ? targetId(target) : null));
+    if (shown === en) return asIds;
+    const link = index?.italian[`${enKey}:${textKey(shown)}`];
+    // il conteggio deve tornare: un testo mostrato diverso da quello importato
+    // (una patch a meta') non si lega a caso
+    if (!link || link.length !== termWords(shown).length) return undefined;
+    return link.map((j) => (j >= 0 ? (asIds[j] ?? null) : null));
   };
   return { ids, targetsOf };
 }
@@ -347,7 +355,7 @@ export function HeroTermPopovers({
           {section.stacking.length === 1
             ? t.regola(section.stacking[0]!)
             : section.stacking.map((s) => `${t.regola(s)} (${t.carte(s.cards)})`).join(" · ")}{" "}
-          <Link href={`/${game}/meccaniche#cumulo`} className="text-brand hover:underline">
+          <Link href={`/${game}/meccaniche#cumulo`} className="text-brand-deep hover:underline">
             {t.comeSiCumula} →
           </Link>
         </p>
@@ -399,7 +407,7 @@ export function HeroTermPopovers({
                   hidden
                   placeholder={t.cerca}
                   aria-label={t.cercaEtichetta}
-                  className="tendina-cerca mt-2 h-8 w-full rounded-[3px] border border-rule bg-paper px-2.5 text-[13px] text-ink placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-brand"
+                  className="tendina-cerca mt-2 h-8 w-full border border-rule bg-paper px-2.5 text-[13px] text-ink placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-brand"
                 />
               ) : null}
             </header>
@@ -418,7 +426,7 @@ export function HeroTermPopovers({
                   ) : (
                     // Le classi stanno sull'elenco e non su ogni riga: gli elenchi
                     // arrivano a 163 eroi (gli Umani), e ogni byte si ripete
-                    <ul className="m-0 list-none p-1.5 [&_a]:flex [&_a]:items-center [&_a]:gap-2.5 [&_a]:rounded-[3px] [&_a]:px-2 [&_a]:py-1.5 [&_a:hover]:bg-paper [&_img]:h-10 [&_img]:w-10 [&_img]:shrink-0 [&_img]:rounded-[3px] [&_img]:bg-paper">
+                    <ul className="m-0 list-none p-1.5 [&_a]:flex [&_a]:items-center [&_a]:gap-2.5 [&_a]:[&_a]:px-2 [&_a]:py-1.5 [&_a:hover]:bg-paper [&_img]:h-10 [&_img]:w-10 [&_img]:shrink-0 [&_img]:[&_img]:bg-paper">
                       {section.rows.map(({ hero, places }) => {
                         const current = hero.id === heroId;
                         return (
@@ -468,7 +476,7 @@ export function HeroTermPopovers({
                   ) : null}
                   {section.grid ? (
                     <p className="m-0 px-3.5 pb-3 text-[12px]">
-                      <Link href={section.grid} className="text-brand hover:underline">
+                      <Link href={section.grid} className="text-brand-deep hover:underline">
                         {t.griglia}
                       </Link>
                     </p>

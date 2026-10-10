@@ -227,7 +227,7 @@ export default async function PremiumPage() {
                 {t.opzioniAperte}{" "}
                 <Link
                   href="/impostazioni/profilo"
-                  className="font-semibold text-brand hover:underline"
+                  className="font-semibold text-brand-deep hover:underline"
                 >
                   {t.personalizzaIlProfiloLink}
                 </Link>
@@ -293,7 +293,7 @@ export default async function PremiumPage() {
 
         <p className="mt-4 text-[13px] text-ink-3">
           {t.opzioniBase}{" "}
-          <Link href="/anteprima/profilo" className="font-semibold text-brand hover:underline">
+          <Link href="/anteprima/profilo" className="font-semibold text-brand-deep hover:underline">
             {t.guardaUnProfilo}
           </Link>
           .
@@ -302,7 +302,7 @@ export default async function PremiumPage() {
 
       <section className="rounded-card border border-rule bg-paper-2 p-6">
         <h2 className={cx(display, "mb-3 text-xl")}>{t.pagamentoNonCollegato}</h2>
-        <p className="m-0 max-w-[62ch] text-sm text-ink-2">{t.spiegazionePagamento}</p>
+        <p className="m-0 max-w-[48ch] text-sm text-ink-2">{t.spiegazionePagamento}</p>
 
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/impostazioni/profilo" className={buttonClass("primary")}>

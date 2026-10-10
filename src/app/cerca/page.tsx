@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PostCard } from "@/components/community/post-card";
-import { cx, display, Empty, eyebrow, Input, SectionHead, Tag } from "@/components/ui";
+import { eyebrow, Empty, Input, PageHeader, SectionHead, Tag } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
@@ -13,8 +13,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: "Cerca · GachaZone",
-    ricerca: "Ricerca",
+    titoloPagina: "Cerca",
     cerca: "Cerca",
     segnaposto: "Nome di un eroe o parole di un post",
     termini: "Termini di ricerca",
@@ -25,8 +24,7 @@ const TESTI = testi({
     nessunaDiscussione: "Nessuna discussione con queste parole.",
   },
   en: {
-    titoloPagina: "Search · GachaZone",
-    ricerca: "Search",
+    titoloPagina: "Search",
     cerca: "Search",
     segnaposto: "A hero's name or words from a post",
     termini: "Search terms",
@@ -98,10 +96,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <main className="mx-auto w-full max-w-[900px] px-6 pt-8 pb-20">
-      <p className={eyebrow}>{t.ricerca}</p>
-      <h1 className={cx(display, "mt-2 mb-5 text-[32px]")}>
-        {query ? `“${query}”` : t.cerca}
-      </h1>
+      <PageHeader title={query ? `“${query}”` : t.cerca} />
 
       <form action="/cerca" className="mb-8">
         <Input name="q" defaultValue={query} placeholder={t.segnaposto} aria-label={t.termini} />
@@ -124,9 +119,9 @@ export default async function SearchPage({ searchParams }: Props) {
                   <li key={`${game.slug}-${hero.id}`}>
                     <Link
                       href={`/${game.slug}/eroi/${hero.id}`}
-                      className="flex flex-wrap items-center gap-3 rounded-card border border-rule bg-paper px-4 py-2.5 hover:border-brand"
+                      className="flex flex-wrap items-center gap-3 border border-rule bg-paper-2 px-4 py-2.5 transition-colors hover:border-brand"
                     >
-                      <span className="font-semibold">{heroName(hero, locale)}</span>
+                      <span className="font-display font-black uppercase [font-variation-settings:'wdth'_80]">{heroName(hero, locale)}</span>
                       <span className="text-ink-3">{heroEpithet(hero, locale)}</span>
                       <Tag>{game.shortName}</Tag>
                     </Link>

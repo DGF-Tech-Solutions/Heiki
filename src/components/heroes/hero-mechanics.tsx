@@ -69,7 +69,7 @@ export function HeroDrawLine({
         percento(three.a, locale),
         percento(three.b, locale, 1),
       )}{" "}
-      <Link href={`/${game}/meccaniche#pesca`} className="text-brand underline-offset-2 hover:underline">
+      <Link href={`/${game}/meccaniche#pesca`} className="text-brand-deep underline-offset-2 hover:underline">
         {t.comeFunziona} →
       </Link>
     </p>
@@ -111,7 +111,7 @@ export function HeroTeamEffect({
         </section>
       ) : null}
       <p className="m-0 -mt-3 text-[13px]">
-        <Link href={`/${game}/meccaniche#attributi`} className="text-brand underline-offset-2 hover:underline">
+        <Link href={`/${game}/meccaniche#attributi`} className="text-brand-deep underline-offset-2 hover:underline">
           {t.attributi} →
         </Link>
       </p>

@@ -21,12 +21,15 @@ import {
   utcDay,
   type GameAccountProfile,
 } from "@/lib/games/game-account";
+import { parseBox, type HeroBox } from "@/lib/games/hero-box";
 import { getGameModule } from "@/lib/games/registry";
 
 /** La copia del database, nella forma che il browser salva. */
 export interface ServerAccountCopy {
   readonly profile: GameAccountProfile;
   readonly setup: AccountSetup;
+  /** gli eroi che ha e a che punto sono (10/10) */
+  readonly box: HeroBox;
   /** millisecondi: si confronta col timbro del browser */
   readonly updatedAt: number;
 }
@@ -78,6 +81,7 @@ export function copyOf(row: GameAccountRow): ServerAccountCopy {
     // la stessa lettura controllata del browser: il campo jsonb e' scritto da noi, ma
     // una versione vecchia del sito potrebbe averci lasciato altro
     setup: parseSetup(row.setup ? JSON.stringify(row.setup) : null),
+    box: parseBox(row.box ?? null),
     updatedAt: row.updatedAt.getTime(),
   };
 }

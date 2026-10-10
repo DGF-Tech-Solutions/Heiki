@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PostCard } from "@/components/community/post-card";
-import { buttonClass, cx, display, Empty, numeric, SectionHead, Tag } from "@/components/ui";
+import { artOf, HeroStage } from "@/components/heroes/hero-stage";
+import { buttonClass, cx, display, Empty, eyebrow, numeric, SectionHead } from "@/components/ui";
 import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
 import { listGames } from "@/lib/games/catalog";
@@ -24,26 +25,26 @@ const TESTI = testi({
     descrizione:
       "Schede degli eroi, dati e meccaniche lette dal gioco, e community per Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero e Wuthering Waves.",
     giochi: "Giochi",
-    previsti: (n: number) => `${n} previsti`,
-    inArrivo: "in arrivo",
-    attivo: "attivo",
+    inArrivo: "In arrivo",
+    entra: "Entra nel gioco",
     eroi: (n: number) => `${n} eroi`,
     ultimiPost: "Ultimi post",
     community: "Community →",
-    nessunaDiscussione: "Ancora nessuna discussione.",
+    nessunaDiscussione: "Ancora nessuna discussione: la prima la scrivi tu.",
+    scrivi: "Apri le Discussioni →",
   },
   en: {
     titoloPagina: "GachaZone — pages, data and community for gacha games",
     descrizione:
       "Hero pages, data and mechanics read from the game, and community for Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero and Wuthering Waves.",
     giochi: "Games",
-    previsti: (n: number) => `${n} planned`,
-    inArrivo: "coming soon",
-    attivo: "active",
+    inArrivo: "Coming soon",
+    entra: "Enter the game",
     eroi: (n: number) => `${n} ${n === 1 ? "hero" : "heroes"}`,
     ultimiPost: "Latest posts",
     community: "Community →",
-    nessunaDiscussione: "No discussions yet.",
+    nessunaDiscussione: "No discussions yet: you write the first one.",
+    scrivi: "Open the Discussions →",
   },
 });
 
@@ -61,85 +62,67 @@ export default async function Home() {
   const t = TESTI[locale];
 
   const store = await getStore();
-  const latest = sortFeed(await store.listPosts(null, null, null), "hot").slice(0, 4);
+  const latest = sortFeed(await store.listPosts(null, null, null), "hot").slice(0, 3);
+
+  // Il gioco attivo in grande, gli altri in una riga (10/10: prima quattro giochi
+  // «in arrivo» occupavano l'80% della pagina, alla pari dell'unico che c'e').
+  const active = games.filter((game) => game.available);
+  const planned = games.filter((game) => !game.available);
 
   return (
-    <main className="mx-auto w-full max-w-[1200px] px-6 pt-8 pb-20">
-      <section>
-        {/* Cartello alla Persona: la parola su una lama rossa, con la sagoma
-            bianca sfalsata dietro (drop-shadow sul contenitore, perche' il
-            clip-path della lama taglierebbe un box-shadow) */}
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b-[3px] border-ink pb-4">
-          <div className="drop-shadow-[6px_6px_0_var(--color-ink)]">
-            <h2
-              className={cx(
-                display,
-                "p5-cut bg-brand px-6 py-1.5 text-5xl text-white [text-shadow:0.05em_0.05em_0_var(--color-paper)] sm:text-7xl",
-              )}
-            >
-              {t.giochi}
-            </h2>
-          </div>
-          <span className="p5-cut-sm bg-ink px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-paper">
-            {t.previsti(games.length)}
-          </span>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {games.map((game) => {
-            const gameModule = getGameModule(game.slug);
-            const heroes = gameModule?.roster?.heroes.length ?? 0;
-
-            if (!game.available) {
-              return (
-                <div
-                  key={game.slug}
-                  className="p5-corner border border-dashed border-rule bg-paper-2 p-4"
-                >
-                  <div className="flex items-baseline justify-between gap-2">
-                    <h3
-                      // senza la sagoma rossa: sul grigio dei giochi non ancora pronti impastava le lettere
-                      className={cx(display, "text-base text-ink-3 [font-variation-settings:'wdth'_92] [text-shadow:none]")}
-                    >
-                      {game.shortName}
-                    </h3>
-                    <Tag>{t.inArrivo}</Tag>
-                  </div>
-                  <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
-                </div>
-              );
-            }
-
-            return (
-              <Link
-                key={game.slug}
-                href={`/${game.slug}`}
-                className="group block h-full transition-[filter] duration-150 hover:drop-shadow-[5px_5px_0_var(--color-brand)] focus-visible:drop-shadow-[5px_5px_0_var(--color-brand)]"
+    <main className="mx-auto w-full max-w-shell px-6 pt-8 pb-20">
+      <h1 className="sr-only">{t.titoloPagina}</h1>
+      <section aria-label={t.giochi} className="grid gap-5">
+        {active.map((game) => {
+          const gameModule = getGameModule(game.slug);
+          const heroes = gameModule?.roster?.heroes ?? [];
+          const newest = heroes[0];
+          const affinity = newest ? gameModule?.roster?.affinities.find((a) => a.id === newest.affinity) : undefined;
+          return newest ? (
+            <Link key={game.slug} href={`/${game.slug}`} className="group block focus-visible:outline-2 focus-visible:outline-offset-4">
+              <HeroStage
+                game={game.slug}
+                hero={newest}
+                locale={locale}
+                affinity={affinity}
+                size="hero"
+                priority
+                headingLevel="h2"
+                plate={{ kicker: game.publisher, title: game.name }}
+                art={artOf(gameModule?.heroAssets?.[newest.id])}
+                className="p5-corner transition-[filter] duration-200 group-hover:drop-shadow-[6px_6px_0_var(--color-brand)]"
               >
-                <div className="p5-corner h-full border border-rule bg-paper p-4 transition-colors group-hover:border-brand">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <h3 className={cx(display, "text-xl")}>{game.shortName}</h3>
-                    <Tag tone="brand">{t.attivo}</Tag>
-                  </div>
-                  <p className="mt-2 text-xs text-ink-3">{game.publisher}</p>
-                  {heroes > 0 ? <p className={cx(numeric, "mt-3 text-xs text-ink-2")}>{t.eroi(heroes)}</p> : null}
-                  <span
-                    aria-hidden
-                    className="p5-cut-sm mt-4 block h-1.5 w-10 bg-brand transition-[width] duration-200 group-hover:w-full"
-                  />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                <span className="flex flex-wrap items-center gap-3">
+                  <span className={buttonClass("primary", "md")}>{t.entra}</span>
+                  <span className={cx(numeric, "text-[13px] text-ink-2")}>{t.eroi(heroes.length)}</span>
+                </span>
+              </HeroStage>
+            </Link>
+          ) : (
+            <Link key={game.slug} href={`/${game.slug}`} className={cx(display, "p5-corner block border border-rule bg-paper-2 p-6 text-4xl")}>
+              {game.name}
+            </Link>
+          );
+        })}
+
+        {planned.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-rule-2 py-3">
+            <span className={eyebrow}>{t.inArrivo}</span>
+            {planned.map((game) => (
+              <span key={game.slug} className="font-display text-[15px] font-extrabold uppercase text-ink-3 [font-variation-settings:'wdth'_85]">
+                {game.shortName}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </section>
 
-      <section className="mt-12 border-t-[3px] border-brand pt-9">
+      <section className="mt-12">
         <SectionHead
           title={t.ultimiPost}
           aside={
             <Link
-              href={`/${games.find((game) => game.available)?.slug ?? ""}`}
+              href={`/${active[0]?.slug ?? ""}/discussioni`}
               className={buttonClass("outline", "sm", "shrink-0")}
             >
               {t.community}
@@ -148,7 +131,12 @@ export default async function Home() {
         />
 
         {latest.length === 0 ? (
-          <Empty>{t.nessunaDiscussione}</Empty>
+          <Empty>
+            {t.nessunaDiscussione}{" "}
+            <Link href={`/${active[0]?.slug ?? ""}/discussioni`} className="font-semibold text-brand-deep hover:underline">
+              {t.scrivi}
+            </Link>
+          </Empty>
         ) : (
           <div className="grid gap-3.5">
             {latest.map((post) => (
@@ -157,8 +145,6 @@ export default async function Home() {
           </div>
         )}
       </section>
-
     </main>
   );
 }
-

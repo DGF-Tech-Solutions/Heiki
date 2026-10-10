@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { AccountEditor, type EditorData } from "@/components/account-buff/account-editor";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { GameText } from "@/components/heroes/game-text";
-import { cx, display, eyebrow, numeric } from "@/components/ui";
+import { SectionIndex } from "@/components/section-index";
+import { cx, display, eyebrow, numeric, PageHeader } from "@/components/ui";
 import type { AccountStatKey, StatBag, StoneColor } from "@/lib/games/account-buff-types";
 import { STAT_ORDER, buffImageSrc, constellationTotals } from "@/lib/games/account-buff";
 import { findGame } from "@/lib/games/catalog";
@@ -25,15 +26,19 @@ import { getLocale } from "@/lib/i18n/server";
  * slider di ogni scheda); sotto come funziona, con le tabelle del client. Quello
  * che viene dal CODICE del client e non dalle tabelle (come si sommano, dove
  * contano) l'ha letto la pipeline, e lo studio sta in BUFF_ACCOUNT.md.
+ *
+ * Dal 10/10 le cinque sezioni hanno un indice fermo sotto l'intestazione: la
+ * pagina e' lunga quasi 6.000 px, e chi torna per una tabella non deve
+ * riattraversare l'editor. La fonte sta in fondo, coi diritti.
  */
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Buff dell'account di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Buff dell'account di ${gioco}`,
     descrizione: (gioco: string) =>
       `${gioco}: la classe di combattimento dell'account e i suoi titoli, le costellazioni pietra per pietra, e come cambiano le statistiche in battaglia di ogni eroe.`,
-    database: "Database",
     titolo: "Buff dell'account",
+    indice: "In questa pagina",
     introduzione:
       "Due sistemi del gioco alzano le statistiche di tutti i tuoi eroi: i titoli della classe di combattimento dell'account e le costellazioni. Né la schermata delle statistiche dell'eroe né la sua classe di combattimento li mostrano: contano in battaglia. Qui sotto scegli i tuoi, e le schede degli eroi li aggiungono.",
     fonte:
@@ -88,11 +93,11 @@ const TESTI = testi({
     diritti: (editore: string) => `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Account Buffs · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Account Buffs`,
     descrizione: (gioco: string) =>
       `${gioco}: the account Combat Class and its titles, the constellations stone by stone, and how they change every hero's stats in battle.`,
-    database: "Database",
     titolo: "Account Buffs",
+    indice: "On this page",
     introduzione:
       "Two game systems raise the stats of all your heroes: the account Combat Class titles and the constellations. Neither the hero's stat screen nor their Combat Class shows them: they count in battle. Pick yours below, and the hero pages add them.",
     fonte:
@@ -220,42 +225,59 @@ export default async function AccountBuffPage({ params }: Props) {
   const levels = [1, 5, 10, 15, 20];
   const bugged = data.accountPower.tiers.filter((tier) => tier.textSays);
 
+  const section = "mt-16 scroll-mt-[120px] border-t border-rule pt-10";
+  const h2 = cx(display, "text-[30px]");
+  const h3 = cx(display, "m-0 mt-10 text-[19px]");
+  const prose = "grid max-w-[48ch] gap-2.5 text-[14px] leading-relaxed text-ink-2";
+  // i testi del gioco citati: in un riquadro, per distinguerli dalle nostre spiegazioni
+  const quote = "border border-rule bg-paper-2 px-3.5 py-2.5 text-[13px] text-ink-3";
+  const box = "overflow-x-auto border border-rule bg-paper";
+  const th = cx(eyebrow, "px-3 py-2 font-medium");
+
   return (
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{t.database}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione}</p>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
-      </header>
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione}</p>
+      </PageHeader>
 
-      <section id="il-tuo-account" className="scroll-mt-20">
-        <h2 className={cx(display, "text-2xl")}>{t.tuo}</h2>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-2">
+      <SectionIndex
+        label={t.indice}
+        entries={[
+          { id: "il-tuo-account", label: t.tuo },
+          { id: "classe-account", label: t.classeTitolo },
+          { id: "costellazioni", label: t.costellazioniTitolo },
+          { id: "classe-eroe", label: t.eroeTitolo },
+          { id: "dove-contano", label: t.doveTitolo },
+        ]}
+      />
+
+      <section id="il-tuo-account" className="scroll-mt-[120px]">
+        <h2 className={h2}>{t.tuo}</h2>
+        <p className="m-0 mt-2 max-w-[48ch] text-[14px] leading-relaxed text-ink-2">
           {t.tuoIntro}{" "}
-          <Link href={`/${game}/eroi`} className="text-brand underline-offset-2 hover:underline">
+          <Link href={`/${game}/eroi`} className="text-brand-deep underline-offset-2 hover:underline">
             {t.eroiLink}
           </Link>
           .
         </p>
-        <div className="mt-4">
+        <div className="mt-5">
           <AccountEditor game={game} data={editor} />
         </div>
       </section>
 
-      <section id="classe-account" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.classeTitolo}</h2>
-        <div className="mt-3 grid max-w-[72ch] gap-2 text-[13px] text-ink-2">
+      <section id="classe-account" className={section}>
+        <h2 className={h2}>{t.classeTitolo}</h2>
+        <div className={cx(prose, "mt-4")}>
           <p className="m-0">{t.classeIntro(data.accountPower.tiers.length)}</p>
           <p className="m-0">{t.classeRegola}</p>
           {data.texts.powerRule ? (
-            <GameText text={say(data.texts.powerRule)} className="rounded-card border border-rule bg-paper-2 px-3 py-2 text-ink-3" />
+            <GameText text={say(data.texts.powerRule)} className={quote} />
           ) : null}
           {bugged.length ? <p className="m-0">{t.classeDifetto}</p> : null}
         </div>
-        <div className="mt-4 max-h-[520px] max-w-[640px] overflow-auto rounded-card border border-rule">
+        <div className="mt-5 max-h-[520px] max-w-[640px] overflow-auto border border-rule bg-paper">
           <table className="w-full border-collapse text-[13px]">
             <thead className="sticky top-0 bg-paper-2">
               <tr className="border-b border-rule text-left">
@@ -272,7 +294,7 @@ export default async function AccountBuffPage({ params }: Props) {
                   <td className={cx(numeric, "px-3 py-1")}>
                     {numero(tier.threshold, locale)}
                     {tier.textSays ? (
-                      <span className="block text-[11px] text-ink-3">
+                      <span className="block text-[12px] text-ink-3">
                         {t.ilTestoDice(say(tier.textSays).replace("{0}", numero(tier.def || tier.hp, locale)))}
                       </span>
                     ) : null}
@@ -288,57 +310,58 @@ export default async function AccountBuffPage({ params }: Props) {
         </div>
       </section>
 
-      <section id="costellazioni" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.costellazioniTitolo}</h2>
-        <div className="mt-3 grid max-w-[72ch] gap-2 text-[13px] text-ink-2">
+      <section id="costellazioni" className={section}>
+        <h2 className={h2}>{t.costellazioniTitolo}</h2>
+        <div className={cx(prose, "mt-4")}>
           <p className="m-0">{t.costellazioniIntro(data.rules.heroesToOpen)}</p>
           <p className="m-0">{t.costellazioniRegola}</p>
           {data.texts.guide ? (
-            <GameText text={say(data.texts.guide)} className="rounded-card border border-rule bg-paper-2 px-3 py-2 text-ink-3" />
+            <GameText text={say(data.texts.guide)} className={quote} />
           ) : null}
         </div>
 
-        <div className="mt-4 overflow-x-auto">
+        <div className={cx(box, "mt-5")}>
           <table className="w-full min-w-[720px] border-collapse text-[13px]">
-            <thead>
+            <thead className="bg-paper-2">
               <tr className="border-b border-rule text-left">
-                <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.costellazione}</th>
-                <th className={cx(eyebrow, "py-1.5 pr-3 text-right font-medium")}>{t.pietre}</th>
-                <th className={cx(eyebrow, "py-1.5 pr-3 text-right font-medium")}>{t.punti}</th>
-                <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.pietreMana}</th>
-                <th className={cx(eyebrow, "py-1.5 font-medium")}>{t.completamento}</th>
+                <th className={th}>{t.costellazione}</th>
+                <th className={cx(th, "text-right")}>{t.pietre}</th>
+                <th className={cx(th, "text-right")}>{t.punti}</th>
+                <th className={th}>{t.pietreMana}</th>
+                <th className={th}>{t.completamento}</th>
               </tr>
             </thead>
             <tbody>
               {totals.map(({ constellation, totals: sums }) => (
-                <tr key={constellation.id} className="border-b border-rule-2 align-top">
-                  <td className="py-1.5 pr-3">
-                    <span className="inline-flex items-center gap-2">
+                <tr key={constellation.id} className="border-b border-rule-2 align-middle last:border-b-0">
+                  <td className="px-3 py-1.5">
+                    {/* il simbolo e' la grafica del gioco: abbastanza grande da riconoscerlo */}
+                    <span className="inline-flex items-center gap-2.5 font-semibold text-ink">
                       {sums.symbol ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={sums.symbol} alt="" width={140} height={140} loading="lazy" className="h-7 w-7 shrink-0" />
+                        <img src={sums.symbol} alt="" width={140} height={140} loading="lazy" className="h-10 w-10 shrink-0" />
                       ) : null}
                       {sums.name}
                     </span>
                   </td>
-                  <td className={cx(numeric, "py-1.5 pr-3 text-right")}>{constellation.stones.length - 1}</td>
-                  <td className={cx(numeric, "py-1.5 pr-3 text-right")}>{numero(constellation.growthPoints, locale)}</td>
-                  <td className="py-1.5 pr-3 text-ink-2">{manaRanges(sums.mana)}</td>
-                  <td className="py-1.5 text-ink-2">{bag(sums.completion)}</td>
+                  <td className={cx(numeric, "px-3 py-1.5 text-right")}>{constellation.stones.length - 1}</td>
+                  <td className={cx(numeric, "px-3 py-1.5 text-right")}>{numero(constellation.growthPoints, locale)}</td>
+                  <td className="px-3 py-1.5 text-ink-2">{manaRanges(sums.mana)}</td>
+                  <td className="px-3 py-1.5 text-ink-2">{bag(sums.completion)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <h3 className="mt-6 text-[15px] font-semibold">{t.pietreFisse}</h3>
-        <div className="mt-2 overflow-x-auto">
+        <h3 className={h3}>{t.pietreFisse}</h3>
+        <div className={cx(box, "mt-3")}>
           <table className="w-full min-w-[820px] border-collapse text-[13px]">
-            <thead>
+            <thead className="bg-paper-2">
               <tr className="border-b border-rule text-left">
-                <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.costellazione}</th>
+                <th className={th}>{t.costellazione}</th>
                 {fixedKeys.map((key) => (
-                  <th key={key} className={cx(eyebrow, "py-1.5 pr-3 text-right font-medium")}>
+                  <th key={key} className={cx(th, "text-right")}>
                     {stats[key].name}
                   </th>
                 ))}
@@ -346,10 +369,10 @@ export default async function AccountBuffPage({ params }: Props) {
             </thead>
             <tbody>
               {totals.map(({ constellation, totals: sums }) => (
-                <tr key={constellation.id} className="border-b border-rule-2">
-                  <td className="py-1 pr-3">{sums.name}</td>
+                <tr key={constellation.id} className="border-b border-rule-2 last:border-b-0">
+                  <td className="px-3 py-1.5">{sums.name}</td>
                   {fixedKeys.map((key) => (
-                    <td key={key} className={cx(numeric, "py-1 pr-3 text-right")}>
+                    <td key={key} className={cx(numeric, "px-3 py-1.5 text-right")}>
                       {sums.stones[key] ? `${numero(sums.stones[key]!, locale)}%` : "—"}
                     </td>
                   ))}
@@ -359,21 +382,21 @@ export default async function AccountBuffPage({ params }: Props) {
           </table>
         </div>
 
-        <h3 className="mt-6 text-[15px] font-semibold">{t.manaTitolo}</h3>
-        <div className="mt-1 grid max-w-[72ch] gap-2 text-[13px] text-ink-2">
+        <h3 className={h3}>{t.manaTitolo}</h3>
+        <div className={cx(prose, "mt-2.5")}>
           <p className="m-0">{t.manaIntro}</p>
           {data.texts.chaos.map((text, position) => (
             <GameText key={position} text={say(text)} className="text-ink-3" />
           ))}
           {data.texts.rates ? <GameText text={say(data.texts.rates)} className="text-ink-3" /> : null}
         </div>
-        <div className="mt-2 overflow-x-auto">
-          <table className="w-full max-w-[520px] border-collapse text-[13px]">
-            <thead>
+        <div className={cx(box, "mt-4 max-w-[520px]")}>
+          <table className="w-full border-collapse text-[13px]">
+            <thead className="bg-paper-2">
               <tr className="border-b border-rule text-left">
-                <th className="py-1.5 pr-3" />
+                <th className={th} />
                 {rates.map((_, position) => (
-                  <th key={position} className={cx(eyebrow, "py-1.5 pr-3 text-right font-medium")}>
+                  <th key={position} className={cx(th, "text-right")}>
                     {t.fascia(position + 1)}
                   </th>
                 ))}
@@ -381,10 +404,10 @@ export default async function AccountBuffPage({ params }: Props) {
             </thead>
             <tbody>
               {levels.map((level) => (
-                <tr key={level} className="border-b border-rule-2">
-                  <td className="py-1 pr-3 text-ink-2">{t.livello(level)}</td>
+                <tr key={level} className="border-b border-rule-2 last:border-b-0">
+                  <td className="px-3 py-1.5 text-ink-2">{t.livello(level)}</td>
                   {rates.map((tier, position) => (
-                    <td key={position} className={cx(numeric, "py-1 pr-3 text-right")}>
+                    <td key={position} className={cx(numeric, "px-3 py-1.5 text-right")}>
                       {tier.rates[level - 1]}%
                     </td>
                   ))}
@@ -395,25 +418,25 @@ export default async function AccountBuffPage({ params }: Props) {
         </div>
       </section>
 
-      <section id="classe-eroe" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.eroeTitolo}</h2>
-        <div className="mt-3 grid max-w-[72ch] gap-2 text-[13px] text-ink-2">
+      <section id="classe-eroe" className={section}>
+        <h2 className={h2}>{t.eroeTitolo}</h2>
+        <div className={cx(prose, "mt-4")}>
           {data.texts.heroPower ? <GameText text={say(data.texts.heroPower)} className="text-ink-3" /> : null}
           <p className="m-0">{t.eroeIntro}</p>
           <p className="m-0">{t.eroeNota}</p>
         </div>
-        <table className="mt-3 w-full max-w-[420px] border-collapse text-[13px]">
-          <thead>
+        <table className="mt-5 w-full max-w-[420px] border-collapse border border-rule bg-paper text-[13px]">
+          <thead className="bg-paper-2">
             <tr className="border-b border-rule text-left">
-              <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.statistica}</th>
-              <th className={cx(eyebrow, "py-1.5 text-right font-medium")}>{t.peso}</th>
+              <th className={th}>{t.statistica}</th>
+              <th className={cx(th, "text-right")}>{t.peso}</th>
             </tr>
           </thead>
           <tbody>
             {data.stats.map((stat) => (
-              <tr key={stat.key} className="border-b border-rule-2">
-                <td className="py-1 pr-3">{say(stat.name)}</td>
-                <td className={cx(numeric, "py-1 text-right")}>
+              <tr key={stat.key} className="border-b border-rule-2 last:border-b-0">
+                <td className="px-3 py-1.5">{say(stat.name)}</td>
+                <td className={cx(numeric, "px-3 py-1.5 text-right")}>
                   {numero(stat.weight, locale)}{" "}
                   <span className="text-[12px] text-ink-3">{stat.percent ? t.perPunto : t.perUnita}</span>
                 </td>
@@ -423,16 +446,19 @@ export default async function AccountBuffPage({ params }: Props) {
         </table>
       </section>
 
-      <section id="dove-contano" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.doveTitolo}</h2>
-        <ul className="mt-3 grid max-w-[72ch] list-disc gap-1.5 pl-5 text-[13px] text-ink-2">
+      <section id="dove-contano" className={section}>
+        <h2 className={h2}>{t.doveTitolo}</h2>
+        <ul className="m-0 mt-4 grid max-w-[48ch] list-disc gap-1.5 pl-5 text-[14px] leading-relaxed text-ink-2 marker:text-brand-deep">
           {t.dove.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
       </section>
 
-      <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
+      <div className="mt-16 grid gap-1 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
+        <p className="m-0">{t.fonte}</p>
+        <p className="m-0">{t.diritti(entry.publisher)}</p>
+      </div>
     </main>
   );
 }

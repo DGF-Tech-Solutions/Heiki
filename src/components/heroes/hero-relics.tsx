@@ -195,7 +195,7 @@ function RelicCard({
                 {position > 0 ? ", " : null}
                 {/* la bestia porta alla sua pagina, dove si vedono piani, drop e le altre reliquie */}
                 {beast.page ? (
-                  <Link href={`/${game}/bestie-demoniache/${beast.page}`} className="text-ink-2 hover:text-brand">
+                  <Link href={`/${game}/bestie-demoniache/${beast.page}`} className="text-ink-2 hover:text-brand-deep">
                     {beast.label}
                   </Link>
                 ) : (
@@ -236,7 +236,7 @@ function RelicCard({
           <div className="mt-3 overflow-x-auto border-t border-rule pt-2">
             <table className="w-full max-w-[460px] border-collapse text-[13px]">
               <thead>
-                <tr className="text-[11px] text-ink-3">
+                <tr className="text-[12px] text-ink-3">
                   <th className="py-1 pr-2.5 text-left font-normal">
                     <span className="sr-only">{t.statistica}</span>
                   </th>

@@ -5,7 +5,7 @@ import { StatusControls, VerifiedPatchForm } from "./guide-controls";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Freshness, formatDate } from "@/components/freshness";
 import { headingsOf, Markdown, TableOfContents } from "@/components/markdown";
-import { buttonClass, cx, display, eyebrow, Notice, Tag } from "@/components/ui";
+import { buttonClass, cx, display, Notice, Tag } from "@/components/ui";
 import { can } from "@/lib/auth/permissions";
 import { currentViewer } from "@/lib/community/actions";
 import { findGame } from "@/lib/games/catalog";
@@ -17,7 +17,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    guidaTitolo: "Guida · GachaZone",
+    guidaTitolo: "Guida",
     guide: "Guide",
     nonPubblicata: (stato: string) =>
       `Questa guida è ${stato}: la vedi perché è tua o perché la stai revisionando. Non compare nell'elenco pubblico.`,
@@ -35,7 +35,7 @@ const TESTI = testi({
     cronologia: "Cronologia",
   },
   en: {
-    guidaTitolo: "Guide · GachaZone",
+    guidaTitolo: "Guide",
     guide: "Guides",
     nonPubblicata: (stato: string) =>
       `Status of this guide: ${stato}. You can see it because it's yours or because you're reviewing it. It doesn't appear in the public list.`,
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!guide) return { title: TESTI[await getLocale()].guidaTitolo };
 
   return {
-    title: `${guide.title} · GachaZone`,
+    title: `${guide.title}`,
     description: guide.excerpt,
     // Una bozza raggiungibile per indirizzo non deve finire negli indici: e'
     // pubblica per errore, non per scelta.
@@ -122,19 +122,20 @@ export default async function GuidePage({ params }: Props) {
         </Notice>
       ) : null}
 
-      <header className="mb-6 border-b border-rule pb-6" data-accent={guide.author.accent}>
-        <p className={eyebrow}>
-          {entry.shortName}
-        </p>
+      {/*
+        Il titolo senza l'etichetta del gioco sopra (le briciole dicono gia' dove
+        sei, 10/10), col filo rosso di PageHeader; l'estratto e chi l'ha scritta
+        sotto, perche' una guida si legge dall'alto in basso come un articolo.
+      */}
+      <header className="mb-6 border-b-2 border-brand pb-5" data-accent={guide.author.accent}>
+        <h1 className={cx(display, "text-[clamp(30px,4.4vw,50px)]")}>{guide.title}</h1>
 
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,4vw,40px)]")}>{guide.title}</h1>
-
-        <p className="mt-3 max-w-[70ch] text-base text-ink-2">{guide.excerpt}</p>
+        <p className="mt-3 max-w-[48ch] text-base text-ink-2">{guide.excerpt}</p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-[13px] text-ink-3">
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-[7px] rounded-full bg-[var(--accent)]" aria-hidden />
-            <Link href={`/u/${guide.author.username}`} className="text-ink-2 hover:text-brand">
+            <span className="size-[7px] bg-[var(--accent)] [clip-path:polygon(2px_0,100%_0,calc(100%-2px)_100%,0_100%)]" aria-hidden />
+            <Link href={`/u/${guide.author.username}`} className="text-ink-2 hover:text-brand-deep">
               {guide.author.displayName}
             </Link>
           </span>
@@ -204,7 +205,7 @@ export default async function GuidePage({ params }: Props) {
           <TableOfContents headings={headings} locale={locale} />
 
           {own || canReview ? (
-            <div className="mt-6 rounded-card border border-dashed border-rule bg-paper-2 p-4">
+            <div className="p5-corner mt-6 border border-rule bg-paper-2 p-4">
               <StatusControls
                 guideId={guide.id}
                 game={game}

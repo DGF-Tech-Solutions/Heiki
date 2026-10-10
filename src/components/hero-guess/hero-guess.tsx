@@ -20,6 +20,7 @@ import {
   GuessYesterday,
   useGuessGame,
 } from "@/components/hero-guess/guess-game";
+import { IconArrowUp } from "@/components/icons";
 import { cx } from "@/components/ui";
 import {
   CLUES,
@@ -150,14 +151,14 @@ export function HeroGuess({
             <table className="border-separate border-spacing-1.5 text-center">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-10 w-[52px] bg-paper align-bottom text-left text-[11px] font-medium text-ink-3 shadow-[6px_0_0_0_var(--color-paper)] sm:static sm:w-[150px] sm:shadow-none">
+                  <th className="sticky left-0 z-10 w-[52px] bg-paper align-bottom text-left text-[12px] font-medium text-ink-3 shadow-[6px_0_0_0_var(--color-paper)] sm:static sm:w-[150px] sm:shadow-none">
                     {t.colonne.eroe}
                   </th>
                   {CLUES.map((key) => (
                     // carattere normale e non il maiuscolo monospaziato: «CARATTERISTICHE» non ci stava in 80px
                     <th
                       key={key}
-                      className="w-[64px] max-w-[64px] align-bottom text-[10px] leading-tight font-medium text-ink-3 sm:w-[80px] sm:max-w-[80px] sm:text-[11px]"
+                      className="w-[64px] max-w-[64px] align-bottom text-[12px] leading-tight font-medium text-ink-3 sm:w-[80px] sm:max-w-[80px] sm:text-[12px]"
                     >
                       {t.colonne[key]}
                     </th>
@@ -174,7 +175,7 @@ export function HeroGuess({
                         scope="row"
                         className="sticky left-0 z-10 bg-paper text-left font-normal shadow-[6px_0_0_0_var(--color-paper)] sm:static sm:shadow-none"
                       >
-                        <Link href={`/${game}/eroi/${hero.id}`} className="flex w-[52px] items-center gap-2 hover:text-brand sm:w-[150px]">
+                        <Link href={`/${game}/eroi/${hero.id}`} className="flex w-[52px] items-center gap-2 hover:text-brand-deep sm:w-[150px]">
                           {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
                           <img
                             src={heroCardSrc(game, hero.id)}
@@ -182,7 +183,7 @@ export function HeroGuess({
                             alt=""
                             width={52}
                             height={52}
-                            className="h-[48px] w-[48px] shrink-0 rounded-[3px] sm:h-[52px] sm:w-[52px]"
+                            className="h-[48px] w-[48px] shrink-0 sm:h-[52px] sm:w-[52px]"
                           />
                           {/* sul telefono solo la card: il nome resta per chi legge con lo screen reader */}
                           <span className="sr-only min-w-0 text-[12px] leading-tight font-semibold sm:not-sr-only">
@@ -238,7 +239,7 @@ function Tile({
       aria-label={label}
       title={label}
       className={cx(
-        "relative flex h-[64px] w-[64px] flex-col items-center justify-center gap-0.5 rounded-[4px] border px-0.5 text-[10px] leading-tight text-white sm:h-[80px] sm:w-[80px] sm:gap-1 sm:px-1 sm:text-[11px]",
+        "relative flex h-[64px] w-[64px] flex-col items-center justify-center gap-0.5 border px-0.5 text-[12px] leading-tight text-white sm:h-[80px] sm:w-[80px] sm:gap-1 sm:px-1 sm:text-[12px]",
         VERDICT_CLASS[clue.verdict],
         delay !== null && "motion-safe:animate-[indovina-gira_0.45s_ease-out_both]",
       )}
@@ -246,9 +247,8 @@ function Tile({
     >
       {children}
       {clue.direction ? (
-        <span aria-hidden className="text-[15px] leading-none">
-          {clue.direction === "su" ? "▲" : "▼"}
-        </span>
+        // la freccia disegnata (icons.tsx), girata per «giu'»: la direzione la dice gia' l'aria-label
+        <IconArrowUp size={15} strokeWidth={3} className={clue.direction === "su" ? undefined : "rotate-180"} />
       ) : null}
     </div>
   );
@@ -300,7 +300,7 @@ function ClueValue({
       return hero.factions.length === 0 ? (
         <span>{t.nessunaCaratteristica}</span>
       ) : (
-        <span className="line-clamp-4 text-[10px]">
+        <span className="line-clamp-4 text-[12px]">
           {hero.factions.map((code) => labels.faction[String(code)] ?? code).join(" · ")}
         </span>
       );

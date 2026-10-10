@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GuessHeader, guessTitle } from "@/components/hero-guess/guess-header";
 import { PuzzleGuess, type PuzzleEntry, type PuzzleKind } from "@/components/hero-guess/puzzle-guess";
-import { cx, eyebrow } from "@/components/ui";
+import { HowItWorks } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { maskWords, VARIANT_HINTS, VARIANT_LABELS } from "@/lib/games/hero-guess";
 import { heroName } from "@/lib/games/heroes";
@@ -135,13 +135,13 @@ export async function PuzzlePage({ params, kind }: Props & { kind: PuzzleKind })
 
       <PuzzleGuess game={game} kind={kind} heroes={playable} attributes={attributes} icons={icons} />
 
-      <section className="mt-12 max-w-[72ch] border-t border-rule pt-5 text-sm text-ink-2">
-        <h2 className={cx(eyebrow, "m-0")}>{t.comeSiGioca}</h2>
-        <p className="mt-2.5">{t.regole[kind]}</p>
+      {/* le regole in fondo, chiuse: prima si gioca (10/10) */}
+      <HowItWorks summary={t.comeSiGioca} className="mt-12 max-w-[860px]">
+        <p>{t.regole[kind]}</p>
         {first && second ? (
-          <p className="mt-2">{t.aiuti(t.nomiAiuti[first.key], first.after, t.nomiAiuti[second.key], second.after)}</p>
+          <p>{t.aiuti(t.nomiAiuti[first.key], first.after, t.nomiAiuti[second.key], second.after)}</p>
         ) : null}
-      </section>
+      </HowItWorks>
     </main>
   );
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useState, useTransition } from "react";
 import { AccountControls } from "@/components/account-buff/account-controls";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
-import { Button, cx, eyebrow, Input, numeric, Select } from "@/components/ui";
+import { Button, buttonClass, cx, display, eyebrow, Input, numeric, Select } from "@/components/ui";
 import {
   cancelVerificationAction,
   requestChallengeAction,
@@ -154,8 +154,8 @@ const data = (iso: string, locale: Locale) =>
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="grid gap-3 rounded-card border border-rule bg-paper p-4 sm:p-5">
-      <h2 className="m-0 font-display text-lg font-bold">{title}</h2>
+    <section className="p5-corner grid gap-3 border border-rule bg-paper-2 p-4 sm:p-5">
+      <h2 className={cx(display, "m-0 text-[20px]")}>{title}</h2>
       {children}
     </section>
   );
@@ -221,13 +221,13 @@ export function GameAccountEditor(props: GameAccountEditorProps) {
       </Section>
 
       <Section title={t.verifica}>
-        <p className="m-0 max-w-[70ch] text-sm text-ink-2">{t.verificaIntro}</p>
+        <p className="m-0 max-w-[48ch] text-sm text-ink-2">{t.verificaIntro}</p>
         {!props.databaseReady ? (
           <p className="m-0 text-sm text-ink-3">{t.serveDatabase}</p>
         ) : !props.signedIn ? (
           <p className="m-0">
-            <Link href={props.loginHref} className="font-semibold text-brand underline-offset-2 hover:underline">
-              {t.entra} →
+            <Link href={props.loginHref} className={buttonClass("primary", "sm")}>
+              {t.entra}
             </Link>
           </p>
         ) : (
@@ -312,7 +312,7 @@ function Verification({
           <img
             src={`/api/verifiche/${current.id}/schermata`}
             alt={t.anteprima}
-            className="max-h-[260px] w-auto max-w-full rounded-[3px] border border-rule object-contain"
+            className="max-h-[260px] w-auto max-w-full border border-rule object-contain"
           />
           <div>
             <Button
@@ -425,11 +425,11 @@ function Challenge({
           alt=""
           width={112}
           height={150}
-          className="h-auto w-full rounded-[3px] border border-rule bg-paper-2"
+          className="h-auto w-full bg-paper-2 shadow-[4px_4px_0_var(--color-brand)]"
         />
         <div className="grid gap-1.5">
           <p className={cx(eyebrow, "m-0")}>{t.eroeDelGiorno}</p>
-          <p className="m-0 font-display text-lg font-bold leading-tight">
+          <p className="m-0 font-display text-lg leading-tight font-black uppercase [font-variation-settings:'wdth'_80]">
             {hero ? (
               <>
                 <span className="text-ink-2">[{hero.epithet}]</span> {hero.name}
@@ -481,7 +481,7 @@ function Challenge({
               id={`${idPrefix}-file`}
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              className="w-full min-w-0 text-sm file:mr-3 file:rounded-[3px] file:border file:border-rule file:bg-paper-2 file:px-3 file:py-1.5 file:text-ink"
+              className="w-full min-w-0 text-sm file:mr-3 file:h-9 file:cursor-pointer file:border-0 file:bg-ink file:px-3.5 file:font-display file:text-[13px] file:font-extrabold file:text-paper file:uppercase hover:file:bg-brand hover:file:text-white"
               onChange={async (event) => {
                 const chosen = event.target.files?.[0];
                 onError(null);
@@ -504,7 +504,7 @@ function Challenge({
           <img
             src={preview}
             alt={t.anteprima}
-            className="max-h-[260px] w-auto max-w-full rounded-[3px] border border-rule object-contain"
+            className="max-h-[260px] w-auto max-w-full border border-rule object-contain"
           />
         ) : null}
         <div className="flex flex-wrap gap-2">

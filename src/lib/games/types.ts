@@ -177,6 +177,8 @@ export interface HeroText {
 export interface HeroAssets {
   /** illustrazione a figura intera, 1024x1024 */
   splash?: boolean;
+  /** l'illustrazione ha lo sfondo dipinto (9 su 372): sul palco va in cornice, non come figura scontornata */
+  splashFull?: boolean;
   /** icona dell'abilita' esclusiva */
   skill?: boolean;
   /** quante carte d'attacco, numerate da 1 */

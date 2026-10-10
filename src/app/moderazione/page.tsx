@@ -16,12 +16,11 @@ import { reportReasonLabel } from "@/lib/moderation/reasons";
 import { relativeTime } from "@/lib/community/ranking";
 import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
-import { cx, display, Empty, eyebrow, SectionHead, Tag } from "@/components/ui";
+import { Empty, PageHeader, SectionHead, Tag } from "@/components/ui";
 
 const TESTI = testi({
   it: {
     titoloPagina: "Moderazione",
-    riservato: "Riservato",
     titolo: "Moderazione",
     introduzione:
       "Nascondere non cancella: la riga resta nel database con chi ha deciso e quando, e la decisione si può revocare. Ogni azione compare nel registro in fondo alla pagina.",
@@ -60,7 +59,6 @@ const TESTI = testi({
   },
   en: {
     titoloPagina: "Moderation",
-    riservato: "Restricted",
     titolo: "Moderation",
     introduzione:
       "Hiding doesn't delete: the row stays in the database with who decided and when, and the decision can be reversed. Every action shows up in the log at the bottom of the page.",
@@ -166,18 +164,16 @@ export default async function ModerationPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1000px] px-6 pt-9 pb-24">
-      <header className="mb-8">
-        <p className={eyebrow}>{t.riservato}</p>
-        <h1 className={cx(display, "mt-2.5 text-[32px]")}>{t.titolo}</h1>
-        <p className="mt-3 max-w-[62ch] text-sm text-ink-2">{t.introduzione}</p>
-      </header>
+      <PageHeader title={t.titolo} className="mb-8">
+        <p>{t.introduzione}</p>
+      </PageHeader>
 
       <section className="mb-12">
         <SectionHead
           title={t.verifiche}
           aside={<Meta>{reviewItems.length === 0 ? t.codaVuota : t.daGuardare(reviewItems.length)}</Meta>}
         />
-        <p className="mt-0 mb-4 max-w-[70ch] text-sm text-ink-2">{t.verificheIntro}</p>
+        <p className="mt-0 mb-4 max-w-[48ch] text-sm text-ink-2">{t.verificheIntro}</p>
         {reviewItems.length === 0 ? (
           <Empty>{t.nessunaVerifica}</Empty>
         ) : (
@@ -202,14 +198,16 @@ export default async function ModerationPage() {
             {queue.map((item) => (
               <li
                 key={item.id}
-                className="rounded-card border border-rule border-l-[3px] border-l-hot bg-paper p-4"
+                // la segnalazione si riconosce dall'angolo tagliato e dal bordo intero, non
+                // da un filo rosa a sinistra (10/10)
+                className="p5-corner border border-hot/60 bg-paper-2 p-4"
               >
                 <div className="mb-2 flex flex-wrap items-center gap-2.5 text-xs text-ink-3">
                   <Tag>{item.targetType === "POST" ? t.post : t.commento}</Tag>
                   <Tag tone="brand">{reportReasonLabel(item.reason, locale)}</Tag>
                   <span>
                     {t.segnalatoDa}{" "}
-                    <Link href={`/u/${item.reporter}`} className="text-ink-2 hover:text-brand">
+                    <Link href={`/u/${item.reporter}`} className="text-ink-2 hover:text-brand-deep">
                       {item.reporter}
                     </Link>
                   </span>
@@ -228,30 +226,30 @@ export default async function ModerationPage() {
 
                 {item.details ? (
                   <p className="m-0 mb-2.5 text-[13px] text-ink-2">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">
                       {t.dettagli}{" "}
                     </span>
                     {item.details}
                   </p>
                 ) : null}
 
-                <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-ink-3">
+                <div className="mb-3 flex flex-wrap items-center gap-3 text-[12px] text-ink-3">
                   {item.authorUsername ? (
                     <span>
                       {t.autore}{" "}
                       <Link
                         href={`/u/${item.authorUsername}`}
-                        className="text-ink-2 hover:text-brand"
+                        className="text-ink-2 hover:text-brand-deep"
                       >
                         {item.authorUsername}
                       </Link>{" "}
-                      <code className="font-mono text-[10px] text-ink-3">{item.authorId}</code>
+                      <code className="font-mono text-[11px] text-ink-3">{item.authorId}</code>
                     </span>
                   ) : null}
                   {item.gameSlug && item.postId ? (
                     <Link
                       href={`/${item.gameSlug}/post/${item.postId}`}
-                      className="font-mono text-[10px] uppercase tracking-[0.08em] text-brand hover:underline"
+                      className="font-mono text-[11px] tracking-[0.08em] text-brand-deep uppercase underline-offset-2 hover:underline"
                     >
                       {t.apriNelContesto}
                     </Link>
@@ -283,9 +281,9 @@ export default async function ModerationPage() {
             {suspended.map((entry) => (
               <li
                 key={entry.id}
-                className="flex flex-wrap items-center gap-3 rounded-card border border-rule bg-paper px-4 py-3 text-sm"
+                className="flex flex-wrap items-center gap-3 border border-rule bg-paper-2 px-4 py-3 text-sm"
               >
-                <Link href={`/u/${entry.username}`} className="font-medium hover:text-brand">
+                <Link href={`/u/${entry.username}`} className="font-medium hover:text-brand-deep">
                   {entry.username}
                 </Link>
                 <span className="text-ink-2">{entry.reason}</span>
@@ -301,7 +299,7 @@ export default async function ModerationPage() {
         )}
 
         <div className="rounded-card border border-rule bg-paper-2 p-5">
-          <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+          <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
             {t.sospendiUnAccount}
           </p>
           <SuspendForm />

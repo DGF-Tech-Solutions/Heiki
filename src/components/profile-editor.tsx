@@ -28,7 +28,8 @@ import {
   type CustomizationKey,
   type ProfileCustomization,
 } from "@/lib/profile/customization";
-import { Button, cx, display, Empty, Field, Input, Textarea } from "./ui";
+import { IconChevronRight, IconClose } from "./icons";
+import { Button, chipClass, cx, display, Empty, Field, Input, Textarea } from "./ui";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 
@@ -245,16 +246,14 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                   onClick={() => setCustom("accent", option.id)}
                   style={{ background: ACCENT_SWATCH[option.id] ?? "#6425ff" }}
                   className={cx(
-                    "relative size-8 cursor-pointer rounded-full border border-rule transition-transform",
+                    // quadrati e non cerchi (10/10): nel mondo scelto non ci sono angoli tondi
+                    "relative size-9 cursor-pointer border border-rule transition-transform",
                     "hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
-                    active && "ring-2 ring-ink ring-offset-2",
+                    active && "ring-2 ring-ink ring-offset-2 ring-offset-paper",
                   )}
                 >
-                  {option.premium ? (
-                    <span className="absolute -top-1 -right-1 grid size-3.5 place-items-center rounded-full bg-paper text-[8px] leading-none text-gold">
-                      ★
-                    </span>
-                  ) : null}
+                  {/* il segno dorato del premium: una lama, non la stella del font */}
+                  {option.premium ? <span aria-hidden className="p5-cut-sm absolute -top-1 -right-1.5 h-2.5 w-3.5 bg-gold" /> : null}
                 </button>
               );
             })}
@@ -276,16 +275,10 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                     aria-pressed={active}
                     title={locked ? t.richiedePremium(label) : option.descriptions[locale]}
                     onClick={() => setCustom(group.key, option.id)}
-                    className={cx(
-                      "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-card border px-3 text-[13px] transition-colors",
-                      "disabled:cursor-not-allowed disabled:opacity-40",
-                      active
-                        ? "border-brand bg-brand-soft font-medium text-ink"
-                        : "border-rule text-ink-2 hover:border-ink-3 hover:text-ink",
-                    )}
+                    className={chipClass(active, true, "border-0 disabled:cursor-not-allowed disabled:opacity-40")}
                   >
                     {label}
-                    {option.premium ? <span className="text-[9px] text-gold">★</span> : null}
+                    {option.premium ? <span aria-hidden className="p5-cut-sm inline-block h-2.5 w-3.5 bg-gold" /> : null}
                   </button>
                 );
               })}
@@ -330,7 +323,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                     <span className="block text-[13px]">
                       {badge.icon ?? "◇"} {badge.name}
                     </span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-ink-3">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.09em] text-ink-3">
                       {badge.trust.toLowerCase()}
                     </span>
                   </span>
@@ -371,8 +364,12 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         <ul className="mt-2 mb-0 grid list-none gap-1 p-0 text-sm">
           {ACCOUNT_PAGES.map((page) => (
             <li key={page.href}>
-              <Link href={page.href} className="font-semibold text-brand underline-offset-2 hover:underline">
-                {page.game}: {t.ilMioAccount} →
+              <Link
+                href={page.href}
+                className="inline-flex items-center gap-1 font-semibold text-ink underline decoration-brand decoration-2 underline-offset-2 hover:text-brand-deep"
+              >
+                {page.game}: {t.ilMioAccount}
+                <IconChevronRight size={13} />
               </Link>
             </li>
           ))}
@@ -466,9 +463,9 @@ function Subgroup({
 }) {
   return (
     <div className="mt-4 border-t border-rule-2 pt-4 first:mt-0 first:border-0 first:pt-0">
-      <span className="mb-2.5 flex items-baseline justify-between gap-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-ink-3">
+      <span className="mb-2.5 flex items-baseline justify-between gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-3">
         {label}
-        <span className="text-[11px] normal-case tracking-normal">{hint}</span>
+        <span className="text-[12px] normal-case tracking-normal">{hint}</span>
       </span>
       {children}
     </div>
@@ -502,7 +499,7 @@ function MiniInput({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       className={cx(
-        "h-[30px] w-full rounded-sm border border-rule bg-paper px-2.5 text-[13px] text-ink",
+        "h-9 w-full border border-rule bg-paper px-2.5 text-[13px] text-ink",
         "focus:border-brand focus:outline-none",
         mono && "font-mono text-xs",
       )}
@@ -541,7 +538,7 @@ function Counter({ value, limit }: { value: number; limit: number }) {
 }
 
 const ICON_BTN =
-  "grid place-items-center rounded-sm border border-rule text-[9px] text-ink-3 cursor-pointer " +
+  "grid place-items-center border border-rule bg-transparent text-ink-3 cursor-pointer " +
   "hover:border-ink-3 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed";
 
 function Reorder({
@@ -559,21 +556,21 @@ function Reorder({
     <span className="flex flex-col gap-0.5">
       <button
         type="button"
-        className={cx(ICON_BTN, "h-4.5 w-6")}
+        className={cx(ICON_BTN, "h-[26px] w-9")}
         aria-label={t.spostaSu}
         disabled={index === 0}
         onClick={() => onMove(index, index - 1)}
       >
-        ▲
+        <IconChevronRight size={12} strokeWidth={3} className="-rotate-90" />
       </button>
       <button
         type="button"
-        className={cx(ICON_BTN, "h-4.5 w-6")}
+        className={cx(ICON_BTN, "h-[26px] w-9")}
         aria-label={t.spostaGiu}
         disabled={index === length - 1}
         onClick={() => onMove(index, index + 1)}
       >
-        ▼
+        <IconChevronRight size={12} strokeWidth={3} className="rotate-90" />
       </button>
     </span>
   );
@@ -626,11 +623,11 @@ function ListGroup<T>({
                 {renderAside?.(item, update)}
                 <button
                   type="button"
-                  className={cx(ICON_BTN, "size-6 text-xs hover:border-hot hover:text-hot")}
+                  className={cx(ICON_BTN, "size-9 hover:border-hot hover:text-hot")}
                   aria-label={t.rimuovi}
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
                 >
-                  ×
+                  <IconClose size={14} />
                 </button>
               </Row>
             );

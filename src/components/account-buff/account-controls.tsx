@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useId } from "react";
-import { cx, numeric } from "@/components/ui";
+import { IconChevronRight } from "@/components/icons";
+import { chipClass, cx, numeric } from "@/components/ui";
 import type { AccountSliderData } from "@/lib/games/account-buff-types";
 import type { ManaMode } from "@/lib/games/account-buff";
 import { EMPTY_SETUP, setupEffect, type AccountSetup } from "@/lib/games/account-setup";
@@ -73,15 +73,22 @@ export function AccountControls({
   save,
   href,
   locale,
+  idPrefix = "account",
 }: {
   data: AccountSliderData;
   setup: AccountSetup;
   save: (next: AccountSetup) => void;
   href: string;
   locale: Locale;
+  /**
+   * Il prefisso degli id dei campi. Fisso e non useId(): nella scheda eroe
+   * l'albero sopra il calcolatore a volte usciva diverso fra server e browser, e
+   * con lui gli id (errore di idratazione, 10/10). Uno per pagina.
+   */
+  idPrefix?: string;
 }) {
   const t = TESTI[locale];
-  const id = useId();
+  const id = idPrefix;
   const effect = setupEffect(data, setup);
   const tier = effect.tier;
   // lo slider scorre sulle soglie: 0 e' «nessun titolo», N la soglia N
@@ -97,8 +104,9 @@ export function AccountControls({
     <div className="grid gap-3 border-t border-rule pt-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className="font-semibold text-ink">{t.titolo}</span>
-        <Link href={href} className="text-[12px] text-brand underline-offset-2 hover:underline">
-          {t.pagina} →
+        <Link href={href} className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-deep underline-offset-2 hover:underline">
+          {t.pagina}
+          <IconChevronRight size={12} />
         </Link>
       </div>
 
@@ -132,7 +140,7 @@ export function AccountControls({
               const value = Number(event.target.value);
               if (event.target.value !== "" && Number.isFinite(value)) change({ power: Math.max(0, Math.round(value)) });
             }}
-            className={cx(numeric, "w-[112px] rounded-[3px] border border-rule bg-paper px-2 py-1 text-right text-ink")}
+            className={cx(numeric, "w-[112px] border border-rule bg-paper px-2 py-1 text-right text-ink")}
           />
         </div>
         <p className="m-0 text-[12px] text-ink-3">
@@ -155,7 +163,11 @@ export function AccountControls({
             const constellation = n > 0 ? data.constellations[n - 1] : undefined;
             const lit = quick && n <= setup.completed;
             return (
-              <label key={n} className="cursor-pointer" title={constellation ? constellation.name : t.complete(0)}>
+              <label
+                key={n}
+                className="cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink"
+                title={constellation ? constellation.name : t.complete(0)}
+              >
                 <input
                   type="radio"
                   name={`${id}-costellazioni`}
@@ -168,9 +180,14 @@ export function AccountControls({
                 <span
                   aria-hidden
                   className={cx(
-                    "grid h-8 w-8 place-items-center rounded-[3px] border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                    quick && setup.completed === n ? "border-brand bg-brand-soft" : "border-transparent",
-                    n === 0 && cx(numeric, "border-rule text-[12px]", quick && setup.completed === 0 ? "text-ink" : "text-ink-3"),
+                    // la scelta e' la lama rossa sotto il simbolo, come il fuoco della ricerca Eroi
+                    "grid h-8 w-8 place-items-center border",
+                    quick && setup.completed === n
+                      ? "border-transparent bg-paper-3 shadow-[inset_0_-3px_0_var(--color-brand)]"
+                      : n === 0
+                        ? "border-rule"
+                        : "border-transparent",
+                    n === 0 && cx(numeric, "text-[12px]", quick && setup.completed === 0 ? "text-ink" : "text-ink-3"),
                   )}
                 >
                   {n === 0 ? (
@@ -204,7 +221,10 @@ export function AccountControls({
           <legend className="float-left mr-3 p-0 text-ink-2">{t.pietreMana}</legend>
           <div className="flex items-center gap-1">
             {MANA_MODES.map((mode) => (
-              <label key={mode} className="cursor-pointer">
+              <label
+                key={mode}
+                className="cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink"
+              >
                 <input
                   type="radio"
                   name={`${id}-mana`}
@@ -214,9 +234,10 @@ export function AccountControls({
                   className="peer sr-only"
                 />
                 <span
-                  className={cx(
-                    "inline-block rounded-[3px] border px-2 py-1 text-[12px] peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
-                    setup.mana === mode ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3",
+                  className={chipClass(
+                    setup.mana === mode,
+                    true,
+                    "h-8 px-2.5 normal-case tracking-normal peer-disabled:pointer-events-none peer-disabled:opacity-40",
                   )}
                 >
                   {t.mana[mode]}
@@ -229,7 +250,7 @@ export function AccountControls({
       ) : (
         <p className="m-0 text-[12px] text-ink-2">
           {t.personalizzate}{" "}
-          <button type="button" onClick={() => quickChange({})} className="text-brand hover:underline">
+          <button type="button" onClick={() => quickChange({})} className="text-brand-deep hover:underline">
             {t.tornaRapide}
           </button>
         </p>
@@ -242,7 +263,7 @@ export function AccountControls({
         {effect.active || setup.custom ? (
           <>
             {" "}
-            <button type="button" onClick={() => save(EMPTY_SETUP)} className="text-brand hover:underline">
+            <button type="button" onClick={() => save(EMPTY_SETUP)} className="text-brand-deep hover:underline">
               {t.azzera}
             </button>
           </>

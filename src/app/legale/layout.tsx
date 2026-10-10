@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SectionTabs } from "@/components/section-tabs";
 import { cx, eyebrow } from "@/components/ui";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -41,17 +41,11 @@ export default async function LegalLayout({ children }: { children: React.ReactN
 
   return (
     <main className="mx-auto w-full max-w-[760px] px-6 pt-10 pb-24">
-      <nav aria-label={t.documentiLegali} className="mb-8 flex flex-wrap gap-2">
-        {PAGES.map((page) => (
-          <Link
-            key={page.href}
-            href={page.href}
-            className="inline-flex h-8 items-center rounded-card border border-rule px-3 text-[13px] text-ink-2 hover:border-ink-3 hover:text-ink"
-          >
-            {t[page.key]}
-          </Link>
-        ))}
-      </nav>
+      <SectionTabs
+        label={t.documentiLegali}
+        tabs={PAGES.map((page) => ({ href: page.href, label: t[page.key] }))}
+        className="mb-8 flex flex-wrap gap-1.5"
+      />
 
       <div
         className={cx(
@@ -60,7 +54,7 @@ export default async function LegalLayout({ children }: { children: React.ReactN
           "[&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-base [&_h3]:font-semibold",
           "[&_p]:mb-3.5 [&_p]:leading-[1.7] [&_p]:text-ink-2",
           "[&_ul]:mb-3.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:text-ink-2 [&_li]:mb-1.5 [&_li]:leading-[1.6]",
-          "[&_strong]:text-ink [&_a]:font-semibold [&_a]:text-brand [&_a:hover]:underline",
+          "[&_strong]:text-ink [&_a]:font-semibold [&_a]:text-ink [&_a]:underline [&_a]:decoration-brand [&_a]:decoration-2 [&_a]:underline-offset-2 [&_a:hover]:text-brand-deep",
           "[&_table]:mb-4 [&_table]:w-full [&_table]:border [&_table]:border-rule [&_table]:text-sm",
           "[&_th]:border-b [&_th]:border-rule [&_th]:bg-paper-2 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left",
           "[&_td]:border-b [&_td]:border-rule-2 [&_td]:px-3 [&_td]:py-2 [&_td]:text-ink-2",

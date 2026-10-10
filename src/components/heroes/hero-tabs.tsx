@@ -110,7 +110,9 @@ export function HeroTabs({
       <div
         role="radiogroup"
         aria-label={label}
-        className="sticky top-[60px] z-10 mb-5 flex gap-1 overflow-x-auto border-b-2 border-brand bg-paper py-1.5 [scrollbar-width:none]"
+        // la sfumatura a destra dice che la fila continua: sul telefono le schede
+        // non ci stanno tutte, e la sesta tagliata a meta' non lo diceva (10/10)
+        className="sticky top-[60px] z-10 mb-5 flex gap-1 overflow-x-auto border-b-2 border-brand bg-paper py-1.5 [scrollbar-width:none] max-sm:[mask-image:linear-gradient(to_right,#000_82%,transparent)] max-sm:pr-10"
       >
         {tabs.map((tab, index) => (
           <input

@@ -41,6 +41,13 @@ const COLOR_CLOSE = "[-]";
  *
  * Grassetto, corsivo e colore si accumulano invece di escludersi: il gioco li
  * annida, e una chiusura riporta allo stato precedente senza toccare gli altri.
+ *
+ * I COLORI SONO UNA PILA, come in NGUI, la libreria con cui il gioco scrive: `[-]`
+ * torna al colore di prima, non al testo normale. «[00D5FF]※Poison: damage
+ * equal to [FFAE00]60%[-] of damage dealt[-]» nel gioco e' tutta azzurra col
+ * numero arancione. Fino al 10/10 qui `[-]` azzerava, e dopo il numero la nota
+ * tornava bianca: meta' frase blu e meta' no, in 2.244 testi su 6.053, e il blu
+ * sembrava messo a caso. Mai il contrario (il sito piu' blu del gioco).
  */
 function parseLines(raw: string): TextSegment[][] {
   const lines: TextSegment[][] = [[]];
@@ -48,6 +55,7 @@ function parseLines(raw: string): TextSegment[][] {
   let bold = false;
   let italic = false;
   let color: string | undefined;
+  const colors: (string | undefined)[] = [];
 
   const flush = () => {
     if (buffer === "") return;
@@ -108,7 +116,7 @@ function parseLines(raw: string): TextSegment[][] {
     }
     if (rest.startsWith(COLOR_CLOSE)) {
       flush();
-      color = undefined;
+      color = colors.pop();
       i += COLOR_CLOSE.length;
       continue;
     }
@@ -116,6 +124,7 @@ function parseLines(raw: string): TextSegment[][] {
     const hex = COLOR.exec(rest);
     if (hex) {
       flush();
+      colors.push(color);
       color = `#${hex[1]}`;
       i += hex[0].length;
       continue;
@@ -249,7 +258,13 @@ export function groupTerms(line: TextLine): LinePiece[] {
   const pieces: LinePiece[] = [];
   let run: TextSegment[] = [];
   const close = () => {
-    if (run.length > 0) pieces.push({ kind: "term", segments: run });
+    // Un pezzo blu senza lettere ne' cifre non e' una parola: e' la «)» di
+    // «[00D5FF](Limit [FFAE00]10 times[-])[-]», blu nel gioco perche' il colore
+    // torna dopo il numero (i colori sono una pila). Resta blu, ma non conta fra
+    // le parole: se no l'italiano e l'inglese non si appaierebbero piu'.
+    if (run.length > 0 && !/[\p{L}\p{N}]/u.test(run.map((segment) => segment.text).join(""))) {
+      for (const segment of run) pieces.push({ kind: "text", segment });
+    } else if (run.length > 0) pieces.push({ kind: "term", segments: run });
     run = [];
   };
   for (const segment of line) {

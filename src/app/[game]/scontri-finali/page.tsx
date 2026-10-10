@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { EndgameCard } from "@/components/endgame/endgame-card";
+import { CardStamp, EndgameCard } from "@/components/endgame/endgame-card";
 import {
   AttributeIcon,
   ConditionIcon,
@@ -9,11 +9,14 @@ import {
   HeroPassiveGrid,
   PartTitle,
   RaceLabel,
+  RankStars,
   Said,
+  SectionTitle,
+  Summary,
   endgameScope,
   sayPlain,
 } from "@/components/endgame/endgame-parts";
-import { cx, display, eyebrow } from "@/components/ui";
+import { HowItWorks, PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { endgameImageSrc } from "@/lib/games/endgame";
 import { requireGameModule } from "@/lib/games/registry";
@@ -33,17 +36,18 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Scontri finali di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Scontri finali di ${gioco}`,
     descrizione: (gioco: string) =>
       `Gli Scontri finali di ${gioco}: i boss, le fasi, le abilità, le restrizioni della squadra e le ricompense con le probabilità.`,
-    endgame: "Endgame",
     titolo: "Scontri finali",
     introduzione: (boss: number, difficolta: number) =>
       `I ${boss} boss che invadono i villaggi dei capitoli 1-6 dopo le Battaglie boss, ${difficolta} difficoltà in tutto. Scegli un boss per vedere le fasi coi nemici, le carte e le passive, le restrizioni della squadra e le ricompense con le loro probabilità.`,
     fonte:
       "Fonte: le tabelle e i testi del client del gioco. Le statistiche dei boss sono stimate, e lo dice accanto al numero: il client non le scrive.",
+    datiDa: "Da dove vengono i dati",
     indice: "Boss",
-    stelle: (n: number) => `Battaglie boss ${n}☆`,
+    stelle: "Battaglie boss",
+    stelleN: (n: number) => (n === 1 ? "1 stella" : `${n} stelle`),
     difficolta: (n: number, da: number, a: number) => `${n} difficoltà · livello ${da}-${a}`,
     comeFunziona: "Come funziona",
     regole: (n: number) => `Le regole del gioco (${n})`,
@@ -59,17 +63,18 @@ const TESTI = testi({
     diritti: (editore: string) => `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Death Match · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Death Match`,
     descrizione: (gioco: string) =>
       `${gioco} Death Match: the bosses, phases, skills, team restrictions and rewards with their chances.`,
-    endgame: "Endgame",
     titolo: "Death Match",
     introduzione: (boss: number, difficolta: number) =>
       `The ${boss} bosses that invade the villages of chapters 1-6 after Boss Battles, ${difficolta} difficulties in all. Pick a boss to see the phases with their enemies, the cards and passives, the team restrictions and the rewards with their chances.`,
     fonte:
       "Source: the game client's tables and texts. The bosses' stats are estimated, and it says so next to the number: the client does not store them.",
+    datiDa: "Where the data comes from",
     indice: "Bosses",
-    stelle: (n: number) => `${n}☆ Boss Battles`,
+    stelle: "Boss Battles",
+    stelleN: (n: number) => (n === 1 ? "1 star" : `${n} stars`),
     difficolta: (n: number, da: number, a: number) => `${n} difficulties · level ${da}-${a}`,
     comeFunziona: "How it works",
     regole: (n: number) => `The game's rules (${n})`,
@@ -119,22 +124,24 @@ export default async function DeathMatchPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{t.endgame}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione(data.bosses.length, levels)}</p>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
-      </header>
+      {/* il titolo e la riga di cosa c'e'; la fonte in «Da dove vengono i dati» (10/10) */}
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione(data.bosses.length, levels)}</p>
+      </PageHeader>
+      <HowItWorks summary={t.datiDa} className="mb-8">
+        <p>{t.fonte}</p>
+      </HowItWorks>
 
-      <nav aria-label={t.indice} className="mb-10">
-        <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 xl:grid-cols-3">
+      <nav aria-label={t.indice} className="mb-14">
+        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
           {data.bosses.map((boss) => {
             const bossLevels = boss.difficulties.map((level) => level.bossLevel);
             return (
               <li key={boss.key} className="min-w-0">
                 {/*
                   Il cut-in del boss e non la sua scheda color seppia: scelta
-                  dell'utente (26/09). La scheda resta in testa alla pagina del boss.
+                  dell'utente (26/09). La scheda resta in testa alla pagina del
+                  boss, accanto ai fatti, sotto il cut-in grande (10/10).
                 */}
                 <EndgameCard
                   href={`/${game}/scontri-finali/${boss.key}`}
@@ -145,15 +152,19 @@ export default async function DeathMatchPage({ params }: Props) {
                         ? endgameImageSrc(game, `scontri/${boss.key}.png`)
                         : null
                   }
-                  kicker={t.stelle(boss.stars)}
+                  stamp={
+                    <CardStamp>
+                      {t.stelle}
+                      <RankStars rank={boss.stars} scope={scope} label={t.stelleN(boss.stars)} />
+                    </CardStamp>
+                  }
                   title={sayPlain(boss.name, scope)}
-                  tile
                 >
                   <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                     <AttributeIcon code={boss.attribute} scope={scope} size={16} />
                     <RaceLabel code={boss.race} scope={scope} />
                   </span>
-                  <span className="mt-1 block">
+                  <span className="mt-1.5 block">
                     {t.difficolta(boss.difficulties.length, Math.min(...bossLevels), Math.max(...bossLevels))}
                   </span>
                 </EndgameCard>
@@ -163,18 +174,18 @@ export default async function DeathMatchPage({ params }: Props) {
         </ul>
       </nav>
 
-      <section id="come-funziona" className="mb-10 scroll-mt-20">
-        <h2 className={cx(display, "text-2xl")}>{t.comeFunziona}</h2>
-        <div className="mt-3 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
-          <details className="rounded-card border border-rule bg-paper-2 p-4">
-            <summary className="cursor-pointer text-[14px] font-semibold hover:text-brand">{t.regole(data.rules.length)}</summary>
-            <div className="mt-3 grid gap-3 text-[13px] leading-relaxed text-ink-2">
+      <section id="come-funziona" className="mb-14 scroll-mt-20">
+        <SectionTitle>{t.comeFunziona}</SectionTitle>
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
+          <details className="p5-corner border border-rule bg-paper-2 px-4 py-3">
+            <Summary className="text-[14px] font-semibold text-ink">{t.regole(data.rules.length)}</Summary>
+            <div className="mt-2 grid max-w-[48ch] gap-3 pb-1 text-[13px] leading-relaxed text-ink-2">
               {data.rules.map((rule, index) => (
                 <Said key={index} value={rule} scope={scope} />
               ))}
             </div>
           </details>
-          <div className="rounded-card border border-rule p-4">
+          <div className="border border-rule p-4">
             <Facts
               rows={[
                 [t.limite, t.minuti(data.limits.minutes)],
@@ -185,11 +196,11 @@ export default async function DeathMatchPage({ params }: Props) {
         </div>
       </section>
 
-      <section id="eroi" className="scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.eroi}</h2>
-        <p className="mt-2 max-w-[72ch] text-sm text-ink-2">{t.eroiIntro}</p>
+      <section id="eroi" className="scroll-mt-20 border-t border-rule pt-10">
+        <SectionTitle>{t.eroi}</SectionTitle>
+        <p className="-mt-2 mb-0 max-w-[48ch] text-sm text-ink-2">{t.eroiIntro}</p>
 
-        <div className="mt-5">
+        <div className="mt-6">
           <PartTitle>
             <span className="inline-flex items-center gap-2">
               <ConditionIcon condition="destroy_only" scope={scope} size={20} />
@@ -200,20 +211,20 @@ export default async function DeathMatchPage({ params }: Props) {
         </div>
 
         {/* Chiuse di partenza: sono quasi settanta, e aperte allungherebbero la pagina di tre schermi. */}
-        <details className="mt-6">
-          <summary className="cursor-pointer text-[15px] font-semibold hover:text-brand">
+        <details className="mt-8">
+          <Summary className="font-display text-[17px] font-extrabold uppercase tracking-[0.02em] text-ink [font-variation-settings:'wdth'_85]">
             <span className="inline-flex items-center gap-2 align-middle">
               <ConditionIcon condition="destroy_except" scope={scope} size={20} />
               {t.esclusePassive(data.heroesExcluded.length)}
             </span>
-          </summary>
+          </Summary>
           <div className="mt-3">
             <HeroPassiveGrid entries={data.heroesExcluded} scope={scope} />
           </div>
         </details>
       </section>
 
-      <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
+      <p className="mt-12 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
     </main>
   );
 }

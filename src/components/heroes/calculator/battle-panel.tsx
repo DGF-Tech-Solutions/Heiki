@@ -1,6 +1,5 @@
 "use client";
 
-import { useId } from "react";
 import { AccountControls } from "@/components/account-buff/account-controls";
 import { cx, numeric } from "@/components/ui";
 import type { AccountSliderData } from "@/lib/games/account-buff-types";
@@ -76,7 +75,8 @@ export function BattlePanel({
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
-  const id = useId();
+  // id fissi, non useId(): vedi stat-calculator.tsx
+  const id = "calc-battaglia";
   const associates = data.associates ?? [];
   const links = new Map((data.fates?.links ?? []).map((fate) => [fate[0], fate]));
   const chosen = build.associate;
@@ -113,7 +113,7 @@ export function BattlePanel({
                   : null,
               );
             }}
-            className="w-full min-w-0 rounded-[3px] border border-rule bg-paper px-2 py-1.5 text-ink"
+            className="w-full min-w-0 border border-rule bg-paper px-2 py-1.5 text-ink"
           >
             <option value="">{t.nessuno}</option>
             {linked.length > 0 ? (
@@ -155,7 +155,7 @@ export function BattlePanel({
                         <span
                           aria-hidden
                           className={cx(
-                            "grid h-7 w-7 place-items-center rounded-[3px] border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
+                            "grid h-7 w-7 place-items-center border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
                             chosen.ultimateRank === rank ? "border-brand bg-brand-soft" : "border-transparent",
                           )}
                         >
@@ -194,7 +194,7 @@ export function BattlePanel({
                 {t.stessoEquip}
               </label>
               {result.fate ? (
-                <div className="grid gap-1 rounded-[4px] border border-rule/70 bg-paper px-2.5 py-2 text-[12px]">
+                <div className="grid gap-1 border border-rule/70 bg-paper px-2.5 py-2 text-[12px]">
                   <span className="text-ink-2">{t.comune(result.fate.percent)}</span>
                   <span className={cx(numeric, "text-ink")}>
                     {(["atk", "def", "hp"] as const)
@@ -222,7 +222,7 @@ export function BattlePanel({
       ) : null}
 
       {account && accountHref ? (
-        <AccountControls data={account} setup={setup} save={saveSetup} href={accountHref} locale={locale} />
+        <AccountControls data={account} setup={setup} save={saveSetup} href={accountHref} locale={locale} idPrefix="calc-account" />
       ) : null}
     </Panel>
   );

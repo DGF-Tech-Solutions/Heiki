@@ -140,6 +140,10 @@ interface SectionNames extends Omit<GameSection, "label" | "hint"> {
 
 /** Le sezioni con i nomi nelle due lingue: le risolve `sections(locale)`. */
 const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = [
+  // 10/10: cinque gruppi di quattro voci al massimo (prima sei gruppi, tre con
+  // una voce sola, e 17 voci che su uno schermo da 900px non stavano: le ultime
+  // si vedevano solo in fondo alla pagina). Artefatti e buff dell'account stanno
+  // insieme: sono la crescita dell'account, non schede da consultare.
   {
     label: { it: "Database", en: "Database" },
     items: [
@@ -168,6 +172,20 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         needs: "changes",
       },
       {
+        path: "/meccaniche",
+        label: { it: "Meccaniche", en: "Mechanics" },
+        hint: {
+          it: "Danno, attributi, pesca delle carte e cumulo dei buff, come li calcola il gioco",
+          en: "Damage, attributes, card draws and buff stacking, as the game computes them",
+        },
+        needs: "mechanics",
+      },
+    ],
+  },
+  {
+    label: { it: "Progressione", en: "Progression" },
+    items: [
+      {
         path: "/set-artefatto",
         label: { it: "Set artefatto", en: "Artifact Sets" },
         hint: {
@@ -193,15 +211,6 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "Account Combat Class and constellations, stone by stone",
         },
         needs: "accountBuff",
-      },
-      {
-        path: "/meccaniche",
-        label: { it: "Meccaniche", en: "Mechanics" },
-        hint: {
-          it: "Danno, attributi, pesca delle carte e cumulo dei buff, come li calcola il gioco",
-          en: "Damage, attributes, card draws and buff stacking, as the game computes them",
-        },
-        needs: "mechanics",
       },
     ],
   },
@@ -250,15 +259,6 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
     label: { it: "Strumenti", en: "Tools" },
     items: [
       {
-        path: "/randomizer",
-        label: { it: "Randomizer", en: "Randomizer" },
-        hint: {
-          it: "Quattro eroi e i loro associati pescati a caso, anche con le Uniche in sinergia",
-          en: "Four heroes and their associates drawn at random, also with their Uniques in synergy",
-        },
-        needs: "heroFates",
-      },
-      {
         path: "/squadra",
         label: { it: "Squadra", en: "Team Builder" },
         hint: {
@@ -266,6 +266,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "Build a team and see how the heroes affect each other: Uniques, relics, special abilities, associates",
         },
         needs: "team",
+      },
+      {
+        path: "/randomizer",
+        label: { it: "Randomizer", en: "Randomizer" },
+        hint: {
+          it: "Quattro eroi e i loro associati pescati a caso, anche con le Uniche in sinergia",
+          en: "Four heroes and their associates drawn at random, also with their Uniques in synergy",
+        },
+        needs: "heroFates",
       },
       {
         path: "/indovina",
@@ -278,10 +287,9 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
       },
     ],
   },
+  // l'account e la community: la parte del sito che dipende da chi la usa
   {
-    // 27/09: la sezione degli account. Per ora il tuo account e la verifica della
-    // classe; gli eroi posseduti entreranno qui
-    label: { it: "Il tuo account", en: "Your account" },
+    label: { it: "Tu e la community", en: "You and the community" },
     items: [
       {
         path: "/account",
@@ -292,11 +300,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         },
         needs: "accountBuff",
       },
-    ],
-  },
-  {
-    label: { it: "Guide", en: "Guides" },
-    items: [
+      {
+        path: "/account/eroi",
+        label: { it: "I tuoi eroi", en: "Your heroes" },
+        hint: {
+          it: "Il tuo box: chi hai e a che punto è, per partire dai tuoi numeri nella scheda e nella Squadra",
+          en: "Your box: who you have and how far along, to start from your numbers in the hero page and the Team Builder",
+        },
+        needs: "roster",
+      },
       {
         path: "/guide",
         label: { it: "Guide e rotazioni", en: "Guides and rotations" },
@@ -305,13 +317,9 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "With the patch in which the numbers were verified",
         },
       },
-    ],
-  },
-  {
-    label: { it: "Community", en: "Community" },
-    items: [
       {
-        path: "",
+        // dal 10/10 il feed ha un indirizzo suo: /<gioco> e' l'ingresso del gioco
+        path: "/discussioni",
         label: { it: "Discussioni", en: "Discussions" },
         hint: { it: "Build e rotazioni condivise", en: "Shared builds and rotations" },
       },

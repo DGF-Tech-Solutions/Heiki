@@ -188,6 +188,38 @@ export function defaultBuild(data: CalculatorData): HeroBuild {
   };
 }
 
+/**
+ * La configurazione di partenza per un eroe che hai nel box (hero-box.ts): i tuoi
+ * livello, Risvegli, Super risvegli, rango dell'ultimate, Vero risveglio e
+ * Reliquia; equipaggiamento e costumi restano quelli di partenza (il box non li
+ * dice). Vale finche' non cambi qualcosa nel calcolatore (10/10).
+ */
+export function buildFromBox(
+  data: CalculatorData,
+  entry: {
+    level: number;
+    awaken: number;
+    superAwaken: number;
+    ultimateRank: number;
+    trueAwakening: readonly [boolean, boolean];
+    relic: boolean;
+  },
+): HeroBuild {
+  const base = defaultBuild(data);
+  return parseBuild(
+    {
+      ...base,
+      level: entry.level,
+      awaken: entry.awaken,
+      superAwaken: entry.superAwaken,
+      ultimateRank: entry.ultimateRank,
+      trueAwakening: [...entry.trueAwakening],
+      relic: entry.relic ? base.relic : null,
+    },
+    data,
+  );
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const num = (value: unknown, fallback: number) => (typeof value === "number" && Number.isFinite(value) ? value : fallback);

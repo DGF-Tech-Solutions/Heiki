@@ -14,7 +14,10 @@ import { StatCalculator } from "@/components/heroes/calculator/stat-calculator";
 import { STAT_ROWS, formatStat } from "@/components/heroes/calculator/stat-rows";
 import { HeroAssociations } from "@/components/heroes/hero-associations";
 import { HeroCostumes } from "@/components/heroes/hero-costumes";
-import { cx, display, eyebrow, Notice, numeric, Tag } from "@/components/ui";
+import { HeroArrowKeys } from "@/components/heroes/hero-arrow-keys";
+import { IconChevronLeft, IconChevronRight } from "@/components/icons";
+import { HeroStage } from "@/components/heroes/hero-stage";
+import { buttonClass, cx, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { sliderData } from "@/lib/games/account-buff";
 import type { AccountBuffIndex } from "@/lib/games/account-buff-types";
 import { findGame } from "@/lib/games/catalog";
@@ -43,12 +46,15 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    eroeNonTrovato: "Eroe non trovato · GachaZone",
-    titoloPagina: (eroe: string, gioco: string) => `${eroe} · Eroi di ${gioco} · GachaZone`,
+    eroeNonTrovato: "Eroe non trovato",
+    titoloPagina: (eroe: string, gioco: string) => `${eroe} · Eroi di ${gioco}`,
     descrizionePagina: (eroe: string, rarita: string, attributo: string, gioco: string) =>
       `${eroe}, eroe ${rarita} di attributo ${attributo} in ${gioco}.`,
     eroi: "Eroi",
     altCard: (eroe: string) => `Card di ${eroe}`,
+    altriEroi: "Altri eroi",
+    precedente: "Eroe precedente",
+    successivo: "Eroe successivo",
     nelGioco: "Nel gioco:",
     uscita: "Uscita",
     giapponeCorea: "Giappone e Corea",
@@ -83,12 +89,15 @@ const TESTI = testi({
     schedaInfo: "Info",
   },
   en: {
-    eroeNonTrovato: "Hero not found · GachaZone",
-    titoloPagina: (eroe: string, gioco: string) => `${eroe} · ${gioco} Heroes · GachaZone`,
+    eroeNonTrovato: "Hero not found",
+    titoloPagina: (eroe: string, gioco: string) => `${eroe} · ${gioco} Heroes`,
     descrizionePagina: (eroe: string, rarita: string, attributo: string, gioco: string) =>
       `${eroe}, ${rarita} hero with the ${attributo} attribute in ${gioco}.`,
     eroi: "Heroes",
     altCard: (eroe: string) => `${eroe} card`,
+    altriEroi: "Other heroes",
+    precedente: "Previous hero",
+    successivo: "Next hero",
     nelGioco: "In game:",
     uscita: "Release",
     giapponeCorea: "Japan and Korea",
@@ -357,7 +366,10 @@ export default async function HeroPage({ params, searchParams }: Props) {
   // Nome, epiteto e testi dell'eroe nella lingua della pagina: nome ed epiteto
   // dal roster, titolo e descrizione dal client, e dove una lingua manca l'altra.
   const name = heroName(hero, locale);
-  const epithet = heroEpithet(hero, locale);
+  // l'eroe prima e dopo nell'ordine della griglia (l'uscita)
+  const position = roster.heroes.findIndex((entry) => entry.id === hero.id);
+  const prev = position > 0 ? roster.heroes[position - 1] : undefined;
+  const next = position >= 0 && position < roster.heroes.length - 1 ? roster.heroes[position + 1] : undefined;
   const title = localized(text?.i18n?.title, text?.title, locale);
   const description = localized(text?.i18n?.description, text?.description, locale);
 
@@ -522,34 +534,46 @@ export default async function HeroPage({ params, searchParams }: Props) {
       <article className="group/scheda">
         {/*
           L'intestazione resta sopra le schede, qualunque sia aperta: chi e',
-          che rarita', quando e' uscito. Sul telefono la card sta accanto al
-          nome e non sopra: 80px invece di 128, e 150px di pagina in meno prima
-          delle schede.
+          che rarita', quando e' uscito. Dal 10/10 e' un palco (hero-stage.tsx):
+          l'illustrazione grande, che prima stava nell'ultima scheda a 340px, e
+          il nome in targa. Sotto, una striscia con razza, caratteristiche e
+          uscita; in alto a destra l'eroe prima e dopo nell'ordine della
+          griglia (anche coi tasti freccia).
         */}
-        <header className="mb-5 grid items-start gap-4 grid-cols-[80px_minmax(0,1fr)] sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={heroCardSrc(game, hero.id)}
-            srcSet={`${heroCardSrc(game, hero.id)} 1x, ${heroCardSrc(game, hero.id, 2)} 2x`}
-            alt={t.altCard(name)}
-            width={128}
-            height={128}
-            className="w-20 rounded-card bg-paper-2 shadow-[4px_4px_0_var(--color-brand)] sm:w-32"
-          />
+        <header className="mb-5">
+          <div className="relative">
+            <HeroStage
+              game={game}
+              hero={hero}
+              locale={locale}
+              affinity={affinity}
+              size="hero"
+              priority
+              headingLevel="h1"
+              art={assets?.splashFull ? "full" : assets?.splash ? "cutout" : "none"}
+              className="p5-corner"
+            />
+            {prev || next ? (
+              <nav aria-label={t.altriEroi} className="absolute top-3 right-3 z-10 flex gap-1.5">
+                {prev ? (
+                  <Link href={`/${game}/eroi/${prev.id}`} rel="prev" title={`${t.precedente}: ${heroName(prev, locale)}`} className={buttonClass("outline", "sm")}>
+                    <IconChevronLeft />
+                    <span className="sr-only">{t.precedente}: {heroName(prev, locale)}</span>
+                  </Link>
+                ) : null}
+                {next ? (
+                  <Link href={`/${game}/eroi/${next.id}`} rel="next" title={`${t.successivo}: ${heroName(next, locale)}`} className={buttonClass("outline", "sm")}>
+                    <span className="sr-only">{t.successivo}: {heroName(next, locale)}</span>
+                    <IconChevronRight />
+                  </Link>
+                ) : null}
+              </nav>
+            ) : null}
+            <HeroArrowKeys game={game} heroId={hero.id} prev={prev ? `/${game}/eroi/${prev.id}` : null} next={next ? `/${game}/eroi/${next.id}` : null} />
+          </div>
 
-          <div className="min-w-0">
-            <p
-              className="flex max-w-full items-stretch gap-1 text-ink-3"
-              style={affinity ? { color: affinity.color } : undefined}
-            >
-              <span aria-hidden="true" className="p5-cut-sm w-2.5 shrink-0 bg-current" />
-              <span className="p5-cut inline-block min-w-0 bg-ink px-3 py-1 font-display text-[13px] leading-tight font-black tracking-[0.06em] text-paper uppercase empty:hidden [font-variation-settings:'wdth'_75]">
-                {epithet}
-              </span>
-            </p>
-            <h1 className={cx(display, "mt-2 text-[clamp(30px,5.2vw,58px)] [overflow-wrap:anywhere]")}>{name}</h1>
-
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-3">
+            <div className="flex flex-wrap items-center gap-2">
               {/*
                 "LR" da solo era comodo e falso. Il numero da cui viene - il
                 `rating` del gioco - e' il TETTO che l'eroe puo' raggiungere,
@@ -618,7 +642,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
               ))}
               <Link
                 href={`/${game}/eroi?cerca=${encodeURIComponent(hero.group)}`}
-                className="text-[13px] text-ink-2 hover:text-brand"
+                className="text-[13px] text-ink-2 hover:text-brand-deep"
               >
                 {hero.group}
               </Link>
@@ -723,7 +747,7 @@ function HeroInfo({
           {description ? (
             <div>
               <h2 className={cx(eyebrow, "mb-2.5")}>{t.descrizione}</h2>
-              <GameText text={description} className="max-w-[70ch] text-[15px] leading-relaxed" />
+              <GameText text={description} className="max-w-[48ch] text-[15px] leading-relaxed" />
             </div>
           ) : (
             <Notice>{t.senzaDescrizione}</Notice>
@@ -814,7 +838,7 @@ function ReleaseLine({ game, release, locale }: { game: string; release: HeroRel
     parts.push({
       key: "cal",
       node: (
-        <Link href={calendar} className="text-ink hover:text-brand">
+        <Link href={calendar} className="text-ink hover:text-brand-deep">
           {t.nelCalendario}
         </Link>
       ),
@@ -823,11 +847,12 @@ function ReleaseLine({ game, release, locale }: { game: string; release: HeroRel
   if (parts.length === 0) return null;
 
   return (
-    <p className="m-0 mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-ink-2">
+    // Ogni data e' un pezzo che va a capo intero, separato dallo spazio e non da
+    // un «·»: sul telefono il punto finiva a inizio riga (10/10)
+    <p className="m-0 mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-ink-2">
       <span className={eyebrow}>{t.uscita}</span>
-      {parts.map((part, index) => (
-        <span key={part.key}>
-          {index > 0 ? "· " : null}
+      {parts.map((part) => (
+        <span key={part.key} className="whitespace-nowrap">
           {part.node}
         </span>
       ))}
@@ -925,8 +950,8 @@ function AffinityTag({
   return (
     <span
       className={cx(
-        "inline-flex h-5 items-center rounded-[2px] px-[7px] text-white",
-        "font-mono text-[10px] font-medium uppercase tracking-[0.06em]",
+        "inline-flex h-5 items-center px-[7px] text-white",
+        "font-mono text-[11px] font-medium uppercase tracking-[0.06em]",
       )}
       style={{
         background: affinity.colorAlt
@@ -1005,7 +1030,7 @@ function Stats({
       ) : (
         <MaxTable max={stats.max} locale={locale} />
       )}
-      <p className="mt-3 max-w-[70ch] text-[13px] text-ink-3">
+      <p className="mt-3 max-w-[48ch] text-[13px] text-ink-3">
         {calculator ? t.statisticheFonte : t.statisticheFonteMassimo}
       </p>
     </section>
@@ -1043,9 +1068,9 @@ function Sibling({ game, locale, hero }: { game: string; locale: Locale; hero: H
           width={128}
           height={128}
           loading="lazy"
-          className="block w-full rounded-[3px] bg-paper-2"
+          className="block w-full bg-paper-2"
         />
-        <p className="m-0 mt-1.5 text-[12px] font-semibold leading-tight group-hover:text-brand">
+        <p className="m-0 mt-1.5 text-[12px] font-semibold leading-tight group-hover:text-brand-deep">
           {heroName(hero, locale)}
         </p>
       </Link>

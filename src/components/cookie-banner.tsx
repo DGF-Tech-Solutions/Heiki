@@ -65,9 +65,9 @@ export function CookieBanner() {
       className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-ink bg-paper px-6 py-4 shadow-[0_-6px_24px_-12px_rgba(20,22,28,0.25)]"
     >
       <div className="mx-auto flex w-full max-w-shell flex-wrap items-center gap-4">
-        <p className="m-0 max-w-[62ch] flex-1 basis-72 text-[13px] text-ink-2">
+        <p className="m-0 max-w-[48ch] flex-1 basis-72 text-[13px] text-ink-2">
           {t.spiegazione}{" "}
-          <Link href="/legale/cookie" className="font-semibold text-brand hover:underline">
+          <Link href="/legale/cookie" className="font-semibold text-brand-deep hover:underline">
             {t.dettagli}
           </Link>
         </p>

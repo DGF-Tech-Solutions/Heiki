@@ -21,6 +21,7 @@
 
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import sharp from "sharp";
 // La stessa somma dello slider della scheda: il controllo dei pezzi si fa con
 // la funzione che poi li usera', non con una copia.
 import { maxSelection, statsAt } from "../src/lib/games/hero-stats";
@@ -1859,6 +1860,10 @@ if (!existsSync(assetsJson)) {
         copied[kind.dir]!++;
       }
       flags.push(`${kind.key === "abilita" ? "skill" : "splash"}: true`);
+      // L'illustrazione e' quasi sempre scontornata (sfondo trasparente): 9 su
+      // 372 hanno lo sfondo dipinto, e sul palco della griglia e della scheda
+      // (hero-stage.tsx) vanno in una cornice e non come figura (10/10)
+      if (kind.key === "splash" && (await sharp(to).stats()).isOpaque) flags.push(`splashFull: true`);
     }
 
     // Le carte d'attacco le ha gia' copiate la sezione degli accostamenti: qui

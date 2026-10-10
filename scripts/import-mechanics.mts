@@ -79,8 +79,18 @@ const effect = (e: SrcEffect | undefined) =>
   e ? { passive: e.passiva, sameAttribute: e.stesso_attributo, otherAllies: e.altri_alleati } : undefined;
 
 const stacking: Record<string, MechanicsStacking[]> = {};
+// La pipeline lega i buff ai concetti di tutto il glossario; il sito li mostra
+// dove c'e' una parola blu (la tendina) o col suo nome (la pagina Meccaniche).
+// Un concetto che nessuna parola blu cita si salta, e si dice quali: dal 10/10
+// «All Stats Increase» lo citavano solo parole legate al concetto sbagliato
+// («Removes Debuffs», «PVE»), tolte quando la parola blu ha smesso di prendere il
+// concetto che la segue nella frase.
+const skipped: string[] = [];
 for (const [concept, rules] of Object.entries(src.cumulo)) {
-  if (!HERO_TERMS.concepts[concept]) fail(`cumulo: il concetto ${concept} non e' fra quelli delle parole blu`);
+  if (!HERO_TERMS.concepts[concept]) {
+    skipped.push(concept);
+    continue;
+  }
   stacking[concept] = rules.map((r) => {
     if (!RULES.includes(r.regola as StackingRule)) fail(`cumulo di ${concept}: regola ${r.regola} sconosciuta`);
     return { rule: r.regola as StackingRule, limit: r.limite, cards: r.carte };
@@ -173,6 +183,7 @@ const pairs = new Map<string, number>();
 for (const [a, b] of Object.values(index.draw)) pairs.set(`${a}/${b}`, (pairs.get(`${a}/${b}`) ?? 0) + 1);
 console.log(`  pesca: ${Object.keys(index.draw).length} eroi (${[...pairs].map(([k, n]) => `${k}: ${n}`).join(", ")})`);
 console.log(`  effetti Luce/Oscurita': ${Object.keys(index.teamEffects).length} eroi`);
+if (skipped.length > 0) console.log(`  cumulo: saltati ${skipped.length} concetti che nessuna parola blu cita: ${skipped.join(", ")}`);
 console.log(
   `  cumulo: ${Object.keys(stacking).length} concetti, ${Object.values(stacking).filter((r) => r.length > 1).length} con piu' regole\n`,
 );

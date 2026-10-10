@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { cx, display, eyebrow, numeric } from "@/components/ui";
+import { IconChevronRight } from "@/components/icons";
+import { SectionIndex } from "@/components/section-index";
+import { cx, display, eyebrow, HowItWorks, numeric, PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { gameIconSrc, heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import {
@@ -34,22 +36,27 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Meccaniche di combattimento di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Meccaniche di combattimento di ${gioco}`,
     descrizione: (gioco: string) =>
       `${gioco}: come il gioco calcola il danno di un colpo, chi batte chi fra gli attributi, come si pescano le carte e come si cumulano i buff. Letto nel codice del gioco.`,
-    database: "Database",
     titolo: "Meccaniche di combattimento",
-    introduzione:
-      "Come il gioco calcola un colpo, chi batte chi fra gli attributi, come pesca le carte e come si cumulano i buff. Le regole sono lette nel codice del client del gioco, i numeri vengono dalla sua configurazione: gli esempi qui sotto sono calcolati con quelli.",
+    introduzione: "Come il gioco calcola un colpo, chi batte chi fra gli attributi, come pesca le carte e come si cumulano i buff.",
+    metodo:
+      "Le regole sono lette nel codice del client del gioco, i numeri vengono dalla sua configurazione: gli esempi qui sotto sono calcolati con quelli.",
     fonte: "Fonte: il codice, la configurazione e le tabelle del client del gioco.",
+    comeFunziona: "Da dove vengono regole e numeri",
     indice: "In questa pagina",
     sezioni: { danno: "Il danno", attributi: "Chi batte chi", pesca: "La pesca delle carte", cumulo: "Il cumulo dei buff" },
 
     dannoIntro: "Un colpo passa per sei passi, sempre in quest'ordine.",
+    passi: "I passi del danno",
     passo: (n: number) => `Passo ${n}`,
     baseTitolo: "Il danno base",
-    baseTesto: (a: string, b: string) =>
-      `Si parte dall'Attacco in battaglia dell'eroe (con i buff attivi) moltiplicato per la percentuale della carta: chiamiamolo A. La Difesa del bersaglio ne toglie una parte: danno = A × (1 − ${b} × Difesa ÷ (A + ${a} × Difesa)).`,
+    baseTesto:
+      "Si parte dall'Attacco in battaglia dell'eroe (con i buff attivi) moltiplicato per la percentuale della carta: chiamiamolo A. La Difesa del bersaglio ne toglie una parte:",
+    formula: (a: string, b: string) => `danno = A × (1 − ${b} × Difesa ÷ (A + ${a} × Difesa))`,
+    formulaDanno: "danno",
+    formulaDifesa: "Difesa",
     baseConseguenze: (tetto: string) =>
       `Due conseguenze. La Difesa non azzera mai un colpo: anche altissima toglie al massimo il ${tetto}. E pesa meno sui colpi grossi, perché A comprende già la percentuale della carta.`,
     baseEsempio: (atk: string, dif: string) => `Esempio: Attacco ${atk}, Difesa del bersaglio ${dif}.`,
@@ -154,22 +161,27 @@ const TESTI = testi({
     diritti: (editore: string) => `Nomi e immagini appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Combat Mechanics · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Combat Mechanics`,
     descrizione: (gioco: string) =>
       `${gioco}: how the game computes the damage of a hit, which attribute beats which, how cards are drawn and how buffs stack. Read in the game's code.`,
-    database: "Database",
     titolo: "Combat mechanics",
-    introduzione:
-      "How the game computes a hit, which attribute beats which, how it draws cards and how buffs stack. The rules are read in the game client's code and the numbers come from its configuration: the examples below are computed with them.",
+    introduzione: "How the game computes a hit, which attribute beats which, how it draws cards and how buffs stack.",
+    metodo:
+      "The rules are read in the game client's code and the numbers come from its configuration: the examples below are computed with them.",
     fonte: "Source: the game client's code, configuration and tables.",
+    comeFunziona: "Where the rules and numbers come from",
     indice: "On this page",
     sezioni: { danno: "Damage", attributi: "Who beats whom", pesca: "Card draws", cumulo: "Buff stacking" },
 
     dannoIntro: "A hit goes through six steps, always in this order.",
+    passi: "Damage steps",
     passo: (n: number) => `Step ${n}`,
     baseTitolo: "Base damage",
-    baseTesto: (a: string, b: string) =>
-      `It starts from the hero's Attack in battle (with active buffs) times the card's percentage: call it A. The target's Defense removes part of it: damage = A × (1 − ${b} × Defense ÷ (A + ${a} × Defense)).`,
+    baseTesto:
+      "It starts from the hero's Attack in battle (with active buffs) times the card's percentage: call it A. The target's Defense removes part of it:",
+    formula: (a: string, b: string) => `damage = A × (1 − ${b} × Defense ÷ (A + ${a} × Defense))`,
+    formulaDanno: "damage",
+    formulaDifesa: "Defense",
     baseConseguenze: (tetto: string) =>
       `Two consequences. Defense never cancels a hit: even very high it removes at most ${tetto}. And it weighs less on big hits, because A already includes the card's percentage.`,
     baseEsempio: (atk: string, dif: string) => `Example: Attack ${atk}, target Defense ${dif}.`,
@@ -355,282 +367,350 @@ export default async function MechanicsPage({ params }: Props) {
       {attributeName(c)}
     </span>
   );
-  const Step = ({ n, title, children }: { n: number; title: string; children: React.ReactNode }) => (
-    <li className="grid gap-1.5 border-t border-rule-2 pt-4 first:border-t-0 first:pt-0">
-      <p className={eyebrow}>{t.passo(n)}</p>
-      <h3 className="m-0 text-[17px] font-semibold">{title}</h3>
-      <div className="grid max-w-[72ch] gap-2 text-[14px] text-ink-2">{children}</div>
+  const STEPS = [t.baseTitolo, t.critTitolo, t.incTitolo, t.varTitolo, t.fissiTitolo, t.finaleTitolo];
+  // Il numero del passo grande a sinistra, non un'etichetta sopra il titolo: e'
+  // quello che si cerca scorrendo, e «Passo 3» resta detto ai lettori di schermo.
+  // Sul telefono il testo prende tutta la larghezza, sotto numero e titolo: in
+  // colonna accanto al numero la formula non ci stava.
+  const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
+    <li
+      id={`danno-${n}`}
+      className="grid scroll-mt-[120px] grid-cols-[34px_minmax(0,1fr)] items-center gap-x-3 border-t border-rule-2 pt-6 first:border-t-0 first:pt-0 sm:grid-cols-[56px_minmax(0,1fr)] sm:items-start sm:gap-x-4 xl:scroll-mt-[85px]"
+    >
+      <span aria-hidden className={cx(display, "text-[34px] leading-none sm:row-span-2 sm:text-[44px]")}>
+        {n}
+      </span>
+      <h3 className={cx(display, "m-0 text-[19px]")}>
+        <span className="sr-only">{t.passo(n)}: </span>
+        {STEPS[n - 1]}
+      </h3>
+      <div className="col-span-2 mt-2.5 grid min-w-0 max-w-[48ch] gap-2.5 text-[14px] leading-relaxed text-ink-2 sm:col-span-1 sm:col-start-2">
+        {children}
+      </div>
     </li>
   );
-  const th = cx(eyebrow, "px-3 py-1.5 font-medium");
-  const td = cx(numeric, "px-3 py-1 text-right");
+  const SubTitle = ({ children }: { children: React.ReactNode }) => (
+    <h3 className={cx(display, "m-0 mt-10 text-[19px]")}>{children}</h3>
+  );
+  const box = "overflow-x-auto border border-rule bg-paper";
+  const th = cx(eyebrow, "px-3 py-2 font-medium");
+  const td = cx(numeric, "px-3 py-1.5 text-right");
+  const section = "mt-16 scroll-mt-[120px] border-t border-rule pt-10 xl:scroll-mt-[85px]";
+  const lead = "m-0 mt-2.5 max-w-[48ch] text-[15px] leading-relaxed text-ink-2";
+  const prose = "grid max-w-[48ch] gap-2.5 text-[14px] leading-relaxed text-ink-2";
+  const note = "m-0 text-[13px] text-ink-3";
 
   return (
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{t.database}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione}</p>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
-        <nav aria-label={t.indice} className="mt-4 flex flex-wrap gap-2 text-[13px]">
-          {SEZIONI.map((id) => (
-            <a key={id} href={`#${id}`} className="rounded-full border border-rule px-3 py-1 text-ink-2 hover:border-brand hover:text-ink">
-              {t.sezioni[id]}
-            </a>
-          ))}
-        </nav>
-      </header>
+      {/* il titolo e una riga; da dove vengono regole e numeri in «Come funziona» (10/10) */}
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione}</p>
+      </PageHeader>
+      <HowItWorks summary={t.comeFunziona} className="mb-6">
+        <p>{t.metodo}</p>
+        <p>{t.fonte}</p>
+      </HowItWorks>
 
-      {/* ------------------------------------------------------------ danno */}
-      <section id="danno" className="scroll-mt-20">
-        <h2 className={cx(display, "text-2xl")}>{t.sezioni.danno}</h2>
-        <p className="mt-1.5 max-w-[72ch] text-[14px] text-ink-2">{t.dannoIntro}</p>
-        <ol className="mt-5 grid list-none gap-5 p-0">
-          <Step n={1} title={t.baseTitolo}>
-            <p className="m-0">{t.baseTesto(numero(config.balanceA, locale, 2), numero(config.balanceB, locale, 2))}</p>
-            <p className="m-0">{t.baseConseguenze(percento(maxDefenseCut(config), locale))}</p>
-            <p className="m-0 text-[13px] text-ink-3">{t.baseEsempio(numero(ATK, locale), numero(DEF, locale))}</p>
-            <div className="max-w-[460px] overflow-x-auto rounded-card border border-rule">
-              <table className="w-full border-collapse text-[13px]">
-                <thead className="bg-paper-2">
-                  <tr className="border-b border-rule text-left">
-                    <th className={th}>{t.carta}</th>
-                    <th className={cx(th, "text-right")}>{t.danno}</th>
-                    <th className={cx(th, "text-right")}>{t.tolto}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cards.map((row) => (
-                    <tr key={row.percent} className="border-b border-rule-2 last:border-b-0">
-                      <td className={cx(numeric, "px-3 py-1")}>{percento(row.percent, locale)}</td>
-                      <td className={td}>{numero(row.damage, locale)}</td>
-                      <td className={td}>−{percento(row.cut, locale)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Step>
+      {/*
+        L'indice e' fermo: sul telefono una fila sotto l'intestazione, dai 1280 px
+        una colonna a destra. Nella griglia viene prima del testo, cosi' sul
+        telefono sta in cima.
+      */}
+      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_210px] xl:gap-x-12">
+        <SectionIndex
+          rail
+          label={t.indice}
+          entries={SEZIONI.map((id) => ({ id, label: t.sezioni[id] }))}
+          className="xl:col-start-2 xl:row-start-1"
+        />
 
-          <Step n={2} title={t.critTitolo}>
-            <p className="m-0">{t.critTesto}</p>
-            <p className="m-0">{t.critTiro(percento(0.3, locale), percento(critChance(0.3), locale))}</p>
-            <p className="m-0">
-              {t.critEsempio(percento(1.8, locale), percento(0.5, locale), numero(critMultiplier(1.8, 0.5, config), locale, 1))}
-            </p>
-          </Step>
-
-          <Step n={3} title={t.incTitolo}>
-            <p className="m-0">{t.incTesto(`−${percento(-code.minDifference, locale)}`)}</p>
-            <p className="m-0">{t.incConseguenza}</p>
-            <div className="max-w-[560px] overflow-x-auto rounded-card border border-rule">
-              <table className="w-full border-collapse text-[13px]">
-                <thead className="bg-paper-2">
-                  <tr className="border-b border-rule text-left">
-                    <th className={th} />
-                    <th className={cx(th, "text-right")}>{t.aumenti}</th>
-                    <th className={cx(th, "text-right")}>{t.riduzioni}</th>
-                    <th className={cx(th, "text-right")}>{t.fattore}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incExamples.map(([inc, dec], position) => (
-                    <tr key={position} className="border-b border-rule-2 last:border-b-0">
-                      <td className="px-3 py-1 text-ink-2">{t.esempiInc[position]}</td>
-                      <td className={td}>{inc ? `+${percento(inc, locale)}` : "—"}</td>
-                      <td className={td}>{dec ? `−${percento(dec, locale)}` : "—"}</td>
-                      <td className={cx(td, "font-semibold text-ink")}>×{numero(damageModifier(inc, dec, code), locale, 2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Step>
-
-          <Step n={4} title={t.varTitolo}>
-            <p className="m-0">
-              {t.varTesto(`${numero(config.variance[0] ?? 1, locale, 2)} … ${numero(config.variance.at(-1) ?? 1, locale, 2)}`)}
-            </p>
-          </Step>
-
-          <Step n={5} title={t.fissiTitolo}>
-            <p className="m-0">{t.fissiTesto}</p>
-          </Step>
-
-          <Step n={6} title={t.finaleTitolo}>
-            <p className="m-0">{t.finaleTesto}</p>
-            <p className="m-0 text-[13px] text-ink-3">{t.dotTesto}</p>
-          </Step>
-        </ol>
-      </section>
-
-      {/* -------------------------------------------------------- attributi */}
-      <section id="attributi" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.sezioni.attributi}</h2>
-        <p className="mt-1.5 max-w-[72ch] text-[14px] text-ink-2">{t.attrIntro}</p>
-        <ul className="mt-4 grid max-w-[520px] list-none gap-2 p-0">
-          {triangle.map(([strong, weak]) => (
-            <li key={strong} className="flex flex-wrap items-center gap-2.5 rounded-card border border-rule bg-paper-2 px-3 py-2 text-[14px]">
-              <Attr c={strong} />
-              <span className="text-ink-3">{t.batte} →</span>
-              <Attr c={weak} />
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4 grid max-w-[72ch] gap-2 text-[14px] text-ink-2">
-          <p className="m-0">
-            {t.vantaggioTesto(`+${percento(config.advantage, locale)}`, percento(config.disadvantage, locale))}{" "}
-            {t.vantaggioCalcolo(
-              numero(damageModifier(config.advantage, 0, code), locale, 2),
-              numero(damageModifier(0, config.disadvantage, code), locale, 2),
-            )}
-          </p>
-          <h3 className="m-0 mt-3 text-[17px] font-semibold text-ink">{t.sempreTitolo}</h3>
-          <p className="m-0">{t.sempreTesto}</p>
-          <h3 className="m-0 mt-3 text-[17px] font-semibold text-ink">{t.luceTitolo}</h3>
-          <p className="m-0">{t.luceTesto(withEffect.length)}</p>
-          <ul className="m-0 grid list-disc gap-1.5 pl-5">
-            {light ? <li>{t.luce(`${light.sameAttribute}%`, `${light.otherAllies}%`)}</li> : null}
-            {dark ? <li>{t.oscurita(`${dark.sameAttribute}%`, `${dark.otherAllies}%`)}</li> : null}
-          </ul>
-          <p className="m-0 text-[13px] text-ink-3">{t.oscuritaNota}</p>
-        </div>
-        <ul className="mt-4 flex list-none flex-wrap gap-2 p-0">
-          {withEffect.map((hero) => (
-            <li key={hero.id}>
-              <Link
-                href={`/${game}/eroi/${hero.id}`}
-                title={`${heroName(hero, locale)} · ${heroEpithet(hero, locale)}`}
-                className="block rounded-[3px] border border-rule hover:border-brand"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={heroCardSrc(game, hero.id)} alt={heroName(hero, locale)} width={128} height={128} loading="lazy" className="block h-14 w-14 rounded-[3px]" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ------------------------------------------------------------ pesca */}
-      <section id="pesca" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.sezioni.pesca}</h2>
-        <div className="mt-3 grid max-w-[72ch] gap-2 text-[14px] text-ink-2">
-          <p className="m-0">{t.pescaIntro(Object.keys(data.draw).length, weightA, weightB)}</p>
-          {oneWeight ? null : <p className="m-0 text-[13px] text-ink-3">{t.pescaPesiDiversi}</p>}
-        </div>
-        <div className="mt-3 max-w-[520px] overflow-x-auto rounded-card border border-rule">
-          <table className="w-full border-collapse text-[13px]">
-            <thead className="bg-paper-2">
-              <tr className="border-b border-rule text-left">
-                <th className={th}>{t.eroiInCampo}</th>
-                <th className={cx(th, "text-right")}>{t.ogniA}</th>
-                <th className={cx(th, "text-right")}>{t.ogniB}</th>
-                <th className={cx(th, "text-right")}>{t.ogniEroe}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[1, 2, 3, 4].map((n) => {
-                const { a, b } = drawChances([weightA, weightB], n);
-                return (
-                  <tr key={n} className="border-b border-rule-2 last:border-b-0">
-                    <td className={cx(numeric, "px-3 py-1")}>{n}</td>
-                    <td className={td}>{percento(a, locale, 1)}</td>
-                    <td className={td}>{percento(b, locale, 1)}</td>
-                    <td className={td}>{percento(a + b, locale, 1)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 max-w-[72ch] text-[13px] text-ink-3">
-          {t.pescaSottoTabella(percento(weightA / (weightA + weightB), locale), percento(weightB / (weightA + weightB), locale))}
-        </p>
-
-        <h3 className="mt-6 text-[17px] font-semibold">{t.manoTitolo}</h3>
-        <p className="mt-1.5 max-w-[72ch] text-[14px] text-ink-2">{t.manoTesto}</p>
-        <div className="mt-3 max-w-[460px] overflow-x-auto rounded-card border border-rule">
-          <table className="w-full border-collapse text-[13px]">
-            <thead className="bg-paper-2">
-              <tr className="border-b border-rule text-left">
-                <th className={th}>{t.eroiRimasti}</th>
-                <th className={cx(th, "text-right")}>{t.conPanchina}</th>
-                <th className={cx(th, "text-right")}>{t.tuttiInCampo}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[4, 3, 2, 1].map((n) => (
-                <tr key={n} className="border-b border-rule-2 last:border-b-0">
-                  <td className={cx(numeric, "px-3 py-1")}>{n}</td>
-                  <td className={td}>{handLimit(n, false, code)}</td>
-                  <td className={td}>{handLimit(n, true, code)}</td>
-                </tr>
+        <div className="min-w-0 xl:col-start-1 xl:row-start-1">
+          {/* ------------------------------------------------------------ danno */}
+          <section id="danno" className="scroll-mt-[120px] xl:scroll-mt-[85px]">
+            <h2 className={cx(display, "text-[30px]")}>{t.sezioni.danno}</h2>
+            <p className={lead}>{t.dannoIntro}</p>
+            {/* i sei passi in fila, prima del dettaglio: l'ordine si vede in un colpo d'occhio */}
+            <ol aria-label={t.passi} className="m-0 mt-5 grid list-none grid-cols-2 gap-1.5 p-0 sm:grid-cols-3 2xl:grid-cols-6">
+              {STEPS.map((title, position) => (
+                <li key={title} className="min-w-0">
+                  <a
+                    href={`#danno-${position + 1}`}
+                    className="group flex h-full min-h-11 items-center gap-2.5 border border-rule bg-paper-2 px-3 py-2 transition-colors hover:border-ink-3"
+                  >
+                    <span className="font-display text-[22px] font-black leading-none text-brand-deep [font-variation-settings:'wdth'_80]">{position + 1}</span>
+                    <span className="min-w-0 text-[13px] font-semibold leading-tight text-ink group-hover:text-brand-deep">{title}</span>
+                  </a>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 max-w-[72ch] text-[13px] text-ink-3">{t.manoNota}</p>
+            </ol>
 
-        <h3 className="mt-6 text-[17px] font-semibold">{t.smashTitolo}</h3>
-        <p className="mt-1.5 max-w-[72ch] text-[14px] text-ink-2">{t.smashTesto(smash)}</p>
-      </section>
+            <ol className="m-0 mt-10 grid list-none gap-8 p-0">
+              <Step n={1}>
+                <p className="m-0">{t.baseTesto}</p>
+                {/* la formula fuori dalla prosa, con la frazione in colonna: dentro la frase non si leggeva */}
+                <figure className="p5-corner m-0 overflow-x-auto border border-rule bg-paper-2 px-3.5 py-4 sm:px-6">
+                  <p className="sr-only">{t.formula(numero(config.balanceA, locale, 2), numero(config.balanceB, locale, 2))}</p>
+                  <p aria-hidden className="m-0 whitespace-nowrap font-mono text-[13px] leading-[2.4] text-ink sm:text-[18px]">
+                    <span className="font-semibold">{t.formulaDanno}</span> = A × (1 −{" "}
+                    <span className="inline-grid translate-y-[0.1em] text-center align-middle leading-[1.5]">
+                      <span className="border-b border-ink-2 px-1.5 pb-0.5">
+                        <span className="text-brand-deep">{numero(config.balanceB, locale, 2)}</span> × {t.formulaDifesa}
+                      </span>
+                      <span className="px-1.5 pt-0.5">
+                        A + <span className="text-brand-deep">{numero(config.balanceA, locale, 2)}</span> × {t.formulaDifesa}
+                      </span>
+                    </span>
+                    )
+                  </p>
+                </figure>
+                <p className="m-0">{t.baseConseguenze(percento(maxDefenseCut(config), locale))}</p>
+                <p className={note}>{t.baseEsempio(numero(ATK, locale), numero(DEF, locale))}</p>
+                <div className={cx(box, "max-w-[460px]")}>
+                  <table className="w-full border-collapse text-[13px]">
+                    <thead className="bg-paper-2">
+                      <tr className="border-b border-rule text-left">
+                        <th className={th}>{t.carta}</th>
+                        <th className={cx(th, "text-right")}>{t.danno}</th>
+                        <th className={cx(th, "text-right")}>{t.tolto}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cards.map((row) => (
+                        <tr key={row.percent} className="border-b border-rule-2 last:border-b-0">
+                          <td className={cx(numeric, "px-3 py-1.5")}>{percento(row.percent, locale)}</td>
+                          <td className={td}>{numero(row.damage, locale)}</td>
+                          <td className={td}>−{percento(row.cut, locale)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Step>
 
-      {/* ----------------------------------------------------------- cumulo */}
-      <section id="cumulo" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.sezioni.cumulo}</h2>
-        <div className="mt-3 grid max-w-[72ch] gap-2 text-[14px] text-ink-2">
-          <p className="m-0">{t.cumuloIntro}</p>
-          <ul className="m-0 grid list-disc gap-1.5 pl-5">
-            <li>{t.regole.piu_forte}</li>
-            <li>{t.regole.accumula}</li>
-            <li>{t.regole.piu_basso}</li>
-          </ul>
-        </div>
+              <Step n={2}>
+                <p className="m-0">{t.critTesto}</p>
+                <p className="m-0">{t.critTiro(percento(0.3, locale), percento(critChance(0.3), locale))}</p>
+                <p className="m-0">
+                  {t.critEsempio(percento(1.8, locale), percento(0.5, locale), numero(critMultiplier(1.8, 0.5, config), locale, 1))}
+                </p>
+              </Step>
 
-        {stacking.length ? (
-          <>
-            <h3 className="mt-6 text-[17px] font-semibold">{t.accumulanoTitolo}</h3>
-            <div className="mt-2 max-h-[420px] max-w-[560px] overflow-auto rounded-card border border-rule">
+              <Step n={3}>
+                <p className="m-0">{t.incTesto(`−${percento(-code.minDifference, locale)}`)}</p>
+                <p className="m-0">{t.incConseguenza}</p>
+                <div className={cx(box, "max-w-[560px]")}>
+                  <table className="w-full border-collapse text-[13px]">
+                    <thead className="bg-paper-2">
+                      <tr className="border-b border-rule text-left">
+                        <th className={th} />
+                        <th className={cx(th, "text-right")}>{t.aumenti}</th>
+                        <th className={cx(th, "text-right")}>{t.riduzioni}</th>
+                        <th className={cx(th, "text-right")}>{t.fattore}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {incExamples.map(([inc, dec], position) => (
+                        <tr key={position} className="border-b border-rule-2 last:border-b-0">
+                          <td className="px-3 py-1.5 text-ink-2">{t.esempiInc[position]}</td>
+                          <td className={td}>{inc ? `+${percento(inc, locale)}` : "—"}</td>
+                          <td className={td}>{dec ? `−${percento(dec, locale)}` : "—"}</td>
+                          <td className={cx(td, "font-semibold text-ink")}>×{numero(damageModifier(inc, dec, code), locale, 2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Step>
+
+              <Step n={4}>
+                <p className="m-0">
+                  {t.varTesto(`${numero(config.variance[0] ?? 1, locale, 2)} … ${numero(config.variance.at(-1) ?? 1, locale, 2)}`)}
+                </p>
+              </Step>
+
+              <Step n={5}>
+                <p className="m-0">{t.fissiTesto}</p>
+              </Step>
+
+              <Step n={6}>
+                <p className="m-0">{t.finaleTesto}</p>
+                <p className={note}>{t.dotTesto}</p>
+              </Step>
+            </ol>
+          </section>
+
+          {/* -------------------------------------------------------- attributi */}
+          <section id="attributi" className={section}>
+            <h2 className={cx(display, "text-[30px]")}>{t.sezioni.attributi}</h2>
+            <p className={lead}>{t.attrIntro}</p>
+            <ul className="m-0 mt-5 grid max-w-[760px] list-none gap-1.5 p-0 md:grid-cols-3">
+              {triangle.map(([strong, weak]) => (
+                <li key={strong} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 border border-rule bg-paper-2 px-3 py-2.5 text-[14px]">
+                  <Attr c={strong} />
+                  <span className="inline-flex items-center gap-1 text-[13px] text-ink-3">
+                    {t.batte}
+                    <IconChevronRight size={14} />
+                  </span>
+                  <Attr c={weak} />
+                </li>
+              ))}
+            </ul>
+            <p className={cx(prose, "mt-4")}>
+              {t.vantaggioTesto(`+${percento(config.advantage, locale)}`, percento(config.disadvantage, locale))}{" "}
+              {t.vantaggioCalcolo(
+                numero(damageModifier(config.advantage, 0, code), locale, 2),
+                numero(damageModifier(0, config.disadvantage, code), locale, 2),
+              )}
+            </p>
+            <SubTitle>{t.sempreTitolo}</SubTitle>
+            <p className={cx(prose, "mt-2.5")}>{t.sempreTesto}</p>
+            <SubTitle>{t.luceTitolo}</SubTitle>
+            <div className={cx(prose, "mt-2.5")}>
+              <p className="m-0">{t.luceTesto(withEffect.length)}</p>
+              <ul className="m-0 grid list-disc gap-1.5 pl-5 marker:text-brand-deep">
+                {light ? <li>{t.luce(`${light.sameAttribute}%`, `${light.otherAllies}%`)}</li> : null}
+                {dark ? <li>{t.oscurita(`${dark.sameAttribute}%`, `${dark.otherAllies}%`)}</li> : null}
+              </ul>
+              <p className={note}>{t.oscuritaNota}</p>
+            </div>
+            <ul className="m-0 mt-4 flex list-none flex-wrap gap-1.5 p-0">
+              {withEffect.map((hero) => (
+                <li key={hero.id}>
+                  <Link
+                    href={`/${game}/eroi/${hero.id}`}
+                    title={`${heroName(hero, locale)} · ${heroEpithet(hero, locale)}`}
+                    className="block border border-rule transition-colors hover:border-brand"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={heroCardSrc(game, hero.id)} alt={heroName(hero, locale)} width={128} height={128} loading="lazy" className="block h-14 w-14" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* ------------------------------------------------------------ pesca */}
+          <section id="pesca" className={section}>
+            <h2 className={cx(display, "text-[30px]")}>{t.sezioni.pesca}</h2>
+            <div className={cx(prose, "mt-4")}>
+              <p className="m-0 text-[15px]">{t.pescaIntro(Object.keys(data.draw).length, weightA, weightB)}</p>
+              {oneWeight ? null : <p className={note}>{t.pescaPesiDiversi}</p>}
+            </div>
+            <div className={cx(box, "mt-4 max-w-[520px]")}>
               <table className="w-full border-collapse text-[13px]">
-                <thead className="sticky top-0 bg-paper-2">
+                <thead className="bg-paper-2">
                   <tr className="border-b border-rule text-left">
-                    <th className={th}>{t.effetto}</th>
-                    <th className={cx(th, "text-right")}>{t.fino}</th>
-                    <th className={cx(th, "text-right")}>{t.carte}</th>
+                    <th className={th}>{t.eroiInCampo}</th>
+                    <th className={cx(th, "text-right")}>{t.ogniA}</th>
+                    <th className={cx(th, "text-right")}>{t.ogniB}</th>
+                    <th className={cx(th, "text-right")}>{t.ogniEroe}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {stacking.map((row) => (
-                    <tr key={`${row.key}-${row.limit}`} className="border-b border-rule-2 last:border-b-0">
-                      <td className="px-3 py-1">{row.name}</td>
-                      <td className={td}>{row.limit ? t.volte(row.limit) : t.senzaTetto}</td>
-                      <td className={cx(td, "text-ink-3")}>{row.cards}</td>
+                  {[1, 2, 3, 4].map((n) => {
+                    const { a, b } = drawChances([weightA, weightB], n);
+                    return (
+                      <tr key={n} className="border-b border-rule-2 last:border-b-0">
+                        <td className={cx(numeric, "px-3 py-1.5")}>{n}</td>
+                        <td className={td}>{percento(a, locale, 1)}</td>
+                        <td className={td}>{percento(b, locale, 1)}</td>
+                        <td className={td}>{percento(a + b, locale, 1)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className={cx(note, "mt-2 max-w-[72ch]")}>
+              {t.pescaSottoTabella(percento(weightA / (weightA + weightB), locale), percento(weightB / (weightA + weightB), locale))}
+            </p>
+
+            <SubTitle>{t.manoTitolo}</SubTitle>
+            <p className={cx(prose, "mt-2.5")}>{t.manoTesto}</p>
+            <div className={cx(box, "mt-4 max-w-[460px]")}>
+              <table className="w-full border-collapse text-[13px]">
+                <thead className="bg-paper-2">
+                  <tr className="border-b border-rule text-left">
+                    <th className={th}>{t.eroiRimasti}</th>
+                    <th className={cx(th, "text-right")}>{t.conPanchina}</th>
+                    <th className={cx(th, "text-right")}>{t.tuttiInCampo}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[4, 3, 2, 1].map((n) => (
+                    <tr key={n} className="border-b border-rule-2 last:border-b-0">
+                      <td className={cx(numeric, "px-3 py-1.5")}>{n}</td>
+                      <td className={td}>{handLimit(n, false, code)}</td>
+                      <td className={td}>{handLimit(n, true, code)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="mt-2 max-w-[72ch] text-[13px] text-ink-3">{t.cumuloNotaNomi}</p>
-          </>
-        ) : null}
+            <p className={cx(note, "mt-2 max-w-[72ch]")}>{t.manoNota}</p>
 
-        <h3 className="mt-6 text-[17px] font-semibold">{t.durataTitolo}</h3>
-        <p className="mt-1.5 max-w-[72ch] text-[14px] text-ink-2">{t.durataTesto}</p>
+            <SubTitle>{t.smashTitolo}</SubTitle>
+            <p className={cx(prose, "mt-2.5")}>{t.smashTesto(smash)}</p>
+          </section>
 
-        <h3 className="mt-6 text-[17px] font-semibold">{t.statTitolo}</h3>
-        <div className="mt-1.5 grid max-w-[72ch] gap-2 text-[14px] text-ink-2">
-          <p className="m-0">{t.statTesto}</p>
-          <p className="m-0">{t.statMinimo(percento(code.minStats, locale))}</p>
+          {/* ----------------------------------------------------------- cumulo */}
+          <section id="cumulo" className={section}>
+            <h2 className={cx(display, "text-[30px]")}>{t.sezioni.cumulo}</h2>
+            <div className={cx(prose, "mt-4")}>
+              <p className="m-0 text-[15px]">{t.cumuloIntro}</p>
+              <ul className="m-0 grid list-disc gap-1.5 pl-5 marker:text-brand-deep">
+                <li>{t.regole.piu_forte}</li>
+                <li>{t.regole.accumula}</li>
+                <li>{t.regole.piu_basso}</li>
+              </ul>
+            </div>
+
+            {stacking.length ? (
+              <>
+                <SubTitle>{t.accumulanoTitolo}</SubTitle>
+                <div className="mt-3 max-h-[420px] max-w-[560px] overflow-auto border border-rule bg-paper">
+                  <table className="w-full border-collapse text-[13px]">
+                    <thead className="sticky top-0 bg-paper-2">
+                      <tr className="border-b border-rule text-left">
+                        <th className={th}>{t.effetto}</th>
+                        <th className={cx(th, "text-right")}>{t.fino}</th>
+                        <th className={cx(th, "text-right")}>{t.carte}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stacking.map((row) => (
+                        <tr key={`${row.key}-${row.limit}`} className="border-b border-rule-2 last:border-b-0">
+                          <td className="px-3 py-1.5">{row.name}</td>
+                          <td className={td}>{row.limit ? t.volte(row.limit) : t.senzaTetto}</td>
+                          <td className={cx(td, "text-ink-3")}>{row.cards}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className={cx(note, "mt-2 max-w-[72ch]")}>{t.cumuloNotaNomi}</p>
+              </>
+            ) : null}
+
+            <SubTitle>{t.durataTitolo}</SubTitle>
+            <p className={cx(prose, "mt-2.5")}>{t.durataTesto}</p>
+
+            <SubTitle>{t.statTitolo}</SubTitle>
+            <div className={cx(prose, "mt-2.5")}>
+              <p className="m-0">{t.statTesto}</p>
+              <p className="m-0">{t.statMinimo(percento(code.minStats, locale))}</p>
+            </div>
+
+            <SubTitle>{t.caricheTitolo}</SubTitle>
+            <p className={cx(prose, "mt-2.5")}>{t.caricheTesto}</p>
+          </section>
         </div>
+      </div>
 
-        <h3 className="mt-6 text-[17px] font-semibold">{t.caricheTitolo}</h3>
-        <p className="mt-1.5 max-w-[72ch] text-[14px] text-ink-2">{t.caricheTesto}</p>
-      </section>
-
-      <p className="mt-12 border-t border-rule pt-4 text-[12px] text-ink-3">
-        <Link href={`/${game}/eroi`} className="text-brand underline-offset-2 hover:underline">
+      <p className="mt-16 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
+        <Link href={`/${game}/eroi`} className="text-brand-deep underline-offset-2 hover:underline">
           {t.eroiLink}
         </Link>
         {" · "}

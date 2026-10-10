@@ -73,7 +73,7 @@ export function ReportButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-hot"
+        className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-hot"
       >
         {t.segnala}
       </button>
@@ -81,14 +81,14 @@ export function ReportButton({
   }
 
   return (
-    <div className="mt-2 rounded-card border border-rule-2 bg-paper-2 p-3.5">
+    <div className="p5-corner mt-2 border border-rule bg-paper-2 p-3.5">
       {!canReport ? (
         <>
           <Notice tone="warn">{t.entraPerSegnalare}</Notice>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="mt-2 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+            className="mt-2 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
           >
             {t.chiudi}
           </button>
@@ -125,13 +125,13 @@ export function ReportButton({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+              className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
             >
               {t.annulla}
             </button>
           </div>
 
-          <p className="mt-2.5 text-[11px] text-ink-3">{t.nonAnonime}</p>
+          <p className="mt-2.5 text-[12px] text-ink-3">{t.nonAnonime}</p>
         </form>
       )}
     </div>

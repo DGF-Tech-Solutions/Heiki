@@ -26,7 +26,7 @@ import { databaseReachable, db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 /** sezioni del gioco che non vanno in un indice: sono di chi le apre */
-const PERSONALI = new Set(["/account"]);
+const PERSONALI = new Set(["/account", "/account/eroi"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();

@@ -5,27 +5,36 @@
  * griglia degli eroi, un pulsante per boss che porta alla sua pagina, invece di
  * tutti i boss in una pagina da scorrere. La stessa card, piu' piccola, sta in
  * fondo a ogni pagina di dettaglio per passare agli altri.
+ *
+ * Il taglio d'angolo sta su un riquadro DENTRO il collegamento, non sul
+ * collegamento: il clip-path taglierebbe anche il contorno del fuoco da
+ * tastiera, che e' disegnato fuori dal riquadro.
  */
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { cx, eyebrow } from "@/components/ui";
+import { cx } from "@/components/ui";
+
+const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 
 export function EndgameCard({
   href,
   image,
-  kicker,
+  stamp,
   title,
   children,
   compact,
   current,
-  tile,
+  fit = "cover",
 }: {
   href: string;
   /** l'immagine, gia' col percorso; null se l'import non l'ha trovata */
   image: string | null;
-  /** la riga sopra il nome: «Battaglie boss 2☆» */
-  kicker?: ReactNode;
+  /**
+   * la targhetta sull'immagine: «Battaglie boss» con le stelle del gioco.
+   * Sull'immagine e non sopra il nome, che resta la prima cosa che si legge
+   */
+  stamp?: ReactNode;
   title: string;
   /** le righe sotto il nome */
   children?: ReactNode;
@@ -34,26 +43,65 @@ export function EndgameCard({
   /** la card della pagina in cui si e' */
   current?: boolean;
   /**
-   * L'immagine grande sopra e il testo sotto, come una selezione del
-   * personaggio: per i cut-in dei boss (scelta dell'utente, 26/09), disegni a
-   * colori su fondo trasparente che in un quadratino da 104px si perdevano.
-   * Il riquadro e' piu' largo che alto e l'immagine e' centrata: i cut-in sono
-   * quadrati, e cosi' si taglia un sesto sopra e sotto, dove non c'e' il volto.
+   * Come sta l'immagine nel riquadro, piu' largo che alto. I cut-in dei boss
+   * (512px, il volto al centro) lo riempiono: si taglia un sesto sopra e sotto,
+   * dove il volto non c'e'. I ritratti delle bestie (256px) restano interi e
+   * centrati sulla lama: allargati per riempire si sgranavano.
    */
-  tile?: boolean;
+  fit?: "cover" | "contain";
 }) {
-  if (tile) {
+  if (compact) {
     return (
-      <Link
-        href={href}
-        aria-current={current ? "page" : undefined}
+      <Link href={href} aria-current={current ? "page" : undefined} className={cx("group block min-w-0", FOCUS)}>
+        {/* la card in cui si e' si accende di bianco, come la scelta nelle lame del sito */}
+        <span
+          className={cx(
+            "p5-corner flex min-w-0 items-center gap-3 border p-2 transition-colors",
+            current ? "border-ink bg-ink text-paper" : "border-rule bg-paper group-hover:border-ink-3",
+          )}
+        >
+          {image ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={image}
+              alt=""
+              width={48}
+              height={48}
+              loading="lazy"
+              className="h-12 w-12 shrink-0 bg-paper-2 object-cover"
+            />
+          ) : null}
+          <span className="min-w-0">
+            <span
+              className={cx(
+                "block text-[13px] font-semibold leading-tight",
+                !current && "group-hover:text-brand-deep",
+              )}
+            >
+              {title}
+            </span>
+            {stamp ? <span className="mt-1 block">{stamp}</span> : null}
+          </span>
+        </span>
+      </Link>
+    );
+  }
+
+  return (
+    <Link href={href} aria-current={current ? "page" : undefined} className={cx("group block h-full min-w-0", FOCUS)}>
+      <span
         className={cx(
-          "group block min-w-0 overflow-hidden rounded-card border bg-paper transition-colors hover:border-ink-3",
-          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-          current ? "border-brand" : "border-rule",
+          "p5-corner flex h-full min-w-0 flex-col overflow-hidden border bg-paper transition-colors",
+          current ? "border-ink" : "border-rule group-hover:border-ink-3",
         )}
       >
-        <span className="block aspect-[3/2] overflow-hidden bg-[radial-gradient(ellipse_at_center,var(--color-paper-3),var(--color-paper-2))]">
+        {/* il fondo della selezione del personaggio: retino e lama rossa, fermi */}
+        <span className="relative isolate block aspect-[3/2] overflow-hidden bg-paper-2">
+          <span aria-hidden className="stage-dots absolute inset-0 -z-10" />
+          <span
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-brand [clip-path:polygon(68%_0,100%_0,100%_100%,46%_100%)]"
+          />
           {image ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
@@ -62,55 +110,35 @@ export function EndgameCard({
               width={512}
               height={512}
               loading="lazy"
-              className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.04]"
+              className={cx(
+                "h-full w-full transition-transform duration-300 group-hover:scale-[1.04]",
+                fit === "cover"
+                  ? "object-cover object-center"
+                  : "object-contain object-center p-3 [filter:drop-shadow(8px_6px_0_#000)]",
+              )}
             />
           ) : null}
+          {stamp ? <span className="absolute left-3 top-3">{stamp}</span> : null}
         </span>
-        <span className="block p-3">
-          {kicker ? <span className={cx(eyebrow, "block")}>{kicker}</span> : null}
-          <span className="mt-0.5 block text-[16px] font-semibold leading-tight group-hover:text-brand">{title}</span>
-          {children ? <span className="mt-1.5 block text-[12px] leading-snug text-ink-2">{children}</span> : null}
+        <span className="block p-4">
+          <span className="block font-display text-[20px] font-extrabold uppercase leading-[1.05] tracking-[0.01em] [font-variation-settings:'wdth'_85] group-hover:text-brand-deep">
+            {title}
+          </span>
+          {children ? <span className="mt-2 block text-[13px] leading-snug text-ink-2">{children}</span> : null}
         </span>
-      </Link>
-    );
-  }
-
-  const size = compact ? 48 : 104;
-  return (
-    <Link
-      href={href}
-      aria-current={current ? "page" : undefined}
-      className={cx(
-        "group flex min-w-0 items-center gap-3 rounded-card border bg-paper transition-colors hover:border-ink-3",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-        compact ? "p-2" : "p-3",
-        current ? "border-brand bg-brand-soft" : "border-rule",
-      )}
-    >
-      {image ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={image}
-          alt=""
-          width={size}
-          height={size}
-          loading="lazy"
-          className="shrink-0 rounded-[3px] bg-paper-2 object-cover"
-          style={{ width: size, height: size }}
-        />
-      ) : null}
-      <span className="min-w-0">
-        {kicker ? <span className={cx(eyebrow, "block", compact && "text-[10px]")}>{kicker}</span> : null}
-        <span
-          className={cx(
-            "block font-semibold leading-tight group-hover:text-brand",
-            compact ? "text-[13px]" : "mt-0.5 text-[16px]",
-          )}
-        >
-          {title}
-        </span>
-        {children ? <span className="mt-1.5 block text-[12px] leading-snug text-ink-2">{children}</span> : null}
       </span>
     </Link>
+  );
+}
+
+/** La targhetta di una card: nera e tagliata, come le etichette del palco. */
+export function CardStamp({ children, title }: { children: ReactNode; title?: string }) {
+  return (
+    <span
+      title={title}
+      className="p5-cut-sm inline-flex h-7 items-center gap-1.5 bg-paper px-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-ink"
+    >
+      {children}
+    </span>
   );
 }

@@ -7,13 +7,12 @@ import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { listNotifications, markAllReadAction } from "@/lib/social/actions";
 import { relativeTime } from "@/lib/community/ranking";
-import { Button, cx, display, Empty, eyebrow, Notice } from "@/components/ui";
+import { Button, cx, Empty, Notice, PageHeader } from "@/components/ui";
 
 const TESTI = testi({
   it: {
-    titoloPagina: "Notifiche · GachaZone",
+    titoloPagina: "Notifiche",
     richiedeDatabase: "Le notifiche richiedono il database. Avvialo con",
-    attivita: "Attività",
     notifiche: "Notifiche",
     segnaLette: "Segna tutte come lette",
     nessuna:
@@ -31,9 +30,8 @@ const TESTI = testi({
     ilMioAccount: "Il mio account",
   },
   en: {
-    titoloPagina: "Notifications · GachaZone",
+    titoloPagina: "Notifications",
     richiedeDatabase: "Notifications need the database. Start it with",
-    attivita: "Activity",
     notifiche: "Notifications",
     segnaLette: "Mark all as read",
     nessuna: "No notifications. They arrive when someone replies to one of your posts or starts following you.",
@@ -83,12 +81,7 @@ export default async function NotificationsPage() {
 
   return (
     <main className="mx-auto w-full max-w-[760px] px-6 pt-8 pb-20">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink pb-4">
-        <div>
-          <p className={eyebrow}>{t.attivita}</p>
-          <h1 className={cx(display, "mt-2 text-[32px]")}>{t.notifiche}</h1>
-        </div>
-
+      <PageHeader title={t.notifiche}>
         {unread > 0 ? (
           <form
             action={async () => {
@@ -99,7 +92,7 @@ export default async function NotificationsPage() {
             <Button type="submit">{t.segnaLette}</Button>
           </form>
         ) : null}
-      </header>
+      </PageHeader>
 
       {items.length === 0 ? (
         <Empty>{t.nessuna}</Empty>
@@ -109,10 +102,13 @@ export default async function NotificationsPage() {
             <li
               key={item.id}
               className={cx(
-                "flex flex-wrap items-baseline gap-2 rounded-card border px-4 py-3 text-sm",
-                item.read ? "border-rule bg-paper" : "border-brand bg-brand-soft",
+                // non letta: una lama rossa in testa e il fondo piu' chiaro, non il riquadro
+                // rosso scuro bordato di rosso (10/10)
+                "flex flex-wrap items-baseline gap-2 border px-4 py-3 text-sm",
+                item.read ? "border-rule-2 bg-paper" : "p5-corner border-rule bg-paper-2",
               )}
             >
+              {item.read ? null : <span aria-hidden className="p5-cut-sm h-2.5 w-4 shrink-0 self-center bg-brand" />}
               {item.type === "POWER_VERIFIED" || item.type === "POWER_REJECTED" ? (
                 // l'esito lo firma la moderazione, non una persona: niente nome del moderatore
                 <>
@@ -124,7 +120,7 @@ export default async function NotificationsPage() {
                   {item.gameSlug ? (
                     <Link
                       href={`/${item.gameSlug}/account`}
-                      className="text-ink-2 underline decoration-rule hover:text-brand"
+                      className="text-ink-2 underline decoration-rule underline-offset-2 hover:text-brand-deep"
                     >
                       {t.ilMioAccount}
                     </Link>
@@ -132,7 +128,7 @@ export default async function NotificationsPage() {
                 </>
               ) : (
                 <>
-                  <Link href={`/u/${item.actor.username}`} className="font-semibold hover:text-brand">
+                  <Link href={`/u/${item.actor.username}`} className="font-semibold hover:text-brand-deep">
                     {item.actor.displayName}
                   </Link>
                   <span className="text-ink-2">{t.azioni[item.type] ?? t.interagito}</span>
@@ -142,7 +138,7 @@ export default async function NotificationsPage() {
               {item.postId && item.gameSlug ? (
                 <Link
                   href={`/${item.gameSlug}/post/${item.postId}`}
-                  className="text-ink-2 underline decoration-rule hover:text-brand"
+                  className="text-ink-2 underline decoration-rule underline-offset-2 hover:text-brand-deep"
                 >
                   {item.postTitle}
                 </Link>

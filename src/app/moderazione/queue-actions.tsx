@@ -128,7 +128,7 @@ export function QueueRowActions({
         {t.archivia}
       </Button>
 
-      {error ? <span className="text-[11px] text-hot">{error}</span> : null}
+      {error ? <span className="text-[12px] text-hot">{error}</span> : null}
     </div>
   );
 }
@@ -199,7 +199,7 @@ export function LiftButton({ suspensionId }: { suspensionId: string }) {
       >
         {pending ? "…" : t.revoca}
       </Button>
-      {error ? <span className="ml-2 text-[11px] text-hot">{error}</span> : null}
+      {error ? <span className="ml-2 text-[12px] text-hot">{error}</span> : null}
     </>
   );
 }

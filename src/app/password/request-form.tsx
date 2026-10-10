@@ -54,7 +54,7 @@ export function RequestResetForm() {
                 <br />
                 <br />
                 <strong>{t.sviluppo}</strong> {t.invioNonConfigurato}{" "}
-                <Link href={state.devLink} className="font-semibold text-brand hover:underline">
+                <Link href={state.devLink} className="font-semibold text-ink underline decoration-brand decoration-2 underline-offset-2 hover:text-brand-deep">
                   {t.reimpostaPassword}
                 </Link>
               </>

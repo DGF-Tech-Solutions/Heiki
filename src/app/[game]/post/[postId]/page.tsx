@@ -20,7 +20,8 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    discussioneTitolo: "Discussione · GachaZone",
+    discussioneTitolo: "Discussione",
+    discussioni: "Discussioni",
     gioco: "Gioco",
     nascosto:
       "Questo contenuto è nascosto: lo vedi perché moderi. Chi non modera trova una pagina inesistente.",
@@ -30,7 +31,8 @@ const TESTI = testi({
     creaneUno: "creane uno",
   },
   en: {
-    discussioneTitolo: "Discussion · GachaZone",
+    discussioneTitolo: "Discussion",
+    discussioni: "Discussions",
     gioco: "Game",
     nascosto:
       "This content is hidden: you can see it because you moderate. Everyone else gets a page that doesn't exist.",
@@ -50,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await store.getPost(postId, null);
   const t = TESTI[await getLocale()];
   return {
-    title: post ? `${post.title} · GachaZone` : t.discussioneTitolo,
+    title: post ? `${post.title}` : t.discussioneTitolo,
     description: post?.excerpt,
   };
 }
@@ -84,7 +86,9 @@ export default async function PostPage({ params }: Props) {
         <Breadcrumb
           items={[
             { label: findGame(game)?.shortName ?? t.gioco, href: `/${game}` },
-            { label: hubLabel(post.hub, locale, post.hubName), href: `/${game}?hub=${post.hub}` },
+            // il feed sta in /discussioni dal 10/10: /${game} e' diventata la pagina del gioco
+            { label: t.discussioni, href: `/${game}/discussioni` },
+            { label: hubLabel(post.hub, locale, post.hubName), href: `/${game}/discussioni?hub=${post.hub}` },
             { label: post.title },
           ]}
         />
@@ -109,11 +113,11 @@ export default async function PostPage({ params }: Props) {
                 href={`/u/${post.author.username}`}
                 className="inline-flex items-center gap-1.5 font-medium text-ink-2 hover:text-ink"
               >
-                <span className="size-[7px] flex-none rounded-full bg-[var(--accent)]" aria-hidden />
+                <span className="size-[7px] flex-none bg-[var(--accent)] [clip-path:polygon(2px_0,100%_0,calc(100%-2px)_100%,0_100%)]" aria-hidden />
                 {post.author.displayName}
               </Link>
               {post.author.role !== "USER" ? (
-                <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--accent)]">
+                <span className="font-mono text-[11px] uppercase tracking-[0.09em] text-[var(--accent)]">
                   {roleLabel(post.author.role, locale)}
                 </span>
               ) : null}
@@ -150,7 +154,7 @@ export default async function PostPage({ params }: Props) {
             <Notice className="mb-4">
               <span>
                 {t.serveProfilo}{" "}
-                <Link href="/registrati" className="font-semibold text-brand hover:underline">
+                <Link href="/registrati" className="font-semibold text-ink underline decoration-brand underline-offset-2 hover:text-brand-deep">
                   {t.creaneUno}
                 </Link>
                 .

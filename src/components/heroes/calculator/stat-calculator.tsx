@@ -1,17 +1,18 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
 import { cx, numeric } from "@/components/ui";
 import type { AccountSliderData } from "@/lib/games/account-buff-types";
 import { heroCombatClass } from "@/lib/games/account-buff";
 import { setupEffect } from "@/lib/games/account-setup";
 import { shownValue } from "@/lib/games/gear";
-import { battleWith, computeBuild, type CalculatorData, type HeroBuild } from "@/lib/games/hero-build";
+import { battleWith, buildFromBox, computeBuild, defaultBuild, type CalculatorData, type HeroBuild } from "@/lib/games/hero-build";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 import { BattlePanel } from "./battle-panel";
-import { LinkButton, Panel, RangeField, StarRow } from "./controls";
+import { LinkButton, Panel, RangeField, StarRow, TrueAwakeningRow, UltimateRow } from "./controls";
 import { CostumePanel } from "./costume-panel";
 import { GearPanel } from "./gear-panel";
 import { STAT_ROWS, formatStat } from "./stat-rows";
@@ -37,6 +38,9 @@ const TESTI = testi({
     ] as readonly [string, string],
     soloClasse: "ultimate e Vero risveglio contano solo nella classe di combattimento (il Vero risveglio una volta, anche coi due)",
     tuttoAlMassimo: "Torna a tutto al massimo",
+    tornaAlBox: "Torna ai numeri del tuo box",
+    dalBox: "Livello, risvegli, ultimate e Vero risveglio vengono dal",
+    ilTuoBox: "tuo box",
     salvata: "La configurazione di questo eroe si salva in questo browser.",
     statistica: "Statistica",
     senza: "Senza equip.",
@@ -73,6 +77,9 @@ const TESTI = testi({
     ] as readonly [string, string],
     soloClasse: "Ultimate and True Awakening only count toward Combat Class (True Awakening once, even with both)",
     tuttoAlMassimo: "Back to everything maxed",
+    tornaAlBox: "Back to your box's numbers",
+    dalBox: "Level, awakenings, Ultimate and True Awakening come from",
+    ilTuoBox: "your box",
     salvata: "This hero's setup is saved in this browser.",
     statistica: "Stat",
     senza: "Without gear",
@@ -132,8 +139,18 @@ export function StatCalculator({
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
-  const id = useId();
-  const [build, save, reset, saved] = useHeroBuild(game, data);
+  // Id fissi e non useId(): React ricava useId dalla posizione nell'albero, e
+  // nella scheda l'albero sopra il calcolatore a volte usciva diverso fra server e
+  // browser (errore di idratazione, 4 caricamenti su 6 il 10/10). Il calcolatore
+  // e' uno per pagina: il nome del campo basta.
+  const id = "calc";
+  const [storedBuild, save, reset, saved] = useHeroBuild(game, data);
+  // Se l'eroe sta nel tuo box e nel calcolatore non hai cambiato niente, si parte
+  // dai tuoi numeri e non dal massimo (10/10)
+  const [box] = useHeroBox(game);
+  const boxEntry = box.heroes[data.heroId];
+  const fromBox = useMemo(() => (!saved && boxEntry ? buildFromBox(data, boxEntry) : null), [saved, boxEntry, data]);
+  const build = fromBox ?? storedBuild;
   const [setup, saveSetup] = useAccountSetup(game);
   const [allRows, setAllRows] = useState(false);
   const change = (patch: Partial<HeroBuild>) => save({ ...build, ...patch });
@@ -164,22 +181,39 @@ export function StatCalculator({
       {/* sul telefono i numeri che cambiano stanno fermi in cima, sotto le schede */}
       <div
         aria-hidden
-        className="sticky top-[104px] z-[5] -mx-1 grid grid-cols-3 gap-2 rounded-[4px] border border-rule bg-paper/95 px-3 py-1.5 text-[12px] backdrop-blur @4xl:hidden"
+        className="sticky top-[104px] z-[5] -mx-1 grid grid-cols-3 gap-2 border border-rule bg-paper/95 px-3 py-1.5 text-[12px] backdrop-blur @4xl:hidden"
       >
         {(["atk", "def", "hp"] as const).map((key) => {
           const diff = shown(key, result.withGear) - shown(key, result.without);
           return (
             <span key={key} className="min-w-0">
-              <span className="block text-[11px] text-ink-3">{STAT_ROWS.find((r) => r.key === key)!.label[locale]}</span>
+              <span className="block text-[12px] text-ink-3">{STAT_ROWS.find((r) => r.key === key)!.label[locale]}</span>
               <span className={cx(numeric, "font-medium text-ink")}>{formatStat(shown(key, result.withGear), locale)}</span>
-              {diff ? <span className={cx(numeric, "ml-1 text-[11px] text-up")}>+{formatStat(diff, locale)}</span> : null}
+              {diff ? <span className={cx(numeric, "ml-1 text-[12px] text-up")}>+{formatStat(diff, locale)}</span> : null}
             </span>
           );
         })}
       </div>
 
       <div className="grid min-w-0 gap-4">
-        <Panel title={t.eroe} action={saved ? <LinkButton onClick={reset}>{t.tuttoAlMassimo}</LinkButton> : null}>
+        <Panel
+          title={t.eroe}
+          action={
+            saved ? (
+              <LinkButton onClick={reset}>{boxEntry ? t.tornaAlBox : t.tuttoAlMassimo}</LinkButton>
+            ) : fromBox ? (
+              <LinkButton onClick={() => save(defaultBuild(data))}>{t.tuttoAlMassimo}</LinkButton>
+            ) : null
+          }
+        >
+          {fromBox ? (
+            <p className="m-0 text-[12px] text-ink-2">
+              {t.dalBox}{" "}
+              <a href={`/${game}/account/eroi`} className="font-semibold text-brand-deep hover:underline">
+                {t.ilTuoBox}
+              </a>
+            </p>
+          ) : null}
           <RangeField
             id={`${id}-livello`}
             label={t.livello}
@@ -231,7 +265,7 @@ export function StatCalculator({
                       aria-hidden
                       className={cx(
                         numeric,
-                        "grid h-7 w-7 place-items-center rounded-[3px] border text-[12px] peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
+                        "grid h-7 w-7 place-items-center border text-[12px] peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
                         build.superAwaken === n ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3",
                       )}
                     >
@@ -246,89 +280,22 @@ export function StatCalculator({
 
           {account ? (
             <div className="grid gap-1.5">
-              <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0">
-                <legend className="float-left mr-3 p-0 text-ink-2">{t.ultimate}</legend>
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 6 }, (_, position) => {
-                    const rank = position + 1;
-                    return (
-                      <label key={rank} className="cursor-pointer" title={t.rangoUltimate(rank)}>
-                        <input
-                          type="radio"
-                          name={`${id}-ultimate`}
-                          checked={build.ultimateRank === rank}
-                          onChange={() => change({ ultimateRank: rank })}
-                          className="peer sr-only"
-                        />
-                        <span className="sr-only">{t.rangoUltimate(rank)}</span>
-                        <span
-                          aria-hidden
-                          className={cx(
-                            "grid h-7 w-7 place-items-center rounded-[3px] border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                            build.ultimateRank === rank ? "border-brand bg-brand-soft" : "border-transparent",
-                          )}
-                        >
-                          {gemSrcs?.[position] ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={gemSrcs[position]}
-                              alt=""
-                              width={24}
-                              height={24}
-                              className={cx("h-5 w-5 object-contain", rank > build.ultimateRank && "opacity-30")}
-                            />
-                          ) : (
-                            <span className={cx(numeric, "text-[12px]", rank <= build.ultimateRank ? "text-ink" : "text-ink-3")}>
-                              {rank}
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
-              <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0">
-                <legend className="float-left mr-3 p-0 text-ink-2">{t.veroRisveglio}</legend>
-                <div className="flex flex-wrap items-center gap-2">
-                  {([0, 1] as const).map((kind) => {
-                    const on = build.trueAwakening[kind];
-                    const toggle = (value: boolean) =>
-                      change({
-                        trueAwakening: kind === 0 ? [value, build.trueAwakening[1]] : [build.trueAwakening[0], value],
-                      });
-                    return (
-                      <label key={kind} className="flex cursor-pointer items-center gap-1.5" title={t.veroTitolo[kind]}>
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          onChange={(event) => toggle(event.target.checked)}
-                          className={cx("peer accent-[var(--color-brand)]", trueAwakeningSrcs && "sr-only")}
-                        />
-                        {trueAwakeningSrcs ? (
-                          <span
-                            aria-hidden
-                            className={cx(
-                              "grid h-9 w-9 place-items-center rounded-[4px] border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                              on ? "border-brand bg-brand-soft" : "border-rule",
-                            )}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={trueAwakeningSrcs[kind]}
-                              alt=""
-                              width={32}
-                              height={32}
-                              className={cx("h-8 w-8 object-contain transition-opacity", !on && "opacity-30 grayscale")}
-                            />
-                          </span>
-                        ) : null}
-                        <span className={cx("text-[12px]", on ? "text-ink-2" : "text-ink-3")}>{t.vero[kind]}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
+              <UltimateRow
+                legend={t.ultimate}
+                name={`${id}-ultimate`}
+                value={build.ultimateRank}
+                onChange={(ultimateRank) => change({ ultimateRank })}
+                gemSrcs={gemSrcs}
+                title={t.rangoUltimate}
+              />
+              <TrueAwakeningRow
+                legend={t.veroRisveglio}
+                value={build.trueAwakening}
+                onChange={(trueAwakening) => change({ trueAwakening })}
+                srcs={trueAwakeningSrcs}
+                labels={t.vero}
+                titles={t.veroTitolo}
+              />
               <span className="text-[12px] text-ink-3">{t.soloClasse}</span>
             </div>
           ) : null}
@@ -420,7 +387,7 @@ export function StatCalculator({
             type="button"
             onClick={() => setAllRows((current) => !current)}
             aria-expanded={allRows}
-            className="mt-1.5 text-[12px] font-semibold text-brand hover:underline"
+            className="mt-1.5 text-[12px] font-semibold text-brand-deep hover:underline"
           >
             {allRows ? t.principali : t.tutte(rows.length + extraRows)}
           </button>

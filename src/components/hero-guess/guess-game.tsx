@@ -17,7 +17,8 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
-import { buttonClass, cx, eyebrow } from "@/components/ui";
+import { IconCheck, IconClose } from "@/components/icons";
+import { buttonClass, chipClass, cx, display, eyebrow, RadioChips } from "@/components/ui";
 import {
   dailyAnswer,
   dayKey,
@@ -277,36 +278,18 @@ export function useGuessGame<T extends Playable>({
 
 /* ------------------------------------------------------------------ pezzi -- */
 
-/** I comandi, nello stile dello slider delle statistiche. */
+/** I comandi: la partita (del giorno o libera) con la lama dei filtri, e i pulsanti della partita libera. */
 export function GuessControls<T extends Playable>({ g }: { g: GuessGame<T> }) {
   const t = TESTI[useLocale()];
   return (
-    <div className="flex max-w-[640px] flex-wrap items-center gap-x-5 gap-y-3 rounded-card border border-rule bg-paper-2 p-4 text-[13px]">
-      <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0">
-        <legend className="float-left mr-3 p-0 text-ink-2">{t.modalita}</legend>
-        <div className="flex flex-wrap items-center gap-1">
-          {(["giorno", "libera"] as const).map((value) => (
-            <label key={value} className="cursor-pointer">
-              <input
-                type="radio"
-                name="indovina-modalita"
-                value={value}
-                checked={g.mode === value}
-                onChange={() => g.chooseMode(value)}
-                className="peer sr-only"
-              />
-              <span
-                className={cx(
-                  "grid h-8 place-items-center rounded-[3px] border px-3 peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                  g.mode === value ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3 hover:text-ink",
-                )}
-              >
-                {t.modi[value]}
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+    <div className="flex max-w-[640px] flex-wrap items-center gap-x-5 gap-y-2.5 text-[13px]">
+      <RadioChips
+        legend={t.modalita}
+        name="indovina-modalita"
+        value={g.mode}
+        onChange={g.chooseMode}
+        options={(["giorno", "libera"] as const).map((value) => ({ value, label: t.modi[value] }))}
+      />
 
       {g.mode === "libera" ? (
         <div className="ml-auto flex flex-wrap gap-2">
@@ -321,7 +304,7 @@ export function GuessControls<T extends Playable>({ g }: { g: GuessGame<T> }) {
         </div>
       ) : null}
 
-      <p className="m-0 basis-full text-[12px] text-ink-3">{t.spiegaModo[g.mode]}</p>
+      <p className="m-0 basis-full text-[13px] text-ink-2">{t.spiegaModo[g.mode]}</p>
     </div>
   );
 }
@@ -396,13 +379,15 @@ export function GuessSearch<T extends Playable>({ game, g }: { game: string; g: 
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={onKey}
-        className="h-11 w-full rounded-card border border-rule bg-paper px-3 text-[15px] text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none disabled:opacity-50"
+        // la casella e' il gioco: la lama bianca della ricerca della griglia Eroi, e il
+        // fuoco come filo rosso in basso (il contorno lo taglierebbe l'obliquo)
+        className="p5-cut h-12 w-full border-0 bg-ink px-5 text-[15px] font-semibold text-paper placeholder:font-normal placeholder:text-paper/65 focus:shadow-[inset_0_-3px_0_var(--color-brand)] focus:outline-none disabled:opacity-50"
       />
       {open && query.trim() ? (
         <ul
           id={listId}
           role="listbox"
-          className="absolute top-full right-0 left-0 z-20 m-0 mt-1 max-h-[360px] list-none overflow-y-auto rounded-card border border-rule bg-paper-2 p-1 shadow-lg"
+          className="absolute top-full right-0 left-0 z-20 m-0 mt-1 max-h-[360px] list-none overflow-y-auto border border-rule bg-paper-2 p-1 shadow-[5px_5px_0_#000]"
         >
           {suggestions.length === 0 ? (
             <li className="px-2 py-2 text-[13px] text-ink-3">{t.nessuno}</li>
@@ -419,13 +404,15 @@ export function GuessSearch<T extends Playable>({ game, g }: { game: string; g: 
                   choose(hero);
                 }}
                 onMouseEnter={() => setActive(i)}
-                className={cx("flex cursor-pointer items-center gap-2.5 rounded-[3px] px-2 py-1.5", i === active && "bg-brand-soft")}
+                className={cx("flex cursor-pointer items-center gap-2.5 px-2 py-1.5", i === active && "bg-brand text-white")}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-                <img src={heroCardSrc(game, hero.id)} alt="" width={36} height={36} className="rounded-[2px]" />
+                <img src={heroCardSrc(game, hero.id)} alt="" width={36} height={36} />
                 <span className="min-w-0">
-                  <span className="block truncate text-[11px] text-ink-3">{heroEpithet(hero, locale)}</span>
-                  <span className="block truncate text-[13px] font-semibold text-ink">{heroName(hero, locale)}</span>
+                  <span className={cx("block truncate text-[12px]", i === active ? "text-white/85" : "text-ink-3")}>{heroEpithet(hero, locale)}</span>
+                  <span className="block truncate font-display text-[13px] font-black uppercase [font-variation-settings:'wdth'_80]">
+                    {heroName(hero, locale)}
+                  </span>
                 </span>
               </li>
             ))
@@ -469,11 +456,11 @@ export function GuessEnd<T extends Playable>({
   }
 
   return (
-    <section className="mt-5 flex max-w-[640px] flex-wrap items-center gap-4 rounded-card border border-rule border-t-[3px] border-t-brand bg-paper p-4">
+    <section className="p5-corner mt-5 flex max-w-[640px] flex-wrap items-center gap-4 border border-rule border-t-[3px] border-t-brand bg-paper-2 p-4">
       {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} height={96} className="rounded-[3px]" />
+      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} height={96} className="shadow-[4px_4px_0_var(--color-brand)]" />
       <div className="min-w-0 flex-1 text-sm">
-        <p className="m-0 font-semibold text-ink">
+        <p className={cx(display, "m-0 text-[clamp(18px,2.4vw,22px)]")}>
           {g.solved ? t.vinto(heroName(answer, locale), g.guesses.length) : t.arreso(heroName(answer, locale))}
         </p>
         <p className="m-0 mt-0.5 text-[13px] text-ink-3">{heroEpithet(answer, locale)}</p>
@@ -515,10 +502,7 @@ export function GuessHints<T extends Playable>({
           const unlocked = g.over || g.wrong >= after;
           const visible = g.over || g.revealed.includes(key);
           return (
-            <div
-              key={key}
-              className="flex min-h-[72px] items-center gap-3 rounded-card border border-rule bg-paper-2 p-3 text-[13px]"
-            >
+            <div key={key} className="flex min-h-[72px] items-center gap-3 border border-rule bg-paper-2 p-3 text-[13px]">
               <div className="min-w-0 flex-1">
                 <p className="m-0 text-ink-2">{label}</p>
                 {!unlocked ? (
@@ -526,11 +510,7 @@ export function GuessHints<T extends Playable>({
                 ) : visible ? (
                   <div className="mt-0.5 font-semibold text-ink">{content}</div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => g.reveal(key)}
-                    className="mt-1 cursor-pointer border-0 bg-transparent p-0 text-[13px] text-brand hover:underline"
-                  >
+                  <button type="button" onClick={() => g.reveal(key)} className={chipClass(false, false, "mt-1 border-0")}>
                     {t.mostra}
                   </button>
                 )}
@@ -558,18 +538,21 @@ export function GuessList<T extends Playable>({ game, g }: { game: string; g: Gu
             <li
               key={hero.id}
               className={cx(
-                "flex items-center gap-3 rounded-[4px] border px-2 py-1.5 text-white",
+                "flex items-center gap-3 border px-2 py-1.5 text-white",
                 right ? "border-[#2f9a52] bg-[#237a3f]" : "border-[#a3333f] bg-[#7d2230]",
                 i === 0 && "motion-safe:animate-[indovina-gira_0.45s_ease-out_both]",
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-              <img src={heroCardSrc(game, hero.id)} alt="" width={40} height={40} className="shrink-0 rounded-[3px]" />
+              <img src={heroCardSrc(game, hero.id)} alt="" width={40} height={40} className="shrink-0" />
               <Link href={`/${game}/eroi/${hero.id}`} className="min-w-0 flex-1 hover:underline">
-                <span className="block truncate text-[11px] opacity-80">{heroEpithet(hero, locale)}</span>
+                <span className="block truncate text-[12px] opacity-80">{heroEpithet(hero, locale)}</span>
                 <span className="block truncate text-[13px] font-semibold">{heroName(hero, locale)}</span>
               </Link>
-              <span className="shrink-0 text-[12px]">{right ? `✓ ${t.giusto}` : `✗ ${t.sbagliato}`}</span>
+              <span className="inline-flex shrink-0 items-center gap-1 text-[12px]">
+                {right ? <IconCheck size={12} /> : <IconClose size={12} />}
+                {right ? t.giusto : t.sbagliato}
+              </span>
             </li>
           );
         })}
@@ -586,7 +569,7 @@ export function GuessYesterday<T extends Playable>({ game, g }: { game: string; 
   return (
     <p className="mt-6 text-[13px] text-ink-3">
       {t.ieri}{" "}
-      <Link href={`/${game}/eroi/${g.yesterday.id}`} className="text-ink-2 hover:text-brand hover:underline">
+      <Link href={`/${game}/eroi/${g.yesterday.id}`} className="text-ink-2 underline decoration-rule underline-offset-2 hover:text-brand-deep">
         {heroName(g.yesterday, locale)} · {heroEpithet(g.yesterday, locale)}
       </Link>
     </p>

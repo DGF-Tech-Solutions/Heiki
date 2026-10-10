@@ -85,7 +85,7 @@ function BlockView({ block, anchor }: { block: Block; anchor?: string }) {
           ))}
         </ol>
       ) : (
-        <ul className="m-0 mb-4 grid list-disc gap-1.5 pl-5 marker:text-brand">
+        <ul className="m-0 mb-4 grid list-disc gap-1.5 pl-5 marker:text-brand-deep">
           {block.items.map((item, index) => (
             <li key={index}>
               <InlineView parts={item} />
@@ -128,7 +128,7 @@ function InlineView({ parts }: { parts: readonly Inline[] }): ReactNode {
         return (
           <code
             key={index}
-            className="rounded-[2px] bg-paper-2 px-1.5 py-px font-mono text-[13px] text-brand-deep"
+            className="bg-paper-2 px-1.5 py-px font-mono text-[13px] text-brand-deep"
           >
             {part.value}
           </code>
@@ -138,7 +138,7 @@ function InlineView({ parts }: { parts: readonly Inline[] }): ReactNode {
         // indirizzo esterno la navigazione lato client non serve, e rel
         // impedisce alla pagina di destinazione di manipolare questa.
         return part.href.startsWith("/") ? (
-          <Link key={index} href={part.href} className="text-brand hover:underline">
+          <Link key={index} href={part.href} className="text-brand-deep underline decoration-brand/60 underline-offset-2 hover:text-ink">
             {part.value}
           </Link>
         ) : (
@@ -147,7 +147,7 @@ function InlineView({ parts }: { parts: readonly Inline[] }): ReactNode {
             href={part.href}
             rel="nofollow noopener noreferrer"
             target="_blank"
-            className="text-brand hover:underline"
+            className="text-brand-deep underline decoration-brand/60 underline-offset-2 hover:text-ink"
           >
             {part.value}
           </a>
@@ -182,13 +182,13 @@ export function TableOfContents({
 
   return (
     <nav aria-label={t.indiceGuida} className={cx("text-sm", className)}>
-      <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+      <p className="mb-2.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
         {t.inQuestaGuida}
       </p>
       <ol className="m-0 grid list-none gap-1.5 p-0">
         {headings.map((heading) => (
           <li key={heading.id} className={heading.level === 3 ? "pl-3.5" : undefined}>
-            <a href={`#${heading.id}`} className="text-ink-2 hover:text-brand">
+            <a href={`#${heading.id}`} className="text-ink-2 hover:text-brand-deep">
               {heading.label}
             </a>
           </li>

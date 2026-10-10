@@ -8,10 +8,12 @@ import {
   ItemLabel,
   PartTitle,
   Said,
+  SectionTitle,
+  Summary,
   endgameScope,
   sayPlain,
 } from "@/components/endgame/endgame-parts";
-import { cx, display, eyebrow, numeric } from "@/components/ui";
+import { cx, eyebrow, HowItWorks, numeric, PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { endgameImageSrc, formatNumber } from "@/lib/games/endgame";
 import { requireGameModule } from "@/lib/games/registry";
@@ -31,15 +33,15 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Bestie demoniache di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Bestie demoniache di ${gioco}`,
     descrizione: (gioco: string) =>
       `Le Bestie demoniache di ${gioco}: i piani, le fasi, i nemici, le meccaniche, le ricompense, le Reliquie sacre e gli eroi legati.`,
-    endgame: "Endgame",
     titolo: "Bestie demoniache",
     introduzione: (bestie: number, piani: number) =>
       `Le ${bestie} bestie della Creature Nest, ${piani} piani in tutto. Scegli una bestia per vedere i piani con le fasi e i nemici, le passive che prende a caso, le sue meccaniche, le ricompense, le Reliquie sacre che si fabbricano coi suoi materiali e gli eroi con passive fatte per lei.`,
     fonte:
       "Fonte: le tabelle e i testi del client del gioco. Le statistiche delle bestie sono stimate: il client non le scrive.",
+    datiDa: "Da dove vengono i dati",
     indice: "Bestie",
     piani: (n: number, da: number, a: number) => `${n} piani · livello ${da}-${a}`,
     potenza: (n: string) => `classe consigliata ${n}`,
@@ -57,14 +59,14 @@ const TESTI = testi({
     diritti: (editore: string) => `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Demonic Beasts · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Demonic Beasts`,
     descrizione: (gioco: string) =>
       `${gioco} Demonic Beasts: floors, phases, enemies, mechanics, rewards, Holy Relics and related heroes.`,
-    endgame: "Endgame",
     titolo: "Demonic Beasts",
     introduzione: (bestie: number, piani: number) =>
       `The ${bestie} Creature Nest beasts, ${piani} floors in all. Pick a beast to see its floors with their phases and enemies, the passives it picks at random, its mechanics, the rewards, the Holy Relics crafted from its materials and the heroes with passives made for it.`,
     fonte: "Source: the game client's tables and texts. The beasts' stats are estimated: the client does not store them.",
+    datiDa: "Where the data comes from",
     indice: "Beasts",
     piani: (n: number, da: number, a: number) => `${n} floors · level ${da}-${a}`,
     potenza: (n: string) => `recommended class ${n}`,
@@ -115,16 +117,17 @@ export default async function CreatureNestPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{t.endgame}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="m-0 mt-1 text-[15px] text-ink-2">{sayPlain(data.name, scope)}</p>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione(data.beasts.length, floors)}</p>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
-      </header>
+      {/* il titolo, il nome della modalita' nel gioco e cosa c'e'; la fonte in «Da dove vengono i dati» (10/10) */}
+      <PageHeader title={t.titolo}>
+        <p className="font-semibold text-ink">{sayPlain(data.name, scope)}</p>
+        <p className="mt-1">{t.introduzione(data.beasts.length, floors)}</p>
+      </PageHeader>
+      <HowItWorks summary={t.datiDa} className="mb-8">
+        <p>{t.fonte}</p>
+      </HowItWorks>
 
-      <nav aria-label={t.indice} className="mb-10">
-        <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 xl:grid-cols-3">
+      <nav aria-label={t.indice} className="mb-14">
+        <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
           {data.beasts.map((beast) => {
             const levels = beast.floors.map((floor) => floor.phases[0]?.foes[0]?.level ?? 0).filter(Boolean);
             return (
@@ -133,12 +136,13 @@ export default async function CreatureNestPage({ params }: Props) {
                   href={`/${game}/bestie-demoniache/${beast.key}`}
                   image={beast.image ? endgameImageSrc(game, `bestie/${beast.key}.png`) : null}
                   title={sayPlain(beast.name, scope)}
+                  fit="contain"
                 >
                   <span className="block">
                     {t.piani(beast.floors.length, Math.min(...levels), Math.max(...levels))}
                   </span>
                   {beast.power !== null ? (
-                    <span className={cx(numeric, "mt-0.5 block text-ink-3")}>{t.potenza(formatNumber(beast.power, locale))}</span>
+                    <span className={cx(numeric, "mt-1 block text-[12px] text-ink-3")}>{t.potenza(formatNumber(beast.power, locale))}</span>
                   ) : null}
                 </EndgameCard>
               </li>
@@ -147,67 +151,75 @@ export default async function CreatureNestPage({ params }: Props) {
         </ul>
       </nav>
 
-      <section id="come-funziona" className="mb-10 scroll-mt-20">
-        <h2 className={cx(display, "text-2xl")}>{t.comeFunziona}</h2>
-        <div className="mt-3 grid items-start gap-3 lg:grid-cols-3">
-          {data.guide.map((section, index) => (
-            <details key={index} className="min-w-0 rounded-card border border-rule bg-paper-2 p-4" open={index === 0}>
-              <summary className="cursor-pointer text-[14px] font-semibold hover:text-brand">{sayPlain(section.title, scope)}</summary>
-              <Said value={section.text} scope={scope} className="mt-2 text-[13px] leading-relaxed text-ink-2" />
-            </details>
-          ))}
-        </div>
+      {/*
+        La guida del gioco a fisarmonica, una sezione sotto l'altra: in tre
+        colonne la prima, aperta, faceva una colonna lunga accanto a due righe
+        (10/10). A destra lo scambio dei materiali, che sta nella stessa pagina
+        del gioco.
+      */}
+      <section id="come-funziona" className="mb-14 scroll-mt-20">
+        <SectionTitle>{t.comeFunziona}</SectionTitle>
+        <div className="grid items-start gap-x-8 gap-y-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+          <div className="border-y border-rule">
+            {data.guide.map((section, index) => (
+              <details key={index} className="border-b border-rule-2 py-2 last:border-b-0" open={index === 0}>
+                <Summary className="min-h-10 text-[14px] font-semibold text-ink">{sayPlain(section.title, scope)}</Summary>
+                <Said value={section.text} scope={scope} className="mt-1 mb-2 max-w-[48ch] text-[13px] leading-relaxed text-ink-2" />
+              </details>
+            ))}
+          </div>
 
-        <div className="mt-6">
-          <PartTitle>{t.scambio}</PartTitle>
-          {data.exchange.text ? <Said value={data.exchange.text} scope={scope} className="mb-3 text-[13px] text-ink-2" /> : null}
-          <div className="grid gap-5 lg:grid-cols-2">
-            <table className="w-full border-collapse text-[13px]">
-              <thead>
-                <tr className="border-b border-rule text-left">
-                  <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.materiale}</th>
-                  <th className={cx(eyebrow, "py-1.5 text-right font-medium")}>{t.punti}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.exchange.points.map((row) => (
-                  <tr key={row.id} className="border-b border-rule-2">
-                    <td className="py-1 pr-3">
-                      <ItemLabel id={row.id} scope={scope} />
-                    </td>
-                    <td className={cx(numeric, "py-1 text-right")}>{row.points}</td>
+          <div className="min-w-0">
+            <PartTitle>{t.scambio}</PartTitle>
+            {data.exchange.text ? <Said value={data.exchange.text} scope={scope} className="mb-4 text-[13px] text-ink-2" /> : null}
+            <div className="grid gap-6">
+              <table className="w-full border-collapse text-[13px]">
+                <thead>
+                  <tr className="border-b border-rule text-left">
+                    <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.materiale}</th>
+                    <th className={cx(eyebrow, "py-1.5 text-right font-medium")}>{t.punti}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <table className="w-full border-collapse text-[13px]">
-              <thead>
-                <tr className="border-b border-rule text-left">
-                  <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.ricompensa}</th>
-                  <th className={cx(eyebrow, "py-1.5 pr-3 text-right font-medium")}>{t.punti}</th>
-                  <th className={cx(eyebrow, "py-1.5 text-right font-medium")}>{t.limite}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.exchange.rewards.map((row) => (
-                  <tr key={row.id} className="border-b border-rule-2">
-                    <td className="py-1 pr-3">
-                      <ItemLabel id={row.id} scope={scope} />
-                    </td>
-                    <td className={cx(numeric, "py-1 pr-3 text-right")}>{formatNumber(row.points, locale)}</td>
-                    <td className={cx(numeric, "py-1 text-right")}>{row.weekly}</td>
+                </thead>
+                <tbody>
+                  {data.exchange.points.map((row) => (
+                    <tr key={row.id} className="border-b border-rule-2">
+                      <td className="py-1 pr-3">
+                        <ItemLabel id={row.id} scope={scope} />
+                      </td>
+                      <td className={cx(numeric, "py-1 text-right")}>{row.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <table className="w-full border-collapse text-[13px]">
+                <thead>
+                  <tr className="border-b border-rule text-left">
+                    <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.ricompensa}</th>
+                    <th className={cx(eyebrow, "py-1.5 pr-3 text-right font-medium")}>{t.punti}</th>
+                    <th className={cx(eyebrow, "py-1.5 text-right font-medium")}>{t.limite}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.exchange.rewards.map((row) => (
+                    <tr key={row.id} className="border-b border-rule-2">
+                      <td className="py-1 pr-3">
+                        <ItemLabel id={row.id} scope={scope} />
+                      </td>
+                      <td className={cx(numeric, "py-1 pr-3 text-right")}>{formatNumber(row.points, locale)}</td>
+                      <td className={cx(numeric, "py-1 text-right")}>{row.weekly}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="eroi" className="scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.eroi}</h2>
-        <p className="mt-2 max-w-[72ch] text-sm text-ink-2">{t.eroiIntro}</p>
-        <div className="mt-5">
+      <section id="eroi" className="scroll-mt-20 border-t border-rule pt-10">
+        <SectionTitle>{t.eroi}</SectionTitle>
+        <p className="-mt-2 mb-0 max-w-[48ch] text-sm text-ink-2">{t.eroiIntro}</p>
+        <div className="mt-6">
           <PartTitle>
             <span className="inline-flex items-center gap-2">
               <ConditionIcon condition="creaturenest" scope={scope} size={20} />
@@ -216,7 +228,7 @@ export default async function CreatureNestPage({ params }: Props) {
           </PartTitle>
           <HeroPassiveGrid entries={data.heroesOnly} scope={scope} />
         </div>
-        <div className="mt-6">
+        <div className="mt-8">
           <PartTitle>
             <span className="inline-flex items-center gap-2">
               <ConditionIcon condition="creaturenest_except" scope={scope} size={20} />
@@ -227,7 +239,7 @@ export default async function CreatureNestPage({ params }: Props) {
         </div>
       </section>
 
-      <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
+      <p className="mt-12 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
     </main>
   );
 }

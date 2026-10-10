@@ -149,6 +149,67 @@ describe("i dati di Grand Cross", () => {
     expect(checked).toBeGreaterThan(1000);
   });
 
+  it("l'italiano ha un legame per parola blu, verso parole inglesi dello stesso testo", () => {
+    let checked = 0;
+    for (const hero of Object.values(abilities)) {
+      for (const rank of hero.cards.flatMap((card) => card.ranks)) {
+        if (!rank.textIt) continue;
+        const link = terms.italian[`${textKey(rank.text)}:${textKey(rank.textIt)}`];
+        if (!link) continue;
+        expect(link).toHaveLength(termWords(rank.textIt).length);
+        const n = termWords(rank.text).length;
+        for (const j of link) expect(j >= -1 && j < n).toBe(true);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(1000);
+  });
+
+  /** Ogni parola blu della pagina col suo bersaglio, nelle due lingue. */
+  const linked = () => {
+    const out: { word: string; target: string | null; lang: "en" | "it" }[] = [];
+    for (const hero of Object.values(abilities)) {
+      const texts = [
+        ...hero.cards.flatMap((card) => card.ranks),
+        ...(hero.ultimate?.ranks ?? []),
+        ...(hero.passive ? [hero.passive, ...(hero.passive.ultimateSteps ?? [])] : []),
+      ];
+      for (const { text, textIt } of texts) {
+        if (!text) continue;
+        const targets = terms.texts[textKey(text)];
+        if (!targets) continue;
+        termWords(text).forEach((word, i) => out.push({ word, target: targets[i] ?? null, lang: "en" }));
+        const link = textIt ? terms.italian[`${textKey(text)}:${textKey(textIt)}`] : undefined;
+        if (textIt && link) {
+          termWords(textIt).forEach((word, i) =>
+            out.push({ word, target: link[i]! >= 0 ? (targets[link[i]!] ?? null) : null, lang: "it" }),
+          );
+        }
+      }
+    }
+    return out;
+  };
+
+  it("un nome d'effetto che nomina una razza apre l'effetto, non la razza (10/10)", () => {
+    const words = linked().filter((w) => w.lang === "en");
+    const wrath = words.filter((w) => w.word === "Wrath of the Fairy King");
+    expect(wrath.length).toBeGreaterThan(0);
+    for (const w of wrath) expect(w.target?.startsWith("c:")).toBe(true);
+    for (const name of ["Goddess's Protection", "Protection of the Demon King", "Crimson Demon Tradition"]) {
+      for (const w of words.filter((x) => x.word === name)) expect(w.target ?? "").not.toMatch(/(^|\|)[rf]:/);
+    }
+  });
+
+  it("una parola non prende il concetto che la segue nella frase (10/10)", () => {
+    const words = linked();
+    // «depletes the Ultimate Move Gauge» apriva il buff «Ultimate Move»
+    expect(words.filter((w) => w.word === "depletes" && w.target === "c:ultimate_move")).toEqual([]);
+    // «Removes all enemies' Buffs» apriva «Damage Taken Increase»
+    expect(words.filter((w) => /removes all enemies' buffs/i.test(w.word) && w.target === "c:damage_taken_increase")).toEqual([]);
+    // in italiano «danni subiti» apriva i Dei
+    expect(words.filter((w) => w.lang === "it" && w.word === "danni subiti" && /(^|\|)[rfg]:/.test(w.target ?? ""))).toEqual([]);
+  });
+
   it("Perforazione: molti eroi, fra cui Merlin figlia di Belialuin sulla carta B", () => {
     const pierce = terms.places["pierce"]!;
     expect(new Set(pierce.map(([hid]) => hid)).size).toBeGreaterThan(40);

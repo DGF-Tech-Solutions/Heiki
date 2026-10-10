@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { cx, display, eyebrow, numeric, Tag } from "@/components/ui";
+import { chipClass, cx, display, eyebrow, HowItWorks, numeric, PageHeader, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { gameIconSrc, heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import { daysBetween, heroesIn, launchDate, pickRegion, releaseYears, type ReleaseOrder } from "@/lib/games/releases";
@@ -36,7 +36,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Uscite di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Uscite di ${gioco}`,
     descrizione: (gioco: string) =>
       `Il calendario delle uscite di ${gioco}: banner, date, eroi, rarità ed eventi, aggiornamento per aggiornamento.`,
     gioco: "gioco",
@@ -60,6 +60,7 @@ const TESTI = testi({
     tutte: "Tutte le settimane",
     soloEroi: "Solo con eroi nuovi",
     anni: "Vai all'anno",
+    comeFunziona: "Date, allineamento e fonte",
     eroiAnno: (n: number) => (n === 1 ? "1 eroe nuovo" : `${n} eroi nuovi`),
     numero: (n: string) => `n. ${n}`,
     numeroGiappone: (n: string) => `n. ${n} JP`,
@@ -90,7 +91,7 @@ const TESTI = testi({
       `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Releases · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Releases`,
     descrizione: (gioco: string) =>
       `The ${gioco} release calendar: banners, dates, heroes, rarities and events, update by update.`,
     gioco: "game",
@@ -114,6 +115,7 @@ const TESTI = testi({
     tutte: "All weeks",
     soloEroi: "Only with new heroes",
     anni: "Jump to year",
+    comeFunziona: "Dates, alignment and source",
     eroiAnno: (n: number) => (n === 1 ? "1 new hero" : `${n} new heroes`),
     numero: (n: string) => `no. ${n}`,
     numeroGiappone: (n: string) => `no. ${n} JP`,
@@ -226,18 +228,15 @@ export default async function ReleasesPage({ params, searchParams }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.uscite }]} />
 
-      <header className="mb-5 border-b border-rule pb-5">
-        <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.uscite}</h1>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">
-          {t.introduzione(updates.length, totalHeroes, launch ? dateFormat.format(asDate(launch)) : "—")}
-        </p>
-        <p className="mt-1.5 max-w-[72ch] text-sm text-ink-2">
-          {region === "global" ? t.dateGlobale(syncGlobal ? dateFormat.format(asDate(syncGlobal)) : "—") : t.dateGiappone}
-        </p>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">
+      {/* il titolo e una riga; date e fonte in «Come funziona» (10/10) */}
+      <PageHeader title={t.uscite}>
+        <p>{t.introduzione(updates.length, totalHeroes, launch ? dateFormat.format(asDate(launch)) : "—")}</p>
+      </PageHeader>
+      <HowItWorks summary={t.comeFunziona} className="mb-5">
+        <p>{region === "global" ? t.dateGlobale(syncGlobal ? dateFormat.format(asDate(syncGlobal)) : "—") : t.dateGiappone}</p>
+        <p>
           {t.fonte}:{" "}
-          <a href={releases.source.url} className="text-ink-2 underline-offset-2 hover:text-brand hover:underline" rel="noopener noreferrer" target="_blank">
+          <a href={releases.source.url} className="text-ink underline decoration-brand underline-offset-2 hover:text-brand-deep" rel="noopener noreferrer" target="_blank">
             {t.fonteTesto(
               region === "global" ? (releases.source.globalTitle ?? releases.source.title) : releases.source.title,
               releases.source.authors,
@@ -245,60 +244,82 @@ export default async function ReleasesPage({ params, searchParams }: Props) {
             )}
           </a>
         </p>
-      </header>
+      </HowItWorks>
 
-      <div className="mb-6 grid gap-3 rounded-card border border-rule bg-paper-2 p-4">
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5">
-          {regions.length > 1 ? (
-            <ChipRow label={t.server}>
-              {regions.map((candidate) => (
-                <ChipLink
-                  key={candidate}
-                  href={pageHref(game, candidate, order, onlyHeroes)}
-                  active={region === candidate}
-                  label={candidate === "global" ? t.globale : t.giappone}
-                />
-              ))}
-            </ChipRow>
-          ) : null}
-          <ChipRow label={t.ordina}>
-            <ChipLink href={pageHref(game, region, "recenti", onlyHeroes)} active={order === "recenti"} label={t.recenti} />
-            <ChipLink href={pageHref(game, region, "primi", onlyHeroes)} active={order === "primi"} label={t.primi} />
-          </ChipRow>
-          <ChipRow label={t.mostra}>
-            <ChipLink href={pageHref(game, region, order, false)} active={!onlyHeroes} label={t.tutte} />
-            <ChipLink href={pageHref(game, region, order, true)} active={onlyHeroes} label={t.soloEroi} />
-          </ChipRow>
-        </div>
-        <nav aria-label={t.anni}>
-          <ChipRow label={t.anni}>
-            {years.map((group) => (
-              <a
-                key={group.year}
-                href={`#anno-${group.year}`}
-                className={cx(numeric, "rounded-card border border-rule bg-paper px-2.5 py-1.5 text-[12px] text-ink-2 hover:border-ink-3 hover:text-ink")}
-              >
-                {group.year}
-              </a>
+      <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2.5">
+        {regions.length > 1 ? (
+          <ChipRow label={t.server}>
+            {regions.map((candidate) => (
+              <ChipLink
+                key={candidate}
+                href={pageHref(game, candidate, order, onlyHeroes)}
+                active={region === candidate}
+                quiet
+                label={candidate === "global" ? t.globale : t.giappone}
+              />
             ))}
           </ChipRow>
-        </nav>
+        ) : null}
+        <ChipRow label={t.ordina}>
+          <ChipLink href={pageHref(game, region, "recenti", onlyHeroes)} active={order === "recenti"} quiet label={t.recenti} />
+          <ChipLink href={pageHref(game, region, "primi", onlyHeroes)} active={order === "primi"} quiet label={t.primi} />
+        </ChipRow>
+        <ChipRow label={t.mostra}>
+          <ChipLink href={pageHref(game, region, order, false)} active={!onlyHeroes} quiet label={t.tutte} />
+          <ChipLink href={pageHref(game, region, order, true)} active={onlyHeroes} label={t.soloEroi} />
+        </ChipRow>
       </div>
 
+      {/*
+        Gli anni restano fermi sotto l'intestazione mentre si scorre: la pagina e'
+        lunga 49.000 px, e prima si saltava a un anno solo dalla cima (10/10).
+      */}
+      <nav
+        aria-label={t.anni}
+        className="sticky top-[61px] z-20 -mx-1 mb-6 flex gap-1 overflow-x-auto border-b-2 border-brand bg-paper px-1 py-1.5 [scrollbar-width:none]"
+      >
+        {years.map((group) => (
+          <a key={group.year} href={`#anno-${group.year}`} className={chipClass(false, false, cx(numeric, "shrink-0"))}>
+            {group.year}
+          </a>
+        ))}
+      </nav>
+
       {years.map((group) => (
-        <section key={group.year} id={`anno-${group.year}`} className="mb-8 scroll-mt-16">
-          <div className="sticky top-[60px] z-10 mb-1 flex items-baseline gap-3 border-b border-rule bg-paper py-2">
+        <section key={group.year} id={`anno-${group.year}`} className="mb-8 scroll-mt-[112px]">
+          <div className="sticky top-[110px] z-10 mb-1 flex items-baseline gap-3 border-b border-rule bg-paper py-2">
             <h2 className={cx(display, numeric, "text-2xl")}>{group.year}</h2>
             <p className="m-0 text-[13px] text-ink-3">{t.eroiAnno(group.heroes)}</p>
           </div>
 
           <ol className="m-0 list-none p-0">
-            {group.updates.map((update) => (
+            {group.updates.map((update) => {
+              // Una settimana senza eroi nuovi e' una riga sottile (scelta
+              // dell'utente, 10/10): resta, come nel foglio, con le sue novita',
+              // ma alta la meta'; numero e giorno vanno nel titolo della data
+              const empty = Boolean(update.noHeroes) && !update.launch;
+              const facts = [
+                update.number ? (update.fromJp ? t.numeroGiappone(update.number) : t.numero(update.number)) : null,
+                update.jpDate ? t.inGiappone(shortDate.format(asDate(update.jpDate))) : null,
+                launch ? t.giorno(count(daysBetween(launch, update.date))) : null,
+              ].filter(Boolean);
+              return (
               <li
                 key={update.date}
                 id={`u-${update.date}`}
-                className="grid scroll-mt-28 gap-x-5 gap-y-3 border-b border-rule-2 py-4 target:bg-brand-soft/40 sm:grid-cols-[104px_minmax(0,1fr)]"
+                className={cx(
+                  "grid scroll-mt-28 gap-x-5 border-b border-rule-2 target:bg-brand-soft/40 sm:grid-cols-[104px_minmax(0,1fr)]",
+                  empty ? "gap-y-1 py-2" : "gap-y-3 py-4",
+                )}
               >
+                {empty ? (
+                  <div>
+                    <time dateTime={update.date} title={facts.join(" · ")} className={cx(numeric, "block text-[13px] text-ink-2")}>
+                      {shortDate.format(asDate(update.date))}
+                    </time>
+                    {update.date > today ? <Tag className="mt-1">{t.previsto}</Tag> : null}
+                  </div>
+                ) : (
                 <div>
                   <time dateTime={update.date} className={cx(numeric, "block text-[15px] font-semibold text-ink")}>
                     {shortDate.format(asDate(update.date))}
@@ -309,7 +330,7 @@ export default async function ReleasesPage({ params, searchParams }: Props) {
                     // calendario giapponese e ne tengono il numero: lo si dice,
                     // perche' salta dal 251 del globale al 284 del Giappone.
                     <p
-                      className={cx(numeric, "m-0 mt-0.5 text-[11px] text-ink-3")}
+                      className={cx(numeric, "m-0 mt-0.5 text-[12px] text-ink-3")}
                       title={update.fromJp ? t.numeroGiapponeTitolo : undefined}
                     >
                       {update.fromJp ? t.numeroGiappone(update.number) : t.numero(update.number)}
@@ -317,24 +338,26 @@ export default async function ReleasesPage({ params, searchParams }: Props) {
                   ) : null}
                   {update.jpDate ? (
                     // "JP" e non "in Giappone": nella colonna stretta andava a capo.
-                    <p className={cx(numeric, "m-0 text-[11px] text-ink-3")} title={t.inGiapponeTitolo}>
+                    <p className={cx(numeric, "m-0 text-[12px] text-ink-3")} title={t.inGiapponeTitolo}>
                       {t.inGiappone(shortDate.format(asDate(update.jpDate)))}
                     </p>
                   ) : null}
                   {launch ? (
-                    <p className={cx(numeric, "m-0 text-[11px] text-ink-3")}>
+                    <p className={cx(numeric, "m-0 text-[12px] text-ink-3")}>
                       {t.giorno(count(daysBetween(launch, update.date)))}
                     </p>
                   ) : null}
                   {update.date > today ? <Tag className="mt-1.5">{t.previsto}</Tag> : null}
                 </div>
+                )}
 
                 <div className="grid min-w-0 gap-x-6 gap-y-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
                   <UpdateHeroes update={update} view={view} />
                   <UpdateNotes update={update} view={view} />
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ol>
         </section>
       ))}
@@ -373,7 +396,7 @@ function UpdateHeroes({ update, view }: { update: ReleaseUpdate; view: HeroView 
           // Chiusi di partenza: sono 52, e aperti allungherebbero la pagina di
           // uno schermo e mezzo proprio in fondo, dove si arriva per altro.
           <details className="mt-3">
-            <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-brand">
+            <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-brand-deep">
               {t.eroiLancio(launchHeroes.length)}
             </summary>
             <p className="m-0 mt-1 text-[12px] text-ink-3">{t.lancioNota}</p>
@@ -507,16 +530,16 @@ function HeroLink({
         height={52}
         loading="lazy"
         decoding="async"
-        className="h-[52px] w-[52px] shrink-0 rounded-[3px] bg-paper-2"
+        className="h-[52px] w-[52px] shrink-0 bg-paper-2"
       />
       <span className="min-w-0">
         <span
-          className="block truncate text-[11px] leading-tight text-ink-3"
+          className="block truncate text-[12px] leading-tight text-ink-3"
           style={affinity ? { color: affinity.color } : undefined}
         >
           {epithet}
         </span>
-        <span className="block text-[13px] font-semibold leading-tight group-hover:text-brand">{name}</span>
+        <span className="block text-[13px] font-semibold leading-tight group-hover:text-brand-deep">{name}</span>
         {meta}
       </span>
     </Link>
@@ -548,7 +571,7 @@ function UpdateNotes({ update, view }: { update: ReleaseUpdate; view: HeroView }
           <span key={`${lr.name}-${index}`}>
             {index > 0 ? ", " : null}
             {entry ? (
-              <Link href={`/${game}/eroi/${entry.id}`} className="text-ink hover:text-brand" title={t.nelFoglio(lr.name)}>
+              <Link href={`/${game}/eroi/${entry.id}`} className="text-ink hover:text-brand-deep" title={t.nelFoglio(lr.name)}>
                 {heroName(entry, locale)}
               </Link>
             ) : (
@@ -633,19 +656,11 @@ function ChipRow({ label, children }: { label: string; children: React.ReactNode
  * Un pulsante che e' un collegamento: ordine e filtro stanno nell'indirizzo,
  * quindi si condividono e sopravvivono al ricaricamento senza JavaScript.
  */
-function ChipLink({ href, active, label }: { href: string; active: boolean; label: string }) {
+function ChipLink({ href, active, label, quiet }: { href: string; active: boolean; label: string; quiet?: boolean }) {
+  // la forma dei filtri del sito (chipClass): bianca per le scelte che ci sono
+  // sempre (server, ordine), rossa per il filtro che restringe l'elenco
   return (
-    <Link
-      href={href}
-      aria-current={active ? "true" : undefined}
-      scroll={false}
-      className={cx(
-        "inline-flex h-9 items-center rounded-card border px-2.5 text-[12px] transition-colors",
-        active
-          ? "border-brand bg-brand-soft font-semibold text-ink"
-          : "border-rule bg-paper text-ink-2 hover:border-ink-3 hover:text-ink",
-      )}
-    >
+    <Link href={href} aria-current={active ? "true" : undefined} scroll={false} className={chipClass(active, quiet)}>
       {label}
     </Link>
   );

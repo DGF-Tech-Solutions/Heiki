@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cx, display, eyebrow, Notice } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -11,12 +11,12 @@ import { getLocale } from "@/lib/i18n/server";
  */
 const TESTI = testi({
   it: {
-    titoloPagina: "Informativa privacy · GachaZone",
+    titoloPagina: "Informativa privacy",
     descrizione: "Quali dati raccoglie GachaZone, perché, per quanto tempo e cosa puoi chiedere.",
     Documento: PrivacyIt,
   },
   en: {
-    titoloPagina: "Privacy policy · GachaZone",
+    titoloPagina: "Privacy policy",
     descrizione: "What data GachaZone collects, why, for how long, and what you can request.",
     Documento: PrivacyEn,
   },
@@ -35,8 +35,7 @@ export default async function PrivacyPage() {
 function PrivacyIt() {
   return (
     <>
-      <p className={eyebrow}>Informativa</p>
-      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>Privacy</h1>
+      <PageHeader title="Privacy" />
 
       <Notice className="mb-8">
         <span>
@@ -165,8 +164,7 @@ function PrivacyIt() {
 function PrivacyEn() {
   return (
     <>
-      <p className={eyebrow}>Notice</p>
-      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>Privacy</h1>
+      <PageHeader title="Privacy" />
 
       <Notice className="mb-8">
         <span>

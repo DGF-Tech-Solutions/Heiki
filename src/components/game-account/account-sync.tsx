@@ -14,6 +14,8 @@ import {
   writeLocal,
   writeStamp,
 } from "./local-account";
+import { boxToJson } from "@/lib/games/hero-box";
+import { hasStoredBox, readBox, storeBox } from "./use-hero-box";
 
 /**
  * Tiene allineati il browser e il database, per chi e' entrato (scelta
@@ -42,6 +44,9 @@ async function push(gameSlug: string): Promise<void> {
     const result = await saveGameAccountAction(gameSlug, {
       profile: readProfile(gameSlug),
       setup: readSetup(gameSlug),
+      // la forma compatta, quella che il server rilegge (parseBox): l'oggetto in
+      // memoria ({heroes}) arrivava come un box vuoto (10/10, trovato provando)
+      box: boxToJson(readBox(gameSlug)),
     });
     // se nel frattempo e' cambiato altro, il timbro nuovo resta: partira' anche quello
     if (result.ok && result.updatedAt && readStamp(gameSlug) === sentStamp) {
@@ -69,13 +74,15 @@ export function AccountSync({
     const direction = syncDirection(
       {
         stamp: mine ? readStamp(gameSlug) : 0,
-        hasData: mine && (hasStoredSetup(gameSlug) || !isEmptyProfile(readProfile(gameSlug))),
+        hasData:
+          mine && (hasStoredSetup(gameSlug) || hasStoredBox(gameSlug) || !isEmptyProfile(readProfile(gameSlug))),
       },
       server,
     );
     if (direction === "to-browser" && server) {
       storeSetup(gameSlug, server.setup);
       storeProfile(gameSlug, server.profile);
+      storeBox(gameSlug, server.box);
       writeStamp(gameSlug, server.updatedAt);
     } else if (direction === "to-server") {
       void push(gameSlug);

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cx, display, eyebrow, Notice } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
 import { CookiePreferences } from "@/components/cookie-preferences";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -7,12 +7,12 @@ import { getLocale } from "@/lib/i18n/server";
 /** Un blocco JSX intero per lingua: vedi la nota nella pagina privacy. */
 const TESTI = testi({
   it: {
-    titoloPagina: "Cookie · GachaZone",
+    titoloPagina: "Cookie",
     descrizione: "Quali cookie usa GachaZone e come cambiare le tue scelte.",
     Documento: CookieIt,
   },
   en: {
-    titoloPagina: "Cookies · GachaZone",
+    titoloPagina: "Cookies",
     descrizione: "Which cookies GachaZone uses and how to change your choices.",
     Documento: CookieEn,
   },
@@ -31,8 +31,7 @@ export default async function CookiePage() {
 function CookieIt() {
   return (
     <>
-      <p className={eyebrow}>Cookie</p>
-      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>Cookie e scelte</h1>
+      <PageHeader title="Cookie e scelte" />
 
       <Notice className="mb-8">
         <span>
@@ -110,10 +109,7 @@ function CookieIt() {
 function CookieEn() {
   return (
     <>
-      <p className={eyebrow}>Cookies</p>
-      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>
-        Cookies and choices
-      </h1>
+      <PageHeader title="Cookies and choices" />
 
       <Notice className="mb-8">
         <span>

@@ -11,12 +11,13 @@
  * Le frasi sono quelle del gioco, nella lingua della pagina (l'inglese dove la
  * frase italiana non si appaia, e allora `lang="en"`); chi riceve e chi fa
  * scattare li dice la lettura della pipeline, e la pagina li mostra come segni
- * ✓/✗ sui compagni. I conti stanno in team.ts.
+ * (spunta o croce) sui compagni. I conti stanno in team.ts.
  */
 
 import Link from "next/link";
 import { GameText } from "@/components/heroes/game-text";
-import { cx, eyebrow, Tag } from "@/components/ui";
+import { IconCheck, IconChevronLeft, IconClose } from "@/components/icons";
+import { cx, display, eyebrow, Tag } from "@/components/ui";
 import { heroCardSrc, gameIconSrc } from "@/lib/games/heroes";
 import {
   fateOf,
@@ -57,7 +58,7 @@ export function TeamReport({
   const accesi = new Set(analysis.enables.map((i) => `${i.to}:${i.source}`)).size;
   return (
     <section className="mt-10">
-      <h2 className="m-0 font-display text-[22px] font-extrabold uppercase">{t.resoconto}</h2>
+      <h2 className={cx(display, "m-0 text-[clamp(24px,3vw,32px)]")}>{t.resoconto}</h2>
       <p className="mt-1.5 mb-0 text-[13px] text-ink-2">
         {t.riepilogo(analysis.gives.length, accesi)}
         {analysis.allMet + analysis.allBroken > 0 ? ` · ${t.condTutti(analysis.allMet, analysis.allBroken)}` : ""}
@@ -100,24 +101,27 @@ function MemberCard({
   const lights = analysis.enables.filter((i) => i.from === member.hero);
 
   return (
-    <article className="min-w-0 border border-rule bg-paper-2 p-4 text-[13px]">
-      <header className="flex items-center gap-3">
+    <article className="p5-corner min-w-0 border border-rule bg-paper-2 p-4 text-[13px]">
+      <header className="flex items-center gap-3 border-b border-rule-2 pb-3">
         <Link href={`/${data.game}/eroi/${hero.id}`} className="shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte */}
-          <img src={heroCardSrc(data.game, hero.id)} alt="" width={52} height={52} />
+          <img src={heroCardSrc(data.game, hero.id)} alt="" width={56} height={56} className="shadow-[3px_3px_0_var(--color-brand)]" />
         </Link>
         <div className="min-w-0">
           <p className={cx(eyebrow, "m-0", member.bench && "text-gold")}>
             {slotLabel(member.slot, setup.bench, t)}
             {member.bench ? ` · ${t.inPanchinaTag}` : ""}
           </p>
-          <p className="m-0 truncate text-[11px]" style={hero.color ? { color: hero.color } : undefined}>
+          <p className="m-0 truncate text-[12px]" style={hero.color ? { color: hero.color } : undefined}>
             {hero.epithet}
           </p>
-          <Link href={`/${data.game}/eroi/${hero.id}`} className="block truncate font-semibold text-ink hover:text-brand">
+          <Link
+            href={`/${data.game}/eroi/${hero.id}`}
+            className="block truncate font-display text-[17px] leading-tight font-black text-ink uppercase [font-variation-settings:'wdth'_78] hover:text-brand-deep"
+          >
             {hero.name}
           </Link>
-          {extra.length > 0 ? <p className="m-0 text-[11px] text-ink-3">{t.ancheCome(extra.join(", "))}</p> : null}
+          {extra.length > 0 ? <p className="m-0 text-[12px] text-ink-3">{t.ancheCome(extra.join(", "))}</p> : null}
         </div>
       </header>
 
@@ -160,10 +164,14 @@ function SourceBlock({
   const by = result.by ? heroes.get(result.by)?.name ?? result.by : null;
 
   return (
-    <div className={cx("border-l-2 pl-3", result.active ? "border-brand" : "border-rule")}>
+    // Accesa o spenta la dice l'etichetta del tipo (rossa se la passiva vale), non
+    // piu' un filo colorato a sinistra (10/10)
+    <div>
       {/* div e non p: il nome passa da GameText, che disegna dei paragrafi */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-[11px] uppercase tracking-[0.06em] text-ink-3">{kind}</span>
+        <Tag tone={result.active ? "brand" : "neutral"} className={result.active ? undefined : "opacity-70"}>
+          {kind}
+        </Tag>
         <GameText text={name} className="inline font-semibold text-ink [&>p]:inline" />
         {data.conditionIcons
           ? source.conditions.map((code) => {
@@ -184,7 +192,7 @@ function SourceBlock({
             })
           : null}
         {result.active ? null : (
-          <span className="border border-down/60 px-1.5 py-px text-[11px] leading-tight text-down">
+          <span className="p5-cut-sm bg-paper-3 px-2 py-px text-[12px] leading-tight text-down">
             {`${t.spenta}: ${offLabel(result.off!, t, by)}`}
           </span>
         )}
@@ -241,11 +249,11 @@ function LinkBlock({
       </p>
       {link.receives?.length ? (
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] text-ink-3">
+          <span className="text-[12px] text-ink-3">
             {t.vaA} {link.receives.map((who) => describeWho(who, data, group, locale)).join(t.o)}:
           </span>
           {result.receivers.length === 0 ? (
-            <span className="text-[11px] text-ink-3">{t.nessunCompagno}</span>
+            <span className="text-[12px] text-ink-3">{t.nessunCompagno}</span>
           ) : (
             result.receivers.map((check) => <Check key={check.hero} check={check} heroes={heroes} />)
           )}
@@ -253,26 +261,26 @@ function LinkBlock({
       ) : null}
       {result.conditions.map((condition, i) => (
         <div key={i} className="mt-1 flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] text-ink-3">
+          <span className="text-[12px] text-ink-3">
             {conditionLabel(condition.condition, t)} {describeWho(condition.condition.who, data, group, locale)}
             {condition.condition.kind === "each" ? ` (${t.inCampoN(condition.count)})` : ""}:
           </span>
           {condition.members.length === 0 ? (
-            <span className="text-[11px] text-ink-3">{t.nessunCompagno}</span>
+            <span className="text-[12px] text-ink-3">{t.nessunCompagno}</span>
           ) : (
             condition.members.map((check) => <Check key={check.hero} check={check} heroes={heroes} self={check.hero === hero.id} />)
           )}
         </div>
       ))}
       {link.extraRaces?.length ? (
-        <p className="mt-1 mb-0 text-[11px] text-ink-3">
+        <p className="mt-1 mb-0 text-[12px] text-ink-3">
           {t.razzaAggiunta(link.extraRaces.map((race) => data.labels.race[race] ?? race).join(", "))}
         </p>
       ) : null}
-      {link.bothSides ? <p className="mt-1 mb-0 text-[11px] text-down">{t.dueParti}</p> : null}
-      {link.withBench ? <p className="mt-1 mb-0 text-[11px] text-ink-3">{t.conPanchina}</p> : null}
-      {link.notSelf ? <p className="mt-1 mb-0 text-[11px] text-ink-3">{t.tranneSe}</p> : null}
-      {showOff ? <p className="mt-1 mb-0 text-[11px] text-ink-3">{`${t.spenta}: ${offLabel(result.off!, t, null)}`}</p> : null}
+      {link.bothSides ? <p className="mt-1 mb-0 text-[12px] text-down">{t.dueParti}</p> : null}
+      {link.withBench ? <p className="mt-1 mb-0 text-[12px] text-ink-3">{t.conPanchina}</p> : null}
+      {link.notSelf ? <p className="mt-1 mb-0 text-[12px] text-ink-3">{t.tranneSe}</p> : null}
+      {showOff ? <p className="mt-1 mb-0 text-[12px] text-ink-3">{`${t.spenta}: ${offLabel(result.off!, t, null)}`}</p> : null}
     </li>
   );
 }
@@ -282,12 +290,12 @@ function Check({ check, heroes, self }: { check: MemberCheck; heroes: ReadonlyMa
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] leading-none",
+        "inline-flex items-center gap-1 px-1.5 py-0.5 text-[12px] leading-none",
         check.ok ? "bg-up/15 text-up" : "bg-paper-3 text-ink-3 line-through decoration-ink-3/60",
         self && "outline outline-1 outline-rule",
       )}
     >
-      <span aria-hidden>{check.ok ? "✓" : "✗"}</span>
+      {check.ok ? <IconCheck size={11} /> : <IconClose size={11} aria-hidden />}
       {hero?.name ?? check.hero}
     </span>
   );
@@ -371,7 +379,7 @@ function TeamWide({
   return (
     <div className="mt-8 grid gap-5 lg:grid-cols-3">
       {kinds.length > 0 ? (
-        <section className="border border-rule bg-paper-2 p-4 text-[13px]">
+        <section className="p5-corner border border-rule bg-paper-2 p-4 text-[13px]">
           <h3 className={cx(eyebrow, "m-0 mb-2")}>{t.regole}</h3>
           {kinds.map((kind) => (
             <div key={kind} className="mt-2 first:mt-0">
@@ -389,7 +397,7 @@ function TeamWide({
       ) : null}
 
       {light.length + dark.length > 0 ? (
-        <section className="border border-rule bg-paper-2 p-4 text-[13px]">
+        <section className="p5-corner border border-rule bg-paper-2 p-4 text-[13px]">
           <h3 className={cx(eyebrow, "m-0 mb-2")}>{t.lucOsc}</h3>
           <ul className="m-0 grid list-none gap-2 p-0 text-ink-2">
             {[
@@ -408,7 +416,7 @@ function TeamWide({
       ) : null}
 
       {pairs.length > 0 ? (
-        <section className="border border-rule bg-paper-2 p-4 text-[13px]">
+        <section className="p5-corner border border-rule bg-paper-2 p-4 text-[13px]">
           <h3 className={cx(eyebrow, "m-0 mb-2")}>{t.associati}</h3>
           <ul className="m-0 grid list-none gap-2.5 p-0 text-ink-2">
             {pairs.map(({ main, associate, slot }) => {
@@ -418,11 +426,12 @@ function TeamWide({
               return (
                 <li key={slot}>
                   <span className="font-semibold text-ink">{heroes.get(main)?.name}</span>
-                  {" ← "}
+                  {/* la freccia verso l'eroe: e' lui che riceve dall'associato */}
+                  <IconChevronLeft size={12} aria-hidden className="mx-1 inline-block align-[-1px] text-ink-3" />
                   <span className="font-semibold text-ink">{heroes.get(associate)?.name}</span>
                   {effect && text ? (
                     <>
-                      <span className="block text-[11px] text-ink-3">{t.legame}</span>
+                      <span className="block text-[12px] text-ink-3">{t.legame}</span>
                       <GameText text={text} className="text-up" />
                       {fate?.[2] ? <span className="mt-1 inline-block"><Tag tone="gold">{t.combinato}</Tag></span> : null}
                     </>

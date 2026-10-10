@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { buttonClass, cx, display, Empty, eyebrow, Notice, Tag } from "@/components/ui";
+import { buttonClass, cx, display, Empty, Notice, PageHeader, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
 import { getGuideStore } from "@/lib/guides/store";
@@ -28,7 +28,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Guide di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Guide di ${gioco}`,
     descrizione: (gioco: string) =>
       `Guide e rotazioni per ${gioco}, con la patch in cui i numeri sono stati verificati.`,
     gioco: "gioco",
@@ -47,7 +47,7 @@ const TESTI = testi({
     nonPubblicate: "Non pubblicate",
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} guides · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} guides`,
     descrizione: (gioco: string) =>
       `Guides and rotations for ${gioco}, with the patch the numbers were verified on.`,
     gioco: "Game",
@@ -111,19 +111,18 @@ export default async function GuidesPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.guide }]} />
 
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-rule pb-5">
-        <div>
-          <p className={eyebrow}>{entry.shortName}</p>
-          <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.guide}</h1>
-          <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">{t.intro(currentPatch)}</p>
-        </div>
+      {/* la testata di tutte le pagine (10/10); il comando per scrivere sotto, a destra */}
+      <PageHeader title={t.guide}>
+        <p>{t.intro(currentPatch)}</p>
+      </PageHeader>
 
-        {canWrite ? (
+      {canWrite ? (
+        <div className="mb-5 flex justify-end">
           <Link href={`/${game}/guide/nuova`} className={buttonClass("primary")}>
             {t.scrivi}
           </Link>
-        ) : null}
-      </header>
+        </div>
+      ) : null}
 
       {store.volatile ? (
         <Notice tone="warn" className="mb-6">
@@ -140,7 +139,7 @@ export default async function GuidesPage({ params }: Props) {
             return (
               <li
                 key={guide.id}
-                className="rounded-card border border-rule bg-paper p-4 transition-colors hover:border-ink-3"
+                className="p5-corner border border-rule bg-paper-2 p-4 transition-colors hover:border-ink-3 sm:p-5"
               >
                 <div className="mb-2 flex flex-wrap items-center gap-2.5">
                   {guide.verifiedPatch === null ? (
@@ -151,7 +150,7 @@ export default async function GuidesPage({ params }: Props) {
                     </Tag>
                   )}
                   {stale ? (
-                    <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-hot">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-hot">
                       {t.daRivedere}
                     </span>
                   ) : null}
@@ -161,10 +160,10 @@ export default async function GuidesPage({ params }: Props) {
                 </div>
 
                 <h2
-                  className={cx(display, "mb-1.5 text-[19px] leading-[1.2]")}
+                  className={cx(display, "mb-1.5 text-[clamp(19px,2.2vw,24px)] leading-[1.1]")}
                   data-accent={guide.author.accent}
                 >
-                  <Link href={`/${game}/guide/${guide.slug}`} className="hover:text-brand">
+                  <Link href={`/${game}/guide/${guide.slug}`} className="hover:text-brand-deep">
                     {guide.title}
                   </Link>
                 </h2>
@@ -173,7 +172,7 @@ export default async function GuidesPage({ params }: Props) {
 
                 <p className="m-0 mt-2.5 text-xs text-ink-3">
                   {t.di}{" "}
-                  <Link href={`/u/${guide.author.username}`} className="text-ink-2 hover:text-brand">
+                  <Link href={`/u/${guide.author.username}`} className="text-ink-2 hover:text-brand-deep">
                     {guide.author.displayName}
                   </Link>
                 </p>
@@ -190,12 +189,12 @@ export default async function GuidesPage({ params }: Props) {
             {inProgress.map((guide) => (
               <li
                 key={guide.id}
-                className="flex flex-wrap items-center gap-3 rounded-card border border-dashed border-rule bg-paper-2 px-4 py-3 text-sm"
+                className="flex flex-wrap items-center gap-3 border border-rule-2 bg-paper-2 px-4 py-3 text-sm"
               >
                 <Tag>{statusLabel(guide.status, locale)}</Tag>
                 <Link
                   href={`/${game}/guide/${guide.slug}`}
-                  className="font-medium hover:text-brand"
+                  className="font-medium hover:text-brand-deep"
                 >
                   {guide.title}
                 </Link>

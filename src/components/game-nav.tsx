@@ -9,11 +9,13 @@ const TESTI = testi({
     gioco: "Gioco",
     nonPronto: (nome: string) => `${nome} — modulo non ancora pronto`,
     inArrivo: "in arrivo",
+    altri: (n: number) => `+${n} in arrivo`,
   },
   en: {
     gioco: "Game",
     nonPronto: (nome: string) => `${nome} — module not ready yet`,
     inArrivo: "coming soon",
+    altri: (n: number) => `+${n} coming soon`,
   },
 });
 
@@ -28,6 +30,7 @@ const TESTI = testi({
  */
 export async function GameSwitcher({ game }: { game: string }) {
   const games = listGames();
+  const planned = games.filter((entry) => !entry.available);
   const t = TESTI[await getLocale()];
 
   return (
@@ -36,10 +39,11 @@ export async function GameSwitcher({ game }: { game: string }) {
           prendevano tre righe sopra ogni pagina */}
       <nav
         aria-label={t.gioco}
-        className="mx-auto flex w-full max-w-shell items-center gap-1 overflow-x-auto px-6 py-2 whitespace-nowrap [scrollbar-width:none] *:shrink-0 sm:flex-wrap"
+        className="mx-auto flex w-full max-w-shell items-center gap-1 overflow-x-auto px-6 py-1.5 whitespace-nowrap [scrollbar-width:none] *:shrink-0"
       >
-        {games.map((entry) =>
-          entry.available ? (
+        {games
+          .filter((entry) => entry.available)
+          .map((entry) => (
             <Link
               key={entry.slug}
               href={`/${entry.slug}`}
@@ -48,26 +52,26 @@ export async function GameSwitcher({ game }: { game: string }) {
               // accendono di bianco al passaggio: lo stesso gesto della barra laterale
               className={cx(
                 "p5-cut px-3.5 py-1 font-display text-[13px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82]",
-                entry.slug === game
-                  ? "bg-brand text-white"
-                  : "text-ink-2 hover:bg-ink hover:text-paper",
+                entry.slug === game ? "bg-brand text-white" : "text-ink-2 hover:bg-ink hover:text-paper",
               )}
             >
               {entry.shortName}
             </Link>
-          ) : (
-            <span
-              key={entry.slug}
-              title={t.nonPronto(entry.name)}
-              className="cursor-not-allowed rounded-sm px-2.5 py-1 text-[13px] text-ink-3/60"
-            >
-              {entry.shortName}
-              <span className="ml-1.5 font-mono text-[9px] uppercase tracking-wider">
-                {t.inArrivo}
-              </span>
-            </span>
-          ),
-        )}
+          ))}
+        {/*
+          I giochi in arrivo in una voce sola (10/10): prima erano quattro nomi
+          spenti su ogni pagina, e sul telefono la riga si tagliava a meta' di un
+          nome. Porta alla home, che li elenca.
+        */}
+        {planned.length > 0 ? (
+          <Link
+            href="/"
+            title={planned.map((entry) => entry.name).join(", ")}
+            className="ml-2 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+          >
+            {t.altri(planned.length)}
+          </Link>
+        ) : null}
       </nav>
     </div>
   );

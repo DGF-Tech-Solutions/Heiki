@@ -15,6 +15,7 @@ import type { SimulationAttachment } from "@/lib/community/types";
 import type { AttachmentCheck } from "@/lib/community/verify";
 import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { IconCheck, IconClose } from "../icons";
 import { cx, Stat, StatGrid, Tag } from "../ui";
 
 const TESTI = testi({
@@ -33,8 +34,8 @@ const TESTI = testi({
       `Rieseguendo il calcolo con questo seed la mediana risulta ${ricalcolata} invece di ${dichiarata}.`,
     verificatoTitolo: "Il motore ha rifatto il calcolo con questo seed e ottiene gli stessi numeri.",
     nonRiprodottoTitolo: "Rieseguendo il calcolo con questo seed i numeri non coincidono.",
-    verificato: "✓ verificato",
-    nonRiprodotto: "✗ non riprodotto",
+    verificato: "verificato",
+    nonRiprodotto: "non riprodotto",
   },
   en: {
     turni: "turns",
@@ -51,8 +52,8 @@ const TESTI = testi({
       `Rerunning the calculation with this seed gives a median of ${ricalcolata} instead of ${dichiarata}.`,
     verificatoTitolo: "The engine redid the calculation with this seed and gets the same numbers.",
     nonRiprodottoTitolo: "Rerunning the calculation with this seed, the numbers don't match.",
-    verificato: "✓ verified",
-    nonRiprodotto: "✗ not reproduced",
+    verificato: "verified",
+    nonRiprodotto: "not reproduced",
   },
 });
 
@@ -76,7 +77,7 @@ export async function AttachmentCard({
   const unit = data.timeUnit === "turns" ? t.turni : "s";
 
   return (
-    <figure className="m-0 mt-3.5 rounded-card border border-rule bg-paper-2 p-3.5">
+    <figure className="p5-corner m-0 mt-3.5 border border-rule bg-paper-2 p-3.5">
       <figcaption className="mb-3 flex flex-wrap items-center gap-2.5">
         <Tag tone="brand">{t.simulazione}</Tag>
         {check ? <CheckBadge check={check} t={t} /> : null}
@@ -96,14 +97,14 @@ export async function AttachmentCard({
         <Stat label={t.riuscita} value={Math.round(data.killRate * 100)} unit="%" />
       </StatGrid>
 
-      <div className="relative mt-3.5 h-1 rounded-full bg-paper-3" aria-hidden>
+      <div className="relative mt-3.5 h-1 bg-paper-3" aria-hidden>
         <span
-          className="absolute -top-1 h-3 w-0.5 -translate-x-px rounded-sm bg-hot"
+          className="absolute -top-1 h-3 w-0.5 -translate-x-px bg-hot"
           style={{ left: `${position}%` }}
         />
       </div>
 
-      <p className="m-0 mt-2 font-mono text-[10px] text-ink-3">
+      <p className="m-0 mt-2 font-mono text-[11px] text-ink-3">
         seed {data.seed}
         {data.iterations > 0
           ? ` · ${t.tentativi(data.iterations, data.iterations.toLocaleString(tag))}`
@@ -112,7 +113,7 @@ export async function AttachmentCard({
       </p>
 
       {check?.status === "mismatch" ? (
-        <p className="m-0 mt-2 text-[11px] text-hot">
+        <p className="m-0 mt-2 text-[12px] text-hot">
           {t.medianaDiversa(round(check.recomputed ?? 0), round(check.declared ?? 0))}
         </p>
       ) : null}
@@ -136,10 +137,12 @@ function CheckBadge({ check, t }: { check: AttachmentCheck; t: Testi }) {
     <span
       title={verified ? t.verificatoTitolo : t.nonRiprodottoTitolo}
       className={cx(
-        "inline-flex h-5 items-center gap-1 rounded-[2px] px-[7px] font-mono text-[10px] font-medium uppercase tracking-[0.06em]",
+        "p5-cut-sm inline-flex h-5 items-center gap-1 px-[9px] font-mono text-[11px] font-medium uppercase tracking-[0.06em]",
         verified ? "bg-[#128a5b] text-white" : "bg-hot text-white",
       )}
     >
+      {/* il segno disegnato e non il carattere: ✓ e ✗ cambiano forma da un font all'altro */}
+      {verified ? <IconCheck size={11} /> : <IconClose size={11} />}
       {verified ? t.verificato : t.nonRiprodotto}
     </span>
   );

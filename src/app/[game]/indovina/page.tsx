@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GuessHeader } from "@/components/hero-guess/guess-header";
 import { HeroGuess, type GuessEntry, type GuessLabels } from "@/components/hero-guess/hero-guess";
-import { cx, eyebrow } from "@/components/ui";
+import { HowItWorks } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { guessHeroes, HINTS } from "@/lib/games/hero-guess";
 import { requireGameModule } from "@/lib/games/registry";
@@ -20,7 +20,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Indovina l'eroe di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Indovina l'eroe di ${gioco}`,
     descrizione: (gioco: string) =>
       `${gioco}: il gioco degli indizi. Indovina l'eroe del giorno da attributo, razza, caratteristiche, grado e data d'uscita.`,
     introduzione:
@@ -40,7 +40,7 @@ const TESTI = testi({
       `Aiuti: dopo ${primo} tentativi sbagliati si può scoprire l'icona dell'Unica, dopo ${secondo} il suo nome.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Guess the Hero · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Guess the Hero`,
     descrizione: (gioco: string) =>
       `${gioco}: the clue game. Guess the hero of the day from attribute, race, characteristics, grade and release date.`,
     introduzione:
@@ -114,9 +114,9 @@ export default async function HeroGuessPage({ params }: Props) {
 
       <HeroGuess game={game} heroes={heroes} labels={labels} icons={icons} />
 
-      <section className="mt-12 max-w-[72ch] border-t border-rule pt-5 text-sm text-ink-2">
-        <h2 className={cx(eyebrow, "m-0")}>{t.comeSiGioca}</h2>
-        <dl className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-[150px_minmax(0,1fr)]">
+      {/* gli indizi in fondo, chiusi: prima si gioca (10/10) */}
+      <HowItWorks summary={t.comeSiGioca} className="mt-12 max-w-[860px]">
+        <dl className="m-0 grid gap-x-4 gap-y-2 sm:grid-cols-[150px_minmax(0,1fr)]">
           {t.indizi.map(([name, text]) => (
             <div key={name} className="contents">
               <dt className="font-semibold text-ink">{name}</dt>
@@ -124,8 +124,8 @@ export default async function HeroGuessPage({ params }: Props) {
             </div>
           ))}
         </dl>
-        <p className="mt-4">{t.aiuti(HINTS[0].after, HINTS[1].after)}</p>
-      </section>
+        <p className="mt-3!">{t.aiuti(HINTS[0].after, HINTS[1].after)}</p>
+      </HowItWorks>
     </main>
   );
 }

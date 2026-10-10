@@ -20,8 +20,10 @@
  * (`termWords`, hero-markup.ts) e si accostano a quelle della pipeline per
  * testo, in ordine: una parola che la pipeline ha contato e la pagina no (una
  * riga di nota che continua) si salta, invece di spostare tutte quelle dopo.
- * Le parole italiane la pagina le lega per posizione, se sono tante quante le
- * inglesi; qui si conta quante volte succede.
+ * Le parole italiane si legano a quelle inglesi dello stesso testo con una
+ * prova (la traduzione del gioco, la nota appaiata, il nome del bersaglio), e
+ * per posizione solo quelle rimaste senza prove: vedi «le parole blu
+ * dell'italiano» qui sotto.
  *
  * Si ferma se due testi hanno la stessa impronta, o se un bersaglio cita un
  * concetto senza nome. Se il JSON manca non tocca niente.
@@ -30,6 +32,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { HERO_ABILITIES } from "../src/lib/games/grand-cross/hero-abilities.generated";
+import { HERO_CONTEXT } from "../src/lib/games/grand-cross/hero-context.generated";
 import { HERO_RELICS } from "../src/lib/games/grand-cross/hero-relics.generated";
 import { HERO_SPECIALS } from "../src/lib/games/grand-cross/hero-specials.generated";
 import { HEROES } from "../src/lib/games/grand-cross/heroes.generated";
@@ -172,6 +175,8 @@ const itNoteName = new Map<string, Map<string, number>>();
 const itNoteDefinition = new Map<string, Map<string, number>>();
 // concetto -> la parola italiana che lo dice, per voto
 const itWord = new Map<string, Map<string, number>>();
+// concetto -> la parola italiana alla stessa distanza da una coppia sicura (solo per il nome)
+const itWordNear = new Map<string, Map<string, number>>();
 
 let missingText = 0;
 let words = 0;
@@ -287,18 +292,6 @@ for (const text of pageTexts) {
     return parts.join("|");
   });
   texts.set(key, targets);
-
-  // la parola italiana di ogni concetto, dove le parole si appaiano
-  if (text.it) {
-    withItalian++;
-    const itWords = termWords(text.it);
-    if (itWords.length === pageWords.length) {
-      italianAligned++;
-      targets.forEach((target, index) => {
-        if (target && /^c:[^|]+$/.test(target)) bump(itWord, target.slice(2), normalize(itWords[index]!));
-      });
-    }
-  }
 }
 
 /*
@@ -334,6 +327,181 @@ for (const [key, targets] of texts) {
   );
 }
 wordsTargeted = [...texts.values()].reduce((sum, targets) => sum + targets.filter((target) => target !== null).length, 0);
+
+/* -------------------------------------------- le parole blu dell'italiano -- */
+
+/*
+ * Fino al 10/10 le parole italiane si legavano per POSIZIONE: la prima parola
+ * blu italiana alla tendina della prima inglese, e cosi' via, se erano tante
+ * quante. Ma il gioco in italiano mette il blu dove vuole: «Removes all
+ * enemies' Buffs» e «Rimuove tutti i Buff dai nemici» sono la stessa parola,
+ * mentre in altri testi l'italiano colora un pezzo di frase diverso, e allora
+ * con lo stesso numero di parole la tendina di una finiva sull'altra («danni
+ * subiti» apriva i Dei, misurato il 10/10).
+ *
+ * Ora una parola italiana si lega a una inglese dello stesso testo solo con una
+ * prova, e conta per prima:
+ *   - la stessa parola nelle due lingue (nomi propri, sigle: «PvP»)
+ *   - la traduzione del gioco: in tutti gli altri testi con lo stesso numero di
+ *     parole, quella parola inglese sta di fronte a questa italiana almeno due
+ *     volte su testi diversi e in almeno un caso su tre (i ranghi della stessa
+ *     carta, che differiscono solo nei numeri, contano una volta)
+ *   - la nota: la parola inglese e' il nome di una nota («※Evasion:») e
+ *     l'italiana e' il nome della nota italiana appaiata («※Evasione:»)
+ *   - il bersaglio: il nome italiano del concetto, della razza o della
+ *     caratteristica sta nella parola («alleati Umani» per gli Umani)
+ * Una parola con piu' prove va a quella piu' vicina di posto. Solo dopo, a
+ * parita' di numero, la posizione vale per le parole rimaste, e solo se
+ * nessuna delle due ha una prova verso un'altra parola del testo. Il resto
+ * resta blu e non si clicca: meglio una parola che non apre niente che una che
+ * apre l'elenco di un'altra.
+ */
+const lower = (value: string) => normalize(value).toLowerCase();
+const loose = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+/** Il nome italiano sta nella parola? Per intero, o una parola lunga che comincia uguale («Umani» e «Umano»). */
+function sayed(word: string, name: string | null | undefined): boolean {
+  if (!name) return false;
+  const w = loose(word);
+  const n = loose(name);
+  if (!w || !n) return false;
+  if (` ${w} `.includes(` ${n} `) || ` ${n} `.includes(` ${w} `)) return true;
+  const stems = (s: string) => s.split(" ").filter((t) => t.length >= 5).map((t) => t.slice(0, 4));
+  const ns = stems(n);
+  return ns.length > 0 && ns.every((stem) => stems(w).includes(stem));
+}
+
+interface ItalianPair {
+  enKey: string;
+  it: string;
+  enWords: string[];
+  itWords: string[];
+}
+const italianPairs = new Map<string, ItalianPair>();
+for (const text of pageTexts) {
+  if (!text.it) continue;
+  const enKey = textKey(text.en);
+  const pairKey = `${enKey}:${textKey(text.it)}`;
+  if (italianPairs.has(pairKey)) continue;
+  italianPairs.set(pairKey, { enKey, it: text.it, enWords: termWords(text.en), itWords: termWords(text.it) });
+}
+
+// le traduzioni del gioco: parola inglese -> parole italiane di fronte, per voto
+const translations = new Map<string, Map<string, number>>();
+const counted = new Set<string>();
+for (const pair of italianPairs.values()) {
+  if (pair.enWords.length === 0 || pair.enWords.length !== pair.itWords.length) continue;
+  const signature = `${pair.enWords.join("|")}\u0000${pair.itWords.join("|")}`.replace(/\d+/g, "#");
+  if (counted.has(signature)) continue;
+  counted.add(signature);
+  pair.enWords.forEach((en, index) => bump(translations, lower(en), lower(pair.itWords[index]!)));
+}
+const translates = (en: string, it: string): boolean => {
+  const votes = translations.get(lower(en));
+  const count = votes?.get(lower(it)) ?? 0;
+  if (count < 2) return false;
+  const total = [...votes!.values()].reduce((sum, n) => sum + n, 0);
+  return count * 3 >= total;
+};
+
+const raceIt = (code: number) => HERO_CONTEXT.codes.race[String(code)]?.it;
+const factionIt = (code: number) => HERO_CONTEXT.codes.faction[String(code)]?.it;
+/** La parola italiana dice il bersaglio di quella inglese? */
+function namesTarget(word: string, target: string | null | undefined): boolean {
+  if (!target) return false;
+  return target.split("|").some((part) => {
+    const value = part.slice(2);
+    if (part.startsWith("c:")) {
+      const src = source.concetti[value];
+      return sayed(word, src?.etichetta.it) || sayed(word, mostCommon(itNoteName.get(src?.etichetta.en?.toLowerCase() ?? "")));
+    }
+    if (part.startsWith("r:")) return sayed(word, raceIt(Number(value)));
+    if (part.startsWith("f:")) return sayed(word, factionIt(Number(value)));
+    if (part.startsWith("g:")) return /applicabil/i.test(word);
+    return false;
+  });
+}
+
+// per ogni testo italiano, a quale parola inglese va ogni sua parola blu (-1: nessuna)
+const italian = new Map<string, number[]>();
+let italianWords = 0;
+let italianByProof = 0;
+let italianByPosition = 0;
+let italianChanged = 0;
+for (const [pairKey, pair] of italianPairs) {
+  const targets = texts.get(pair.enKey);
+  if (!targets) continue;
+  withItalian++;
+  const { enWords, itWords } = pair;
+  italianWords += itWords.length;
+  const proof = (i: number, j: number) => {
+    const it = itWords[i]!;
+    const en = enWords[j]!;
+    if (lower(it) === lower(en)) return true;
+    if (translates(en, it)) return true;
+    const note = mostCommon(itNoteName.get(lower(en)));
+    if (note && lower(note) === lower(it)) return true;
+    return namesTarget(it, targets[j]);
+  };
+  const candidates = itWords.map((_, i) => enWords.map((_, j) => j).filter((j) => targets[j] && proof(i, j)));
+  const proofTo = new Set(candidates.flat());
+  const link = itWords.map(() => -1);
+  const used = new Set<number>();
+  // prima le parole con una prova sola, poi le altre, la piu' vicina di posto
+  const order = itWords.map((_, i) => i).sort((a, b) => candidates[a]!.length - candidates[b]!.length || a - b);
+  for (const i of order) {
+    const free = candidates[i]!.filter((j) => !used.has(j));
+    if (free.length === 0) continue;
+    const here = itWords.length > 1 ? i / (itWords.length - 1) : 0;
+    const there = (j: number) => (enWords.length > 1 ? j / (enWords.length - 1) : 0);
+    const j = free.sort((a, b) => Math.abs(there(a) - here) - Math.abs(there(b) - here) || a - b)[0]!;
+    link[i] = j;
+    used.add(j);
+    italianByProof++;
+  }
+  if (itWords.length === enWords.length) {
+    itWords.forEach((_, i) => {
+      if (link[i] !== -1 || used.has(i) || !targets[i]) return;
+      if (candidates[i]!.length > 0 || proofTo.has(i)) return;
+      link[i] = i;
+      used.add(i);
+      italianByPosition++;
+    });
+  }
+  if (itWords.length === enWords.length && link.some((j, i) => targets[i] !== (j >= 0 ? targets[j] : null))) italianChanged++;
+  if (link.some((j) => j >= 0)) {
+    italianAligned++;
+    italian.set(pairKey, link);
+  }
+  // la parola italiana di ogni concetto, per il suo nome se il glossario non ce l'ha
+  link.forEach((j, i) => {
+    const target = j >= 0 ? targets[j] : null;
+    if (target && /^c:[^|]+$/.test(target)) bump(itWord, target.slice(2), normalize(itWords[i]!));
+  });
+  // Solo per il NOME, se nient'altro lo dice: la parola alla stessa distanza
+  // dall'ultima coppia sicura prima di lei (anche fra parole che non si
+  // cliccano: «different races» / «razze diverse»). Un concetto dedotto che sta
+  // in un testo solo («each use a skill» / «usa un'abilità») non ha altre prove,
+  // e in quel testo l'italiano ha una parola blu in piu' («o più»)
+  const anchors: [number, number][] = [];
+  itWords.forEach((it, i) => {
+    if (link[i]! >= 0) return void anchors.push([i, link[i]!]);
+    const j = enWords.findIndex((en) => lower(en) === lower(it) || translates(en, it));
+    if (j >= 0) anchors.push([i, j]);
+  });
+  enWords.forEach((_, j) => {
+    const target = targets[j];
+    if (!target || !/^c:[^|]+$/.test(target) || link.includes(j)) return;
+    const before = anchors.filter(([, aj]) => aj < j).sort((a, b) => b[1] - a[1])[0] ?? [-1, -1];
+    const i = before[0] + (j - before[1]);
+    if (i >= 0 && i < itWords.length && link[i] === -1) bump(itWordNear, target.slice(2), normalize(itWords[i]!));
+  });
+}
 
 /* ------------------------------------------------ dove compare un concetto -- */
 
@@ -384,7 +552,7 @@ for (const key of [...cited].sort()) {
     if (labelIt) italianFromNotes++;
   }
   if (!labelIt) {
-    const word = mostCommon(itWord.get(key));
+    const word = mostCommon(itWord.get(key)) ?? mostCommon(itWordNear.get(key));
     labelIt = word ? word.charAt(0).toUpperCase() + word.slice(1) : null;
     if (labelIt) italianFromWords++;
   }
@@ -431,11 +599,15 @@ const lines = [
     .map(([key, targets]) => `  ${json(key)}: ${json(targets)},`),
   `};`,
   ``,
+  `const ITALIAN: Readonly<Record<string, readonly number[]>> = {`,
+  ...[...italian].sort((a, b) => a[0].localeCompare(b[0])).map(([key, link]) => `  ${json(key)}: ${json(link)},`),
+  `};`,
+  ``,
   `const PLACES: Readonly<Record<string, readonly HeroTermPlace[]>> = {`,
   ...Object.entries(places).map(([key, value]) => `  ${json(key)}: ${json(value)},`),
   `};`,
   ``,
-  `export const HERO_TERMS: HeroTermsIndex = { concepts: CONCEPTS, groups: GROUPS, texts: TEXTS, places: PLACES };`,
+  `export const HERO_TERMS: HeroTermsIndex = { concepts: CONCEPTS, groups: GROUPS, texts: TEXTS, italian: ITALIAN, places: PLACES };`,
   ``,
 ];
 writeFileSync(DEST, lines.join("\n"), "utf8");
@@ -444,7 +616,8 @@ const pct = (a: number, b: number) => (b ? `${((100 * a) / b).toFixed(1)}%` : "-
 console.log(`  parole blu della scheda eroe`);
 console.log(`    testi della pagina         ${pageTexts.length} (${texts.size} diversi); senza voce nella pipeline ${missingText}`);
 console.log(`    parole blu                 ${words}: accostate ${wordsMatched} (${pct(wordsMatched, words)}), cliccabili ${wordsTargeted}`);
-console.log(`    italiano appaiato          ${italianAligned} testi su ${withItalian} (${pct(italianAligned, withItalian)})`);
+console.log(`    italiano                   ${italianAligned} testi su ${withItalian} con parole legate; parole ${italianWords}: con una prova ${italianByProof}, per posizione ${italianByPosition}, senza legame ${italianWords - italianByProof - italianByPosition}`);
+console.log(`                               testi in cui il legame per posizione di prima sbagliava almeno una parola: ${italianChanged}`);
 console.log(`    concetti                   ${Object.keys(concepts).length}; nome italiano dalle note ${italianFromNotes}, dalle parole ${italianFromWords}; senza ${Object.values(concepts).filter((c) => !c.label.it).length}`);
 console.log(`    gruppi «applicabili»       ${groups.length}; parole «applicabili» senza nota nel loro testo ${applicableWithoutNote}, prese dagli altri testi dell'eroe ${applicableFromHero}`);
 if (unmatched.size > 0) {

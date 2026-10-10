@@ -135,7 +135,7 @@ export function HeroEndgameLine({
                 style={{ width: 16, height: "auto" }}
               />
             ) : null}
-            <Link href={row.href} className="text-ink hover:text-brand">
+            <Link href={row.href} className="text-ink hover:text-brand-deep">
               {row.text}
             </Link>
           </li>

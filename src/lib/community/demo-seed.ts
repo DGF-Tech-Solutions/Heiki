@@ -255,12 +255,6 @@ Qui c'e' gia' il campo della patch verificata. Proporrei di mostrarlo anche sui 
   },
 ];
 
-export const DEMO_SPONSORS: readonly SponsorItem[] = [
-  {
-    id: "s1",
-    advertiser: "Esempio",
-    title: "Questo spazio e' uno slot sponsorizzato",
-    body: "Sta fuori dal feed organico e resta etichettato. I post a pagamento dentro la lista non esistono, per scelta.",
-    targetUrl: "#",
-  },
-];
+// Niente sponsor d'esempio, nemmeno in modalita' dimostrativa (10/10): lo slot
+// compare solo con uno sponsor vero.
+export const DEMO_SPONSORS: readonly SponsorItem[] = [];

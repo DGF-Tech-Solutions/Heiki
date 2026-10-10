@@ -159,6 +159,7 @@ export async function createPostAction(
   const id = await store.createPost(parsed.data, viewer);
 
   revalidatePath(`/${parsed.data.game}`);
+  revalidatePath(`/${parsed.data.game}/discussioni`);
   redirect(`/${parsed.data.game}/post/${id}`);
 }
 

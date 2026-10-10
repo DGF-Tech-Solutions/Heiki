@@ -30,7 +30,7 @@ export function LanguageSwitch() {
     <div
       role="group"
       aria-label={t.gruppo}
-      className="flex shrink-0 items-center rounded-card border border-rule p-0.5 font-mono text-[10px] uppercase tracking-[0.08em]"
+      className="flex shrink-0 items-center rounded-card border border-rule p-0.5 font-mono text-[11px] uppercase tracking-[0.08em]"
     >
       {LOCALES.map((lingua) => (
         <button
@@ -48,7 +48,7 @@ export function LanguageSwitch() {
             });
           }}
           className={cx(
-            "rounded-sm px-1.5 py-0.5 transition-colors disabled:opacity-60",
+            "px-1.5 py-0.5 transition-colors disabled:opacity-60",
             lingua === locale ? "bg-ink text-paper" : "text-ink-3 hover:text-ink",
           )}
         >

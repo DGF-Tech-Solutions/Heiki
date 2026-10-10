@@ -230,13 +230,14 @@ export function HeroChangeList({
           <h4 className="m-0 mb-1.5 font-display text-[13px] font-extrabold uppercase tracking-[0.02em] text-ink [font-variation-settings:'wdth'_85]">
             <GroupTitle group={group} game={game} locale={locale} heroes={heroes} />
           </h4>
-          <ul className="m-0 grid list-none gap-1.5 p-0 text-[14px] leading-relaxed text-ink-2">
+          {/* le voci separate da un filo intero, non da una riga colorata a lato (10/10) */}
+          <ul className="m-0 grid list-none border-y border-rule-2 p-0 text-[14px] leading-relaxed text-ink-2">
             {shown(group).map((change, i) => {
               const place = where(change, t, locale);
               const isNumber = typeof change.before === "number" || typeof change.after === "number";
               return (
-                <li key={i} className="border-l-2 border-rule pl-3">
-                  {place ? <span className={cx(eyebrow, "mr-2 text-[10px]")}>{place}</span> : null}
+                <li key={i} className="border-b border-rule-2 py-1.5 last:border-b-0">
+                  {place ? <span className={cx(eyebrow, "mr-2 text-[12px]")}>{place}</span> : null}
                   {isNumber ? (
                     <NumberChange change={change} locale={locale} />
                   ) : group.part === "costume" && change.field === "name" && change.kind !== "cambiato" ? (

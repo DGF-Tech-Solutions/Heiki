@@ -60,16 +60,16 @@ export function ModControls({
         type="button"
         onClick={toggle}
         disabled={pending}
-        className="rounded-[2px] border border-dashed border-hot px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-hot hover:bg-hot-soft disabled:opacity-50"
+        className="p5-cut-sm h-7 cursor-pointer border-0 bg-hot-soft px-2.5 font-mono text-[11px] uppercase tracking-[0.08em] text-hot hover:bg-hot hover:text-white disabled:opacity-50"
       >
         {pending ? "…" : isHidden ? t.ripristina : t.nascondi}
       </button>
       {isHidden ? (
-        <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-ink-3">
+        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">
           {t.nascosto}
         </span>
       ) : null}
-      {error ? <span className="text-[11px] text-hot">{error}</span> : null}
+      {error ? <span className="text-[12px] text-hot">{error}</span> : null}
     </span>
   );
 }

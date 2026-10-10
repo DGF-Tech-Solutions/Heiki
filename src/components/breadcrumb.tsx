@@ -63,7 +63,7 @@ export async function Breadcrumb({
             <li key={`${item.label}-${index}`} className="flex items-center gap-1.5">
               {index > 0 ? <span aria-hidden>/</span> : null}
               {item.href ? (
-                <Link href={item.href} className="hover:text-brand">
+                <Link href={item.href} className="hover:text-brand-deep">
                   {item.label}
                 </Link>
               ) : (

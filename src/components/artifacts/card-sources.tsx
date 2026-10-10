@@ -9,7 +9,7 @@
  */
 
 import Link from "next/link";
-import { cx, numeric } from "@/components/ui";
+import { cx, eyebrow, numeric } from "@/components/ui";
 import type { ArtifactCard, ArtifactIndex } from "@/lib/games/artifact-types";
 import { artifactImageSrc, cardSources, isSingleCardPack, packChance, type CardSource } from "@/lib/games/artifacts";
 import { formatNumber, formatPercent } from "@/lib/games/endgame";
@@ -113,7 +113,7 @@ export function CardSources({
     <div className={cx("grid gap-3 text-[13px]", compact && "gap-1.5")}>
       {multi.length > 0 ? (
         <div>
-          {compact ? null : <p className="m-0 mb-1 text-[12px] font-medium uppercase tracking-wide text-ink-3">{t.pacchetti}</p>}
+          {compact ? null : <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.pacchetti}</p>}
           <ul className="m-0 list-none p-0">
             {multi.map(({ id, pack }) => {
               const weight = pack.cards.find((entry) => entry.card === card.id)?.weight ?? 0;
@@ -145,7 +145,7 @@ export function CardSources({
 
       {single.length > 0 ? (
         <div>
-          <p className={cx("m-0 text-[12px] text-ink-3", !compact && "mb-1 font-medium uppercase tracking-wide")}>
+          <p className={cx("m-0", compact ? "text-[12px] text-ink-3" : cx(eyebrow, "mb-1.5"))}>
             {t.eventi}
             {compact ? `: ${single.map(({ id }) => packName(id)).join(" · ")}` : null}
           </p>
@@ -163,7 +163,7 @@ export function CardSources({
 
       {card.timePack ? (
         <p className={cx("m-0", compact ? "text-[12px] text-ink-3" : "")}>
-          <span className={cx(compact ? "" : "block text-[12px] font-medium uppercase tracking-wide text-ink-3")}>
+          <span className={cx(compact ? "" : cx(eyebrow, "mb-1.5 block"))}>
             {t.tempo}
             {compact ? ": " : null}
           </span>
@@ -177,11 +177,11 @@ export function CardSources({
 
       {endgame.length > 0 ? (
         <div>
-          {compact ? null : <p className="m-0 mb-1 text-[12px] font-medium uppercase tracking-wide text-ink-3">{t.endgame}</p>}
+          {compact ? null : <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.endgame}</p>}
           <ul className="m-0 list-none p-0">
             {endgame.map((source, position) => (
               <li key={position} className="flex flex-wrap items-baseline gap-x-2 py-0.5">
-                <Link href={source.href} className="text-brand underline-offset-2 hover:underline">
+                <Link href={source.href} className="text-brand-deep underline-offset-2 hover:underline">
                   {t.modi[source.mode]}
                   {source.target ? ` · ${inLingua(source.target, locale)}` : null}
                   {source.stage ? ` · ${inLingua(source.stage, locale)}` : null}

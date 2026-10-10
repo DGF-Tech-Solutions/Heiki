@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProfileWorkspace } from "@/components/profile-workspace";
 import type { ProfileViewData } from "@/components/profile-view";
-import { buttonClass } from "@/components/ui";
+import { buttonClass, Tag } from "@/components/ui";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/profile/customization";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: "Personalizza il profilo · GachaZone",
+    titoloPagina: "Personalizza il profilo",
     anteprima: "Anteprima",
     esempioPrima: "Dati di esempio, nessun account vero. Premi",
     modificaProfilo: "Modifica profilo",
@@ -17,7 +17,7 @@ const TESTI = testi({
     creaIlTuo: "Crea il tuo",
   },
   en: {
-    titoloPagina: "Customize your profile · GachaZone",
+    titoloPagina: "Customize your profile",
     anteprima: "Preview",
     esempioPrima: "Sample data, no real account. Press",
     modificaProfilo: "Edit profile",
@@ -116,8 +116,9 @@ export default async function ProfilePreviewPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 pt-8">
-      <div className="mb-6 flex flex-wrap items-center gap-3.5 rounded-card border border-rule border-l-4 border-l-brand bg-brand-soft px-4 py-3.5 text-[13px] text-ink-2">
-        <strong className="text-brand">{t.anteprima}</strong>
+      {/* l'avviso con l'angolo tagliato e l'etichetta rossa, non il filo a sinistra (10/10) */}
+      <div className="p5-corner mb-6 flex flex-wrap items-center gap-3.5 border border-rule bg-paper-2 px-4 py-3.5 text-[13px] text-ink-2">
+        <Tag tone="brand">{t.anteprima}</Tag>
         <span className="flex-1 basis-72">
           {t.esempioPrima} <strong>{t.modificaProfilo}</strong> {t.esempioDopo}
         </span>

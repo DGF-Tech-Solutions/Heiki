@@ -225,25 +225,6 @@ async function seedCosmetics(): Promise<void> {
   }
 }
 
-async function seedSponsor(gameIds: ReadonlyMap<string, string>): Promise<void> {
-  const existing = await db.query.sponsorPlacements.findFirst({ columns: { id: true } });
-  if (existing) return;
-
-  const now = new Date();
-  const end = new Date(now.getTime() + 365 * 24 * 3_600_000);
-
-  await db.insert(schema.sponsorPlacements).values({
-    gameId: gameIds.get("grand-cross") ?? null,
-    advertiser: "Esempio",
-    title: "Questo spazio è uno slot sponsorizzato",
-    body: "Sta fuori dal feed organico e resta etichettato. I post a pagamento dentro la lista non esistono, per scelta.",
-    targetUrl: "https://example.com",
-    startsAt: now,
-    endsAt: end,
-    active: true,
-  });
-}
-
 /**
  * Guide di esempio.
  *
@@ -302,7 +283,8 @@ async function main(): Promise<void> {
   await seedHubs(gameIds);
   await seedBadges(gameIds);
   await seedCosmetics();
-  await seedSponsor(gameIds);
+  // Niente sponsor d'esempio (10/10): uno spazio sponsorizzato finto finiva nel
+  // feed vero. Lo slot compare da solo quando c'e' una riga in sponsor_placements.
 
   const guides = await seedGuides(gameIds);
   if (guides === 0) {

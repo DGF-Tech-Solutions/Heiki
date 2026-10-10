@@ -46,7 +46,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
-  return { title: `${username} · GachaZone` };
+  return { title: `${username}` };
 }
 
 export default async function ProfilePage({ params }: Props) {

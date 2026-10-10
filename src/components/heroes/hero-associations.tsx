@@ -108,7 +108,7 @@ function HeroList({
                   <li key={id} className="min-w-0">
                     <Link
                       href={`/${game}/eroi/${id}?scheda=associazioni`}
-                      className="group grid grid-cols-[48px_minmax(0,1fr)] items-center gap-2 rounded-[4px] p-1 hover:bg-paper-2"
+                      className="group grid grid-cols-[48px_minmax(0,1fr)] items-center gap-2 p-1 hover:bg-paper-2"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -117,11 +117,11 @@ function HeroList({
                         width={48}
                         height={48}
                         loading="lazy"
-                        className="h-12 w-12 rounded-[3px] bg-paper-2"
+                        className="h-12 w-12 bg-paper-2"
                       />
                       <span className="min-w-0 text-[12px] leading-tight">
-                        <span className="block font-semibold text-ink group-hover:text-brand">{heroName(hero, locale)}</span>
-                        <span className="block truncate text-[11px] text-ink-3" title={heroEpithet(hero, locale) ?? undefined}>
+                        <span className="block font-semibold text-ink group-hover:text-brand-deep">{heroName(hero, locale)}</span>
+                        <span className="block truncate text-[12px] text-ink-3" title={heroEpithet(hero, locale) ?? undefined}>
                           {heroEpithet(hero, locale)}
                         </span>
                         <span className={cx(numeric, "block text-ink-3")}>{t.gradi(hero.obtainedAs, hero.rarity)}</span>
@@ -168,22 +168,22 @@ export function HeroAssociations({
     <div className="grid gap-8">
       <section>
         <h2 className={cx(eyebrow, "mb-2")}>{t.suoi(own.length)}</h2>
-        <p className="m-0 mb-3 max-w-[75ch] text-[13px] text-ink-2">{own.length ? t.suoiNota(name) : t.nessunoSuo}</p>
+        <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-2">{own.length ? t.suoiNota(name) : t.nessunoSuo}</p>
         {own.length ? <HeroList game={game} locale={locale} entries={own} fates={fates} heroes={heroes} /> : null}
       </section>
 
       <section>
         <h2 className={cx(eyebrow, "mb-2")}>{t.diAltri(of.length)}</h2>
-        <p className="m-0 mb-3 max-w-[75ch] text-[13px] text-ink-2">{of.length ? t.diAltriNota(name) : t.nessunoAltri}</p>
+        <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-2">{of.length ? t.diAltriNota(name) : t.nessunoAltri}</p>
         {of.length ? <HeroList game={game} locale={locale} entries={of} fates={fates} heroes={heroes} /> : null}
       </section>
 
       <section>
         <h2 className={cx(eyebrow, "mb-2")}>{t.comune}</h2>
         <p className="m-0 font-semibold text-ink">{inLingua(fates.common.name, locale)}</p>
-        <p className="m-0 mt-1 max-w-[75ch] text-[13px] text-ink-2">{t.comuneTesto(fates.common.base, fates.common.perLevel)}</p>
+        <p className="m-0 mt-1 max-w-[48ch] text-[13px] text-ink-2">{t.comuneTesto(fates.common.base, fates.common.perLevel)}</p>
         <GameText text={inLingua(fates.common.basicStats, locale) ?? ""} className="mt-1 text-[12px] text-ink-3" />
-        <Link href="?scheda=statistiche" className="mt-2 inline-block text-[13px] text-brand hover:underline">
+        <Link href="?scheda=statistiche" className="mt-2 inline-block text-[13px] text-brand-deep hover:underline">
           {t.calcolatore}
         </Link>
       </section>

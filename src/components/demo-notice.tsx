@@ -2,7 +2,7 @@ import Link from "next/link";
 import { databaseReachable } from "@/lib/db";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
-import { buttonClass, Code, eyebrow } from "./ui";
+import { buttonClass, Code, Tag } from "./ui";
 
 export const DEMO_PROFILE_PATH = "/anteprima/profilo";
 
@@ -40,9 +40,10 @@ export async function DemoNotice() {
   const t = TESTI[await getLocale()];
 
   return (
-    <div className="mb-5 flex flex-wrap items-center gap-3.5 rounded-card border border-rule border-l-4 border-l-brand bg-brand-soft px-4 py-3.5">
+    // l'avviso con l'angolo tagliato e l'etichetta rossa, non il filo spesso a sinistra (10/10)
+    <div className="p5-corner mb-5 flex flex-wrap items-center gap-3.5 border border-rule bg-paper-2 px-4 py-3.5">
       <div className="flex-1 basis-60">
-        <p className={`${eyebrow} m-0`}>{t.modalita}</p>
+        <Tag tone="brand">{t.modalita}</Tag>
         <p className="m-0 mt-2 text-sm text-ink-2">{t.spiegazione}</p>
       </div>
 

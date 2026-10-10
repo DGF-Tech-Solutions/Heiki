@@ -8,7 +8,7 @@ import { users } from "@/lib/db/schema";
 import { ProfileWorkspace } from "@/components/profile-workspace";
 import type { ProfileViewData } from "@/components/profile-view";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
-import { display, eyebrow } from "@/components/ui";
+import { display } from "@/components/ui";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { saveProfileAction } from "@/lib/profile/actions";
 import { listGameModules } from "@/lib/games/registry";
@@ -18,16 +18,14 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: "Personalizza il profilo · GachaZone",
-    impostazioni: "Impostazioni",
+    titoloPagina: "Personalizza il profilo",
     titolo: "Personalizza il profilo",
     intro:
       "Cambi a sinistra, vedi il risultato a destra. Diventa pubblico solo quando salvi. La tua pagina è",
     gioco: "Gioco",
   },
   en: {
-    titoloPagina: "Customize your profile · GachaZone",
-    impostazioni: "Settings",
+    titoloPagina: "Customize your profile",
     titolo: "Customize your profile",
     intro:
       "Make changes on the left, see the result on the right. It only goes public when you save. Your page is",
@@ -68,11 +66,10 @@ export default async function ProfileSettingsPage() {
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 pt-8">
       <header style={{ marginBottom: 8 }}>
-        <p className={eyebrow}>{t.impostazioni}</p>
-        <h1 className={`${display} mt-3 text-[34px]`}>{t.titolo}</h1>
-        <p className="mt-3 max-w-[62ch] text-[15px] text-ink-2">
+        <h1 className={`${display} text-[clamp(30px,4vw,40px)]`}>{t.titolo}</h1>
+        <p className="mt-3 max-w-[48ch] text-[15px] text-ink-2">
           {t.intro}{" "}
-          <Link href={`/u/${data.username}`} className="font-mono font-semibold text-brand hover:underline">
+          <Link href={`/u/${data.username}`} className="font-mono font-semibold text-ink underline decoration-brand decoration-2 underline-offset-2 hover:text-brand-deep">
             /u/{data.username}
           </Link>
           .

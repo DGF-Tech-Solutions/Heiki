@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GuideEditor } from "../guide-editor";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { cx, display, eyebrow, Notice } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
 import { can } from "@/lib/auth/permissions";
@@ -72,11 +72,9 @@ export default async function NewGuidePage({ params }: Props) {
         ]}
       />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(24px,3.2vw,34px)]")}>{t.scriviGuida}</h1>
-        <p className="mt-2.5 max-w-[64ch] text-sm text-ink-2">{t.intro}</p>
-      </header>
+      <PageHeader title={t.scriviGuida}>
+        <p>{t.intro}</p>
+      </PageHeader>
 
       {!can(role, "submitGuide") ? (
         <Notice tone="warn">

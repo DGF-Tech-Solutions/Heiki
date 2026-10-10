@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
-import { cx, numeric } from "@/components/ui";
+import { chipClass, cx, display, eyebrow, numeric } from "@/components/ui";
 import type {
   AccountStatKey,
   Constellation,
@@ -146,6 +146,14 @@ function modeValue(group: ManaGroup, mode: ManaMode): number {
  * 26/09), sulla mappa del gioco. Salva nel browser lo stesso account che legge lo
  * slider di ogni scheda eroe, con i totali gia' sommati.
  */
+/**
+ * Le forme dell'editor (10/10): i riquadri con l'angolo tagliato come le Card del
+ * sito, e i comandi («Attiva tutta», «al massimo») nella lama dei filtri, alti
+ * 36 px: prima erano parole rosse da 12 px, difficili da centrare col pollice.
+ */
+const PANEL = "p5-corner border border-rule bg-paper-2";
+const ACTION = chipClass(false);
+
 export function AccountEditor({ game, data }: { game: string; data: EditorData }) {
   const locale = useLocale();
   const t = TESTI[locale];
@@ -222,10 +230,10 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
   return (
     <div className="grid gap-5">
       {/* classe dell'account */}
-      <div className="grid max-w-[640px] gap-1 rounded-card border border-rule bg-paper-2 p-4 text-[13px]">
+      <div className={cx(PANEL, "grid max-w-[640px] gap-1.5 p-4 text-[13px]")}>
         {/* sotto i 640 px lo slider va su una riga sua: accanto al numero restava lungo due dita */}
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
-          <label htmlFor={`${id}-classe`} className="font-semibold text-ink">
+          <label htmlFor={`${id}-classe`} className={cx(display, "text-[15px]")}>
             {t.classe}
           </label>
           <input
@@ -252,7 +260,10 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
               const value = Number(event.target.value);
               if (event.target.value !== "" && Number.isFinite(value)) save({ ...setup, power: Math.max(0, Math.round(value)) });
             }}
-            className={cx(numeric, "w-[112px] rounded-[3px] border border-rule bg-paper px-2 py-1 text-right text-ink")}
+            className={cx(
+              numeric,
+              "h-9 w-[120px] border border-rule bg-paper px-2 text-right text-ink hover:border-ink-3 focus:border-brand focus:outline-none",
+            )}
           />
         </div>
         <p className="m-0 text-[12px] text-ink-3">
@@ -278,7 +289,7 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
 
       {/* le undici mappe */}
       <div>
-        <h3 className="m-0 mb-2 text-[15px] font-semibold">{t.costellazioni}</h3>
+        <h3 className={cx(display, "m-0 mb-3 text-[19px]")}>{t.costellazioni}</h3>
         {state.stale ? <p className="m-0 mb-2 text-[12px] text-ink-2">{t.vecchie}</p> : null}
         <div role="tablist" aria-label={t.costellazioni} className="flex flex-wrap gap-1.5">
           {data.constellations.map((c, index) => {
@@ -286,6 +297,9 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
             const count = c.stones.filter((stone) => stone.kind !== "start" && state.active.has(stone.id)).length;
             const all = c.stones.length - 1;
             return (
+              // La scheda scelta e' bianca come le scelte «quiet» del sito (una
+              // costellazione c'e' sempre): il simbolo del gioco e' bianco, e li'
+              // si inverte in nero per restare visibile.
               <button
                 key={c.id}
                 type="button"
@@ -294,8 +308,8 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
                 onClick={() => setSelected(index)}
                 title={c.label}
                 className={cx(
-                  "grid w-[76px] justify-items-center gap-0.5 rounded-[3px] border px-1 py-1.5 text-[11px] leading-tight",
-                  index === selected ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3 hover:text-ink-2",
+                  "p5-cut-sm group grid w-[78px] cursor-pointer justify-items-center gap-0.5 px-1.5 py-2 text-[12px] leading-tight transition-colors",
+                  index === selected ? "bg-ink font-bold text-paper" : "bg-paper-3 text-ink-2 hover:bg-ink hover:text-paper",
                 )}
               >
                 {c.symbolSrc ? (
@@ -305,11 +319,15 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
                     alt=""
                     width={140}
                     height={140}
-                    className={cx("h-9 w-9 object-contain", count === 0 && "opacity-30")}
+                    className={cx(
+                      "h-9 w-9 object-contain",
+                      index === selected ? "invert" : "group-hover:invert",
+                      count === 0 && "opacity-35",
+                    )}
                   />
                 ) : null}
                 <span className="line-clamp-2 text-center">{c.short}</span>
-                <span className={cx(numeric, done ? "text-brand" : "")}>
+                <span className={cx(numeric, done && (index === selected ? "text-brand-deep" : "text-brand-deep group-hover:text-brand-deep"))}>
                   {done ? t.completa : `${Math.round((count / all) * 100)}%`}
                 </span>
               </button>
@@ -339,19 +357,28 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
         </div>
 
         <div className="grid min-w-0 gap-4 text-[13px]">
-          <div className="rounded-card border border-rule bg-paper-2 p-3.5">
-            <p className="m-0 font-semibold text-ink">{constellation.label}</p>
-            <p className="m-0 mt-0.5 text-[12px] text-ink-3">
-              {t.pietre(activeCount, allCount)} · {t.punti(numero(spent, locale), numero(constellation.growthPoints, locale))}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
-              <button type="button" onClick={() => setMap(selected, true)} className="text-brand hover:underline">
+          <div className={cx(PANEL, "p-4")}>
+            {/* il simbolo della costellazione in grande: e' la grafica del gioco, e dice dove sei */}
+            <div className="flex items-center gap-3">
+              {constellation.symbolSrc ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={constellation.symbolSrc} alt="" width={140} height={140} className="h-14 w-14 shrink-0 object-contain" />
+              ) : null}
+              <div className="min-w-0">
+                <p className={cx(display, "m-0 text-[17px]")}>{constellation.label}</p>
+                <p className={cx(numeric, "m-0 mt-1 text-[12px] text-ink-3")}>
+                  {t.pietre(activeCount, allCount)} · {t.punti(numero(spent, locale), numero(constellation.growthPoints, locale))}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <button type="button" onClick={() => setMap(selected, true)} className={ACTION}>
                 {t.attivaTutta}
               </button>
-              <button type="button" onClick={() => setMap(selected, false)} className="text-brand hover:underline">
+              <button type="button" onClick={() => setMap(selected, false)} className={ACTION}>
                 {t.svuota}
               </button>
-              <button type="button" onClick={() => completeUpTo(selected)} className="text-brand hover:underline">
+              <button type="button" onClick={() => completeUpTo(selected)} className={ACTION}>
                 {t.fino}
               </button>
             </div>
@@ -369,13 +396,13 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
             </p>
           </div>
 
-          <div className="rounded-card border border-rule bg-paper-2 p-3.5">
-            <p className="m-0 font-semibold text-ink">{t.pietreMana}</p>
-            <p className="m-0 mt-0.5 text-[12px] text-ink-3">{t.manaAiuto}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px]">
-              <span className="text-ink-3">{t.tutteA}</span>
+          <div className={cx(PANEL, "p-4")}>
+            <p className={cx(display, "m-0 text-[15px]")}>{t.pietreMana}</p>
+            <p className="m-0 mt-1 text-[12px] text-ink-3">{t.manaAiuto}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <span className={cx(eyebrow, "mr-0.5")}>{t.tutteA}</span>
               {MANA_MODES.map((mode) => (
-                <button key={mode} type="button" onClick={() => setManaAll(mode)} className="text-brand hover:underline">
+                <button key={mode} type="button" onClick={() => setManaAll(mode)} className={ACTION}>
                   {t.mana[mode]}
                 </button>
               ))}
@@ -424,20 +451,20 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
       </div>
 
       {/* i totali di tutte le costellazioni */}
-      <div className="max-w-[640px] rounded-card border border-rule p-4 text-[13px]">
-        <p className="m-0 font-semibold text-ink">{t.totali}</p>
-        <p className="m-0 mt-0.5 text-[12px] text-ink-3">{t.totaliAiuto}</p>
+      <div className={cx(PANEL, "max-w-[640px] p-4 text-[13px]")}>
+        <p className={cx(display, "m-0 text-[17px]")}>{t.totali}</p>
+        <p className="m-0 mt-1 text-[12px] text-ink-3">{t.totaliAiuto}</p>
         {Object.keys(totals).length ? (
           <StatList bag={totals} data={data} locale={locale} className="mt-2.5" />
         ) : (
           <p className="m-0 mt-2.5 text-ink-3">{t.niente}</p>
         )}
-        <p className="m-0 mt-3 text-[12px] text-ink-3">
-          {t.salvato}{" "}
-          <button type="button" onClick={() => save(EMPTY_SETUP)} className="text-brand hover:underline">
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-rule-2 pt-3">
+          <p className="m-0 text-[12px] text-ink-3">{t.salvato}</p>
+          <button type="button" onClick={() => save(EMPTY_SETUP)} className={ACTION}>
             {t.azzera}
           </button>
-        </p>
+        </div>
       </div>
     </div>
   );

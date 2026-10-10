@@ -12,7 +12,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GRADE_COLORS } from "@/components/artifacts/artifact-parts";
 import { Chip, FilterRow } from "@/components/filter-chips";
-import { cx, Empty, Input, numeric } from "@/components/ui";
+import { IconClose } from "@/components/icons";
+import { buttonClass, cx, Empty, Input, numeric } from "@/components/ui";
 import { cardImageSrc, countBy, filterCards, type ArtifactCardSummary } from "@/lib/games/artifacts";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
@@ -88,7 +89,7 @@ export function CardBrowser({
 
   return (
     <>
-      <div className="mb-5 grid gap-3.5 rounded-card border border-rule bg-paper-2 p-4">
+      <div className="p5-corner mb-5 grid gap-3.5 border border-rule bg-paper-2 p-4">
         <Input
           type="search"
           value={search}
@@ -97,8 +98,9 @@ export function CardBrowser({
           aria-label={t.cercaEtichetta}
           className="h-9 max-w-[320px] bg-paper text-sm"
         />
+        {/* «Tutti» non restringe niente: bianco, non rosso (il rosso dice «hai filtrato») */}
         <FilterRow label={t.tipo}>
-          <Chip active={type === null} onClick={() => setType(null)} label={t.tutti} />
+          <Chip active={type === null} onClick={() => setType(null)} label={t.tutti} quiet />
           {types.map((entry) => (
             <Chip
               key={entry.code}
@@ -110,7 +112,7 @@ export function CardBrowser({
           ))}
         </FilterRow>
         <FilterRow label={t.grado}>
-          <Chip active={grade === null} onClick={() => setGrade(null)} label={t.tutti} />
+          <Chip active={grade === null} onClick={() => setGrade(null)} label={t.tutti} quiet />
           {grades.map((entry) => (
             <Chip
               key={entry.code}
@@ -122,7 +124,7 @@ export function CardBrowser({
           ))}
         </FilterRow>
         <FilterRow label={t.set}>
-          <Chip active={inSet === null} onClick={() => setInSet(null)} label={t.tutti} />
+          <Chip active={inSet === null} onClick={() => setInSet(null)} label={t.tutti} quiet />
           <Chip
             active={inSet === true}
             onClick={() => setInSet(inSet === true ? null : true)}
@@ -138,7 +140,7 @@ export function CardBrowser({
         </FilterRow>
       </div>
 
-      <div className="mb-3.5 flex items-baseline justify-between gap-3">
+      <div className="mb-3.5 flex min-h-[38px] items-center justify-between gap-3">
         <p className="m-0 text-[13px] text-ink-2">
           <strong className={cx(numeric, "font-semibold text-ink")}>{visible.length}</strong> {t.carte(visible.length)}
           {filtered ? t.suTotale(cards.length) : null}
@@ -152,8 +154,9 @@ export function CardBrowser({
               setGrade(null);
               setInSet(null);
             }}
-            className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 underline-offset-2 hover:text-brand hover:underline"
+            className={buttonClass("ghost", "md")}
           >
+            <IconClose size={14} />
             {t.azzera}
           </button>
         ) : null}
@@ -170,7 +173,7 @@ export function CardBrowser({
             <li key={card.id} className="min-w-0">
               <Link
                 href={`/${game}/carte-artefatto/${card.id}`}
-                className="group block rounded-[4px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                className="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
               >
                 {card.image ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -187,13 +190,13 @@ export function CardBrowser({
                 ) : (
                   <span
                     aria-hidden
-                    className="block w-full rounded-[6px] border-2 bg-paper-2"
+                    className="block w-full border-2 bg-paper-2"
                     style={{ aspectRatio, borderColor: GRADE_COLORS[card.grade] }}
                   />
                 )}
                 {/* il grado non si ripete: lo dice gia' la cornice */}
-                <span className={cx(numeric, "mt-1.5 block text-[11px] text-ink-3")}>{card.code}</span>
-                <span className="mt-0.5 block text-[12px] font-semibold leading-tight group-hover:text-brand">
+                <span className={cx(numeric, "mt-1.5 block text-[12px] text-ink-3")}>{card.code}</span>
+                <span className="mt-0.5 block text-[12px] font-semibold leading-tight group-hover:text-brand-deep">
                   {card.name}
                 </span>
               </Link>

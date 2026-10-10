@@ -409,6 +409,13 @@ export const gameAccounts = pgTable(
      * decisa dal modulo di gioco): qui per ritrovarlo su un altro dispositivo.
      */
     setup: jsonb("setup").$type<Record<string, unknown>>(),
+    /**
+     * Il box: gli eroi che l'utente ha e a che punto sono (forma compatta di
+     * hero-box.ts, {v, h: {heroId: [livello, ...]}}). Una colonna e non una riga
+     * per eroe (`roster_entries`, del primo schema e mai usata): si sincronizza col
+     * browser tutto insieme, come `setup`, col timbro `updatedAt` (10/10).
+     */
+    box: jsonb("box").$type<Record<string, unknown>>(),
     /** l'ultima classe confermata da un moderatore, e quando */
     verifiedPower: integer("verified_power"),
     verifiedAt: timestamp("verified_at", { withTimezone: true }),

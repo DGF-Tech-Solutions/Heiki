@@ -78,13 +78,13 @@ export function RoleForm({ user, self }: { user: AdminUser; self: boolean }) {
       </Button>
 
       {locked ? (
-        <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-3">
+        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">
           {self ? t.seiTu : t.amministratore}
         </span>
       ) : null}
 
-      {state.error ? <span className="text-[11px] text-hot">{state.error}</span> : null}
-      {state.success ? <span className="text-[11px] text-ink-3">{state.success}</span> : null}
+      {state.error ? <span className="text-[12px] text-hot">{state.error}</span> : null}
+      {state.success ? <span className="text-[12px] text-ink-3">{state.success}</span> : null}
     </form>
   );
 }
@@ -111,7 +111,7 @@ export function SponsorToggle({ id, active }: { id: string; active: boolean }) {
       >
         {pending ? "…" : isActive ? t.mettiInPausa : t.riattiva}
       </Button>
-      {error ? <span className="ml-2 text-[11px] text-hot">{error}</span> : null}
+      {error ? <span className="ml-2 text-[12px] text-hot">{error}</span> : null}
     </>
   );
 }

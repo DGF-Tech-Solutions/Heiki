@@ -14,9 +14,8 @@
  *  - titoli pesanti, stretti e maiuscoli, da copertina sportiva
  *  - i numeri sempre in monospaziato, mai annegati nella prosa
  *
- * L'accento e' un viola elettrico: e' il colore della rarita' nei gacha, quindi
- * il pubblico lo riconosce, e non e' il blu da software gestionale. Sul fondo
- * scuro e' schiarito, perche' il viola profondo su nero si spegne.
+ * L'accento era un viola elettrico (il colore della rarita' nei gacha); dal
+ * 27/09 e' il rosso pieno della direzione «Persona», qui sotto.
  *
  * I nomi dei token NON dicono il colore, dicono il RUOLO: `paper` e' il fondo,
  * `ink` il testo, `rule` il bordo. E' per questo che ribaltare il tema si fa
@@ -145,6 +144,20 @@
  * telefono, a differenza di un transform: skew sul blocco.
  */
 @layer components {
+  /*
+   * Il fuoco della tastiera DENTRO i tagli: clip-path ritaglia anche il contorno
+   * e l'ombra di :focus-visible, e su bottoni, chip e voci tagliate il fuoco non
+   * si vedeva (0-8 pixel cambiati, misurato il 10/10). Un contorno interno nel
+   * colore del testo si vede su ogni fondo: bianco sul rosso, nero sul bianco.
+   */
+  .p5-cut:focus-visible,
+  .p5-cut-sm:focus-visible,
+  .p5-corner:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -5px;
+    box-shadow: none;
+  }
+
   .p5-cut {
     clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
   }
@@ -205,6 +218,353 @@
       transition: none;
     }
   }
+
+  /*
+   * Il palco dell'eroe (hero-stage.tsx): la «selezione del personaggio» della
+   * griglia Eroi e la testa della scheda, 10/10. Fondo fermo, eroe che cambia:
+   * come le schermate di scelta, la cornice resta e si alterna chi ci sta sopra.
+   *   - una lama rossa obliqua e una sottile del colore dell'attributo (il
+   *     colore del gioco: rosso Forza, verde PS, blu Velocita'...)
+   *   - il retino rosso, piu' fitto di quello della pagina
+   *   - il nome del personaggio enorme, solo contorno, inclinato
+   *   - la figura scontornata del client, con la sagoma nera sfalsata
+   *   - la targa: epiteto su una lama bianca, nome con l'ombra rossa
+   */
+  .stage {
+    --stage-tint: var(--color-brand);
+    min-height: 0;
+  }
+  .stage--panel {
+    height: 100%;
+    min-height: 540px;
+  }
+  .stage--hero {
+    min-height: 380px;
+  }
+  @media (min-width: 640px) {
+    .stage--hero {
+      min-height: 460px;
+    }
+  }
+  .stage-dots {
+    background-image: radial-gradient(color-mix(in srgb, var(--color-brand) 38%, transparent) 1.1px, transparent 1.8px);
+    background-size: 8px 8px;
+    -webkit-mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
+    mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
+  }
+  .stage-blade {
+    inset: 0;
+  }
+  .stage-blade--brand {
+    background: var(--color-brand);
+    clip-path: polygon(62% 0, 100% 0, 100% 100%, 34% 100%);
+  }
+  .stage-blade--tint {
+    background: var(--stage-tint);
+    clip-path: polygon(55% 0, 60% 0, 32% 100%, 27% 100%);
+    opacity: 0.85;
+  }
+  .stage--hero .stage-blade--brand {
+    clip-path: polygon(64% 0, 100% 0, 100% 100%, 50% 100%);
+  }
+  .stage--hero .stage-blade--tint {
+    clip-path: polygon(59% 0, 62% 0, 48% 100%, 45% 100%);
+  }
+  .stage-word {
+    top: 3%;
+    left: -3%;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-variation-settings: "wdth" 62;
+    font-size: clamp(88px, 12vw, 170px);
+    line-height: 0.82;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 2px color-mix(in srgb, var(--color-ink) 16%, transparent);
+    transform: rotate(-9deg);
+    transform-origin: left top;
+    pointer-events: none;
+    user-select: none;
+  }
+  .stage-figure {
+    inset: -2% -24% 20% -24%;
+  }
+  .stage--hero .stage-figure {
+    inset: -4% -6% -2% 36%;
+  }
+  /* l'illustrazione con lo sfondo dipinto: in una cornice obliqua bianca, come una carta */
+  .stage-figure.stage-figure--full {
+    inset: 5% 7% 30% 14%;
+  }
+  .stage--hero .stage-figure.stage-figure--full {
+    inset: 7% 4% 9% 46%;
+  }
+  .stage-frame {
+    height: 100%;
+    padding: 4px;
+    background: var(--color-ink);
+    clip-path: polygon(9% 0, 100% 0, 91% 100%, 0 100%);
+  }
+  .stage-frame > div {
+    clip-path: polygon(9% 0, 100% 0, 91% 100%, 0 100%);
+  }
+  @media (max-width: 639px) {
+    .stage--hero .stage-figure.stage-figure--full {
+      inset: 4% 6% 40% 22%;
+    }
+  }
+  .stage-figure-img {
+    object-position: center 30%;
+    filter: drop-shadow(10px 8px 0 #000);
+  }
+  /* la base scura sotto la targa: il nome resta leggibile sopra qualunque figura */
+  .stage::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 40%;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(to top, var(--color-paper) 8%, color-mix(in srgb, var(--color-paper) 70%, transparent) 50%, transparent);
+  }
+  .stage--hero::after {
+    inset: auto auto 0 0;
+    width: 62%;
+    height: 72%;
+    background: radial-gradient(ellipse at 0% 100%, var(--color-paper) 0%, color-mix(in srgb, var(--color-paper) 70%, transparent) 45%, transparent 72%);
+  }
+  .stage-plate {
+    z-index: 1;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+  .stage--hero .stage-plate {
+    left: clamp(16px, 3vw, 36px);
+    right: auto;
+    bottom: clamp(18px, 3vw, 36px);
+    max-width: min(60%, 560px);
+  }
+  @media (max-width: 639px) {
+    .stage--hero .stage-figure {
+      inset: -2% -18% 18% 20%;
+    }
+    .stage--hero::after {
+      inset: auto 0 0 0;
+      width: auto;
+      height: 62%;
+      background: linear-gradient(to top, var(--color-paper) 10%, color-mix(in srgb, var(--color-paper) 70%, transparent) 55%, transparent);
+    }
+    .stage--hero .stage-plate {
+      left: 16px;
+      right: 16px;
+      max-width: none;
+    }
+  }
+  .stage-epithet {
+    max-width: 100%;
+    padding: 5px 14px 5px 12px;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 85;
+    font-size: 13px;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+    transform: rotate(-2deg);
+    transform-origin: left center;
+  }
+  .stage-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-variation-settings: "wdth" 70;
+    font-size: clamp(34px, 4vw, 54px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    text-shadow: 0.06em 0.06em 0 var(--color-brand);
+  }
+  .stage--hero .stage-name {
+    font-size: clamp(38px, 6vw, 76px);
+  }
+  .stage-actions {
+    margin-top: 2px;
+  }
+
+  /* le card della griglia Eroi: al passaggio, e quella sul palco, si alzano con la sagoma rossa */
+  .hero-card-art img {
+    transition:
+      transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hero-card:hover .hero-card-art img {
+    transform: translateY(-3px);
+    box-shadow: 4px 4px 0 var(--color-brand);
+  }
+  .hero-card:hover .hero-card-name {
+    color: var(--color-brand-deep);
+  }
+  /* «sul palco» vale solo dove il palco c'e' */
+  @media (min-width: 1024px) {
+    .hero-card[data-active] .hero-card-art img {
+      transform: translateY(-3px);
+      box-shadow: 4px 4px 0 var(--color-brand);
+    }
+    .hero-card[data-active] .hero-card-name {
+      color: var(--color-brand-deep);
+    }
+  }
+  .hero-card-owned {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 20px;
+    background: var(--color-brand);
+    color: #fff;
+    clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-card-art img {
+      transition: none;
+    }
+  }
+
+  /* il box («I tuoi eroi»): chi manca e' spento, chi c'e' porta il livello */
+  .box-card[data-missing] .hero-card-art img {
+    filter: grayscale(1) brightness(0.42);
+  }
+  .box-card[data-missing] .hero-card-name {
+    color: var(--color-ink-3);
+  }
+  .box-card[data-missing]:hover .hero-card-art img {
+    filter: grayscale(0.5) brightness(0.75);
+  }
+  .box-card[data-active] .hero-card-art img {
+    transform: translateY(-3px);
+    box-shadow: 4px 4px 0 var(--color-brand);
+  }
+  .box-card-level {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 0 6px 0 8px;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-size: 11px;
+    line-height: 18px;
+    clip-path: polygon(4px 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  /*
+   * Il menu principale di un gioco (/<gioco>): comandi enormi a scalare, con la
+   * lama bianca di .p5-menu-item al passaggio. Entrano uno dopo l'altro: e' il
+   * gesto dei menu del gioco a cui il sito si ispira, e l'unica animazione della
+   * pagina (in tutto meno di mezzo secondo).
+   */
+  .hub-command-link {
+    display: inline-block;
+    padding: 0.04em 0.28em 0 0.2em;
+    margin-left: -0.2em;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-variation-settings: "wdth" 68;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+  }
+  .hub-command--0 {
+    font-size: clamp(48px, 6.6vw, 88px);
+    text-shadow: 0.05em 0.05em 0 var(--color-brand);
+  }
+  .hub-command--1 {
+    font-size: clamp(40px, 5vw, 64px);
+  }
+  .hub-command--2 {
+    font-size: clamp(34px, 4.2vw, 52px);
+  }
+  .hub-command--3 {
+    font-size: clamp(30px, 3.6vw, 44px);
+  }
+  .hub-command--4 {
+    font-size: clamp(26px, 3vw, 36px);
+  }
+  .hub-command-link:hover {
+    text-shadow: none;
+  }
+  @keyframes hub-command-in {
+    from {
+      transform: translateX(-36px);
+      opacity: 0;
+      clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    }
+    to {
+      transform: none;
+      opacity: 1;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+  }
+  .hub-command {
+    animation: hub-command-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hub-command {
+      animation: stage-fade-in 150ms ease-out both;
+    }
+  }
+
+  @keyframes stage-figure-in {
+    from {
+      clip-path: polygon(118% 0, 150% 0, 118% 100%, 86% 100%);
+      transform: translateX(32px);
+    }
+    to {
+      clip-path: polygon(-60% 0, 150% 0, 118% 100%, -92% 100%);
+      transform: none;
+    }
+  }
+  @keyframes stage-plate-in {
+    from {
+      transform: translateX(-28px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes stage-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .stage-figure {
+    animation: stage-figure-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .stage-plate {
+    animation: stage-plate-in 240ms cubic-bezier(0.16, 1, 0.3, 1) 70ms both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stage-figure,
+    .stage-plate {
+      animation: stage-fade-in 150ms ease-out both;
+    }
+  }
 }
 
 /*
@@ -219,8 +579,9 @@
  * Ogni opzione e' disegno originale: nessun asset dei publisher, mai.
  */
 
+/* «brand» e' il rosso del sito: fino al 10/10 era ancora il viola di prima */
 [data-accent="brand"] {
-  --accent: #6425ff;
+  --accent: var(--color-brand);
 }
 [data-accent="magenta"] {
   --accent: #e0169a;

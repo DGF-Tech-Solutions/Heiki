@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { RosterBrowser } from "@/components/heroes/roster-browser";
-import { cx, display, eyebrow } from "@/components/ui";
+import { artOf } from "@/components/heroes/hero-stage";
+import { EMPTY_QUERY, RosterBrowser, type RosterQuery } from "@/components/heroes/roster-browser";
+import { cx, display } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
 import { requireGameModule } from "@/lib/games/registry";
@@ -23,37 +24,49 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Eroi di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Eroi di ${gioco}`,
     descrizione: (gioco: string) => `Roster completo di ${gioco}, filtrabile per rarità e attributo.`,
     gioco: "gioco",
     questoGioco: "questo gioco",
     eroi: "Eroi",
-    introduzione: (eroi: number, contati: number, grado: string) =>
-      `${eroi} eroi, ${contati} di grado ${grado}. Le card sono quelle del gioco, ricostruite dagli asset del client: cornice, sfondo di rarità e bollino dell'attributo.`,
+    introduzione: (eroi: number, contati: number, grado: string) => `${eroi} eroi, ${contati} di grado ${grado}.`,
+    card: "Le card sono quelle del gioco, ricostruite dagli asset del client: cornice, sfondo di rarità e bollino dell'attributo.",
     diritti: (editore: string) =>
       `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
-    ordine: "Sono in ordine d'uscita sul server globale, dal più recente. Banner, date ed eventi di ogni aggiornamento stanno in",
+    ordine: "In ordine d'uscita sul server globale, dal più recente. Banner, date ed eventi:",
     uscite: "Uscite",
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Heroes · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Heroes`,
     descrizione: (gioco: string) => `Full ${gioco} roster, filterable by rarity and attribute.`,
     gioco: "game",
     questoGioco: "this game",
     eroi: "Heroes",
-    introduzione: (eroi: number, contati: number, grado: string) =>
-      `${eroi} heroes, ${contati} of them ${grado}. The cards are the game's own, rebuilt from the client assets: frame, rarity background and attribute badge.`,
+    introduzione: (eroi: number, contati: number, grado: string) => `${eroi} heroes, ${contati} of them ${grado}.`,
+    card: "The cards are the game's own, rebuilt from the client assets: frame, rarity background and attribute badge.",
     diritti: (editore: string) =>
       `Images and names belong to ${editore} and are shown here for reference.`,
-    ordine: "They are in global release order, newest first. Banners, dates and events of every update are in",
+    ordine: "In global release order, newest first. Banners, dates and events:",
     uscite: "Releases",
   },
 });
 
 interface Props {
   params: Promise<{ game: string }>;
-  /** `?razza=3`, `?caratteristica=6`: ci portano le tendine delle parole blu della scheda eroe */
-  searchParams: Promise<{ cerca?: string; razza?: string; caratteristica?: string }>;
+  /**
+   * I filtri della griglia (roster-browser.tsx li scrive mentre si cliccano):
+   * `?razza=3`, `?caratteristica=6` ci portano anche le tendine delle parole blu
+   */
+  searchParams: Promise<{
+    cerca?: string;
+    razza?: string;
+    caratteristica?: string;
+    rarita?: string;
+    attributo?: string;
+    esce?: string;
+    ordine?: string;
+    miei?: string;
+  }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -68,12 +81,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function HeroesPage({ params, searchParams }: Props) {
   const { game } = await params;
-  const { cerca, razza, caratteristica } = await searchParams;
+  const query = await searchParams;
 
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster, icons, releases, heroContext } = requireGameModule(game);
+  const { roster, icons, releases, heroContext, heroAssets } = requireGameModule(game);
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -127,49 +140,76 @@ export default async function HeroesPage({ params, searchParams }: Props) {
   const chosen = (value: string | undefined, offered: readonly { code: number }[] | undefined) =>
     offered?.find((item) => String(item.code) === value)?.code ?? null;
 
+  // un valore dell'indirizzo vale solo se e' fra quelli che la griglia offre
+  const one = (value: string | undefined, offered: readonly string[]) =>
+    value !== undefined && offered.includes(value) ? value : null;
+  const initial: RosterQuery = {
+    ...EMPTY_QUERY,
+    search: (query.cerca ?? "").slice(0, 80),
+    rarity: one(query.rarita, roster.rarities),
+    affinity: one(query.attributo, roster.affinities.map((a) => a.id)),
+    obtainable: one(query.esce, roster.obtainable),
+    race: chosen(query.razza, traits?.races),
+    faction: chosen(query.caratteristica, traits?.factions),
+    order: query.ordine === "name" || query.ordine === "group" ? query.ordine : "roster",
+    mine: query.miei === "1",
+  };
+
+  // le illustrazioni da non trattare come figura scontornata: poche, e cosi' al
+  // browser non arriva l'elenco degli asset di tutti gli eroi
+  const stageArt: Record<string, "full" | "none"> = {};
+  for (const hero of roster.heroes) {
+    const kind = artOf(heroAssets?.[hero.id]);
+    if (kind !== "cutout") stageArt[hero.id] = kind;
+  }
+
   const rarest = roster.rarities[0];
   const counted = roster.heroes.filter((hero) => hero.rarity === rarest).length;
 
-  return (
-    <main className="pt-6 pb-20">
+  // Briciole e titolo nella colonna della griglia: il palco accanto parte
+  // dall'alto della pagina (roster-browser.tsx, `intro`). Niente etichetta sopra
+  // il titolo: la striscia del gioco e le briciole dicono gia' dove sei (10/10).
+  const intro = (
+    <div className="pt-6">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.eroi }]} />
-
-      <header className="mb-5 border-b-2 border-brand pb-5">
-        <p className={cx(eyebrow, "p5-cut-sm inline-block bg-brand px-2.5 py-0.5 text-paper!")}>
-          {entry.shortName}
+      <header className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b-2 border-brand pb-4">
+        <h1 className={cx(display, "text-[clamp(34px,5vw,58px)]")}>{t.eroi}</h1>
+        <p className="m-0 max-w-[48ch] text-sm text-ink-2">
+          {t.introduzione(roster.heroes.length, counted, rarest ?? "")}{" "}
+          {/*
+            L'ordine di partenza e' quello d'uscita solo se il modulo ha il
+            calendario: senza, dirlo "d'uscita" sarebbe falso.
+          */}
+          {releases ? (
+            <>
+              {t.ordine}{" "}
+              <Link
+                href={`/${game}/uscite`}
+                className="font-bold text-ink underline decoration-brand decoration-2 underline-offset-4 hover:text-brand-deep"
+              >
+                {t.uscite}
+              </Link>
+            </>
+          ) : null}
         </p>
-        <h1 className={cx(display, "mt-3 text-[clamp(30px,5vw,54px)]")}>{t.eroi}</h1>
-        <p className="mt-2.5 max-w-[68ch] text-sm text-ink-2">
-          {t.introduzione(roster.heroes.length, counted, rarest ?? "")}
-        </p>
-        {/*
-          L'ordine di partenza e' quello d'uscita solo se il modulo ha il
-          calendario: senza, e' quello in cui il modulo dichiara gli eroi, e
-          dirlo "d'uscita" sarebbe falso.
-        */}
-        {releases ? (
-          <p className="mt-1.5 max-w-[68ch] text-sm text-ink-2">
-            {t.ordine}{" "}
-            <Link href={`/${game}/uscite`} className="font-bold text-ink underline decoration-brand decoration-2 underline-offset-4 hover:text-brand">
-              {t.uscite}
-            </Link>
-            .
-          </p>
-        ) : null}
       </header>
+    </div>
+  );
 
+  return (
+    <main className="pb-20">
       <RosterBrowser
+        intro={intro}
         game={game}
         roster={localized}
         icons={icons}
-        initialSearch={cerca ?? ""}
         traits={traits}
-        initialRace={chosen(razza, traits?.races)}
-        initialFaction={chosen(caratteristica, traits?.factions)}
+        initial={initial}
+        art={stageArt}
       />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
-        {t.diritti(entry.publisher)}
+        {t.card} {t.diritti(entry.publisher)}
       </p>
     </main>
   );

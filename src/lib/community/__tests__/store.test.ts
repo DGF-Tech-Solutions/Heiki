@@ -163,14 +163,14 @@ describe("archivio in memoria", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("lo spazio sponsorizzato e' separato dai post", async () => {
+  // Dal 10/10 niente sponsor d'esempio, nemmeno qui: uno finto finiva nel feed
+  // vero. Lo spazio compare solo con uno sponsor vero (sponsor_placements).
+  it("in modalita' dimostrativa non c'e' nessuno sponsor, e il feed ha solo post", async () => {
     const store = await getStore();
     const sponsors = await store.listSponsors();
     const posts = await store.listPosts(null, null, GUEST);
 
-    expect(sponsors.length).toBeGreaterThan(0);
-    // Nessuno sponsor deve poter comparire nel feed: sono collezioni distinte.
-    const postIds = new Set(posts.map((post) => post.id));
-    expect(sponsors.some((sponsor) => postIds.has(sponsor.id))).toBe(false);
+    expect(sponsors).toEqual([]);
+    expect(posts.length).toBeGreaterThan(0);
   });
 });

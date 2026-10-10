@@ -66,7 +66,7 @@ export function FollowButton({
         {following ? t.seguiGia : t.segui}
         <span className="font-mono text-[11px] opacity-70">{followers}</span>
       </Button>
-      {error ? <span className="text-[11px] text-hot">{error}</span> : null}
+      {error ? <span className="text-[12px] text-hot">{error}</span> : null}
     </span>
   );
 }

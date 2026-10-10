@@ -57,6 +57,25 @@ describe("parseHeroText", () => {
     expect(line?.[0]).toEqual({ text: "molto", bold: true, color: "#00FF31" });
   });
 
+  it("i colori sono una pila, come nel gioco: [-] torna al colore di prima", () => {
+    const [line] = parseHeroText("[00D5FF]※Poison: damage equal to [FFAE00]60%[-] of damage dealt.[-] fine");
+    expect(line?.map((s) => [s.text, s.color])).toEqual([
+      ["※Poison: damage equal to ", "#00D5FF"],
+      ["60%", "#FFAE00"],
+      [" of damage dealt.", "#00D5FF"],
+      [" fine", undefined],
+    ]);
+  });
+
+  it("un [-] di troppo non fa danni", () => {
+    const [line] = parseHeroText("a[FFAE00]b[-][-]c");
+    expect(line?.map((s) => [s.text, s.color])).toEqual([
+      ["a", undefined],
+      ["b", "#FFAE00"],
+      ["c", undefined],
+    ]);
+  });
+
   it("chiudere il colore non spegne il grassetto", () => {
     const [line] = parseHeroText("[b]a[00FF31]b[-]c[/b]");
     expect(line?.map((s) => [s.text, s.bold, s.color])).toEqual([

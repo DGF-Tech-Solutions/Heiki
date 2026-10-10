@@ -200,7 +200,9 @@ export function HeroAbilities({
                   senza icona pure.
                 */}
                 <div
-                  className="grid items-start gap-4 rounded-card border border-rule border-l-[3px] border-l-gold bg-paper-2 p-4"
+                  // l'Unica e' la passiva dell'eroe: l'angolo tagliato oro la distingue
+                  // dalle carte (prima un filo oro a sinistra, 10/10)
+                  className="p5-corner grid items-start gap-4 border border-gold/45 bg-paper-2 p-4"
                   style={assets?.skill ? { gridTemplateColumns: "56px minmax(0, 1fr)" } : undefined}
                 >
                   {assets?.skill ? (
@@ -391,7 +393,7 @@ function Sprites({ game, heroId, count }: { game: string; heroId: string; count:
             width={128}
             height={256}
             loading="lazy"
-            className="block w-[84px] rounded-[3px] bg-paper-2"
+            className="block w-[84px] bg-paper-2"
           />
         </li>
       ))}
@@ -469,7 +471,7 @@ function EffectTag({
   return (
     <li
       className={cx(
-        "inline-flex items-baseline gap-1 rounded-[2px] border px-1.5 py-0.5 text-[12px]",
+        "inline-flex items-baseline gap-1 border px-1.5 py-0.5 text-[12px]",
         dedotto ? "border-dashed border-rule-2 text-ink-3" : "border-rule text-ink-2",
       )}
       title={
@@ -481,7 +483,7 @@ function EffectTag({
           .join(" ") || undefined
       }
     >
-      {rank ? <span className={cx(numeric, "text-[10px] text-ink-3")}>R{rank}</span> : null}
+      {rank ? <span className={cx(numeric, "text-[12px] text-ink-3")}>R{rank}</span> : null}
       <span>{label}</span>
       {dedotto ? <span className="text-ink-3">?</span> : null}
     </li>
@@ -500,32 +502,32 @@ function EffectTag({
 const RANK_CLASSES = [
   {
     hook: "rk1",
-    chip: "group-has-[.rk1:checked]:border-brand group-has-[.rk1:checked]:bg-brand-soft group-has-[.rk1:checked]:text-ink group-has-[.rk1:checked]:opacity-100",
+    chip: "group-has-[.rk1:checked]:border-brand group-has-[.rk1:checked]:bg-brand-soft group-has-[.rk1:checked]:text-ink group-has-[.rk1:checked]:opacity-100 group-has-[.rk1:focus-visible]:outline-2 group-has-[.rk1:focus-visible]:outline-ink group-has-[.rk1:focus-visible]:opacity-100",
     show: "group-has-[.rk1:checked]:block",
   },
   {
     hook: "rk2",
-    chip: "group-has-[.rk2:checked]:border-brand group-has-[.rk2:checked]:bg-brand-soft group-has-[.rk2:checked]:text-ink group-has-[.rk2:checked]:opacity-100",
+    chip: "group-has-[.rk2:checked]:border-brand group-has-[.rk2:checked]:bg-brand-soft group-has-[.rk2:checked]:text-ink group-has-[.rk2:checked]:opacity-100 group-has-[.rk2:focus-visible]:outline-2 group-has-[.rk2:focus-visible]:outline-ink group-has-[.rk2:focus-visible]:opacity-100",
     show: "group-has-[.rk2:checked]:block",
   },
   {
     hook: "rk3",
-    chip: "group-has-[.rk3:checked]:border-brand group-has-[.rk3:checked]:bg-brand-soft group-has-[.rk3:checked]:text-ink group-has-[.rk3:checked]:opacity-100",
+    chip: "group-has-[.rk3:checked]:border-brand group-has-[.rk3:checked]:bg-brand-soft group-has-[.rk3:checked]:text-ink group-has-[.rk3:checked]:opacity-100 group-has-[.rk3:focus-visible]:outline-2 group-has-[.rk3:focus-visible]:outline-ink group-has-[.rk3:focus-visible]:opacity-100",
     show: "group-has-[.rk3:checked]:block",
   },
   {
     hook: "rk4",
-    chip: "group-has-[.rk4:checked]:border-brand group-has-[.rk4:checked]:bg-brand-soft group-has-[.rk4:checked]:text-ink group-has-[.rk4:checked]:opacity-100",
+    chip: "group-has-[.rk4:checked]:border-brand group-has-[.rk4:checked]:bg-brand-soft group-has-[.rk4:checked]:text-ink group-has-[.rk4:checked]:opacity-100 group-has-[.rk4:focus-visible]:outline-2 group-has-[.rk4:focus-visible]:outline-ink group-has-[.rk4:focus-visible]:opacity-100",
     show: "group-has-[.rk4:checked]:block",
   },
   {
     hook: "rk5",
-    chip: "group-has-[.rk5:checked]:border-brand group-has-[.rk5:checked]:bg-brand-soft group-has-[.rk5:checked]:text-ink group-has-[.rk5:checked]:opacity-100",
+    chip: "group-has-[.rk5:checked]:border-brand group-has-[.rk5:checked]:bg-brand-soft group-has-[.rk5:checked]:text-ink group-has-[.rk5:checked]:opacity-100 group-has-[.rk5:focus-visible]:outline-2 group-has-[.rk5:focus-visible]:outline-ink group-has-[.rk5:focus-visible]:opacity-100",
     show: "group-has-[.rk5:checked]:block",
   },
   {
     hook: "rk6",
-    chip: "group-has-[.rk6:checked]:border-brand group-has-[.rk6:checked]:bg-brand-soft group-has-[.rk6:checked]:text-ink group-has-[.rk6:checked]:opacity-100",
+    chip: "group-has-[.rk6:checked]:border-brand group-has-[.rk6:checked]:bg-brand-soft group-has-[.rk6:checked]:text-ink group-has-[.rk6:checked]:opacity-100 group-has-[.rk6:focus-visible]:outline-2 group-has-[.rk6:focus-visible]:outline-ink group-has-[.rk6:focus-visible]:opacity-100",
     show: "group-has-[.rk6:checked]:block",
   },
 ] as const;
@@ -912,12 +914,15 @@ function RankButtons({
           title={t.rango(rank.rank)}
           className={cx(
             numeric,
-            "flex cursor-pointer items-center justify-center rounded-[2px] border border-rule bg-paper-2",
-            "text-[10px] text-ink-3 transition hover:text-ink",
+            // il fuoco della tastiera (radio nascosti) sta in RANK_CLASSES: il
+            // radio e' un fratello lontano, `peer` accenderebbe tutte le etichette
+            "flex cursor-pointer items-center justify-center border border-rule bg-paper-2",
+            "text-[12px] text-ink-3 transition hover:text-ink",
             // Le insegne spente a meta' dicono quale rango NON e' scelto meglio
             // del solo bordo: le stelle sono tutte dello stesso giallo, e sei
             // pietre accese di sei colori non ne farebbero risaltare nessuna.
-            mark === "sigle" ? "px-1.5" : "h-5 opacity-50 hover:opacity-100",
+            // 28px e non 20: sul telefono si centrano col pollice (10/10)
+            mark === "sigle" ? "min-h-7 px-1.5" : "h-7 opacity-50 hover:opacity-100",
             // nella griglia delle sei pietre restano 16px dentro il bordo: niente margini
             mark !== "sigle" && (mark === "pietre" && fill ? "px-0" : "px-1"),
             fill && "flex-auto",
@@ -1073,7 +1078,7 @@ function CardRow({
             width={128}
             height={256}
             loading="lazy"
-            className="block w-full rounded-[3px] bg-paper-2"
+            className="block w-full bg-paper-2"
           />
 
           {picker ? (

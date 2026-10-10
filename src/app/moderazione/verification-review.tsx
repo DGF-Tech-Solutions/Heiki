@@ -83,9 +83,9 @@ export function VerificationReview({ item, locale }: { item: ReviewItem; locale:
   }
 
   return (
-    <li className="grid gap-3 rounded-card border border-rule bg-paper p-4">
+    <li className="p5-corner grid gap-3 border border-rule bg-paper-2 p-4">
       <p className="m-0 text-sm">
-        <a href={item.profileHref} className="font-semibold hover:text-brand">
+        <a href={item.profileHref} className="font-semibold hover:text-brand-deep">
           {t.richiesta(item.requester)}
         </a>
         <span className="text-ink-3"> · {item.account}</span>
@@ -95,18 +95,18 @@ export function VerificationReview({ item, locale }: { item: ReviewItem; locale:
         <figure className="m-0 grid gap-1.5">
           <figcaption className={eyebrow}>
             {t.schermata} ·{" "}
-            <a href={shot} target="_blank" rel="noreferrer" className="normal-case tracking-normal text-brand">
+            <a href={shot} target="_blank" rel="noreferrer" className="normal-case tracking-normal text-brand-deep underline underline-offset-2">
               {t.apri}
             </a>
           </figcaption>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={shot} alt={t.schermata} className="max-h-[420px] w-full rounded-[3px] border border-rule object-contain" />
+          <img src={shot} alt={t.schermata} className="max-h-[420px] w-full border border-rule object-contain" />
         </figure>
 
         <div className="grid content-start gap-3 text-sm">
           <div className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={item.hero.card} alt="" width={64} height={86} className="h-auto w-full rounded-[3px] border border-rule" />
+            <img src={item.hero.card} alt="" width={64} height={86} className="h-auto w-full shadow-[3px_3px_0_var(--color-brand)]" />
             <div>
               <p className={cx(eyebrow, "m-0")}>{t.eroe}</p>
               <p className="m-0 font-semibold leading-tight">{item.hero.name}</p>

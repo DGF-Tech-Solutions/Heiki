@@ -19,6 +19,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import type { GameSectionGroup } from "@/lib/games/catalog";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
@@ -39,9 +40,32 @@ export function GameSidebar({
   const pathname = usePathname();
   const base = `/${game}`;
   const t = TESTI[useLocale()];
+  // La voce attiva e' quella col percorso PIU' LUNGO che contiene la pagina:
+  // in «I tuoi eroi» (/account/eroi) anche «Il mio account» (/account) ne e'
+  // l'inizio, e si accendevano tutte e due (10/10). La radice del gioco vale solo
+  // per uguaglianza, se no risulterebbe attiva ovunque.
+  const activePath = groups
+    .flatMap((group) => group.items.map((item) => item.path))
+    .filter((path) =>
+      path === "" ? pathname === base : pathname === `${base}${path}` || pathname.startsWith(`${base}${path}/`),
+    )
+    .sort((a, b) => b.length - a.length)[0];
+
+  // La barra scorre per conto suo (layout del gioco, 10/10): se la voce attiva e'
+  // fuori dalla parte visibile, la si porta a un terzo dell'altezza. Solo la
+  // barra si muove, non la pagina.
+  const nav = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const aside = nav.current?.closest("aside");
+    const link = nav.current?.querySelector('[aria-current="page"]');
+    if (!aside || !link || aside.scrollHeight <= aside.clientHeight) return;
+    const box = aside.getBoundingClientRect();
+    const item = link.getBoundingClientRect();
+    if (item.top < box.top || item.bottom > box.bottom) aside.scrollTop += item.top - box.top - box.height / 3;
+  }, [activePath]);
 
   return (
-    <nav aria-label={t.sezioni} className="grid gap-5">
+    <nav ref={nav} aria-label={t.sezioni} className="grid gap-5">
       {groups.map((group) => (
         <div key={group.label}>
           {/* il nome del gruppo e' una targhetta bianca tagliata, come le
@@ -53,9 +77,7 @@ export function GameSidebar({
           <ul className="m-0 grid list-none gap-0.5 p-0">
             {group.items.map((item) => {
               const href = `${base}${item.path}`;
-              // La sezione senza percorso e' la radice del gioco: va confrontata
-              // per uguaglianza, altrimenti risulterebbe attiva su ogni pagina.
-              const active = item.path === "" ? pathname === base : pathname.startsWith(href);
+              const active = item.path === activePath;
 
               return (
                 <li key={item.path}>

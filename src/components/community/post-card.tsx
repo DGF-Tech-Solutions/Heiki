@@ -33,13 +33,13 @@ export async function PostCard({ post }: { post: FeedPost }) {
   return (
     <article
       data-accent={post.author.accent}
-      className="flex gap-3.5 rounded-card border border-rule bg-paper p-4 transition-colors hover:border-ink-3"
+      className="p5-corner flex gap-3.5 border border-rule bg-paper-2 p-4 transition-colors hover:border-ink-3"
     >
       <VoteControl targetType="POST" targetId={post.id} score={post.score} myVote={post.myVote} />
 
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex flex-wrap items-center gap-2.5 text-xs text-ink-3">
-          <Link href={`/${post.game}?hub=${post.hub}`}>
+          <Link href={`/${post.game}/discussioni?hub=${post.hub}`}>
             <Tag>{hubLabel(post.hub, locale, post.hubName)}</Tag>
           </Link>
 
@@ -48,14 +48,14 @@ export async function PostCard({ post }: { post: FeedPost }) {
             className="inline-flex items-center gap-1.5 font-medium text-ink-2 hover:text-ink"
           >
             <span
-              className="size-[7px] flex-none rounded-full bg-[var(--accent)]"
+              className="size-[7px] flex-none bg-[var(--accent)] [clip-path:polygon(2px_0,100%_0,calc(100%-2px)_100%,0_100%)]"
               aria-hidden
             />
             {post.author.displayName}
           </Link>
 
           {post.author.role !== "USER" ? (
-            <span className="font-mono text-[9px] uppercase tracking-[0.09em] text-[var(--accent)]">
+            <span className="font-mono text-[11px] uppercase tracking-[0.09em] text-[var(--accent)]">
               {roleLabel(post.author.role, locale)}
             </span>
           ) : null}
@@ -68,7 +68,7 @@ export async function PostCard({ post }: { post: FeedPost }) {
         <h2
           className={`${display} mb-1.5 text-[19px] leading-[1.2] [font-variation-settings:'wdth'_92]`}
         >
-          <Link href={`/${post.game}/post/${post.id}`} className="hover:text-brand">
+          <Link href={`/${post.game}/post/${post.id}`} className="hover:text-brand-deep">
             {post.title}
           </Link>
         </h2>
@@ -79,7 +79,7 @@ export async function PostCard({ post }: { post: FeedPost }) {
 
         <Link
           href={`/${post.game}/post/${post.id}`}
-          className="mt-3 inline-block text-xs text-ink-3 hover:text-ink"
+          className="mt-3 inline-block text-xs text-ink-2 underline decoration-rule underline-offset-2 hover:text-ink"
         >
           {post.commentCount === 0 ? t.rispondiPerPrimo : t.risposte(post.commentCount)}
         </Link>

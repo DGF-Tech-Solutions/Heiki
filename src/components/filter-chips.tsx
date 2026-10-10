@@ -41,6 +41,7 @@ export function Chip({
   swatch,
   iconSrc,
   withLabel,
+  quiet,
 }: {
   active: boolean;
   onClick: () => void;
@@ -64,6 +65,12 @@ export function Chip({
    * come le razze o le rarita'.
    */
   withLabel?: boolean;
+  /**
+   * Scelto, ma senza il rosso: per le scelte che hanno sempre un valore (l'ordine
+   * della griglia). Il rosso dice «hai ristretto l'elenco», e un ordine non lo
+   * restringe (10/10: i «Tutte» rossi erano la cosa piu' accesa della pagina).
+   */
+  quiet?: boolean;
 }) {
   const empty = count === 0;
   const iconOnly = iconSrc !== undefined && !withLabel;
@@ -84,11 +91,13 @@ export function Chip({
         // leggono come due gruppi diversi.
         // Persona: lama nera obliqua, rossa col testo bianco quando e' scelta
         // (col rosso #e61421 il bianco fa 4.7:1), bianca al passaggio.
-        "p5-cut-sm group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3",
+        "p5-cut-sm group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3 max-sm:h-10",
         "text-[12px] uppercase tracking-[0.04em] transition-colors disabled:cursor-not-allowed disabled:opacity-35",
-        active
-          ? "bg-brand font-bold text-white"
-          : "bg-paper-3 font-semibold text-ink-2 enabled:hover:bg-ink enabled:hover:text-paper",
+        active && quiet
+          ? "bg-ink font-bold text-paper"
+          : active
+            ? "bg-brand font-bold text-white"
+            : "bg-paper-3 font-semibold text-ink-2 enabled:hover:bg-ink enabled:hover:text-paper",
       )}
     >
       {iconOnly ? (
@@ -105,7 +114,7 @@ export function Chip({
           {swatch ? (
             <span
               aria-hidden
-              className="h-2.5 w-2.5 shrink-0 rounded-[1px]"
+              className="h-2.5 w-2.5 shrink-0"
               style={{
                 background: swatch.colorAlt
                   ? `linear-gradient(135deg, ${swatch.color} 50%, ${swatch.colorAlt} 50%)`
@@ -121,8 +130,8 @@ export function Chip({
         <span
           className={cx(
             numeric,
-            "text-[10px]",
-            active ? "text-white" : "text-ink-3 group-enabled:group-hover:text-paper",
+            "text-[12px]",
+            active && quiet ? "text-paper" : active ? "text-white" : "text-ink-3 group-enabled:group-hover:text-paper",
           )}
         >
           {count}

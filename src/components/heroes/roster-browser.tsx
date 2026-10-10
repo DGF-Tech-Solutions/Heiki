@@ -1,29 +1,39 @@
 "use client";
 
 /**
- * Sfoglia il roster.
+ * Sfoglia il roster: la «selezione del personaggio».
  *
- * Componente client, e qui la ragione e' concreta: le voci sono centinaia e i
- * filtri sono quattro. Farli passare dall'URL come fa la pagina Personaggi
- * significherebbe un giro sul server a ogni clic, e con quattro sfaccettature
- * si clicca molto. I dati arrivano gia' tutti - sono nomi e sigle, non foto -
- * quindi filtrare in locale e' immediato e non costa una richiesta.
+ * Componente client, e qui la ragione e' concreta: le voci sono centinaia e si
+ * filtrano a ogni clic. I dati arrivano gia' tutti - nomi e sigle, non foto -
+ * quindi filtrare in locale e' immediato; le immagini le carica il browser solo
+ * quando entrano nello schermo.
  *
- * Le immagini invece restano fuori dal bundle: le carica il browser una alla
- * volta, solo quando entrano nello schermo.
- *
- * I nomi degli attributi arrivano gia' tradotti dalla pagina, dentro il roster:
- * qui si traducono solo le scritte del componente. Lo stesso per razze e
- * caratteristiche (`traits`), che il roster generato non porta: le aggiunge la
- * pagina dal contesto degli eroi. Dal 26/09 si filtra anche per quelle, e si
- * puo' arrivare qui gia' filtrati (`?razza=3`, `?caratteristica=6`): ci portano
- * le tendine delle parole blu della scheda eroe.
+ * Dal 10/10 (richiesta dell'utente: «grande enfasi sulla selezione dei
+ * personaggi», scelta: griglia + eroe in grande a lato, come un picchiaduro):
+ *   - sul computer, accanto alla griglia, il palco (hero-stage.tsx) mostra in
+ *     grande l'eroe sotto il mouse o col fuoco della tastiera; il clic apre la
+ *     scheda. Sul telefono il palco non c'e': il tocco apre la scheda, che ha il
+ *     palco in testa (un tocco in piu' per vedere un eroe sarebbe un freno)
+ *   - i filtri stanno su una striscia: ricerca, ordine, e le icone del gioco per
+ *     rarita', attributo e razza; «Esce come» e «Caratteristica» sotto «Altri
+ *     filtri». Niente pulsanti «Tutte»: un filtro si toglie ripremendolo, e nello
+ *     stato di partenza non c'e' niente di rosso (prima i cinque «Tutte» rossi
+ *     erano la cosa piu' accesa della pagina)
+ *   - i filtri stanno nell'indirizzo (`?rarita=UR&attributo=...`): tornando da
+ *     una scheda, o ricaricando, si ritrovano. Si arriva gia' filtrati anche
+ *     dalle tendine delle parole blu (`?razza=3`, `?caratteristica=6`)
+ *   - «I miei»: solo gli eroi del tuo box, se ne hai segnati (use-hero-box.ts)
  */
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Chip, FilterRow } from "@/components/filter-chips";
-import { cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
+import { useEffect, useMemo, useState } from "react";
+import { Chip } from "@/components/filter-chips";
+import { useHeroBox } from "@/components/game-account/use-hero-box";
+import { readableColor } from "@/components/heroes/game-color";
+import { HeroStage, type StageBadge } from "@/components/heroes/hero-stage";
+import { IconChevronRight } from "@/components/icons";
+import { buttonClass, cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
+import { boxSize, ownsHero } from "@/lib/games/hero-box";
 import {
   countHeroes,
   countTraits,
@@ -36,7 +46,7 @@ import {
   type HeroOrder,
   type IconFamily,
 } from "@/lib/games/heroes";
-import type { HeroAffinity, HeroEntry, HeroRoster } from "@/lib/games/types";
+import type { HeroEntry, HeroRoster } from "@/lib/games/types";
 import { useLocale } from "@/lib/i18n/client";
 import { testi, type Locale } from "@/lib/i18n/locale";
 
@@ -51,12 +61,16 @@ const TESTI = testi({
     esceCome: "Esce come",
     razza: "Razza",
     caratteristica: "Caratteristica",
-    tutte: "Tutte",
-    tutti: "Tutti",
+    altriFiltri: "Altri filtri",
+    miei: "I miei",
+    mieiTitolo: "Solo gli eroi del tuo box",
     eroi: (n: number): string => (n === 1 ? "eroe" : "eroi"),
     suTotale: (n: number) => ` su ${n}`,
     azzera: "Azzera i filtri",
     nessunEroe: "Nessun eroe con questi filtri.",
+    togliUltimo: (label: string) => `Togli «${label}»`,
+    apri: "Apri la scheda",
+    percorso: (da: string, a: string) => (da === a ? da : `${da} → ${a}`),
   },
   en: {
     ordini: { roster: "Release", name: "Name", group: "Character" },
@@ -68,25 +82,67 @@ const TESTI = testi({
     esceCome: "Obtained as",
     razza: "Race",
     caratteristica: "Characteristic",
-    tutte: "All",
-    tutti: "All",
+    altriFiltri: "More filters",
+    miei: "Mine",
+    mieiTitolo: "Only the heroes in your box",
     eroi: (n: number) => (n === 1 ? "hero" : "heroes"),
     suTotale: (n: number) => ` of ${n}`,
     azzera: "Clear filters",
     nessunEroe: "No heroes match these filters.",
+    togliUltimo: (label: string) => `Remove “${label}”`,
+    apri: "Open the page",
+    percorso: (from: string, to: string) => (from === to ? from : `${from} → ${to}`),
   },
 });
 
 const ORDERS: readonly HeroOrder[] = ["roster", "name", "group"];
 
+/** Lo stato dei filtri, come sta nell'indirizzo. */
+export interface RosterQuery {
+  search: string;
+  rarity: string | null;
+  affinity: string | null;
+  obtainable: string | null;
+  race: number | null;
+  faction: number | null;
+  order: HeroOrder;
+  mine: boolean;
+}
+
+export const EMPTY_QUERY: RosterQuery = {
+  search: "",
+  rarity: null,
+  affinity: null,
+  obtainable: null,
+  race: null,
+  faction: null,
+  order: "roster",
+  mine: false,
+};
+
+/** I nomi dei parametri: italiani, come le altre pagine (`?scheda=`, `?razza=`). */
+function toSearchParams(query: RosterQuery): string {
+  const params = new URLSearchParams();
+  if (query.search) params.set("cerca", query.search);
+  if (query.rarity) params.set("rarita", query.rarity);
+  if (query.affinity) params.set("attributo", query.affinity);
+  if (query.obtainable) params.set("esce", query.obtainable);
+  if (query.race !== null) params.set("razza", String(query.race));
+  if (query.faction !== null) params.set("caratteristica", String(query.faction));
+  if (query.order !== "roster") params.set("ordine", query.order);
+  if (query.mine) params.set("miei", "1");
+  const text = params.toString();
+  return text ? `?${text}` : "";
+}
+
 export function RosterBrowser({
   game,
   roster,
   icons,
-  initialSearch = "",
+  initial = EMPTY_QUERY,
   traits,
-  initialRace = null,
-  initialFaction = null,
+  intro,
+  art = {},
 }: {
   game: string;
   roster: HeroRoster;
@@ -97,35 +153,40 @@ export function RosterBrowser({
    * restano testuali invece di mostrare riquadri rotti.
    */
   icons?: Readonly<Record<string, readonly string[]>>;
-  /**
-   * Ricerca gia' impostata all'arrivo.
-   *
-   * Serve ai collegamenti che portano qui da una scheda - "altre versioni di
-   * Meliodas" - e che devono atterrare su un elenco gia' ristretto. Da qui in
-   * poi lo stato e' del componente: e' una partenza, non un vincolo.
-   */
-  initialSearch?: string;
+  /** i filtri all'arrivo, letti dall'indirizzo dalla pagina */
+  initial?: RosterQuery;
   /** razze e caratteristiche coi nomi nella lingua della pagina; senza, niente filtri per quelle */
   traits?: {
     races: readonly { code: number; label: string; iconKey?: string }[];
     factions: readonly { code: number; label: string }[];
   };
-  /** razza e caratteristica gia' scelte all'arrivo, come `initialSearch` */
-  initialRace?: number | null;
-  initialFaction?: number | null;
+  /**
+   * Briciole e titolo della pagina: stanno nella colonna della griglia, cosi' il
+   * palco parte dall'alto della pagina e su uno schermo da 900 px ci sta intero
+   */
+  intro?: React.ReactNode;
+  /** le illustrazioni che non sono scontornate: «full» (sfondo dipinto) o «none» (manca) */
+  art?: Readonly<Record<string, "full" | "none">>;
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
+  const [query, setQuery] = useState<RosterQuery>(initial);
+  const [box] = useHeroBox(game);
+  const hasBox = boxSize(box) > 0;
+  const { search, rarity, affinity, obtainable, race, faction, order } = query;
+  const mine = query.mine && hasBox;
+  const change = (patch: Partial<RosterQuery>) => setQuery((current) => ({ ...current, ...patch }));
 
-  const [search, setSearch] = useState(initialSearch);
-  const [rarity, setRarity] = useState<string | null>(null);
-  const [affinity, setAffinity] = useState<string | null>(null);
-  const [obtainable, setObtainable] = useState<string | null>(null);
-  const [race, setRace] = useState<number | null>(initialRace);
-  const [faction, setFaction] = useState<number | null>(initialFaction);
-  const [order, setOrder] = useState<HeroOrder>("roster");
+  // l'indirizzo segue i filtri, senza una voce nella cronologia a ogni clic
+  useEffect(() => {
+    const next = `${window.location.pathname}${toSearchParams(query)}`;
+    if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next);
+  }, [query]);
 
-  const heroes = roster.heroes;
+  const heroes = useMemo(
+    () => (mine ? roster.heroes.filter((hero) => ownsHero(box, hero.id)) : roster.heroes),
+    [roster.heroes, mine, box],
+  );
 
   const visible = useMemo(
     () => sortHeroes(filterHeroes(heroes, { search, rarity, affinity, obtainable, race, faction }), order, locale),
@@ -133,9 +194,8 @@ export function RosterBrowser({
   );
 
   // Ogni gruppo di pulsanti si conta escludendo se stesso dal filtro: il numero
-  // sul pulsante deve dire quante voci si otterrebbero premendolo, non quante
-  // ce ne sono adesso. Contarle tutte allo stesso modo darebbe zero su ogni
-  // pulsante non attivo - vero, e inutile.
+  // sul pulsante dice quanti eroi si otterrebbero premendolo, non quanti ce ne
+  // sono adesso (che darebbe zero su ogni pulsante non attivo).
   const rarityCounts = useMemo(
     () => countHeroes(filterHeroes(heroes, { search, affinity, obtainable, race, faction }), "rarity"),
     [heroes, search, affinity, obtainable, race, faction],
@@ -157,185 +217,217 @@ export function RosterBrowser({
     [heroes, search, rarity, affinity, obtainable, race],
   );
 
-  const byAffinity = useMemo(
-    () => new Map(roster.affinities.map((item) => [item.id, item])),
-    [roster.affinities],
-  );
+  const byAffinity = useMemo(() => new Map(roster.affinities.map((item) => [item.id, item])), [roster.affinities]);
+  const raceOf = useMemo(() => new Map((traits?.races ?? []).map((item) => [item.code, item])), [traits]);
 
-  // «Caratteristica» non entra nei 74px delle altre etichette: con quella fila
-  // tutte si allargano a 124, come nei Set artefatto, e le colonne restano in
-  // fila. Sul telefono 124px sono un terzo della riga: l'etichetta va sopra i
-  // suoi pulsanti, invece di spingerli a capo a meta'.
-  const labelWidth = traits && traits.factions.length > 0 ? "w-full sm:w-[124px]" : undefined;
+  // l'eroe sul palco: quello sotto il mouse o col fuoco; se esce dai filtri, il primo
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const active = visible.find((hero) => hero.id === activeId) ?? visible[0];
 
   const filtered =
-    rarity !== null || affinity !== null || obtainable !== null || race !== null || faction !== null || search !== "";
+    rarity !== null || affinity !== null || obtainable !== null || race !== null || faction !== null || search !== "" || mine;
+  const moreOpen = obtainable !== null || faction !== null;
 
   /** L'icona del gioco per un valore, solo se e' stata estratta. */
   const iconFor = (family: IconFamily, key: string | undefined) =>
     key && icons?.[family]?.includes(key) ? gameIconSrc(game, family, key) : undefined;
 
-  function reset() {
-    setSearch("");
-    setRarity(null);
-    setAffinity(null);
-    setObtainable(null);
-    setRace(null);
-    setFaction(null);
-  }
+  const badgesFor = (hero: HeroEntry): StageBadge[] => {
+    const out: StageBadge[] = [];
+    const aff = byAffinity.get(hero.affinity);
+    if (aff) out.push({ label: aff.label, iconSrc: iconFor("attributo", aff.iconKey), color: readableColor(aff.color) });
+    out.push({ label: t.percorso(hero.obtainedAs, hero.rarity), iconSrc: iconFor("rarita", hero.rarity) });
+    const r = hero.race != null ? raceOf.get(hero.race) : undefined;
+    if (r) out.push({ label: r.label, iconSrc: iconFor("razza", r.iconKey) });
+    return out;
+  };
 
   return (
-    <>
-      <div className="p5-corner mb-5 grid gap-3.5 border border-l-4 border-rule border-l-brand bg-paper-2 p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* la ricerca e' un campo bianco tagliato: CONTROL lo darebbe nero, da qui gli `!` */}
-          <Input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t.cercaSegnaposto}
-            aria-label={t.cercaEtichetta}
-            className="p5-cut h-9 max-w-[320px] flex-1 border-ink! bg-ink! px-4 text-sm font-semibold text-paper! placeholder:text-paper/60 focus:shadow-[inset_0_-3px_0_var(--color-brand)]"
-          />
-
-          <div className="flex items-center gap-1.5">
-            <span className={eyebrow}>{t.ordina}</span>
-            {ORDERS.map((id) => (
-              <Chip
-                key={id}
-                active={order === id}
-                onClick={() => setOrder(id)}
-                label={t.ordini[id]}
-              />
-            ))}
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+      <div className="min-w-0">
+        {intro}
+        <div className="mb-4 grid gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* la ricerca e' un campo bianco tagliato: CONTROL lo darebbe nero, da qui gli `!` */}
+            <Input
+              type="search"
+              value={search}
+              onChange={(event) => change({ search: event.target.value })}
+              placeholder={t.cercaSegnaposto}
+              aria-label={t.cercaEtichetta}
+              className="p5-cut h-10 min-w-[200px] max-w-[340px] flex-1 border-ink! bg-ink! px-4 text-sm font-semibold text-paper! placeholder:text-paper/60 focus:shadow-[inset_0_-3px_0_var(--color-brand)]"
+            />
+            <div role="group" aria-label={t.ordina} className="flex items-center gap-1">
+              <span className={cx(eyebrow, "mr-1")}>{t.ordina}</span>
+              {ORDERS.map((id) => (
+                <Chip key={id} active={order === id} quiet onClick={() => change({ order: id })} label={t.ordini[id]} />
+              ))}
+            </div>
+            {hasBox ? (
+              <span title={t.mieiTitolo}>
+                <Chip
+                  active={mine}
+                  onClick={() => change({ mine: !mine })}
+                  label={t.miei}
+                  count={boxSize(box)}
+                />
+              </span>
+            ) : null}
           </div>
+
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <IconGroup label={t.rarita}>
+              {roster.rarities.map((value) => (
+                <Chip
+                  key={value}
+                  active={rarity === value}
+                  onClick={() => change({ rarity: rarity === value ? null : value })}
+                  label={value}
+                  iconSrc={iconFor("rarita", value)}
+                  count={rarityCounts.get(value) ?? 0}
+                />
+              ))}
+            </IconGroup>
+            <IconGroup label={t.attributo}>
+              {roster.affinities.map((item) => (
+                <Chip
+                  key={item.id}
+                  active={affinity === item.id}
+                  onClick={() => change({ affinity: affinity === item.id ? null : item.id })}
+                  label={item.label}
+                  iconSrc={iconFor("attributo", item.iconKey)}
+                  withLabel={affinity === item.id}
+                  count={affinityCounts.get(item.id) ?? 0}
+                  swatch={item}
+                />
+              ))}
+            </IconGroup>
+            {traits && traits.races.length > 0 ? (
+              <IconGroup label={t.razza}>
+                {traits.races.map((item) => (
+                  <Chip
+                    key={item.code}
+                    active={race === item.code}
+                    onClick={() => change({ race: race === item.code ? null : item.code })}
+                    label={item.label}
+                    iconSrc={iconFor("razza", item.iconKey)}
+                    withLabel={race === item.code}
+                    count={raceCounts.get(item.code) ?? 0}
+                  />
+                ))}
+              </IconGroup>
+            ) : null}
+          </div>
+
+          {/*
+            Le due file che si usano meno, sotto un tocco. Aperte da sole se uno
+            dei loro filtri e' scelto (anche arrivando dall'indirizzo).
+          */}
+          <details open={moreOpen || undefined} className="group/altri">
+            <summary className="inline-flex cursor-pointer list-none items-center gap-2 font-display text-[13px] font-extrabold uppercase tracking-[0.04em] text-ink-2 [font-variation-settings:'wdth'_85] hover:text-ink [&::-webkit-details-marker]:hidden">
+              <IconChevronRight size={14} className="transition-transform group-open/altri:rotate-90" />
+              {t.altriFiltri}
+            </summary>
+            <div className="mt-2.5 grid gap-2.5">
+              <IconGroup label={t.esceCome}>
+                {roster.obtainable.map((value) => (
+                  <Chip
+                    key={value}
+                    active={obtainable === value}
+                    onClick={() => change({ obtainable: obtainable === value ? null : value })}
+                    label={value}
+                    iconSrc={iconFor("rarita", value)}
+                    count={obtainableCounts.get(value) ?? 0}
+                  />
+                ))}
+              </IconGroup>
+              {traits && traits.factions.length > 0 ? (
+                <IconGroup label={t.caratteristica}>
+                  {traits.factions.map((item) => (
+                    <Chip
+                      key={item.code}
+                      active={faction === item.code}
+                      onClick={() => change({ faction: faction === item.code ? null : item.code })}
+                      label={item.label}
+                      count={factionCounts.get(item.code) ?? 0}
+                    />
+                  ))}
+                </IconGroup>
+              ) : null}
+            </div>
+          </details>
         </div>
 
-        <FilterRow label={t.rarita} labelClassName={labelWidth}>
-          <Chip
-            active={rarity === null}
-            onClick={() => setRarity(null)}
-            label={t.tutte}
-            count={heroes.length}
-          />
-          {roster.rarities.map((value) => (
-            <Chip
-              key={value}
-              active={rarity === value}
-              onClick={() => setRarity(rarity === value ? null : value)}
-              label={value}
-              iconSrc={iconFor("rarita", value)}
-              count={rarityCounts.get(value) ?? 0}
-            />
-          ))}
-        </FilterRow>
+        <div className="mb-3.5 flex items-baseline justify-between gap-3">
+          <p className="m-0 text-[13px] text-ink-2" aria-live="polite">
+            <strong className={cx(numeric, "p5-cut-sm inline-block bg-ink px-2 font-bold text-paper")}>
+              {visible.length}
+            </strong>{" "}
+            {t.eroi(visible.length)}
+            {filtered ? t.suTotale(roster.heroes.length) : null}
+          </p>
+          {filtered ? (
+            <button
+              type="button"
+              onClick={() => setQuery({ ...EMPTY_QUERY, order })}
+              className="cursor-pointer border-0 bg-transparent p-0 font-mono text-[12px] font-bold uppercase tracking-[0.08em] text-ink-2 underline-offset-2 hover:text-brand-deep hover:underline"
+            >
+              {t.azzera}
+            </button>
+          ) : null}
+        </div>
 
-        <FilterRow label={t.attributo} labelClassName={labelWidth}>
-          <Chip active={affinity === null} onClick={() => setAffinity(null)} label={t.tutti} />
-          {roster.affinities.map((item) => (
-            <Chip
-              key={item.id}
-              active={affinity === item.id}
-              onClick={() => setAffinity(affinity === item.id ? null : item.id)}
-              label={item.label}
-              iconSrc={iconFor("attributo", item.iconKey)}
-              count={affinityCounts.get(item.id) ?? 0}
-              swatch={item}
-            />
-          ))}
-        </FilterRow>
-
-        <FilterRow label={t.esceCome} labelClassName={labelWidth}>
-          <Chip active={obtainable === null} onClick={() => setObtainable(null)} label={t.tutte} />
-          {roster.obtainable.map((value) => (
-            <Chip
-              key={value}
-              active={obtainable === value}
-              onClick={() => setObtainable(obtainable === value ? null : value)}
-              label={value}
-              iconSrc={iconFor("rarita", value)}
-              count={obtainableCounts.get(value) ?? 0}
-            />
-          ))}
-        </FilterRow>
-
-        {/*
-          La razza con l'icona E il nome, come nella scheda: i sei simboli si
-          riconoscono meno delle sigle di rarita'. Le caratteristiche col nome,
-          perche' il gioco un'icona per loro non ce l'ha.
-        */}
-        {traits && traits.races.length > 0 ? (
-          <FilterRow label={t.razza} labelClassName={labelWidth}>
-            <Chip active={race === null} onClick={() => setRace(null)} label={t.tutte} />
-            {traits.races.map((item) => (
-              <Chip
-                key={item.code}
-                active={race === item.code}
-                onClick={() => setRace(race === item.code ? null : item.code)}
-                label={item.label}
-                iconSrc={iconFor("razza", item.iconKey)}
-                withLabel
-                count={raceCounts.get(item.code) ?? 0}
-              />
-            ))}
-          </FilterRow>
-        ) : null}
-
-        {traits && traits.factions.length > 0 ? (
-          <FilterRow label={t.caratteristica} labelClassName={labelWidth}>
-            <Chip active={faction === null} onClick={() => setFaction(null)} label={t.tutte} />
-            {traits.factions.map((item) => (
-              <Chip
-                key={item.code}
-                active={faction === item.code}
-                onClick={() => setFaction(faction === item.code ? null : item.code)}
-                label={item.label}
-                count={factionCounts.get(item.code) ?? 0}
-              />
-            ))}
-          </FilterRow>
-        ) : null}
-      </div>
-
-      <div className="mb-3.5 flex items-baseline justify-between gap-3">
-        <p className="m-0 text-[13px] text-ink-2">
-          <strong className={cx(numeric, "p5-cut-sm inline-block bg-brand px-2 font-bold text-paper")}>
-            {visible.length}
-          </strong>{" "}
-          {t.eroi(visible.length)}
-          {filtered ? t.suTotale(heroes.length) : null}
-        </p>
-
-        {filtered ? (
-          <button
-            type="button"
-            onClick={reset}
-            className="cursor-pointer border-0 bg-transparent p-0 font-mono text-[12px] font-bold uppercase tracking-[0.08em] text-ink-2 underline-offset-2 hover:text-brand hover:underline"
+        {visible.length === 0 ? (
+          <Empty>{t.nessunEroe}</Empty>
+        ) : (
+          <ul
+            className="m-0 grid list-none gap-x-2.5 gap-y-3.5 p-0"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))" }}
           >
-            {t.azzera}
-          </button>
-        ) : null}
+            {visible.map((hero) => (
+              <HeroCard
+                key={hero.id}
+                game={game}
+                locale={locale}
+                hero={hero}
+                active={hero.id === active?.id}
+                owned={hasBox && ownsHero(box, hero.id)}
+                onPeek={() => setActiveId(hero.id)}
+              />
+            ))}
+          </ul>
+        )}
       </div>
 
-      {visible.length === 0 ? (
-        <Empty>{t.nessunEroe}</Empty>
-      ) : (
-        <ul
-          className="m-0 grid list-none gap-x-3 gap-y-4 p-0"
-          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(104px, 128px))" }}
-        >
-          {visible.map((hero) => (
-            <HeroCard
-              key={hero.id}
-              game={game}
-              locale={locale}
-              hero={hero}
-              affinity={byAffinity.get(hero.affinity)}
-            />
-          ))}
-        </ul>
-      )}
-    </>
+      {/* il palco: solo dove c'e' spazio accanto alla griglia */}
+      {active ? (
+        <aside className="sticky top-[76px] mt-6 hidden h-[calc(100dvh-100px)] max-h-[780px] min-h-[540px] lg:block" aria-label={heroName(active, locale)}>
+          <HeroStage
+            game={game}
+            hero={active}
+            locale={locale}
+            affinity={byAffinity.get(active.affinity)}
+            badges={badgesFor(active)}
+            art={art[active.id] ?? "cutout"}
+            priority
+            className="p5-corner h-full"
+          >
+            <Link href={`/${game}/eroi/${active.id}`} className={buttonClass("primary", "md")}>
+              {t.apri}
+            </Link>
+          </HeroStage>
+        </aside>
+      ) : null}
+    </div>
+  );
+}
+
+function IconGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1.5">
+      <span className={cx(eyebrow, "mr-0.5 shrink-0")}>{label}</span>
+      {children}
+    </div>
   );
 }
 
@@ -345,12 +437,16 @@ function HeroCard({
   game,
   locale,
   hero,
-  affinity,
+  active,
+  owned,
+  onPeek,
 }: {
   game: string;
   locale: Locale;
   hero: HeroEntry;
-  affinity: HeroAffinity | undefined;
+  active: boolean;
+  owned: boolean;
+  onPeek: () => void;
 }) {
   const name = heroName(hero, locale);
   const epithet = heroEpithet(hero, locale);
@@ -358,20 +454,22 @@ function HeroCard({
   return (
     <li className="min-w-0">
       {/*
-        Tutta la card e' il bersaglio del clic, immagine compresa: un bersaglio
-        di 128px si centra al primo colpo anche col pollice, il nome sotto no.
+        Tutta la card e' il bersaglio del clic, immagine compresa: si centra al
+        primo colpo anche col pollice. Il passaggio del mouse e il fuoco la
+        mettono sul palco; il clic apre la scheda.
       */}
       <Link
         href={`/${game}/eroi/${hero.id}`}
-        className="group block rounded-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        onMouseEnter={onPeek}
+        onFocus={onPeek}
+        data-active={active || undefined}
+        className="hero-card group block focus-visible:outline-2 focus-visible:outline-offset-2"
       >
-        <figure className="m-0">
+        <span className="hero-card-art relative block">
           {/*
-          Immagine nuda invece di next/image: le card sono grafica di interfaccia
-          a 128px esatti, gia' pronte in due densita'. L'ottimizzatore le
-          ricomprimerebbe senza guadagno, e con `unoptimized` next/image non
-          emette srcSet, quindi la variante 2x andrebbe persa.
-        */}
+            Immagine nuda invece di next/image: le card sono grafica di
+            interfaccia a 128px esatti, gia' pronte in due densita'.
+          */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={heroCardSrc(game, hero.id)}
@@ -383,25 +481,29 @@ function HeroCard({
             height={128}
             loading="lazy"
             decoding="async"
-            className="block w-full rounded-[3px] bg-paper-2 transition duration-150 group-hover:-translate-y-1 group-hover:shadow-[4px_4px_0_var(--color-brand)]"
+            className="block aspect-square w-full bg-paper-2"
           />
-
-          <figcaption className="mt-1.5">
-            <p
-              className="m-0 truncate text-[11px] leading-tight text-ink-3"
-              title={epithet}
-              style={affinity ? { color: affinity.color } : undefined}
-            >
-              {epithet}
-            </p>
-            <p
-              className="m-0 font-display text-[13px] font-black uppercase leading-tight tracking-[0.01em] [font-variation-settings:'wdth'_75] group-hover:text-brand"
-              title={name}
-            >
-              {name}
-            </p>
-          </figcaption>
-        </figure>
+          {owned ? (
+            <span className="hero-card-owned" title={locale === "en" ? "In your box" : "Nel tuo box"}>
+              <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden>
+                <path d="M2 6.4 4.8 9 10 3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square" />
+              </svg>
+              <span className="sr-only">{locale === "en" ? "In your box" : "Nel tuo box"}</span>
+            </span>
+          ) : null}
+        </span>
+        <span className="mt-1.5 block">
+          <span className="block truncate text-[12px] leading-tight text-ink-3" title={epithet}>
+            {epithet}
+          </span>
+          {/* due righe e non una troncata: «Dio supremo Odino» non sta in 100px */}
+          <span
+            className="hero-card-name line-clamp-2 font-display text-[13px] font-black uppercase leading-[1.08] tracking-[0.01em] [font-variation-settings:'wdth'_72]"
+            title={name}
+          >
+            {name}
+          </span>
+        </span>
       </Link>
     </li>
   );

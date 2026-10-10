@@ -94,7 +94,7 @@ export function StatusControls({
 
   return (
     <div>
-      <p className="m-0 mb-3 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+      <p className="m-0 mb-3 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
         {t.stato} {statusLabel(current, locale)}
       </p>
 
@@ -171,7 +171,7 @@ export function VerifiedPatchForm({
         {pending ? t.salvo : t.aggiorna}
       </Button>
 
-      <p className="mt-2 text-[11px] text-ink-3">{t.svuota}</p>
+      <p className="mt-2 text-[12px] text-ink-3">{t.svuota}</p>
     </form>
   );
 }

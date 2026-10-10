@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconChevronRight } from "@/components/icons";
 import { cx, eyebrow } from "@/components/ui";
 import { patchAnchor, type HeroHistoryEntry } from "@/lib/games/changes";
 import type { HeroEntry } from "@/lib/games/types";
@@ -51,8 +52,9 @@ export function HeroChanges({
     <section className="mt-7 border-t border-rule-2 pt-5">
       <div className="mb-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <h2 className={cx(eyebrow, "m-0")}>{t.titolo}</h2>
-        <Link href={`/${game}/cambiamenti`} className="text-[13px] text-ink-3 hover:text-brand">
-          {t.tutti} →
+        <Link href={`/${game}/cambiamenti`} className="inline-flex items-center gap-1 text-[13px] text-ink-3 hover:text-brand-deep">
+          {t.tutti}
+          <IconChevronRight size={14} />
         </Link>
       </div>
       {history.length === 0 ? (
@@ -63,7 +65,7 @@ export function HeroChanges({
             <li key={entry.comparison.to}>
               <Link
                 href={`/${game}/cambiamenti#${patchAnchor(entry.comparison)}`}
-                className="mb-2 inline-block font-display text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink hover:text-brand [font-variation-settings:'wdth'_85]"
+                className="mb-2 inline-block font-display text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink hover:text-brand-deep [font-variation-settings:'wdth'_85]"
               >
                 {t.patchDel(day(entry.comparison.to))}
               </Link>

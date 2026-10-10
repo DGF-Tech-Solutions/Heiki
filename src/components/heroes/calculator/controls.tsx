@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { cx, numeric } from "@/components/ui";
+import { chipClass, cx, numeric } from "@/components/ui";
 
 /**
  * I comandi del calcolatore, tutti nello stile dello slider del livello e del
@@ -32,7 +32,12 @@ export function ChoiceRow<T extends string | number>({
       <legend className="float-left mr-3 p-0 text-ink-2">{legend}</legend>
       <div className="flex flex-wrap items-center gap-1">
         {options.map((option) => (
-          <label key={String(option.value)} className="cursor-pointer" title={option.title}>
+          // il fuoco sull'etichetta: il taglio della lama e' un clip-path e ritaglierebbe il contorno
+          <label
+            key={String(option.value)}
+            className="cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink"
+            title={option.title}
+          >
             <input
               type="radio"
               name={name}
@@ -45,10 +50,10 @@ export function ChoiceRow<T extends string | number>({
             <span className="sr-only">{option.title}</span>
             <span
               aria-hidden
-              className={cx(
-                numeric,
-                "grid h-7 min-w-7 place-items-center rounded-[3px] border px-1.5 text-[12px] peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
-                value === option.value ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3",
+              className={chipClass(
+                value === option.value,
+                true,
+                cx(numeric, "h-8 min-w-8 justify-center px-2 peer-disabled:pointer-events-none peer-disabled:opacity-40"),
               )}
             >
               {option.label}
@@ -119,7 +124,7 @@ export function StarRow({
             <span
               aria-hidden
               className={cx(
-                "grid h-7 min-w-7 place-items-center rounded-[3px] px-1 peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
+                "grid h-7 min-w-7 place-items-center px-1 peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
                 n === 0 &&
                   cx(
                     numeric,
@@ -134,6 +139,125 @@ export function StarRow({
         ))}
       </div>
       {note ? <span className="text-[12px] text-ink-3">{note}</span> : null}
+    </fieldset>
+  );
+}
+
+/**
+ * Il rango della Mossa finale: le sei pietre del gioco (card_frame_special_
+ * jewelry_01..06), accese fino a quella scelta; senza le immagini, i numeri. Le
+ * usano il calcolatore della scheda e il box (10/10).
+ */
+export function UltimateRow({
+  legend,
+  name,
+  value,
+  onChange,
+  gemSrcs,
+  title,
+}: {
+  legend: string;
+  name: string;
+  value: number;
+  onChange: (rank: number) => void;
+  gemSrcs?: readonly string[];
+  title: (rank: number) => string;
+}) {
+  return (
+    <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0">
+      <legend className="float-left mr-3 p-0 text-ink-2">{legend}</legend>
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: 6 }, (_, position) => {
+          const rank = position + 1;
+          return (
+            <label key={rank} className="cursor-pointer" title={title(rank)}>
+              <input type="radio" name={name} checked={value === rank} onChange={() => onChange(rank)} className="peer sr-only" />
+              <span className="sr-only">{title(rank)}</span>
+              <span
+                aria-hidden
+                className={cx(
+                  "grid h-7 w-7 place-items-center border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
+                  value === rank ? "border-brand bg-brand-soft" : "border-transparent",
+                )}
+              >
+                {gemSrcs?.[position] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={gemSrcs[position]}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className={cx("h-5 w-5 object-contain", rank > value && "opacity-30")}
+                  />
+                ) : (
+                  <span className={cx(numeric, "text-[12px]", rank <= value ? "text-ink" : "text-ink-3")}>{rank}</span>
+                )}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/**
+ * I due Vero risveglio (materiali del Re Demone, della Divinita' Suprema): le
+ * sfere del gioco, accese o spente. Calcolatore e box.
+ */
+export function TrueAwakeningRow({
+  legend,
+  value,
+  onChange,
+  srcs,
+  labels,
+  titles,
+}: {
+  legend: string;
+  value: readonly [boolean, boolean];
+  onChange: (value: readonly [boolean, boolean]) => void;
+  srcs?: readonly [string, string];
+  labels: readonly [string, string];
+  titles: readonly [string, string];
+}) {
+  return (
+    <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0">
+      <legend className="float-left mr-3 p-0 text-ink-2">{legend}</legend>
+      <div className="flex flex-wrap items-center gap-2">
+        {([0, 1] as const).map((kind) => {
+          const on = value[kind];
+          const toggle = (next: boolean) => onChange(kind === 0 ? [next, value[1]] : [value[0], next]);
+          return (
+            <label key={kind} className="flex cursor-pointer items-center gap-1.5" title={titles[kind]}>
+              <input
+                type="checkbox"
+                checked={on}
+                onChange={(event) => toggle(event.target.checked)}
+                className={cx("peer accent-[var(--color-brand)]", srcs && "sr-only")}
+              />
+              {srcs ? (
+                <span
+                  aria-hidden
+                  className={cx(
+                    "grid h-9 w-9 place-items-center border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
+                    on ? "border-brand bg-brand-soft" : "border-rule",
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={srcs[kind]}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className={cx("h-8 w-8 object-contain transition-opacity", !on && "opacity-30 grayscale")}
+                  />
+                </span>
+              ) : null}
+              <span className={cx("text-[12px]", on ? "text-ink-2" : "text-ink-3")}>{labels[kind]}</span>
+            </label>
+          );
+        })}
+      </div>
     </fieldset>
   );
 }
@@ -162,7 +286,7 @@ export function RangeField({
 }) {
   return (
     <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
-      <label htmlFor={id} className="text-ink-2">
+      <label id={`${id}-etichetta`} htmlFor={id} className="text-ink-2">
         {label}
       </label>
       <input
@@ -182,11 +306,13 @@ export function RangeField({
           max={max}
           step={step}
           value={value}
-          aria-label={typeof label === "string" ? label : undefined}
+          // la casella del numero prende il nome dall'etichetta dello slider, anche
+          // quando e' un elemento (gli «Effetto bonus», 10/10: erano senza nome)
+          aria-labelledby={`${id}-etichetta`}
           onChange={(event) => {
             if (event.target.value !== "") onChange(Number(event.target.value));
           }}
-          className={cx(numeric, "w-[4.5rem] rounded-[3px] border border-rule bg-paper px-2 py-1 text-right text-ink")}
+          className={cx(numeric, "w-[4.5rem] border border-rule bg-paper px-2 py-1 text-right text-ink")}
         />
         {suffix ? <span className="text-ink-3">{suffix}</span> : null}
         {after}
@@ -210,7 +336,7 @@ export function Panel({ title, children, action }: { title: string; children: Re
 
 export function LinkButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className="text-[12px] font-semibold text-brand hover:underline">
+    <button type="button" onClick={onClick} className="text-[12px] font-semibold text-brand-deep hover:underline">
       {children}
     </button>
   );

@@ -13,6 +13,7 @@
 
 import { createHash, randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { can, type Role } from "@/lib/auth/permissions";
@@ -20,10 +21,15 @@ import { databaseReachable, db } from "@/lib/db";
 import {
   gameAccounts,
   notifications,
+  users,
   powerVerifications,
   verificationScreenshots,
 } from "@/lib/db/schema";
 import { parseSetup, type AccountSetup } from "@/lib/games/account-setup";
+import { notifyModerators } from "@/lib/discord";
+import { boxLimitsFrom, boxToJson, parseBox, type HeroBox } from "@/lib/games/hero-box";
+import { heroEpithet, heroName } from "@/lib/games/heroes";
+import { getGameModule } from "@/lib/games/registry";
 import {
   cleanProfile,
   MAX_REROLLS,
@@ -128,19 +134,31 @@ async function context(): Promise<{ t: Testi; viewer: Viewer | null; error?: str
   return { t, viewer: { id: session.user.id, role: session.user.role } };
 }
 
-/** Quello che arriva dal browser, riletto con le stesse regole con cui il browser lo legge. */
-function readPayload(payload: unknown): { profile: GameAccountProfile; setup: AccountSetup } | null {
+interface AccountPayload {
+  profile: GameAccountProfile;
+  setup: AccountSetup;
+  /** null: il browser non l'ha mandato (una scheda aperta prima del 10/10), il database tiene il suo */
+  box: HeroBox | null;
+}
+
+/**
+ * Quello che arriva dal browser, riletto con le stesse regole con cui il browser
+ * lo legge. Il box tiene solo gli eroi del gioco, ognuno coi suoi tetti.
+ */
+function readPayload(gameSlug: string, payload: unknown): AccountPayload | null {
   if (!payload || typeof payload !== "object") return null;
   const data = payload as Record<string, unknown>;
   const setup = parseSetup(JSON.stringify(data.setup ?? null));
-  return { profile: cleanProfile(data.profile), setup: { ...setup, power: Math.min(setup.power, POWER_MAX) } };
+  const stats = getGameModule(gameSlug)?.heroStats;
+  const box = data.box === undefined ? null : parseBox(data.box, stats ? boxLimitsFrom(stats) : undefined);
+  return { profile: cleanProfile(data.profile), setup: { ...setup, power: Math.min(setup.power, POWER_MAX) }, box };
 }
 
 /** Crea o aggiorna l'account di gioco dell'utente per questo gioco. */
 async function upsertAccount(
   userId: string,
   gameId: string,
-  data: { profile: GameAccountProfile; setup: AccountSetup },
+  data: AccountPayload,
 ): Promise<ServerAccountCopy> {
   const now = new Date();
   const values = {
@@ -149,6 +167,7 @@ async function upsertAccount(
     nickname: data.profile.nickname || null,
     accountPower: data.setup.power > 0 ? data.setup.power : null,
     setup: data.setup as unknown as Record<string, unknown>,
+    ...(data.box ? { box: boxToJson(data.box) as unknown as Record<string, unknown> } : {}),
     updatedAt: now,
   };
   const existing = await findGameAccount(userId, gameId);
@@ -176,7 +195,7 @@ export async function saveGameAccountAction(gameSlug: string, payload: unknown):
 
   const gameId = await gameIdBySlug(gameSlug);
   if (!gameId) return { ok: false, error: t.giocoSconosciuto };
-  const data = readPayload(payload);
+  const data = readPayload(gameSlug, payload);
   if (!data) return { ok: false, error: t.datiNonValidi };
 
   const copy = await upsertAccount(viewer.id, gameId, data);
@@ -197,7 +216,7 @@ export async function requestChallengeAction(gameSlug: string, payload: unknown)
 
   const gameId = await gameIdBySlug(gameSlug);
   if (!gameId) return { ok: false, error: t.giocoSconosciuto };
-  const data = readPayload(payload);
+  const data = readPayload(gameSlug, payload);
   if (!data) return { ok: false, error: t.datiNonValidi };
   if (data.setup.power <= 0) return { ok: false, error: t.serveClasse };
 
@@ -322,6 +341,23 @@ export async function submitScreenshotAction(formData: FormData): Promise<Verifi
       .insert(verificationScreenshots)
       .values({ verificationId: current.id, mime, bytes })
       .onConflictDoUpdate({ target: verificationScreenshots.verificationId, set: { mime, bytes } });
+  });
+
+  // L'avviso ai moderatori su Discord, dopo la risposta: chi carica non aspetta
+  // Discord, e se Discord non risponde la schermata e' comunque in coda
+  const heroId = current.challengeHeroId;
+  after(async () => {
+    const who = await db.query.users.findFirst({ where: eq(users.id, viewer.id), columns: { username: true } });
+    const hero = getGameModule(gameSlug)?.roster?.heroes.find((h) => h.id === heroId);
+    await notifyModerators({
+      title: "Nuova schermata da verificare",
+      path: "/moderazione",
+      fields: [
+        { name: "Utente", value: who?.username ?? "?" },
+        { name: "Classe dichiarata", value: power.toLocaleString("it-IT") },
+        { name: "Eroe del giorno", value: hero ? `${heroName(hero, "it")} · ${heroEpithet(hero, "it")}` : heroId },
+      ],
+    });
   });
 
   revalidatePath("/moderazione");

@@ -16,6 +16,7 @@ import { voteAction } from "@/lib/community/actions";
 import type { Vote } from "@/lib/community/types";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
+import { IconChevronRight } from "../icons";
 import { cx, numeric } from "../ui";
 
 const TESTI = testi({
@@ -31,9 +32,10 @@ interface Props {
   compact?: boolean;
 }
 
+// 32px e non 20: la freccia si preme anche col pollice (10/10)
 const ARROW =
-  "grid place-items-center rounded-[2px] text-[10px] text-ink-3 transition-colors " +
-  "hover:bg-paper-2 hover:text-ink cursor-pointer";
+  "grid place-items-center border-0 bg-transparent p-0 text-ink-3 transition-colors " +
+  "hover:bg-ink hover:text-paper cursor-pointer";
 
 export function VoteControl({ targetType, targetId, score, myVote, compact = false }: Props) {
   const t = TESTI[useLocale()];
@@ -58,7 +60,7 @@ export function VoteControl({ targetType, targetId, score, myVote, compact = fal
     });
   }
 
-  const size = compact ? "h-4 w-6" : "h-5 w-7";
+  const size = compact ? "h-7 w-7" : "h-8 w-8";
 
   return (
     <div className="flex flex-none flex-col items-center gap-0.5 pt-0.5">
@@ -69,7 +71,7 @@ export function VoteControl({ targetType, targetId, score, myVote, compact = fal
         aria-pressed={vote === 1}
         onClick={() => cast(1)}
       >
-        ▲
+        <IconChevronRight size={compact ? 14 : 16} strokeWidth={3} className="-rotate-90" />
       </button>
 
       <span
@@ -90,7 +92,7 @@ export function VoteControl({ targetType, targetId, score, myVote, compact = fal
         aria-pressed={vote === -1}
         onClick={() => cast(-1)}
       >
-        ▼
+        <IconChevronRight size={compact ? 14 : 16} strokeWidth={3} className="rotate-90" />
       </button>
     </div>
   );

@@ -3,6 +3,7 @@ import { AccountSync } from "@/components/game-account/account-sync";
 import { GameMenu } from "@/components/game-menu";
 import { GameSwitcher } from "@/components/game-nav";
 import { GameSidebar } from "@/components/game-sidebar";
+import { MobileBar } from "@/components/mobile-bar";
 import { auth } from "@/lib/auth";
 import { accountCopy } from "@/lib/game-account/server";
 import { findGame, gameGroups, isPlayable } from "@/lib/games/catalog";
@@ -56,12 +57,19 @@ export default async function GameLayout({
         al contenuto, che qui sono griglie di card e schede fitte di dati.
       */}
       <div className="mx-auto grid w-full max-w-shell items-start gap-9 px-6 lg:grid-cols-[minmax(0,210px)_minmax(0,1fr)]">
-        <aside className="hidden pt-6 lg:sticky lg:top-[110px] lg:block">
+        {/*
+          Ferma sotto l'intestazione (61px) e alta al massimo quanto lo schermo,
+          con lo scorrimento suo: prima era ferma a 110px e alta ~900, e su uno
+          schermo da 900 le ultime voci non si vedevano mai (10/10).
+        */}
+        <aside className="hidden pt-6 lg:sticky lg:top-[61px] lg:block lg:max-h-[calc(100dvh-61px)] lg:overflow-x-hidden lg:overflow-y-auto lg:pr-2 lg:pb-6 lg:[scrollbar-color:var(--color-rule)_transparent] lg:[scrollbar-width:thin]">
           <GameSidebar game={game} groups={groups} />
         </aside>
 
-        <div className="min-w-0">{children}</div>
+        {/* sul telefono la barra in basso: lo spazio sotto il contenuto e' suo */}
+        <div className="min-w-0 max-lg:pb-16">{children}</div>
       </div>
+      <MobileBar game={game} hasReleases={Boolean(getGameModule(game)?.releases)} />
     </>
   );
 }

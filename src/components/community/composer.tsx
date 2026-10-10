@@ -56,7 +56,7 @@ export function Composer({ game, defaultHub }: { game: string; defaultHub: strin
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full cursor-pointer items-center gap-3.5 rounded-card border border-rule bg-paper px-3.5 py-3 text-left transition-colors hover:border-brand"
+        className="p5-corner flex w-full cursor-pointer items-center gap-3.5 border border-rule bg-paper-2 px-3.5 py-3 text-left transition-colors hover:border-brand"
       >
         <span className="flex-1 text-sm text-ink-3">{t.invito}</span>
         <span className={buttonClass("primary", "sm")} aria-hidden>
@@ -67,7 +67,7 @@ export function Composer({ game, defaultHub }: { game: string; defaultHub: strin
   }
 
   return (
-    <form action={action} className="rounded-card border border-brand bg-paper p-5">
+    <form action={action} className="p5-corner border border-brand bg-paper-2 p-5">
       <input type="hidden" name="game" value={game} />
       {state.error ? (
         <Notice tone="error" className="mb-3.5">

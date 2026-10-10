@@ -18,6 +18,7 @@ import {
   DEFAULT_CUSTOMIZATION,
   type ProfileCustomization,
 } from "@/lib/profile/customization";
+import { IconHeart } from "./icons";
 import { cx, display, Empty, eyebrow, numeric, SectionHead, Stat, StatGrid, Tag } from "./ui";
 
 export type BadgeTrust = "VERIFIED" | "IMPORTED" | "DECLARED";
@@ -211,13 +212,13 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
 
         <div className="ml-auto text-right">
           <span className={eyebrow}>{t.livello(progress.level)}</span>
-          <span className="mt-1.5 block h-1.5 w-[170px] overflow-hidden rounded-full bg-paper-3">
+          <span className="mt-1.5 block h-1.5 w-[170px] overflow-hidden bg-paper-3">
             <span
               className="block h-full"
               style={{ width: `${Math.round(progress.ratio * 100)}%`, background: "var(--accent)" }}
             />
           </span>
-          <span className={cx(numeric, "text-[11px] text-ink-3")}>
+          <span className={cx(numeric, "text-[12px] text-ink-3")}>
             {progress.maxed
               ? t.livelloMassimo
               : t.alProssimo(data.xp.toLocaleString(numberLocale), progress.needed - progress.current)}
@@ -229,7 +230,7 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
         <p
           className={cx(
             "mt-6 whitespace-pre-line text-ink-2",
-            editorial ? "max-w-[72ch] text-lg" : "max-w-[62ch] text-base",
+            editorial ? "max-w-[72ch] text-lg" : "max-w-[48ch] text-base",
           )}
         >
           {data.bio}
@@ -253,11 +254,11 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
                 className="flex items-center gap-2.5 rounded-card border border-rule bg-paper py-2 pr-3 pl-2.5"
               >
                 <span
-                  className="grid size-6.5 flex-none place-items-center rounded-sm text-[13px] text-white"
+                  className="grid size-6.5 flex-none place-items-center text-white"
                   style={{ background: "var(--accent)" }}
                   aria-hidden
                 >
-                  ♥
+                  <IconHeart size={13} />
                 </span>
                 <span className="text-[13px] font-semibold">{name}</span>
               </li>
@@ -289,7 +290,7 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
                 >
                   <span
                     className={cx(
-                      "grid size-6.5 flex-none place-items-center rounded-sm text-[13px]",
+                      "grid size-6.5 flex-none place-items-center text-[13px]",
                       isVerified ? "text-white" : "bg-paper-3 text-ink-3",
                     )}
                     style={isVerified ? { background: "var(--accent)" } : undefined}
@@ -303,7 +304,7 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
                     </span>
                     <span
                       className={cx(
-                        "font-mono text-[9px] uppercase tracking-[0.09em]",
+                        "font-mono text-[11px] uppercase tracking-[0.09em]",
                         isVerified ? "font-medium text-[var(--accent)]" : "text-ink-3",
                       )}
                     >
@@ -376,7 +377,7 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
                 </p>
                 <p className={cx(numeric, "m-0 mt-3 text-xl font-medium tracking-[-0.02em]")}>
                   {Math.round(build.median).toLocaleString(numberLocale)}
-                  <span className="ml-1.5 font-mono text-[10px] font-normal tracking-normal text-ink-3 uppercase">
+                  <span className="ml-1.5 font-mono text-[11px] font-normal tracking-normal text-ink-3 uppercase">
                     {t.mediana}
                   </span>
                 </p>

@@ -6,6 +6,7 @@ import { EndgameCard } from "@/components/endgame/endgame-card";
 import {
   Amounts,
   AttributeIcon,
+  AttributeLabel,
   DifficultyLinks,
   DropNote,
   DropTable,
@@ -13,16 +14,21 @@ import {
   FoeCard,
   HeroGrid,
   ItemLabel,
+  LevelCell,
   PartTitle,
   PassiveList,
   RaceLabel,
+  RankStars,
   Said,
+  SectionTitle,
+  Summary,
   endgameScope,
   say,
   sayPlain,
   type EndgameScope,
 } from "@/components/endgame/endgame-parts";
-import { cx, display, eyebrow, numeric, Tag } from "@/components/ui";
+import { EndgameStage, StageBadge } from "@/components/endgame/endgame-stage";
+import { cx, eyebrow, HowItWorks, Notice, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { chosenLevel, endgameImageSrc, formatNumber, levelHref, type PageSearchParams } from "@/lib/games/endgame";
 import type { DeathMatchBoss, DeathMatchDifficulty, DeathMatchIndex } from "@/lib/games/endgame-types";
@@ -46,13 +52,14 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (boss: string, gioco: string) => `${boss} · Scontri finali di ${gioco} · GachaZone`,
+    titoloPagina: (boss: string, gioco: string) => `${boss} · Scontri finali di ${gioco}`,
     descrizione: (boss: string) =>
       `${boss}, Scontro finale: difficoltà, fasi, abilità, restrizioni della squadra e ricompense con le probabilità.`,
     sezione: "Scontri finali",
-    stelle: (n: number) => `Battaglie boss ${n}☆`,
+    stelle: "Battaglie boss",
+    stelleN: (n: number) => (n === 1 ? "1 stella" : `${n} stelle`),
     stelleSpiega: (n: number) =>
-      `Compare vincendo le Battaglie boss ${n}☆ del capitolo: ognuna alza il «Tasso scontro finale», e al 100% il boss invade il villaggio.`,
+      `Compare vincendo le Battaglie boss a ${n} ${n === 1 ? "stella" : "stelle"} del capitolo: ognuna alza il «Tasso scontro finale», e al 100% il boss invade il villaggio.`,
     loBatte: "Lo batte",
     loBatteSpiega:
       "L'attributo che batte il boss nel triangolo del gioco (Velocità batte Forza, Forza batte PS, PS batte Velocità). Il client non lo scrive per il boss: lo calcola.",
@@ -62,6 +69,7 @@ const TESTI = testi({
     avviso: "Attenzione",
     stima: "Le statistiche del boss sono stimate: il client non le scrive.",
     difficolta: "Difficoltà",
+    difficoltaSezione: "Difficoltà",
     livello: "Livello",
     energia: "Energia",
     potenza: "Potenza consigliata",
@@ -87,17 +95,21 @@ const TESTI = testi({
     costumi: "Costumi set",
     costumiEroi: (n: number) => (n === 1 ? "1 eroe" : `${n} eroi`),
     altri: "Gli altri Scontri finali",
-    stelleBreve: (n: number) => `${n}☆`,
+    datiDa: "Da dove vengono i dati",
+    vicini: "Gli altri boss",
+    precedente: (nome: string) => `Boss precedente: ${nome}`,
+    successivo: (nome: string) => `Boss successivo: ${nome}`,
     diritti: (editore: string) => `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (boss: string, gioco: string) => `${boss} · ${gioco} Death Match · GachaZone`,
+    titoloPagina: (boss: string, gioco: string) => `${boss} · ${gioco} Death Match`,
     descrizione: (boss: string) =>
       `${boss}, Death Match: difficulties, phases, skills, team restrictions and rewards with their chances.`,
     sezione: "Death Match",
-    stelle: (n: number) => `${n}☆ Boss Battles`,
+    stelle: "Boss Battles",
+    stelleN: (n: number) => (n === 1 ? "1 star" : `${n} stars`),
     stelleSpiega: (n: number) =>
-      `Appears by winning the chapter's ${n}☆ Boss Battles: each one raises the Death Match Rate, and at 100% the boss invades the village.`,
+      `Appears by winning the chapter's ${n}-star Boss Battles: each one raises the Death Match Rate, and at 100% the boss invades the village.`,
     loBatte: "Beaten by",
     loBatteSpiega:
       "The attribute that beats the boss in the game's triangle (Speed beats Strength, Strength beats HP, HP beats Speed). The client does not store it for the boss: it computes it.",
@@ -107,6 +119,7 @@ const TESTI = testi({
     avviso: "Warning",
     stima: "The boss's stats are estimated: the client does not store them.",
     difficolta: "Difficulty",
+    difficoltaSezione: "Difficulties",
     livello: "Level",
     energia: "Stamina",
     potenza: "Recommended power",
@@ -132,7 +145,10 @@ const TESTI = testi({
     costumi: "Costume sets",
     costumiEroi: (n: number) => (n === 1 ? "1 hero" : `${n} heroes`),
     altri: "The other Death Matches",
-    stelleBreve: (n: number) => `${n}☆`,
+    datiDa: "Where the data comes from",
+    vicini: "The other bosses",
+    precedente: (nome: string) => `Previous boss: ${nome}`,
+    successivo: (nome: string) => `Next boss: ${nome}`,
     diritti: (editore: string) => `Images and names belong to ${editore} and are here for reference.`,
   },
 });
@@ -181,6 +197,13 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
   const chosen = boss.difficulties[current];
   const name = sayPlain(boss.name, scope);
 
+  // il boss prima e dopo nell'ordine dell'indice, a giro: si scorrono come le schede eroe
+  const position = data.bosses.findIndex((candidate) => candidate.key === boss.key);
+  const neighbour = (step: number) => data.bosses[(position + step + data.bosses.length) % data.bosses.length];
+  const prev = data.bosses.length > 1 ? neighbour(-1) : undefined;
+  const next = data.bosses.length > 1 ? neighbour(1) : undefined;
+  const levelLink = (level: number) => levelHref(query, LEVEL_PARAM, level, "difficolta");
+
   return (
     <main className="pt-6 pb-20">
       <Breadcrumb
@@ -191,65 +214,97 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
         ]}
       />
 
-      <header className="mb-6 grid gap-5 border-b border-rule pb-6 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
-        {boss.image ? (
+      {/*
+        Il cut-in grande sul palco: e' il pezzo forte della pagina (10/10). La
+        scheda color seppia resta in testa, accanto ai fatti; senza cut-in sale
+        lei sul palco.
+      */}
+      <EndgameStage
+        title={name}
+        word={name}
+        mode="cutout"
+        image={
+          boss.cutIn
+            ? { src: endgameImageSrc(game, `scontri/${boss.key}-cutin.png`), width: 512, height: 512 }
+            : boss.image
+              ? { src: endgameImageSrc(game, `scontri/${boss.key}.png`), width: 512, height: 512 }
+              : null
+        }
+        navLabel={t.vicini}
+        prev={prev ? { href: `/${game}/scontri-finali/${prev.key}`, label: t.precedente(sayPlain(prev.name, scope)) } : null}
+        next={next ? { href: `/${game}/scontri-finali/${next.key}`, label: t.successivo(sayPlain(next.name, scope)) } : null}
+      >
+        <StageBadge title={t.stelleSpiega(boss.stars)}>
+          {t.stelle}
+          <RankStars rank={boss.stars} scope={scope} label={t.stelleN(boss.stars)} />
+        </StageBadge>
+        {boss.attribute !== null ? (
+          <StageBadge>
+            <AttributeLabel code={boss.attribute} scope={scope} />
+          </StageBadge>
+        ) : null}
+        {boss.race !== null ? (
+          <StageBadge>
+            <RaceLabel code={boss.race} scope={scope} />
+          </StageBadge>
+        ) : null}
+        {boss.advantage ? (
+          <StageBadge title={t.loBatteSpiega}>
+            <span className="text-ink-3">{t.loBatte}</span>
+            <AttributeLabel code={boss.advantage} scope={scope} />
+          </StageBadge>
+        ) : null}
+      </EndgameStage>
+
+      <div className="mb-14 grid grid-cols-[96px_minmax(0,1fr)] gap-x-5 gap-y-4 sm:grid-cols-[168px_minmax(0,1fr)] sm:gap-x-6">
+        {boss.image && boss.cutIn ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={endgameImageSrc(game, `scontri/${boss.key}.png`)}
             alt=""
-            width={220}
-            height={220}
-            className="h-auto w-full max-w-[220px] rounded-card bg-paper-2"
+            width={168}
+            height={168}
+            className="p5-corner h-auto w-full bg-paper-2"
           />
-        ) : null}
-        <div className="min-w-0">
-          <p className={cx(eyebrow, "m-0")}>
-            <span title={t.stelleSpiega(boss.stars)} className="cursor-help">
-              {t.stelle(boss.stars)}
-            </span>
-          </p>
-          <h1 className={cx(display, "mt-2 text-[clamp(24px,3.4vw,34px)]")}>{name}</h1>
-          <p className="m-0 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <AttributeIcon code={boss.attribute} scope={scope} size={20} />
-            <RaceLabel code={boss.race} scope={scope} />
-            {boss.advantage ? (
-              <span className="inline-flex items-center gap-1 text-[12px] text-ink-2" title={t.loBatteSpiega}>
-                <span className="text-ink-3">{t.loBatte}</span>
-                <AttributeIcon code={boss.advantage} scope={scope} size={18} />
-              </span>
-            ) : null}
-          </p>
-
-          <div className="mt-3">
-            <Facts
-              rows={[
-                regionNames.length > 0 && [t.regioni, regionNames.join(" · ")],
-                boss.material !== null && [t.materiale, <ItemLabel key="m" id={boss.material} scope={scope} />],
-                boss.repulse.length > 0 && [t.mammaHawk, <Repulse key="r" boss={boss} scope={scope} />],
-              ]}
-            />
-          </div>
-
-          {boss.guide.length > 0 ? (
-            <div className="mt-3 grid gap-1.5 text-[13px] text-ink-2">
-              {boss.guide.map((line, index) => (
-                <Said key={index} value={line} scope={scope} />
-              ))}
-            </div>
-          ) : null}
-
-          {boss.warnings.map((warning, index) => (
-            <div key={index} className="mt-3 rounded-card border border-hot bg-hot-soft p-3 text-[13px] text-ink-2">
-              <Tag className="mr-2">{t.avviso}</Tag>
-              {say(warning, scope)}
-            </div>
-          ))}
-          <p className="m-0 mt-3 text-[12px] text-ink-3">{t.stima}</p>
+        ) : (
+          <span aria-hidden />
+        )}
+        <div className="min-w-0 self-center">
+          <Facts
+            rows={[
+              regionNames.length > 0 && [t.regioni, regionNames.join(" · ")],
+              boss.material !== null && [t.materiale, <ItemLabel key="m" id={boss.material} scope={scope} />],
+              boss.repulse.length > 0 && [t.mammaHawk, <Repulse key="r" boss={boss} scope={scope} />],
+            ]}
+          />
         </div>
-      </header>
+
+        {boss.guide.length > 0 || boss.warnings.length > 0 ? (
+          <div className="col-span-2 grid max-w-[80ch] gap-3">
+            {boss.guide.length > 0 ? (
+              <div className="grid gap-1.5 text-[14px] leading-relaxed text-ink-2">
+                {boss.guide.map((line, index) => (
+                  <Said key={index} value={line} scope={scope} />
+                ))}
+              </div>
+            ) : null}
+            {boss.warnings.map((warning, index) => (
+              <Notice key={index} tone="warn">
+                <span>
+                  <Tag tone="gold" className="mr-2">
+                    {t.avviso}
+                  </Tag>
+                  {say(warning, scope)}
+                </span>
+              </Notice>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       <section id="difficolta" className="scroll-mt-20">
-        <LevelsTable boss={boss} scope={scope} t={t} />
+        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
+        <LevelsTable boss={boss} scope={scope} t={t} current={current} href={levelLink} />
         <div className="mt-6">
           <DifficultyLinks
             legend={t.scegli}
@@ -257,11 +312,11 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
             tabs={boss.difficulties.map((level) => ({
               label: say(level.name, scope),
               color: level.color,
-              href: levelHref(query, LEVEL_PARAM, level.level, "difficolta"),
+              href: levelLink(level.level),
             }))}
           />
           {chosen ? (
-            <div className="mt-4">
+            <div className="mt-6">
               <LevelPanel level={chosen} data={data} scope={scope} t={t} />
             </div>
           ) : null}
@@ -281,7 +336,7 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
         })()}
       />
 
-      <section className="mt-10 border-t border-rule pt-6">
+      <section className="mt-14 border-t border-rule pt-8">
         <PartTitle>{t.altri}</PartTitle>
         <ul className="m-0 grid list-none gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {data.bosses.map((other) => (
@@ -289,7 +344,7 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
               <EndgameCard
                 href={`/${game}/scontri-finali/${other.key}`}
                 image={other.icon ? endgameImageSrc(game, `scontri/${other.key}-icona.png`) : null}
-                kicker={t.stelleBreve(other.stars)}
+                stamp={<RankStars rank={other.stars} scope={scope} label={t.stelleN(other.stars)} />}
                 title={sayPlain(other.name, scope)}
                 compact
                 current={other.key === boss.key}
@@ -299,10 +354,14 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
         </ul>
       </section>
 
-      <div className="mt-8 grid gap-1 border-t border-rule-2 pt-4">
+      {/* il metodo in fondo, chiuso: le stime, le stelle, le probabilita' (10/10) */}
+      <HowItWorks summary={t.datiDa} className="mt-12">
+        <p>{t.stima}</p>
+        <p>{t.stelleSpiega(boss.stars)}</p>
+        {boss.advantage ? <p>{t.loBatteSpiega}</p> : null}
         <DropNote scope={scope} />
-        <p className="m-0 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
-      </div>
+      </HowItWorks>
+      <p className="m-0 mt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
     </main>
   );
 }
@@ -327,24 +386,41 @@ function Repulse({ boss, scope }: { boss: DeathMatchBoss; scope: EndgameScope })
   );
 }
 
-/** Le difficolta' a confronto, in una tabella: si legge prima di scegliere il pulsante. */
-function LevelsTable({ boss, scope, t }: { boss: DeathMatchBoss; scope: EndgameScope; t: T }) {
+/**
+ * Le difficolta' a confronto, in una tabella: si legge prima di scegliere il
+ * pulsante, e il nome di ogni riga porta gia' alla difficolta'.
+ */
+function LevelsTable({
+  boss,
+  scope,
+  t,
+  current,
+  href,
+}: {
+  boss: DeathMatchBoss;
+  scope: EndgameScope;
+  t: T;
+  current: number;
+  href: (level: number) => string;
+}) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] border-collapse text-[13px]">
         <thead>
           <tr className="border-b border-rule text-left">
             {[t.difficolta, t.livello, t.energia, t.potenza, t.fasi, t.squadra, t.sblocco].map((head) => (
-              <th key={head} className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>
+              <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
                 {head}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {boss.difficulties.map((level) => (
-            <tr key={level.level} className="border-b border-rule-2">
-              <td className="py-1.5 pr-3 font-semibold">{say(level.name, scope)}</td>
+          {boss.difficulties.map((level, index) => (
+            <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
+              <td className="py-0.5 pr-3 pl-2">
+                <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
+              </td>
               <td className={cx(numeric, "py-1.5 pr-3")}>{level.bossLevel}</td>
               <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
               <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
@@ -392,7 +468,7 @@ function LevelPanel({
   t: T;
 }) {
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-10">
       <div className="grid gap-3 xl:grid-cols-2">
         {level.phases.map((phase, index) => (
           <FoeCard key={index} foe={phase.foe} scope={scope} heading={t.fase(index + 1)} />
@@ -441,7 +517,7 @@ function BossExtras({
 }) {
   if (!boss.aiTeam && !boss.artifactSet && boss.costumeSets.length === 0) return null;
   return (
-    <div className="mt-8 grid gap-5 border-t border-rule pt-6 lg:grid-cols-2">
+    <div className="mt-14 grid gap-x-6 gap-y-10 border-t border-rule pt-10 lg:grid-cols-2">
       {boss.aiTeam ? (
         <div className="min-w-0">
           <PartTitle>
@@ -459,7 +535,7 @@ function BossExtras({
           <PartTitle>
             {t.setArtefatti}:{" "}
             {setHref ? (
-              <Link href={setHref} className="text-brand underline-offset-2 hover:underline">
+              <Link href={setHref} className="text-brand-deep underline-offset-2 hover:underline">
                 {sayPlain(boss.artifactSet.name, scope)}
               </Link>
             ) : (
@@ -481,14 +557,12 @@ function BossExtras({
           <PartTitle>{t.costumi}</PartTitle>
           <ul className="m-0 grid list-none gap-3 p-0 lg:grid-cols-2">
             {boss.costumeSets.map((set, index) => (
-              <li key={index} className="min-w-0 rounded-card border border-rule p-3">
+              <li key={index} className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
                 <p className="m-0 text-[13px] font-semibold">{sayPlain(set.name, scope)}</p>
                 <Said value={set.effect} scope={scope} className="mt-1 text-[13px] text-ink-2 [&>p]:m-0" />
                 {set.heroes.length > 0 ? (
                   <details className="mt-2">
-                    <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-brand">
-                      {t.costumiEroi(set.heroes.length)}
-                    </summary>
+                    <Summary>{t.costumiEroi(set.heroes.length)}</Summary>
                     <div className="mt-2">
                       <HeroGrid ids={set.heroes} scope={scope} />
                     </div>

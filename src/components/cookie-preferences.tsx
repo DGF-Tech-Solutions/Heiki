@@ -78,7 +78,7 @@ export function CookiePreferences() {
         </Button>
       </div>
 
-      {saved ? <p className="m-0 mt-2.5 text-[11px] text-ink-3">{t.sceltaAggiornata}</p> : null}
+      {saved ? <p className="m-0 mt-2.5 text-[12px] text-ink-3">{t.sceltaAggiornata}</p> : null}
     </div>
   );
 }

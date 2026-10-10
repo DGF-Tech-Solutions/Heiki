@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { hasIcon } from "@/components/heroes/hero-parts";
 import { TeamBuilder } from "@/components/team-builder/team-builder";
 import type { BuilderData, BuilderHero } from "@/components/team-builder/team-labels";
-import { cx, display, eyebrow } from "@/components/ui";
+import { HowItWorks, PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { searchText } from "@/lib/games/hero-terms";
@@ -36,7 +36,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Squadra di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Squadra di ${gioco}`,
     descrizione: (gioco: string) =>
       `${gioco}: forma una squadra e guarda come si influenzano gli eroi con le Uniche, le Reliquie sacre e le abilità speciali, e chi si incastra meglio.`,
     titolo: "Squadra",
@@ -55,7 +55,7 @@ const TESTI = testi({
       "Le frasi sono quelle del gioco; dove la frase italiana non si appaia a quella inglese si legge l'inglese. «Alleati» comprende l'eroe stesso, salvo dove la frase dice il contrario.",
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Team Builder · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Team Builder`,
     descrizione: (gioco: string) =>
       `${gioco}: build a team and see how the heroes affect each other with their Uniques, Holy Relics and special abilities, and who fits best.`,
     titolo: "Team Builder",
@@ -171,22 +171,20 @@ export default async function TeamPage({ params, searchParams }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{entry.shortName}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione}</p>
-      </header>
+      {/* il titolo e cosa fa la pagina; poi subito la squadra, e il metodo in fondo, chiuso (10/10) */}
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione}</p>
+      </PageHeader>
 
       <TeamBuilder data={data} initial={initial} />
 
-      <section className="mt-12 max-w-[72ch] border-t border-rule pt-5 text-sm text-ink-2">
-        <h2 className={cx(eyebrow, "m-0")}>{t.comeFunziona}</h2>
-        <p className="mt-2.5">{t.lettura}</p>
-        <p className="mt-2">{t.suggerimenti}</p>
-        <p className="mt-2">{t.panchina}</p>
-        <p className="mt-2">{t.speciali}</p>
-        <p className="mt-2">{t.frasi}</p>
-      </section>
+      <HowItWorks summary={t.comeFunziona} className="mt-12 max-w-[1100px]">
+        <p>{t.lettura}</p>
+        <p>{t.suggerimenti}</p>
+        <p>{t.panchina}</p>
+        <p>{t.speciali}</p>
+        <p>{t.frasi}</p>
+      </HowItWorks>
     </main>
   );
 }

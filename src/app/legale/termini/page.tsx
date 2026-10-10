@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { cx, display, eyebrow, Notice } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 /** Un blocco JSX intero per lingua: vedi la nota nella pagina privacy. */
 const TESTI = testi({
   it: {
-    titoloPagina: "Termini di servizio · GachaZone",
+    titoloPagina: "Termini di servizio",
     descrizione: "Regole d'uso di GachaZone, contenuti degli utenti, acquisti e diritto di recesso.",
     Documento: TerminiIt,
   },
   en: {
-    titoloPagina: "Terms of service · GachaZone",
+    titoloPagina: "Terms of service",
     descrizione: "GachaZone's rules of use, user content, purchases and right of withdrawal.",
     Documento: TerminiEn,
   },
@@ -30,10 +30,7 @@ export default async function TermsPage() {
 function TerminiIt() {
   return (
     <>
-      <p className={eyebrow}>Condizioni</p>
-      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>
-        Termini di servizio
-      </h1>
+      <PageHeader title="Termini di servizio" />
 
       <Notice className="mb-8">
         <span>
@@ -120,10 +117,7 @@ function TerminiIt() {
 function TerminiEn() {
   return (
     <>
-      <p className={eyebrow}>Conditions</p>
-      <h1 className={cx(display, "mt-3 mb-6 text-[clamp(28px,4.4vw,42px)]")}>
-        Terms of service
-      </h1>
+      <PageHeader title="Terms of service" />
 
       <Notice className="mb-8">
         <span>

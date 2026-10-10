@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { cx, numeric } from "@/components/ui";
 import type { GearIndex } from "@/lib/games/gear-types";
 import {
@@ -126,7 +126,7 @@ export function GearPanel({
             aria-pressed={preset === p.key}
             onClick={() => onChange(presetBuild(gear, p))}
             className={cx(
-              "rounded-[3px] border px-2.5 py-1 text-[12px]",
+              "border px-2.5 py-1 text-[12px]",
               preset === p.key ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-2 hover:text-ink",
             )}
           >
@@ -139,7 +139,7 @@ export function GearPanel({
           title={t.nessunoTitolo}
           onClick={() => onChange(gear.parts.map(() => null))}
           className={cx(
-            "rounded-[3px] border px-2.5 py-1 text-[12px]",
+            "border px-2.5 py-1 text-[12px]",
             pieces.every((piece) => piece === null) ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3 hover:text-ink",
           )}
         >
@@ -161,7 +161,7 @@ export function GearPanel({
               aria-pressed={active}
               onClick={() => setSelected(part.part)}
               className={cx(
-                "grid w-full justify-items-center gap-1 rounded-[4px] p-1 text-center",
+                "grid w-full justify-items-center gap-1 p-1 text-center",
                 active ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3",
               )}
             >
@@ -181,7 +181,7 @@ export function GearPanel({
               ) : (
                 <EmptySlot game={game} part={part.part} has={gear.slotImages.includes(part.part)} label={t.slotVuoto(name)} />
               )}
-              <span className="text-[11px] leading-tight text-ink-2">{name}</span>
+              <span className="text-[12px] leading-tight text-ink-2">{name}</span>
             </button>
           );
         })}
@@ -222,7 +222,7 @@ function EmptySlot({ game, part, has, label }: { game: string; part: number; has
       role="img"
       aria-label={label}
       title={label}
-      className="grid h-[72px] w-[72px] place-items-center rounded-[6px] border border-dashed border-rule bg-paper"
+      className="grid h-[72px] w-[72px] place-items-center border border-dashed border-rule bg-paper"
     >
       {has ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -250,7 +250,8 @@ function PieceEditor({
   locale: Locale;
 }) {
   const t = TESTI[locale];
-  const id = useId();
+  // id fissi, non useId(): vedi stat-calculator.tsx
+  const id = `calc-pezzo-${part}`;
   const info = gear.parts.find((p) => p.part === part)!;
   const partName = inLingua(info.name, locale) ?? String(part);
   const sets = [...gear.sets].sort((a, b) => Number(b.obtainable) - Number(a.obtainable));
@@ -265,7 +266,7 @@ function PieceEditor({
           title={s.obtainable ? undefined : t.nonOttenibile}
           onClick={() => pick(s.id)}
           className={cx(
-            "inline-flex items-center gap-1 rounded-[3px] border py-0.5 pr-2 pl-1 text-[12px]",
+            "inline-flex items-center gap-1 border py-0.5 pr-2 pl-1 text-[12px]",
             value === s.id ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-2 hover:text-ink",
             !s.obtainable && "border-dashed opacity-70",
           )}
@@ -394,7 +395,7 @@ function PieceEditor({
                   const ratio = (roll.value - option.min) / (option.max - option.min || 1);
                   setOption({ id: next.id, value: next.min + (next.max - next.min) * ratio });
                 }}
-                className="w-full min-w-0 rounded-[3px] border border-rule bg-paper px-2 py-1 text-ink"
+                className="w-full min-w-0 border border-rule bg-paper px-2 py-1 text-ink"
               >
                 {options.map((o) => (
                   <option key={o.id} value={o.id}>
@@ -411,7 +412,7 @@ function PieceEditor({
                 value={roll.value}
                 suffix="%"
                 onChange={(value) => setOption({ id: option.id, value })}
-                after={roll.value >= option.max ? <span className="text-[11px] font-semibold text-gold">MAX</span> : null}
+                after={roll.value >= option.max ? <span className="text-[12px] font-semibold text-gold">MAX</span> : null}
               />
             </div>
           );

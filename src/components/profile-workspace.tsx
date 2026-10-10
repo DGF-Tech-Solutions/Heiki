@@ -149,7 +149,7 @@ export function ProfileWorkspace({
           <span className="ml-auto flex flex-wrap items-center gap-2.5">
             {editing ? (
               <>
-                <span className={cx(numeric, "text-[11px] text-ink-3")}>
+                <span className={cx(numeric, "text-[12px] text-ink-3")}>
                   {status ?? (dirty ? t.modificheNonSalvate : t.nessunaModifica)}
                 </span>
                 <Button onClick={discard} disabled={!dirty}>
@@ -165,7 +165,7 @@ export function ProfileWorkspace({
             ) : (
               <>
                 {status ? (
-                  <span className={cx(numeric, "text-[11px] text-ink-3")}>{status}</span>
+                  <span className={cx(numeric, "text-[12px] text-ink-3")}>{status}</span>
                 ) : null}
                 <Button
                   variant="primary"
@@ -189,7 +189,7 @@ export function ProfileWorkspace({
           <div className="overflow-hidden rounded-card border border-rule bg-paper px-7 pt-6 pb-8 lg:sticky lg:top-[124px]">
             <div className="mb-5 flex items-center justify-between gap-3 border-b border-rule-2 pb-3.5">
               <span className={eyebrow}>{t.anteprimaDalVivo}</span>
-              <span className={cx(numeric, "text-[11px] text-ink-3")}>
+              <span className={cx(numeric, "text-[12px] text-ink-3")}>
                 /u/{draft.username || "…"}
               </span>
             </div>

@@ -243,9 +243,10 @@ describe("l'account salvato nel browser", () => {
 });
 
 describe("la voce nella barra", () => {
-  it("«Buff dell'account» sta nel Database di Grand Cross", () => {
-    const database = gameGroups("grand-cross", "it").find((group) => group.label === "Database")!;
-    expect(database.items.map((item) => item.path)).toContain("/buff-account");
+  // dal 10/10 sta in «Progressione», con set e carte: e' quello che si fa crescere
+  it("«Buff dell'account» sta nella Progressione di Grand Cross", () => {
+    const progressione = gameGroups("grand-cross", "it").find((group) => group.label === "Progressione")!;
+    expect(progressione.items.map((item) => item.path)).toContain("/buff-account");
   });
 });
 

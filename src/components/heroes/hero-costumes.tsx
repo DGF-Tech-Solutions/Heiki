@@ -72,8 +72,8 @@ export function HeroCostumes({
   return (
     <section>
       <h2 className={cx(eyebrow, "mb-2.5")}>{t.titolo(total)}</h2>
-      <p className="m-0 max-w-[75ch] text-[13px] text-ink-2">{t.intro}</p>
-      <Link href="?scheda=statistiche" className="mt-1 inline-block text-[13px] text-brand hover:underline">
+      <p className="m-0 max-w-[48ch] text-[13px] text-ink-2">{t.intro}</p>
+      <Link href="?scheda=statistiche" className="mt-1 inline-block text-[13px] text-brand-deep hover:underline">
         {t.calcolatore}
       </Link>
 

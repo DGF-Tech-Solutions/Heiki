@@ -1,314 +1,245 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PostCard } from "@/components/community/post-card";
-import { Composer } from "@/components/community/composer";
-import { SponsorSlot } from "@/components/community/sponsor-slot";
-import { buttonClass, Card, cx, display, Empty, Notice } from "@/components/ui";
-import { currentViewer } from "@/lib/community/actions";
-import {
-  FEED_SORTS,
-  feedSortLabel,
-  isFeedSort,
-  sortFeed,
-  type FeedSort,
-} from "@/lib/community/ranking";
-import { getStore } from "@/lib/community/store";
-import { HUBS, hubLabel } from "@/lib/community/types";
-import { findGame } from "@/lib/games/catalog";
-import { auth } from "@/lib/auth";
-import { testi } from "@/lib/i18n/locale";
+import { notFound } from "next/navigation";
+import { artOf, HeroStage } from "@/components/heroes/hero-stage";
+import { buttonClass, cx, display, eyebrow, numeric } from "@/components/ui";
+import { findGame, gameGroups } from "@/lib/games/catalog";
+import { affinityLabel } from "@/lib/games/grand-cross/roster";
+import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
+import { getGameModule } from "@/lib/games/registry";
+import { heroesIn } from "@/lib/games/releases";
+import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
-import { followedUserIds, suggestedUsers } from "@/lib/social/actions";
-import { databaseReachable } from "@/lib/db";
+
+/**
+ * L'ingresso di un gioco: il «menu principale».
+ *
+ * Fino al 10/10 /<gioco> era il feed delle Discussioni, e la prima voce di ogni
+ * briciola portava li': chi apriva Grand Cross trovava post di prova invece del
+ * gioco. Ora e' la schermata di un menu alla Persona: i comandi grandi a
+ * sinistra, di misura calante (Database, Endgame, Strumenti, Progressione, Tu e
+ * la community, con le loro voci), a destra il palco con l'ultimo eroe uscito, e
+ * sotto gli ultimi eroi e il prossimo aggiornamento del calendario. Il feed sta in
+ * /<gioco>/discussioni.
+ *
+ * Il movimento della pagina e' uno: i comandi entrano uno dopo l'altro
+ * (`hub-command`, globals.css), come i menu del gioco a cui il sito si ispira.
+ */
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `${gioco} — community · GachaZone`,
-    descrizione: (gioco: string) =>
-      `Discussioni, build e domande dei giocatori di ${gioco}.`,
-    questoGioco: "questo gioco",
-    demoTitolo: "Modalità dimostrativa.",
-    demoTesto:
-      "Puoi pubblicare, commentare e votare, ma i contenuti stanno nella memoria del server e spariscono al riavvio.",
-    vista: "Vista",
-    tutti: "Tutti",
-    seguiti: "Seguiti",
-    sezioni: "Sezioni",
-    tutto: "Tutto",
-    nonSegui: "Non segui ancora nessuno",
-    soloSeguiti: "Questa vista mostra solo i post di chi segui. Comincia da qui:",
-    nessunSuggerimento: "Nessun profilo da suggerire per ora.",
-    seguaci: (n: number) => `${n} seguaci`,
-    sezioneVuota: "Ancora niente in questa sezione.",
-    regole: "Regole della sezione",
-    regolaNumeri: "Porta i numeri: mediana e intervallo, non aggettivi.",
-    regolaPatch: "Indica la patch su cui hai provato.",
-    regolaRispetto: "Si smonta la build, non chi l'ha costruita.",
-    serveProfilo: "Serve un profilo",
-    leggereLibero: "Leggere è libero. Per pubblicare e votare no.",
-    creaProfilo: "Crea il profilo",
+    descrizione: (gioco: string) => `Eroi, uscite, endgame e strumenti di ${gioco}, coi dati letti dal gioco.`,
+    riga: (eroi: number, aggiornamenti: number) => `${eroi} eroi · ${aggiornamenti} aggiornamenti nel calendario · dati letti dal client del gioco`,
+    menu: "Sezioni",
+    ultimoEroe: "L'ultimo eroe uscito",
+    apri: "Apri la scheda",
+    ultimi: "Gli ultimi eroi",
+    tutti: "Tutti gli eroi →",
+    prossimo: "Prossimo aggiornamento",
+    ultimo: "Ultimo aggiornamento",
+    nelCalendario: "Nel calendario →",
+    eroiNuovi: (n: number) => (n === 1 ? "1 eroe nuovo" : `${n} eroi nuovi`),
+    nessunEroe: "Nessun eroe nuovo",
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} — community · GachaZone`,
-    descrizione: (gioco: string) =>
-      `Discussions, builds and questions from ${gioco} players.`,
-    questoGioco: "this game",
-    demoTitolo: "Demo mode.",
-    demoTesto:
-      "You can post, comment and vote, but content lives in the server's memory and disappears on restart.",
-    vista: "View",
-    tutti: "All",
-    seguiti: "Following",
-    sezioni: "Sections",
-    tutto: "All",
-    nonSegui: "You're not following anyone yet",
-    soloSeguiti: "This view only shows posts from people you follow. Start here:",
-    nessunSuggerimento: "No profiles to suggest for now.",
-    seguaci: (n: number) => `${n} ${n === 1 ? "follower" : "followers"}`,
-    sezioneVuota: "Nothing in this section yet.",
-    regole: "Section rules",
-    regolaNumeri: "Bring numbers: median and range, not adjectives.",
-    regolaPatch: "State the patch you tested on.",
-    regolaRispetto: "Take apart the build, not the person who made it.",
-    serveProfilo: "You need a profile",
-    leggereLibero: "Reading is free. Posting and voting aren't.",
-    creaProfilo: "Create your profile",
+    descrizione: (game: string) => `${game} heroes, releases, endgame and tools, with data read from the game.`,
+    riga: (heroes: number, updates: number) => `${heroes} heroes · ${updates} updates in the calendar · data read from the game client`,
+    menu: "Sections",
+    ultimoEroe: "The latest hero released",
+    apri: "Open the page",
+    ultimi: "The latest heroes",
+    tutti: "All heroes →",
+    prossimo: "Next update",
+    ultimo: "Latest update",
+    nelCalendario: "In the calendar →",
+    eroiNuovi: (n: number) => (n === 1 ? "1 new hero" : `${n} new heroes`),
+    nessunEroe: "No new heroes",
   },
 });
 
 interface Props {
   params: Promise<{ game: string }>;
-  searchParams: Promise<{ hub?: string; sort?: string; vista?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game } = await params;
   const entry = findGame(game);
   const t = TESTI[await getLocale()];
-  return {
-    title: t.titoloPagina(entry?.shortName ?? "Community"),
-    description: t.descrizione(entry?.name ?? t.questoGioco),
-  };
+  return { title: entry?.shortName ?? game, description: t.descrizione(entry?.name ?? game) };
 }
 
-// Filtri come lame tagliate: rossa quella scelta, scure le altre (bianche al passaggio)
-const CHIP =
-  "p5-cut-sm inline-flex h-8 items-center px-3.5 font-display text-[13px] font-extrabold uppercase " +
-  "tracking-[0.03em] [font-variation-settings:'wdth'_85] transition-colors";
+/** L'ordine dei comandi: prima quello che si apre di piu'. */
+const ORDER = ["Database", "Endgame", "Strumenti", "Tools", "Progressione", "Progression"];
 
-const CHIP_ON = "bg-brand text-white";
-const CHIP_OFF = "bg-paper-3 text-ink-2 hover:bg-ink hover:text-paper";
-
-export default async function GameFeedPage({ params, searchParams }: Props) {
+export default async function GameHubPage({ params }: Props) {
   const { game } = await params;
-  const query = await searchParams;
+  const entry = findGame(game);
+  if (!entry) notFound();
+  const gameModule = getGameModule(game);
   const locale = await getLocale();
   const t = TESTI[locale];
 
-  const hub = HUBS.some((item) => item.slug === query.hub) ? (query.hub ?? null) : null;
-  const sort: FeedSort = isFeedSort(query.sort) ? query.sort : "hot";
-  const onlyFollowed = query.vista === "seguiti";
+  const groups = [...gameGroups(game, locale)].sort((a, b) => {
+    const rank = (label: string) => (ORDER.includes(label) ? ORDER.indexOf(label) : ORDER.length);
+    return rank(a.label) - rank(b.label);
+  });
+  const heroes = gameModule?.roster?.heroes ?? [];
+  const latest = heroes[0];
+  const affinity = latest ? gameModule?.roster?.affinities.find((a) => a.id === latest.affinity) : undefined;
 
-  const viewer = await currentViewer();
-  const store = await getStore();
-  const [rawPosts, sponsors] = await Promise.all([
-    store.listPosts(game, hub, viewer),
-    store.listSponsors(),
-  ]);
-
-  // Il filtro sui seguiti e' in memoria: il feed carica al massimo cento post e
-  // una join in piu' non pagherebbe. Il punto da cambiare, quando i numeri
-  // cresceranno, e' solo questo.
-  const session = await safeSession();
-  const followedUsernames = await followedNames(session?.user?.id);
-  const visible = onlyFollowed
-    ? rawPosts.filter((post) => followedUsernames.has(post.author.username))
-    : rawPosts;
-
-  const posts = sortFeed(visible, sort);
-  const suggestions = onlyFollowed && posts.length === 0 ? await safeSuggestions() : [];
-  const link = (nextHub: string | null, nextSort: FeedSort, followed = onlyFollowed) => {
-    const search = new URLSearchParams();
-    if (nextHub) search.set("hub", nextHub);
-    if (nextSort !== "hot") search.set("sort", nextSort);
-    if (followed) search.set("vista", "seguiti");
-    const suffix = search.toString();
-    return suffix ? `/${game}?${suffix}` : `/${game}`;
-  };
+  // il prossimo aggiornamento del calendario globale; se non ce n'e', l'ultimo
+  const updates = gameModule?.releases?.schedules.global ?? gameModule?.releases?.schedules.jp ?? [];
+  const today = new Date().toISOString().slice(0, 10);
+  const next = [...updates].filter((u) => u.date > today).sort((a, b) => a.date.localeCompare(b.date))[0];
+  const last = [...updates].filter((u) => u.date <= today).sort((a, b) => b.date.localeCompare(a.date))[0];
+  const update = next ?? last;
+  const day = (value: string) =>
+    new Intl.DateTimeFormat(intlLocale(locale), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+      new Date(`${value}T00:00:00Z`),
+    );
+  const byId = new Map(heroes.map((h) => [h.id, h]));
 
   return (
-    <>
-      <main className="pt-6 pb-20">
-        {store.volatile ? (
-          <Notice className="mb-4">
-            <span>
-              <strong>{t.demoTitolo}</strong> {t.demoTesto}
-            </span>
-          </Notice>
-        ) : null}
+    <main className="pt-6 pb-20">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,440px)]">
+        <div className="min-w-0">
+          <h1 className={cx(display, "text-[clamp(40px,6.4vw,84px)] leading-[0.9]")}>{entry.name}</h1>
+          <p className={cx(numeric, "mt-3 text-[13px] text-ink-2")}>{t.riga(heroes.length, updates.length)}</p>
 
-        {session?.user ? (
-          <nav className="mb-5 flex gap-3 border-b-[3px] border-ink pb-2" aria-label={t.vista}>
-            <Link
-              href={link(hub, sort, false)}
-              aria-current={!onlyFollowed ? "page" : undefined}
-              className={cx(
-                "p5-menu-item px-4 py-1.5 font-display text-base font-black uppercase tracking-[0.02em] [font-variation-settings:'wdth'_80]",
-                onlyFollowed ? "text-ink-2 hover:text-paper" : "text-white",
-              )}
+          {/*
+            I comandi: il primo enorme, poi a scalare. Ogni comando porta alla
+            prima voce del suo gruppo, e sotto ha le altre, piccole.
+          */}
+          <nav aria-label={t.menu} className="mt-8">
+            <ol className="hub-menu m-0 grid list-none gap-5 p-0">
+              {groups.map((group, index) => {
+                const [main, ...rest] = group.items;
+                if (!main) return null;
+                return (
+                  <li key={group.label} className="hub-command" style={{ "--i": index } as React.CSSProperties}>
+                    <p className={cx(eyebrow, "m-0 mb-1")}>{group.label}</p>
+                    <Link
+                      href={`/${game}${main.path}`}
+                      title={main.hint}
+                      className={cx("hub-command-link p5-menu-item", `hub-command--${Math.min(index, 4)}`)}
+                    >
+                      {main.label}
+                    </Link>
+                    {rest.length > 0 ? (
+                      <ul className="m-0 mt-1.5 flex list-none flex-wrap gap-x-4 gap-y-1 p-0">
+                        {rest.map((item) => (
+                          <li key={item.path}>
+                            <Link
+                              href={`/${game}${item.path}`}
+                              title={item.hint}
+                              className="font-display text-[15px] font-extrabold uppercase tracking-[0.02em] text-ink-2 [font-variation-settings:'wdth'_82] hover:text-brand-deep"
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        </div>
+
+        {latest ? (
+          <aside aria-label={t.ultimoEroe} className="lg:sticky lg:top-[76px]">
+            <p className={cx(eyebrow, "m-0 mb-2")}>{t.ultimoEroe}</p>
+            <HeroStage
+              game={game}
+              hero={latest}
+              locale={locale}
+              affinity={affinity}
+              badges={affinity ? [{ label: affinityLabel(affinity.id, locale) }, { label: `${latest.obtainedAs} → ${latest.rarity}` }] : undefined}
+              priority
+              art={artOf(gameModule?.heroAssets?.[latest.id])}
+              className="p5-corner h-[min(640px,calc(100dvh-140px))] min-h-[480px]"
             >
+              <Link href={`/${game}/eroi/${latest.id}`} className={buttonClass("primary", "md")}>
+                {t.apri}
+              </Link>
+            </HeroStage>
+          </aside>
+        ) : null}
+      </div>
+
+      {heroes.length > 1 ? (
+        <section className="mt-12">
+          <div className="mb-3 flex items-baseline justify-between gap-3 border-b-2 border-brand pb-2">
+            <h2 className={cx(display, "text-2xl")}>{t.ultimi}</h2>
+            <Link href={`/${game}/eroi`} className="text-[13px] font-semibold text-brand-deep hover:underline">
               {t.tutti}
             </Link>
-            <Link
-              href={link(hub, sort, true)}
-              aria-current={onlyFollowed ? "page" : undefined}
-              className={cx(
-                "p5-menu-item px-4 py-1.5 font-display text-base font-black uppercase tracking-[0.02em] [font-variation-settings:'wdth'_80]",
-                onlyFollowed ? "text-white" : "text-ink-2 hover:text-paper",
-              )}
-            >
-              {t.seguiti}
-            </Link>
-          </nav>
-        ) : null}
-
-        <Composer game={game} defaultHub={hub ?? "build"} />
-
-        <div className="my-4 flex flex-wrap items-center justify-between gap-3">
-          <nav className="flex flex-wrap gap-2" aria-label={t.sezioni}>
-            <Link href={link(null, sort)} className={cx(CHIP, hub === null ? CHIP_ON : CHIP_OFF)}>
-              {t.tutto}
-            </Link>
-            {HUBS.map((item) => (
-              <Link
-                key={item.slug}
-                href={link(item.slug, sort)}
-                className={cx(CHIP, hub === item.slug ? CHIP_ON : CHIP_OFF)}
-              >
-                {hubLabel(item.slug, locale, item.name)}
-              </Link>
-            ))}
-          </nav>
-
-          <span className="flex flex-wrap gap-2">
-            {FEED_SORTS.map((option) => (
-              <Link
-                key={option.id}
-                href={link(hub, option.id)}
-                className={cx(CHIP, sort === option.id ? CHIP_ON : CHIP_OFF)}
-              >
-                {feedSortLabel(option.id, locale)}
-              </Link>
-            ))}
-          </span>
-        </div>
-
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,300px)]">
-          <div className="grid gap-3.5">
-            {posts.length === 0 ? (
-              onlyFollowed ? (
-                <Card>
-                  <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
-                    {t.nonSegui}
-                  </h2>
-                  <p className="mt-2 text-[13px] text-ink-2">{t.soloSeguiti}</p>
-                  {suggestions.length === 0 ? (
-                    <p className="mt-2 text-[13px] text-ink-3">{t.nessunSuggerimento}</p>
-                  ) : (
-                    <ul className="mt-3 grid list-none gap-1.5 p-0">
-                      {suggestions.map((person) => (
-                        <li key={person.username}>
-                          <Link
-                            href={`/u/${person.username}`}
-                            className="p5-corner flex items-center gap-2.5 border border-rule bg-paper px-3 py-2 text-sm transition-colors hover:border-brand hover:bg-brand-soft"
-                          >
-                            <span className="font-semibold">{person.displayName}</span>
-                            <span className="font-mono text-[11px] text-ink-3">
-                              @{person.username}
-                            </span>
-                            <span className="ml-auto font-mono text-[11px] text-ink-3">
-                              {t.seguaci(person.followers)}
-                            </span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Card>
-              ) : (
-                <Empty>{t.sezioneVuota}</Empty>
-              )
-            ) : (
-              posts.map((post) => <PostCard key={post.id} post={post} />)
-            )}
           </div>
-
-          <div className="grid gap-4 lg:sticky lg:top-[78px]">
-            <SponsorSlot items={sponsors} />
-
-            <Card>
-              <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
-                {t.regole}
-              </h2>
-              <ul className="mt-2.5 grid list-disc gap-1.5 pl-4.5 text-[13px] text-ink-2">
-                <li>{t.regolaNumeri}</li>
-                <li>{t.regolaPatch}</li>
-                <li>{t.regolaRispetto}</li>
-              </ul>
-            </Card>
-
-            {viewer === null ? (
-              <Card accent>
-                <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
-                  {t.serveProfilo}
-                </h2>
-                <p className="mt-2 text-[13px] text-ink-2">{t.leggereLibero}</p>
-                <Link href="/registrati" className={cx(buttonClass("primary", "sm"), "mt-3")}>
-                  {t.creaProfilo}
+          <ul className="m-0 grid list-none grid-cols-4 gap-2.5 p-0 sm:grid-cols-6 lg:grid-cols-8">
+            {heroes.slice(0, 8).map((hero) => (
+              <li key={hero.id} className="min-w-0">
+                <Link href={`/${game}/eroi/${hero.id}`} className="hero-card group block">
+                  <span className="hero-card-art block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={heroCardSrc(game, hero.id)} alt="" width={128} height={128} loading="lazy" className="block aspect-square w-full bg-paper-2" />
+                  </span>
+                  <span className="mt-1 block truncate text-[12px] text-ink-3">{heroEpithet(hero, locale)}</span>
+                  <span className="hero-card-name line-clamp-2 font-display text-[12px] font-black uppercase leading-[1.08] [font-variation-settings:'wdth'_72]">
+                    {heroName(hero, locale)}
+                  </span>
                 </Link>
-              </Card>
-            ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {update ? (
+        <section className="mt-10">
+          <div className="p5-corner grid gap-3 border border-rule bg-paper-2 p-5 sm:grid-cols-[minmax(0,240px)_minmax(0,1fr)] sm:items-start">
+            <div>
+              <p className={cx(eyebrow, "m-0")}>{next ? t.prossimo : t.ultimo}</p>
+              <p className={cx(display, "m-0 mt-1 text-[28px] leading-none")}>{day(update.date)}</p>
+              <p className="m-0 mt-1.5 text-[13px] text-ink-2">{heroesIn(update) > 0 ? t.eroiNuovi(heroesIn(update)) : t.nessunEroe}</p>
+              <Link href={`/${game}/uscite#u-${update.date}`} className="mt-2 inline-block text-[13px] font-semibold text-brand-deep hover:underline">
+                {t.nelCalendario}
+              </Link>
+            </div>
+            <div className="grid gap-2">
+              {update.heroes.length > 0 ? (
+                <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+                  {update.heroes.map((released) => {
+                    const hero = released.heroId ? byId.get(released.heroId) : undefined;
+                    return (
+                      <li key={`${released.name}-${released.rarity}`}>
+                        {hero ? (
+                          <Link href={`/${game}/eroi/${hero.id}`} className="flex items-center gap-2 bg-paper px-2 py-1.5 hover:bg-paper-3">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={heroCardSrc(game, hero.id)} alt="" width={40} height={40} className="h-10 w-10" loading="lazy" />
+                            <span className="text-[13px] font-semibold">{heroName(hero, locale)}</span>
+                          </Link>
+                        ) : (
+                          <span className="block bg-paper px-2 py-1.5 text-[13px]" lang="en">
+                            {released.name}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+              {update.events && update.events.length > 0 ? (
+                <ul className="m-0 grid list-none gap-0.5 p-0 text-[13px] text-ink-2" lang="en">
+                  {update.events.slice(0, 4).map((event) => (
+                    <li key={event}>{event}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </main>
-    </>
+        </section>
+      ) : null}
+    </main>
   );
-}
-
-async function safeSession() {
-  try {
-    return await auth();
-  } catch {
-    return null;
-  }
-}
-
-/** Username seguiti dal visitatore. Vuoto senza sessione o senza database. */
-async function followedNames(userId: string | undefined): Promise<Set<string>> {
-  if (!userId || !(await databaseReachable())) return new Set();
-
-  try {
-    const ids = await followedUserIds(userId);
-    if (ids.length === 0) return new Set();
-
-    const { db } = await import("@/lib/db");
-    const { users } = await import("@/lib/db/schema");
-    const { inArray } = await import("drizzle-orm");
-
-    const rows = await db.query.users.findMany({
-      where: inArray(users.id, ids),
-      columns: { username: true },
-    });
-    return new Set(rows.map((row) => row.username));
-  } catch {
-    return new Set();
-  }
-}
-
-async function safeSuggestions() {
-  try {
-    return await suggestedUsers();
-  } catch {
-    return [];
-  }
 }

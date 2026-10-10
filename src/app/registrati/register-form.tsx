@@ -103,7 +103,7 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
       </Button>
 
       {demoMode ? (
-        <p className="mt-2.5 text-[11px] text-ink-3">{t.senzaDatabase}</p>
+        <p className="mt-2.5 text-[12px] text-ink-3">{t.senzaDatabase}</p>
       ) : null}
     </form>
   );

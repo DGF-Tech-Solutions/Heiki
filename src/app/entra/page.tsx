@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "./login-form";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
-import { Button, display, eyebrow } from "@/components/ui";
+import { Button, display } from "@/components/ui";
 import { enabledOauthProviders } from "@/lib/auth/config";
 import { auth, signIn } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
@@ -12,8 +12,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: "Entra · GachaZone",
-    accesso: "Accesso",
+    titoloPagina: "Entra",
     bentornato: "Bentornato.",
     doveLeHaiLasciate:
       "Le tue build, le tue squadre e le rotazioni salvate sono dove le hai lasciate.",
@@ -26,8 +25,7 @@ const TESTI = testi({
     creaneUno: "Creane uno",
   },
   en: {
-    titoloPagina: "Log in · GachaZone",
-    accesso: "Login",
+    titoloPagina: "Log in",
     bentornato: "Welcome back.",
     doveLeHaiLasciate: "Your builds, your teams and your saved rotations are right where you left them.",
     calcolatoreLibero:
@@ -56,21 +54,21 @@ export default async function LoginPage() {
   return (
     <main className="mx-auto grid w-full max-w-[1200px] items-start gap-14 px-6 pt-13 pb-20 lg:grid-cols-[1fr_0.85fr]">
       <div>
-        <p className={eyebrow}>{t.accesso}</p>
-        <h1 className={`${display} mt-4 text-[clamp(32px,4.6vw,52px)]`}>{t.bentornato}</h1>
+        {/* niente etichetta sopra il titolo, e la nota in un riquadro tagliato invece del filo rosso a sinistra (10/10) */}
+        <h1 className={`${display} text-[clamp(40px,6vw,72px)]`}>{t.bentornato}</h1>
         <p className="mt-4 max-w-[46ch] text-base text-ink-2">{t.doveLeHaiLasciate}</p>
-        <p className="mt-6 max-w-[44ch] border-l-[3px] border-brand pl-3.5 text-[13px] text-ink-2">
+        <p className="p5-corner border border-rule bg-paper-2 px-4 py-3 mt-6 max-w-[46ch] text-[13px] text-ink-2">
           {t.calcolatoreLibero}
         </p>
       </div>
 
-      <div className="rounded-card border border-rule border-t-[3px] border-t-brand bg-paper p-7">
+      <div className="p5-corner border border-rule bg-paper-2 p-6 sm:p-7">
         <DemoNotice />
         <LoginForm demoMode={demoMode} />
 
         {providers.length > 0 ? (
           <>
-            <div className="my-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3 before:h-px before:flex-1 before:bg-rule after:h-px after:flex-1 after:bg-rule">
+            <div className="my-5 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 before:h-px before:flex-1 before:bg-rule after:h-px after:flex-1 after:bg-rule">
               {t.oppure}
             </div>
             {providers.map((provider) => (
@@ -93,14 +91,14 @@ export default async function LoginPage() {
         <SetupHint />
 
         <p className="mt-4 text-[13px] text-ink-2">
-          <Link href="/password" className="font-semibold text-brand hover:underline">
+          <Link href="/password" className="font-semibold text-ink underline decoration-brand decoration-2 underline-offset-2 hover:text-brand-deep">
             {t.passwordDimenticata}
           </Link>
         </p>
 
         <p className="mt-4.5 border-t border-rule-2 pt-4 text-[13px] text-ink-2">
           {t.nonHaiProfilo}{" "}
-          <Link href="/registrati" className="font-semibold text-brand hover:underline">
+          <Link href="/registrati" className="font-semibold text-ink underline decoration-brand decoration-2 underline-offset-2 hover:text-brand-deep">
             {t.creaneUno}
           </Link>
           .

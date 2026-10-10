@@ -43,6 +43,13 @@
       "when": 1790500316464,
       "tag": "0005_verifica_classe_account",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791636243909,
+      "tag": "0006_box_eroi",
+      "breakpoints": true
     }
   ]
 }

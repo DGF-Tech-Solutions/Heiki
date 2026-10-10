@@ -95,7 +95,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cx("rounded-card border bg-paper p-5", danger ? "border-hot" : "border-rule")}>
+    <section className={cx("p5-corner border bg-paper-2 p-5", danger ? "border-hot" : "border-rule")}>
       <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>{title}</h2>
       <p className="mt-1 mb-4 text-xs text-ink-3">{hint}</p>
       {children}

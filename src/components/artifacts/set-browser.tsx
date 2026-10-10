@@ -15,7 +15,8 @@ import { useMemo, useState } from "react";
 import { GRADE_COLORS } from "@/components/artifacts/artifact-parts";
 import { Chip, FilterRow } from "@/components/filter-chips";
 import { GameText } from "@/components/heroes/game-text";
-import { cx, Empty, Input, numeric } from "@/components/ui";
+import { IconClose } from "@/components/icons";
+import { buttonClass, cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
 import { cardImageSrc, countBy, filterSets, type ArtifactSetSummary } from "@/lib/games/artifacts";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
@@ -94,7 +95,8 @@ export function SetBrowser({
   const row = (group: Group, title: string, values: readonly { code: number; name: string; icon?: string | null }[]) =>
     values.length === 0 ? null : (
       <FilterRow label={title} labelClassName="w-[124px]">
-        <Chip active={chosen[group] === null} onClick={() => pick(group, null)} label={t.tutti} />
+        {/* «Tutti» non restringe niente: bianco, non rosso (il rosso dice «hai filtrato») */}
+        <Chip active={chosen[group] === null} onClick={() => pick(group, null)} label={t.tutti} quiet />
         {values.map((value) => (
           <Chip
             key={value.code}
@@ -111,7 +113,7 @@ export function SetBrowser({
 
   return (
     <>
-      <div className="mb-5 grid gap-3.5 rounded-card border border-rule bg-paper-2 p-4">
+      <div className="p5-corner mb-5 grid gap-3.5 border border-rule bg-paper-2 p-4">
         <Input
           type="search"
           value={search}
@@ -126,7 +128,7 @@ export function SetBrowser({
         {row("misc", names.titles.misc, names.misc)}
       </div>
 
-      <div className="mb-3.5 flex items-baseline justify-between gap-3">
+      <div className="mb-3.5 flex min-h-[38px] items-center justify-between gap-3">
         <p className="m-0 text-[13px] text-ink-2">
           <strong className={cx(numeric, "font-semibold text-ink")}>{visible.length}</strong> {t.set(visible.length)}
           {filtered ? t.suTotale(sets.length) : null}
@@ -138,8 +140,9 @@ export function SetBrowser({
               setSearch("");
               setChosen({ content: null, race: null, faction: null, misc: null });
             }}
-            className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 underline-offset-2 hover:text-brand hover:underline"
+            className={buttonClass("ghost", "md")}
           >
+            <IconClose size={14} />
             {t.azzera}
           </button>
         ) : null}
@@ -191,11 +194,13 @@ function SetCard({
   return (
     <Link
       href={`/${game}/set-artefatto/${set.number}`}
-      className="group flex h-full flex-col rounded-card border border-rule bg-paper-2 p-3.5 transition-colors hover:border-ink-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      className="p5-corner group flex h-full flex-col border border-rule bg-paper-2 p-4 transition-colors hover:border-ink-3 hover:bg-paper-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
       <span className="flex items-baseline gap-2">
         <span className={cx(numeric, "shrink-0 text-[12px] text-ink-3")}>No.{set.number}</span>
-        <span className="min-w-0 text-[15px] font-semibold leading-snug group-hover:text-brand">{set.name}</span>
+        <span className="min-w-0 font-display text-[16px] font-extrabold uppercase leading-snug tracking-[0.01em] [font-variation-settings:'wdth'_85] group-hover:text-brand-deep">
+          {set.name}
+        </span>
       </span>
       {set.event && set.event !== set.name ? (
         <span className="mt-0.5 block text-[12px] text-ink-3">
@@ -203,7 +208,7 @@ function SetCard({
         </span>
       ) : null}
 
-      <span className="mt-2.5 flex flex-wrap gap-1.5">
+      <span className="mt-3 flex flex-wrap gap-1.5">
         {set.cards.map((card) =>
           card.image ? (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -222,14 +227,14 @@ function SetCard({
             <span
               key={card.id}
               aria-hidden
-              className="block rounded-[4px] border-2 bg-paper"
+              className="block border-2 bg-paper"
               style={{ width, height, borderColor: GRADE_COLORS[card.grade] }}
             />
           ),
         )}
       </span>
 
-      <span className="mt-2.5 block text-[11px] font-medium uppercase tracking-wide text-ink-3">{levelLabel}</span>
+      <span className={cx(eyebrow, "mt-3 block")}>{levelLabel}</span>
       <GameText text={set.effect} omitNotes={false} className="mt-1 text-[13px] leading-snug text-ink-2" />
 
       {contents.length > 0 ? (

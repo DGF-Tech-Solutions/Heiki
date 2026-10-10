@@ -13,16 +13,23 @@
  * occhi di chi la guarda. Lo stesso per «Senza collaborazioni»: vale dalla pesca
  * dopo. Si parte coi posti vuoti: una squadra gia' pescata dal server sarebbe
  * diversa da quella del browser, e React se ne lamenterebbe.
+ *
+ * I posti sono quelli della Squadra (party-slot.tsx), come una schermata di
+ * scelta del personaggio (10/10); a ogni pesca gli eroi nuovi entrano col taglio
+ * del palco, che dice cosa e' cambiato (con «riduci movimento» compaiono).
  */
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Chip } from "@/components/filter-chips";
+import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { GameText } from "@/components/heroes/game-text";
-import { buttonClass, cx, eyebrow, Tag } from "@/components/ui";
+import { AssociateStrip, PartyPanel } from "@/components/party-slot";
+import { buttonClass, cx, eyebrow, RadioChips, Tag } from "@/components/ui";
+import { boxSize, ownsHero } from "@/lib/games/hero-box";
 import type { HeroFatesIndex } from "@/lib/games/hero-fates-types";
 import type { TermMember } from "@/lib/games/hero-terms";
 import type { HeroTermGroup } from "@/lib/games/hero-terms-types";
-import { heroCardSrc } from "@/lib/games/heroes";
 import {
   drawRandom,
   drawSynergy,
@@ -57,6 +64,8 @@ const TESTI = testi({
         "Le Uniche dei quattro in campo che nominano alleati valgono per tutti gli altri; il quarto può averne una non specifica. Gli associati sono a caso.",
     },
     senzaCollab: (n: number) => `Senza collaborazioni (${n} eroi)`,
+    soloMiei: (n: number) => `Solo i miei (${n} eroi)`,
+    soloMieiTitolo: "Pesca solo fra gli eroi che hai segnato in «I tuoi eroi»",
     pesca: "Pesca",
     ripesca: "Pesca ancora",
     posto: (n: number) => `Eroe ${n}`,
@@ -83,6 +92,8 @@ const TESTI = testi({
         "The Uniques of the four on the field that name allies apply to all the others; the fourth may have a non-specific one. Associates are random.",
     },
     senzaCollab: (n: number) => `No collaborations (${n} heroes)`,
+    soloMiei: (n: number) => `Only mine (${n} heroes)`,
+    soloMieiTitolo: "Draw only from the heroes you marked in «Your heroes»",
     pesca: "Draw",
     ripesca: "Draw again",
     posto: (n: number) => `Hero ${n}`,
@@ -128,7 +139,15 @@ export function TeamRandomizer({
 
   const byId = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [heroes]);
   const collabCount = useMemo(() => heroes.filter(isCollab).length, [heroes]);
-  const pool = useMemo(() => (noCollab ? heroes.filter((hero) => !isCollab(hero)) : heroes), [heroes, noCollab]);
+  // «Solo i miei» pesca dal tuo box (use-hero-box.ts); il comando c'e' solo se ne hai uno
+  const [box] = useHeroBox(game);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const owned = boxSize(box);
+  const mine = onlyMine && owned > 0;
+  const pool = useMemo(
+    () => heroes.filter((hero) => !(noCollab && isCollab(hero)) && !(mine && !ownsHero(box, hero.id))),
+    [heroes, noCollab, mine, box],
+  );
   // Chi copre ogni Unica si calcola sul roster intero: la pesca guarda solo chi e' in `pool`.
   const covers = useMemo(() => uniqueCovers(heroes, leaders, groups), [heroes, leaders, groups]);
 
@@ -148,61 +167,35 @@ export function TeamRandomizer({
 
   return (
     <div>
-      <div className="flex max-w-[560px] flex-wrap items-center gap-x-5 gap-y-3 rounded-card border border-rule bg-paper-2 p-4 text-[13px]">
-        <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0">
-          <legend className="float-left mr-3 p-0 text-ink-2">{t.modalita}</legend>
-          <div className="flex items-center gap-1">
-            {MODES.map((value) => (
-              <label key={value} className="cursor-pointer">
-                <input
-                  type="radio"
-                  name="randomizer-modalita"
-                  value={value}
-                  checked={mode === value}
-                  onChange={() => setMode(value)}
-                  className="peer sr-only"
-                />
-                <span
-                  className={cx(
-                    "grid h-8 place-items-center rounded-[3px] border px-3 peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                    mode === value ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3 hover:text-ink",
-                  )}
-                >
-                  {t.modi[value]}
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <button type="button" onClick={pick} className={buttonClass("primary", "md", "ml-auto")}>
+      {/* i comandi in una fila, e «Pesca» e' il comando: grande, a destra, rosso */}
+      <div className="flex max-w-[1100px] flex-wrap items-center gap-x-5 gap-y-3 text-[13px]">
+        <RadioChips
+          legend={t.modalita}
+          name="randomizer-modalita"
+          value={mode}
+          onChange={setMode}
+          options={MODES.map((value) => ({ value, label: t.modi[value] }))}
+        />
+        <Chip active={noCollab} onClick={() => setNoCollab(!noCollab)} label={t.senzaCollab(collabCount)} />
+        {owned > 0 ? (
+          <span title={t.soloMieiTitolo}>
+            <Chip active={onlyMine} onClick={() => setOnlyMine(!onlyMine)} label={t.soloMiei(owned)} />
+          </span>
+        ) : null}
+        <button type="button" onClick={pick} className={buttonClass("primary", "md", "h-11 px-7 text-base sm:ml-auto")}>
           <DiceIcon />
           {draw ? t.ripesca : t.pesca}
         </button>
-
-        <label className="flex basis-full cursor-pointer items-center gap-2 text-ink-2">
-          <input
-            type="checkbox"
-            checked={noCollab}
-            onChange={(event) => setNoCollab(event.target.checked)}
-            className="accent-[var(--color-brand)]"
-          />
-          {t.senzaCollab(collabCount)}
-        </label>
-
-        <p className="m-0 basis-full text-[12px] text-ink-3">{t.spiegaModo[mode]}</p>
+        <p className="m-0 basis-full text-[13px] text-ink-2">{t.spiegaModo[mode]}</p>
       </div>
 
       <h2 className="sr-only">{t.squadra}</h2>
       {/*
-        Ogni posto e' una colonna di cinque righe, e le righe sono quelle della
-        griglia (subgrid): cosi' «Associato» sta alla stessa altezza in tutte le
+        Ogni posto e' una colonna di tre righe, e le righe sono quelle della
+        griglia (subgrid): l'associato sta alla stessa altezza in tutte le
         colonne anche quando il nome di un eroe va a capo.
       */}
-      <ol
-        aria-live="polite"
-        className="mt-6 grid list-none grid-cols-2 gap-x-4 p-0 sm:max-w-[760px] sm:grid-cols-4"
-      >
+      <ol aria-live="polite" className="m-0 mt-5 grid max-w-[1100px] list-none grid-cols-2 gap-x-3 gap-y-6 p-0 sm:grid-cols-4 sm:gap-x-4">
         {Array.from({ length: TEAM_SIZE }, (_, i) => {
           const slot = draw?.slots[i];
           const main = slot ? byId.get(slot.main) : undefined;
@@ -211,17 +204,15 @@ export function TeamRandomizer({
           const effect = fate ? fates.effects[fate[1]] : undefined;
           const effectText = effect ? inLingua(effect.text, locale) : null;
           return (
-            <li key={i} className="row-span-5 grid min-w-0 grid-rows-subgrid content-start">
-              <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.posto(i + 1)}</p>
-              <HeroTile game={game} hero={main} size="main" />
+            <li key={i} className="row-span-3 grid min-w-0 grid-rows-subgrid content-start gap-y-2">
+              <HeroLink game={game} hero={main}>
+                <PartyPanel game={game} number={i + 1} label={t.posto(i + 1)} hero={main} enter />
+              </HeroLink>
+              <HeroLink game={game} hero={associate}>
+                <AssociateStrip game={game} label={t.associato} hero={associate} choosable={false} enter />
+              </HeroLink>
 
-              <p className={cx(eyebrow, "m-0 mt-3 mb-1.5 flex items-center gap-1.5")}>
-                <LinkIcon />
-                {t.associato}
-              </p>
-              <HeroTile game={game} hero={associate} size="associate" />
-
-              <div className="mt-2 mb-8 text-[12px] leading-snug sm:mb-0">
+              <div className="text-[12px] leading-snug">
                 {effect && effectText ? (
                   <>
                     <p className="m-0 text-ink-3">{t.effetto}</p>
@@ -240,13 +231,13 @@ export function TeamRandomizer({
       </ol>
 
       {current === "impossibile" ? (
-        <p className="mt-4 text-[13px] text-ink-3">{t.impossibile}</p>
+        <p className="mt-4 text-[13px] text-ink-2">{t.impossibile}</p>
       ) : !draw ? (
-        <p className="mt-4 text-[13px] text-ink-3">{t.vuoto}</p>
+        <p className="mt-4 text-[13px] text-ink-2">{t.vuoto}</p>
       ) : null}
 
       {draw?.synergy ? (
-        <section className="mt-8 max-w-[68ch] rounded-card border border-rule border-t-[3px] border-t-brand bg-paper p-4 text-sm text-ink-2">
+        <section className="p5-corner mt-8 max-w-[48ch] border border-rule border-t-[3px] border-t-brand bg-paper-2 p-4 text-sm text-ink-2">
           <h3 className={cx(eyebrow, "m-0")}>{t.sinergia}</h3>
           <ul className="mt-2 mb-0 grid list-none gap-1.5 p-0">
             {draw.slots.map(({ main }) => {
@@ -274,65 +265,24 @@ export function TeamRandomizer({
   );
 }
 
-/** La card di un eroe, o il posto vuoto tratteggiato prima della prima pesca. */
-function HeroTile({ game, hero, size }: { game: string; hero: RandomizerHero | undefined; size: "main" | "associate" }) {
-  const width = size === "main" ? "max-w-[128px]" : "max-w-[96px]";
-  if (!hero) {
-    return (
-      <div
-        aria-hidden
-        className={cx(
-          "grid aspect-square w-full place-items-center self-start rounded-[3px] border border-dashed border-rule bg-paper-2 font-display text-2xl text-ink-3/50",
-          width,
-        )}
-      >
-        ?
-      </div>
-    );
-  }
+/** Il posto pieno porta alla scheda dell'eroe; quello vuoto, prima della pesca, e' solo la cornice. */
+function HeroLink({ game, hero, children }: { game: string; hero: RandomizerHero | undefined; children: React.ReactNode }) {
+  if (!hero) return <div aria-hidden>{children}</div>;
   return (
     <Link
       href={`/${game}/eroi/${hero.id}`}
-      className={cx(
-        "group block w-full self-start rounded-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-        width,
-      )}
+      aria-label={`${hero.epithet} ${hero.name}`}
+      className="group block min-w-0 text-ink no-underline focus-visible:outline-2 focus-visible:outline-offset-2"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte in due densita', come nella griglia Eroi */}
-      <img
-        src={heroCardSrc(game, hero.id)}
-        srcSet={`${heroCardSrc(game, hero.id)} 1x, ${heroCardSrc(game, hero.id, 2)} 2x`}
-        alt=""
-        width={128}
-        height={128}
-        decoding="async"
-        className="block w-full rounded-[3px] bg-paper-2 transition-transform group-hover:-translate-y-0.5"
-      />
-      <span
-        className="mt-1.5 block truncate text-[11px] leading-tight text-ink-3"
-        title={hero.epithet}
-        style={hero.color ? { color: hero.color } : undefined}
-      >
-        {hero.epithet}
-      </span>
-      <span className="block text-[12px] font-semibold leading-tight group-hover:text-brand">{hero.name}</span>
+      {children}
     </Link>
-  );
-}
-
-function LinkIcon() {
-  return (
-    <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
-      <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
-    </svg>
   );
 }
 
 function DiceIcon() {
   return (
-    <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="3" />
+    <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
+      <rect x="3" y="3" width="18" height="18" />
       <circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" />
       <circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" />
       <circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" />

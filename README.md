@@ -109,6 +109,7 @@ clone pulito l'immagine funziona, ma senza immagini.
 | `AUTH_SECRET` | `npx auth secret`, diverso da quello di sviluppo |
 | `AUTH_URL` | l'indirizzo pubblico, con `https://`. Fa anche da indirizzo del sito (sitemap, robots, link del recupero password) e dice ad Auth.js di fidarsi dell'host |
 | `AUTH_DISCORD_ID`/`_SECRET`, `AUTH_GOOGLE_ID`/`_SECRET` | facoltative; nell'app di Discord o Google va registrato `<AUTH_URL>/api/auth/callback/discord` (o `/google`) |
+| `DISCORD_WEBHOOK_MODERAZIONE` | facoltativa; il webhook del canale Discord dei moderatori: a ogni schermata da verificare arriva un messaggio con utente, eroe del giorno, classe dichiarata e il collegamento a `/moderazione` (la schermata non parte: resta sul sito) |
 
 `NEXT_PUBLIC_SITE_URL` non va messa nell'ambiente della **build**: Next scrive nel
 codice le variabili `NEXT_PUBLIC_` che trova in quel momento. Se manca,

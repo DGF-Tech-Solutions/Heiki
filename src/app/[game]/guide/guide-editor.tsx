@@ -8,7 +8,7 @@ import {
   type GuideActionState,
 } from "@/lib/guides/actions";
 import { Markdown } from "@/components/markdown";
-import { Button, Field, Input, Notice, Select, Textarea } from "@/components/ui";
+import { Button, chipClass, Field, Input, Notice, Select, Textarea } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/client";
 import { intlLocale, testi } from "@/lib/i18n/locale";
 
@@ -178,23 +178,20 @@ export function GuideEditor({
         </Field>
       ) : null}
 
-      <div className="mb-2 flex items-center gap-4 border-b border-rule">
+      {/* scrivere o guardare: la lama dei filtri, quieta (una delle due c'e' sempre) */}
+      <div className="mb-2 flex items-center gap-1.5 border-b border-rule pb-2">
         {(["scrivi", "anteprima"] as const).map((name) => (
           <button
             key={name}
             type="button"
             onClick={() => setTab(name)}
             aria-pressed={tab === name}
-            className={
-              tab === name
-                ? "-mb-px border-b-2 border-brand pb-2 text-sm font-semibold text-ink"
-                : "-mb-px border-b-2 border-transparent pb-2 text-sm text-ink-3 hover:text-ink"
-            }
+            className={chipClass(tab === name, true, "border-0")}
           >
             {name === "scrivi" ? t.scrivi : t.anteprima}
           </button>
         ))}
-        <span className="ml-auto pb-2 font-mono text-[11px] text-ink-3">
+        <span className="ml-auto font-mono text-[11px] text-ink-3">
           {t.caratteri(chars, chars.toLocaleString(intlLocale(locale)))}
         </span>
       </div>
@@ -219,7 +216,7 @@ export function GuideEditor({
       </div>
 
       {tab === "anteprima" ? (
-        <div className="rounded-card border border-rule bg-paper p-5">
+        <div className="p5-corner border border-rule bg-paper-2 p-5">
           {chars === 0 ? (
             <p className="m-0 text-sm text-ink-3">{t.vuoto}</p>
           ) : (
@@ -228,8 +225,8 @@ export function GuideEditor({
         </div>
       ) : null}
 
-      <details className="mt-4 rounded-card border border-rule bg-paper-2 p-4">
-        <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+      <details className="mt-4 border border-rule bg-paper-2 p-4">
+        <summary className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
           {t.sintassi}
         </summary>
         <ul className="m-0 mt-3 grid list-none gap-1.5 p-0 text-[13px] text-ink-2">
@@ -270,7 +267,7 @@ export function GuideEditor({
         </Button>
         <Link
           href={existing ? `/${game}/guide/${existing.slug}` : `/${game}/guide`}
-          className="text-[13px] text-ink-2 hover:text-brand"
+          className="text-[13px] text-ink-2 underline decoration-rule underline-offset-2 hover:text-ink"
         >
           {t.annulla}
         </Link>

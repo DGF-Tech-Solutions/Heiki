@@ -76,7 +76,7 @@ export function CompleteResetForm({ token }: { token: string }) {
         {pending ? t.imposto : t.impostaPassword}
       </Button>
 
-      <p className="mt-3 text-[11px] text-ink-3">{t.chiudiamoSessioni}</p>
+      <p className="mt-3 text-[12px] text-ink-3">{t.chiudiamoSessioni}</p>
     </form>
   );
 }

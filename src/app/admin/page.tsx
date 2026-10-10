@@ -133,7 +133,7 @@ export default async function AdminPage({ searchParams }: Props) {
       <header className="mb-8">
         <p className={eyebrow}>{t.riservato}</p>
         <h1 className={cx(display, "mt-2.5 text-[32px]")}>{t.titolo}</h1>
-        <p className="mt-3 max-w-[62ch] text-sm text-ink-2">{t.introduzione}</p>
+        <p className="mt-3 max-w-[48ch] text-sm text-ink-2">{t.introduzione}</p>
       </header>
 
       <section className="mb-12">
@@ -159,13 +159,13 @@ export default async function AdminPage({ searchParams }: Props) {
             <table className="w-full min-w-[620px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-ink text-left">
-                  <th className="pb-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+                  <th className="pb-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
                     {t.utente}
                   </th>
-                  <th className="pb-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+                  <th className="pb-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
                     {t.iscritto}
                   </th>
-                  <th className="pb-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3">
+                  <th className="pb-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
                     {t.ruolo}
                   </th>
                 </tr>
@@ -174,7 +174,7 @@ export default async function AdminPage({ searchParams }: Props) {
                 {people.map((person) => (
                   <tr key={person.id} className="border-b border-rule-2 align-middle">
                     <td className="py-2.5 pr-4">
-                      <Link href={`/u/${person.username}`} className="font-medium hover:text-brand">
+                      <Link href={`/u/${person.username}`} className="font-medium hover:text-brand-deep">
                         {person.username}
                       </Link>
                       <span className="ml-2 font-mono text-[11px] text-ink-3">{person.email}</span>
@@ -244,7 +244,7 @@ export default async function AdminPage({ searchParams }: Props) {
                     <span className="font-mono text-[11px] text-ink-3">
                       {t.contenuti(gameModule.characters.length, gameModule.targets.length)}
                     </span>
-                    <span className="ml-auto font-mono text-[10px] text-ink-3">
+                    <span className="ml-auto font-mono text-[11px] text-ink-3">
                       {gameModule.dataset.checksum.slice(0, 12)}
                     </span>
                   </>

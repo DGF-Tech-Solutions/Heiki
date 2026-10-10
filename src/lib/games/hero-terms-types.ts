@@ -70,6 +70,14 @@ export interface HeroTermsIndex {
    * "g:<gruppo>". «Cancels Buffs and Stances» ne ha due.
    */
   readonly texts: Readonly<Record<string, readonly (string | null)[]>>;
+  /**
+   * `<textKey inglese>:<textKey italiano>` -> per ogni parola blu del testo
+   * italiano, in ordine, la posizione della parola inglese a cui va (-1:
+   * nessuna). Il gioco in italiano colora parole diverse dall'inglese, e la
+   * posizione da sola le scambiava (10/10): il legame lo fa l'import, con una
+   * prova (scripts/import-hero-terms.mts, «le parole blu dell'italiano»).
+   */
+  readonly italian: Readonly<Record<string, readonly number[]>>;
   /** concetto -> dove compare, nell'ordine del roster */
   readonly places: Readonly<Record<string, readonly HeroTermPlace[]>>;
 }

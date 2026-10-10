@@ -87,6 +87,8 @@ export const TESTI = testi({
     cerca: "Cerca un eroe per nome",
     cercaEtichetta: "Cerca un eroe",
     senzaCollab: "Senza collaborazioni",
+    soloMiei: "Solo i miei",
+    soloMieiTitolo: "Solo gli eroi che hai segnato in «I tuoi eroi»",
     suggeriti: "Si incastrano meglio qui",
     suggeritiSpiega:
       "Contati sulle passive: quanti effetti in più vanno ai compagni, quante passive in più si accendono, le condizioni «tutti» rispettate o rotte.",
@@ -207,6 +209,8 @@ export const TESTI = testi({
     cerca: "Search a hero by name",
     cercaEtichetta: "Search a hero",
     senzaCollab: "No collaborations",
+    soloMiei: "Only mine",
+    soloMieiTitolo: "Only the heroes you marked in «Your heroes»",
     suggeriti: "Fit best here",
     suggeritiSpiega:
       "Counted on the passives: how many more effects go to teammates, how many more passives light up, the «all» conditions met or broken.",

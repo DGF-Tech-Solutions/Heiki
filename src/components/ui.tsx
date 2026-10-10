@@ -10,6 +10,7 @@
  */
 
 import type { ComponentProps, ReactNode } from "react";
+import { IconChevronRight } from "./icons";
 
 export function cx(...parts: (string | false | null | undefined)[]): string {
   return parts.filter(Boolean).join(" ");
@@ -105,7 +106,7 @@ export function Tag({
     <span
       className={cx(
         "p5-cut-sm inline-flex h-5 items-center gap-1 whitespace-nowrap px-[9px]",
-        "font-mono text-[10px] font-medium uppercase tracking-[0.06em]",
+        "font-mono text-[11px] font-medium uppercase tracking-[0.06em]",
         TAG_TONE[tone],
         className,
       )}
@@ -157,9 +158,133 @@ export function SectionHead({
   );
 }
 
+/**
+ * La testata di una pagina (10/10): il titolo e, a destra, una riga che dice cosa
+ * c'e'. Niente etichetta sopra il titolo (la striscia del gioco e le briciole
+ * dicono gia' dove sei) e niente paragrafi di metodo: quelli vanno in `HowItWorks`
+ * o in fondo alla pagina. Una forma sola, perche' prima ogni pagina aveva la sua.
+ */
+export function PageHeader({
+  title,
+  children,
+  className,
+}: {
+  title: ReactNode;
+  /** una o due righe: cosa c'e' nella pagina */
+  children?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <header
+      className={cx(
+        "mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b-2 border-brand pb-4",
+        className,
+      )}
+    >
+      <h1 className={cx(display, "text-[clamp(34px,5vw,58px)]")}>{title}</h1>
+      {children ? <div className="m-0 max-w-[48ch] text-sm text-ink-2 [&_p]:m-0">{children}</div> : null}
+    </header>
+  );
+}
+
+/**
+ * «Come funziona»: la spiegazione di metodo (da dove vengono i dati, come si
+ * legge una tabella), chiusa finche' non la si apre. Prima stava in testa alle
+ * pagine, prima dello strumento (10/10).
+ */
+export function HowItWorks({
+  summary,
+  children,
+  open,
+  className,
+}: {
+  summary: ReactNode;
+  children: ReactNode;
+  open?: boolean;
+  className?: string;
+}) {
+  return (
+    <details open={open} className={cx("group/come border-y border-rule-2 py-2", className)}>
+      <summary className="flex cursor-pointer list-none items-center gap-2 font-display text-[13px] font-extrabold uppercase tracking-[0.04em] text-ink-2 [font-variation-settings:'wdth'_85] hover:text-ink [&::-webkit-details-marker]:hidden">
+        <IconChevronRight size={14} className="transition-transform group-open/come:rotate-90" />
+        {summary}
+      </summary>
+      <div className="mt-2.5 max-w-[48ch] text-sm leading-relaxed text-ink-2 [&_p]:m-0 [&_p+p]:mt-2">{children}</div>
+    </details>
+  );
+}
+
+/**
+ * La forma dei pulsanti di scelta (filtri, ordini, «server»), per chi li fa con
+ * un collegamento invece che con un pulsante: la stessa lama di `Chip`
+ * (filter-chips.tsx). Rossa se la scelta restringe l'elenco, bianca se e' una
+ * scelta che c'e' sempre (un ordine, un server).
+ */
+export function chipClass(active: boolean, quiet = false, className?: string): string {
+  return cx(
+    // 40px sul telefono e non 36: si centrano col pollice (10/10)
+    "p5-cut-sm inline-flex h-9 cursor-pointer items-center gap-1.5 px-3 text-[12px] uppercase tracking-[0.04em] transition-colors no-underline max-sm:h-10",
+    active && quiet
+      ? "bg-ink font-bold text-paper"
+      : active
+        ? "bg-brand font-bold text-white"
+        : "bg-paper-3 font-semibold text-ink-2 hover:bg-ink hover:text-paper",
+    className,
+  );
+}
+
+/**
+ * Una scelta fra poche voci, con i pulsanti di radio del browser nascosti sotto
+ * la lama dei filtri (`chipClass`, quieta: c'e' sempre un valore). Prima ogni
+ * strumento aveva i suoi rettangoli rosso scuro bordati.
+ *
+ * Il fuoco si disegna sull'etichetta e non sulla lama: il taglio obliquo e' un
+ * clip-path, e ritaglierebbe anche il contorno del fuoco.
+ */
+export function RadioChips<T extends string | number>({
+  legend,
+  name,
+  options,
+  value,
+  onChange,
+}: {
+  legend: string;
+  name: string;
+  options: readonly { value: T; label: ReactNode; title?: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <fieldset className="m-0 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1.5 border-0 p-0">
+      <legend className={cx(eyebrow, "float-left mr-1.5 p-0 leading-9")}>{legend}</legend>
+      {options.map((option) => (
+        <label
+          key={String(option.value)}
+          title={option.title}
+          className="cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink"
+        >
+          <input
+            type="radio"
+            name={name}
+            value={String(option.value)}
+            checked={value === option.value}
+            onChange={() => onChange(option.value)}
+            className="peer sr-only"
+          />
+          {option.title ? <span className="sr-only">{option.title}</span> : null}
+          <span aria-hidden={option.title ? true : undefined} className={chipClass(value === option.value, true)}>
+            {option.label}
+          </span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
 export function Empty({ children }: { children: ReactNode }) {
   return (
-    <p className="m-0 rounded-card border border-dashed border-rule bg-paper-2 p-6 text-center text-sm text-ink-3">
+    // un riquadro con l'angolo tagliato come le altre note, non il tratteggio (10/10)
+    <p className="p5-corner m-0 border border-rule bg-paper-2 p-6 text-center text-sm text-ink-2">
       {children}
     </p>
   );
@@ -203,7 +328,7 @@ export function Stat({
 }) {
   return (
     <div className="bg-paper px-3.5 py-3">
-      <dt className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink-3">{label}</dt>
+      <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">{label}</dt>
       <dd
         className={cx(
           numeric,
@@ -212,7 +337,7 @@ export function Stat({
         )}
       >
         {value}
-        {unit ? <small className="ml-1 text-[11px] font-normal text-ink-3">{unit}</small> : null}
+        {unit ? <small className="ml-1 text-[12px] font-normal text-ink-3">{unit}</small> : null}
       </dd>
     </div>
   );
@@ -235,9 +360,9 @@ export function Field({
 }) {
   return (
     <label className={cx("mb-4 block", className)}>
-      <span className="mb-1.5 flex items-baseline justify-between gap-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-ink-3">
+      <span className="mb-1.5 flex items-baseline justify-between gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-3">
         {label}
-        {hint ? <span className="text-[11px] normal-case tracking-normal">{hint}</span> : null}
+        {hint ? <span className="text-[12px] normal-case tracking-normal">{hint}</span> : null}
       </span>
       {children}
       {error ? <span className="mt-1.5 block text-xs text-hot">{error}</span> : null}

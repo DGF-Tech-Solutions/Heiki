@@ -5,7 +5,7 @@ import { GradeBadge } from "@/components/artifacts/artifact-parts";
 import { SetBrowser, type SetFilterNames } from "@/components/artifacts/set-browser";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { GameText } from "@/components/heroes/game-text";
-import { cx, display, eyebrow, numeric } from "@/components/ui";
+import { Card, cx, display, eyebrow, numeric, PageHeader } from "@/components/ui";
 import type { ArtifactSet } from "@/lib/games/artifact-types";
 import { artifactImageSrc, type ArtifactSetSummary } from "@/lib/games/artifacts";
 import { findGame } from "@/lib/games/catalog";
@@ -21,15 +21,15 @@ import { getLocale } from "@/lib/i18n/server";
  * Una griglia dei 78 set coi filtri del gioco, e ogni set porta alla sua pagina
  * (scelta dell'utente, 26/09: due voci, Set e Carte, una pagina per ogni set e
  * ogni carta, come gli eroi). Sotto, come funzionano: il tutorial del gioco, le
- * Carte placcate e i punti di potenziamento.
+ * Carte placcate e i punti di potenziamento. La fonte sta in fondo, coi
+ * diritti: in testa veniva prima della griglia, che e' quello che si cerca (10/10).
  */
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Set artefatto di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Set artefatto di ${gioco}`,
     descrizione: (gioco: string) =>
       `I Set artefatto di ${gioco}: le carte di ogni set, l'effetto livello per livello, dove vale e quanto costa potenziarlo.`,
-    database: "Database",
     titolo: "Set artefatto",
     filtri: { contents: "Contenuto", races: "Razza", factions: "Caratteristica", misc: "Varie" },
     introduzione: (set: number, carte: number) =>
@@ -55,10 +55,9 @@ const TESTI = testi({
     diritti: (editore: string) => `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Artifact Sets · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Artifact Sets`,
     descrizione: (gioco: string) =>
       `${gioco} Artifact Sets: the cards of each set, the effect level by level, where it works and what it costs to enhance.`,
-    database: "Database",
     titolo: "Artifact Sets",
     filtri: { contents: "Content", races: "Race", factions: "Characteristic", misc: "Misc" },
     introduzione: (set: number, carte: number) =>
@@ -159,26 +158,23 @@ export default async function ArtifactSetsPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 border-b border-rule pb-5">
-        <p className={eyebrow}>{t.database}</p>
-        <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-        <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione(data.sets.length, setCards)}</p>
-        <p className="mt-1.5 max-w-[72ch] text-sm text-ink-2">
+      <PageHeader title={t.titolo}>
+        <p>{t.introduzione(data.sets.length, setCards)}</p>
+        <p className="mt-1">
           {t.carte}{" "}
-          <Link href={`/${game}/carte-artefatto`} className="text-brand underline-offset-2 hover:underline">
+          <Link href={`/${game}/carte-artefatto`} className="text-ink underline decoration-brand underline-offset-2 hover:text-brand-deep">
             {t.carteVoce}
           </Link>
           .
         </p>
-        <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
-      </header>
+      </PageHeader>
 
       <SetBrowser game={game} sets={summaries} names={names} frame={data.images.small} />
 
-      <section id="come-funziona" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-        <h2 className={cx(display, "text-2xl")}>{t.comeFunziona}</h2>
-        <div className="mt-4 grid items-start gap-5 lg:grid-cols-2">
-          <div className="min-w-0 rounded-card border border-rule bg-paper-2 p-4 text-[13px] leading-relaxed text-ink-2">
+      <section id="come-funziona" className="mt-16 scroll-mt-20 border-t border-rule pt-10">
+        <h2 className={cx(display, "text-[30px]")}>{t.comeFunziona}</h2>
+        <div className="mt-5 grid items-start gap-x-10 gap-y-8 lg:grid-cols-2">
+          <Card className="min-w-0 text-[13px] leading-relaxed text-ink-2">
             {data.guide.map((page, position) => (
               <GameText key={position} text={say(page)} className={cx(position > 0 && "mt-3")} />
             ))}
@@ -187,22 +183,22 @@ export default async function ArtifactSetsPage({ params }: Props) {
                 {t.sblocco}: {unlock}
               </p>
             ) : null}
-          </div>
+          </Card>
 
           <div className="min-w-0">
-            <h3 className="m-0 text-[15px] font-semibold">{t.placcate}</h3>
-            <p className="mt-1 text-[13px] text-ink-2">{t.placcateIntro}</p>
-            <table className="mt-2 w-full max-w-[360px] border-collapse text-[13px]">
-              <thead>
+            <h3 className={cx(display, "m-0 text-[19px]")}>{t.placcate}</h3>
+            <p className="m-0 mt-2 max-w-[48ch] text-[13px] leading-relaxed text-ink-2">{t.placcateIntro}</p>
+            <table className="mt-3 w-full max-w-[360px] border-collapse border border-rule bg-paper text-[13px]">
+              <thead className="bg-paper-2">
                 <tr className="border-b border-rule text-left">
-                  <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.grado}</th>
-                  <th className={cx(eyebrow, "py-1.5 text-right font-medium")}>{t.punti}</th>
+                  <th className={cx(eyebrow, "px-3 py-2 font-medium")}>{t.grado}</th>
+                  <th className={cx(eyebrow, "px-3 py-2 text-right font-medium")}>{t.punti}</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(data.grades).map(([code, grade]) => (
-                  <tr key={code} className="border-b border-rule-2">
-                    <td className="py-1 pr-3">
+                  <tr key={code} className="border-b border-rule-2 last:border-b-0">
+                    <td className="px-3 py-1">
                       <span className="inline-flex items-center gap-2">
                         {grade.plate.icon ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
@@ -218,7 +214,7 @@ export default async function ArtifactSetsPage({ params }: Props) {
                         <GradeBadge grade={Number(code)} index={data} />
                       </span>
                     </td>
-                    <td className={cx(numeric, "py-1 text-right")}>{formatNumber(grade.plate.points, locale)}</td>
+                    <td className={cx(numeric, "px-3 py-1 text-right")}>{formatNumber(grade.plate.points, locale)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -226,16 +222,16 @@ export default async function ArtifactSetsPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="mt-6">
-          <h3 className="m-0 text-[15px] font-semibold">{t.potenziamento}</h3>
-          <p className="mt-1 max-w-[72ch] text-[13px] text-ink-2">{t.potenziamentoIntro(data.enhancement.cardsPerRound)}</p>
-          <div className="mt-2 overflow-x-auto">
+        <div className="mt-10">
+          <h3 className={cx(display, "m-0 text-[19px]")}>{t.potenziamento}</h3>
+          <p className="m-0 mt-2 max-w-[48ch] text-[13px] leading-relaxed text-ink-2">{t.potenziamentoIntro(data.enhancement.cardsPerRound)}</p>
+          <div className="mt-3 overflow-x-auto border border-rule bg-paper">
             <table className="w-full min-w-[420px] border-collapse text-[13px]">
-              <thead>
+              <thead className="bg-paper-2">
                 <tr className="border-b border-rule text-left">
-                  <th className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>{t.classe}</th>
+                  <th className={cx(eyebrow, "px-3 py-2 font-medium")}>{t.classe}</th>
                   {Array.from({ length: maxLevel - 1 }, (_, position) => (
-                    <th key={position} className={cx(eyebrow, "py-1.5 pr-3 text-right font-medium")}>
+                    <th key={position} className={cx(eyebrow, "px-3 py-2 text-right font-medium")}>
                       {t.livello(position + 2)}
                     </th>
                   ))}
@@ -243,15 +239,15 @@ export default async function ArtifactSetsPage({ params }: Props) {
               </thead>
               <tbody>
                 {classes.map(([code, totals]) => (
-                  <tr key={code} className="border-b border-rule-2">
-                    <td className="py-1 pr-3">
+                  <tr key={code} className="border-b border-rule-2 last:border-b-0">
+                    <td className="px-3 py-1.5">
                       <span className={numeric}>{code}</span>{" "}
                       <span className="text-[12px] text-ink-3">
                         · {t.set(data.sets.filter((set) => String(set.enhanceClass) === code && set.levels.length > 1).length)}
                       </span>
                     </td>
                     {Array.from({ length: maxLevel - 1 }, (_, position) => (
-                      <td key={position} className={cx(numeric, "py-1 pr-3 text-right")}>
+                      <td key={position} className={cx(numeric, "px-3 py-1.5 text-right")}>
                         {totals[position] !== undefined ? formatNumber(totals[position]!, locale) : "—"}
                       </td>
                     ))}
@@ -264,7 +260,10 @@ export default async function ArtifactSetsPage({ params }: Props) {
         </div>
       </section>
 
-      <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
+      <div className="mt-12 grid gap-1 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
+        <p className="m-0">{t.fonte}</p>
+        <p className="m-0">{t.diritti(entry.publisher)}</p>
+      </div>
     </main>
   );
 }

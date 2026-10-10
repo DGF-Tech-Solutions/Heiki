@@ -12,16 +12,21 @@ import {
   HeroGrid,
   ItemLabel,
   PartTitle,
+  InPageNav,
+  LevelCell,
   PassiveList,
   RankStars,
   Said,
+  SectionTitle,
+  Summary,
   endgameScope,
   say,
   sayPlain,
   skillKindLabel,
   type EndgameScope,
 } from "@/components/endgame/endgame-parts";
-import { cx, display, eyebrow, numeric } from "@/components/ui";
+import { EndgameStage, StageBadge } from "@/components/endgame/endgame-stage";
+import { cx, eyebrow, HowItWorks, numeric } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { chosenLevel, endgameImageSrc, formatNumber, levelHref, type PageSearchParams } from "@/lib/games/endgame";
 import type { DemonKingDifficulty, DemonKingIndex, DemonKingPhase, DemonKingRuleStep } from "@/lib/games/endgame-types";
@@ -45,16 +50,19 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Re Demone di ${gioco} · GachaZone`,
+    titoloPagina: (gioco: string) => `Re Demone di ${gioco}`,
     descrizione: (gioco: string) =>
       `La Battaglia del Re Demone di ${gioco}: le regole, il Verdetto, le quattro difficoltà, le ricompense e gli eroi esclusi.`,
-    endgame: "Endgame",
     titolo: "Re Demone",
     introduzione: (difficolta: number) =>
       `Un boss solo in ${difficolta} difficoltà, ognuna con due fasi. Il Re Demone impone delle regole sull'ordine delle abilità: rispettarle indebolisce lui, infrangerle fa salire il suo Verdetto fino alla Sentenza di eliminazione. Qui le regole di ogni fase, il Verdetto, il boss e le ricompense.`,
     fonte:
       "Fonte: le tabelle e i testi del client del gioco. Le statistiche del boss sono stimate: il client non le scrive.",
     comeFunziona: "Come funziona",
+    datiDa: "Da dove vengono i dati",
+    inPagina: "In questa pagina",
+    difficoltaSezione: "Difficoltà",
+    difficoltaConta: (n: number) => `${n} difficoltà`,
     guida: "La guida del gioco",
     sblocco: "Si sblocca con",
     tentativi: "Tentativi",
@@ -104,15 +112,18 @@ const TESTI = testi({
     diritti: (editore: string) => `Immagini e nomi appartengono a ${editore} e sono qui a scopo di consultazione.`,
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} Demon King · GachaZone`,
+    titoloPagina: (gioco: string) => `${gioco} Demon King`,
     descrizione: (gioco: string) =>
       `${gioco} Demon King Battle: the rules, the Verdict, the four difficulties, the rewards and the banned heroes.`,
-    endgame: "Endgame",
     titolo: "Demon King",
     introduzione: (difficolta: number) =>
       `A single boss in ${difficolta} difficulties, each with two phases. The Demon King imposes rules on the order of your skills: following them weakens him, breaking them raises his Verdict up to the Annihilation Sentence. Here are each phase's rules, the Verdict, the boss and the rewards.`,
     fonte: "Source: the game client's tables and texts. The boss's stats are estimated: the client does not store them.",
     comeFunziona: "How it works",
+    datiDa: "Where the data comes from",
+    inPagina: "On this page",
+    difficoltaSezione: "Difficulties",
+    difficoltaConta: (n: number) => (n === 1 ? "1 difficulty" : `${n} difficulties`),
     guida: "The game's guide",
     sblocco: "Unlocked by",
     tentativi: "Attempts",
@@ -209,41 +220,56 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
   const current = chosenLevel(query, LEVEL_PARAM, data.difficulties.map((level) => level.level));
   const chosen = data.difficulties[current];
 
+  const levelLink = (level: number) => levelHref(query, LEVEL_PARAM, level, "difficolta");
+
   return (
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      <header className="mb-6 grid gap-5 border-b border-rule pb-5 md:grid-cols-[minmax(0,1fr)_minmax(0,200px)]">
-        <div className="min-w-0">
-          <p className={eyebrow}>{t.endgame}</p>
-          <h1 className={cx(display, "mt-3 text-[clamp(26px,3.6vw,38px)]")}>{t.titolo}</h1>
-          <p className="m-0 mt-1 text-[15px] text-ink-2">{sayPlain(data.name, scope)}</p>
-          <p className="mt-2.5 max-w-[72ch] text-sm text-ink-2">{t.introduzione(data.difficulties.length)}</p>
-          <p className="mt-1.5 max-w-[72ch] text-[13px] text-ink-3">{t.fonte}</p>
-        </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={endgameImageSrc(game, "re-demone/info.png")}
-          alt=""
-          width={200}
-          height={200}
-          className="hidden h-auto w-full max-w-[200px] rounded-card bg-paper-2 md:block"
-        />
-      </header>
+      {/*
+        La scheda color seppia del Re Demone sul palco, come una carta: ha un
+        fondo e una cornice suoi, e non si scontorna (10/10). Prima stava a
+        destra del titolo, e sul telefono spariva.
+      */}
+      <EndgameStage
+        title={t.titolo}
+        word={t.titolo}
+        mode="card"
+        image={{ src: endgameImageSrc(game, "re-demone/info.png"), width: 512, height: 512 }}
+        subtitle={sayPlain(data.name, scope)}
+      >
+        <StageBadge>{t.difficoltaConta(data.difficulties.length)}</StageBadge>
+      </EndgameStage>
+      <p className="m-0 mb-6 max-w-[48ch] text-[15px] leading-relaxed text-ink-2">{t.introduzione(data.difficulties.length)}</p>
 
-      <section id="come-funziona" className="mb-10 scroll-mt-20">
-        <h2 className={cx(display, "text-2xl")}>{t.comeFunziona}</h2>
-        <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <details className="rounded-card border border-rule bg-paper-2 p-4" open>
-            <summary className="cursor-pointer text-[14px] font-semibold hover:text-brand">{t.guida}</summary>
-            <div className="mt-3 grid gap-3 text-[13px] leading-relaxed text-ink-2">
+      <InPageNav
+        label={t.inPagina}
+        links={[
+          ["#come-funziona", t.comeFunziona],
+          ["#difficolta", t.difficoltaSezione],
+          chosen ? ["#verdetto", t.verdetto] : null,
+          chosen ? ["#ricompense", t.ricompense] : null,
+          data.exchange.length > 0 && ["#scambio", t.scambio],
+        ]}
+      />
+
+      <section id="come-funziona" className="mb-14 scroll-mt-20">
+        <SectionTitle>{t.comeFunziona}</SectionTitle>
+        {/*
+          La guida del gioco chiusa (10/10): aperta erano diciassette paragrafi
+          prima degli esclusi e delle difficolta', lo strumento della pagina.
+        */}
+        <div className="grid items-start gap-x-6 gap-y-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+          <details className="p5-corner border border-rule bg-paper-2 px-4 py-3">
+            <Summary className="text-[14px] font-semibold text-ink">{t.guida}</Summary>
+            <div className="mt-2 grid max-w-[80ch] gap-3 pb-1 text-[13px] leading-relaxed text-ink-2">
               {data.guide.map((line, index) => (
                 <Said key={index} value={line} scope={scope} />
               ))}
             </div>
           </details>
           <div className="grid content-start gap-4">
-            <div className="rounded-card border border-rule p-4">
+            <div className="border border-rule p-4">
               <Facts
                 rows={[
                   data.unlock !== null && [t.sblocco, sayPlain(data.unlock, scope)],
@@ -251,16 +277,16 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
                 ]}
               />
               {data.allyPassives.length > 0 ? (
-                <div className="mt-3">
+                <div className="mt-4">
                   <p className={cx(eyebrow, "m-0 mb-1")}>{t.passiveAlleati}</p>
                   <PassiveList ids={data.allyPassives} scope={scope} />
                 </div>
               ) : null}
             </div>
-            <div className="rounded-card border border-rule p-4">
+            <div className="border border-rule p-4">
               <p className={cx(eyebrow, "m-0")}>{t.punti}</p>
               <p className="m-0 mt-1 text-[13px] text-ink-2">{t.puntiSpiega}</p>
-              <ul className="m-0 mt-2 grid list-none gap-0.5 p-0 text-[13px]">
+              <ul className="m-0 mt-3 grid list-none gap-1 p-0 text-[13px]">
                 {data.coinPoints.map((row) => (
                   <li key={row.rarity} className="flex justify-between gap-3">
                     <span>{t.moneta(row.rarity)}</span>
@@ -273,15 +299,16 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
         </div>
 
         {data.banned.length > 0 ? (
-          <div className="mt-5">
+          <div className="mt-10">
             <PartTitle>{t.esclusi}</PartTitle>
             <HeroGrid ids={data.banned} scope={scope} />
           </div>
         ) : null}
       </section>
 
-      <section id="difficolta" className="scroll-mt-20 border-t border-rule pt-8">
-        <LevelsTable data={data} scope={scope} t={t} />
+      <section id="difficolta" className="scroll-mt-20 border-t border-rule pt-10">
+        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
+        <LevelsTable data={data} scope={scope} t={t} current={current} href={levelLink} />
 
         <div className="mt-6">
           <DifficultyLinks
@@ -290,11 +317,11 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
             tabs={data.difficulties.map((level) => ({
               label: say(level.name, scope),
               color: level.color,
-              href: levelHref(query, LEVEL_PARAM, level.level, "difficolta"),
+              href: levelLink(level.level),
             }))}
           />
           {chosen ? (
-            <div className="mt-4">
+            <div className="mt-6">
               <LevelPanel level={chosen} data={data} scope={scope} t={t} />
             </div>
           ) : null}
@@ -302,12 +329,15 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
       </section>
 
       {data.exchange.length > 0 ? (
-        <section id="scambio" className="mt-12 scroll-mt-20 border-t border-rule pt-8">
-          <h2 className={cx(display, "text-2xl")}>{t.scambio}</h2>
-          <p className="mt-2 text-sm text-ink-2">{t.scambioSpiega(data.exchange[0]!.weekly)}</p>
-          <ul className="m-0 mt-3 grid list-none gap-2 p-0">
+        <section id="scambio" className="mt-14 scroll-mt-20 border-t border-rule pt-10">
+          <SectionTitle>{t.scambio}</SectionTitle>
+          <p className="-mt-2 mb-0 text-sm text-ink-2">{t.scambioSpiega(data.exchange[0]!.weekly)}</p>
+          <ul className="m-0 mt-4 grid list-none gap-2 p-0">
             {data.exchange.map((row) => (
-              <li key={row.give.id} className="grid gap-x-4 gap-y-1 rounded-card border border-rule p-3 text-[13px] md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+              <li
+                key={row.give.id}
+                className="grid gap-x-4 gap-y-1.5 border border-rule bg-paper-2 p-3 text-[13px] md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]"
+              >
                 <span className="inline-flex items-center gap-2">
                   <span className={eyebrow}>{t.dai}</span>
                   <ItemLabel id={row.give.id} count={row.give.count} scope={scope} />
@@ -324,16 +354,30 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
         </section>
       ) : null}
 
-      <div className="mt-8 grid gap-1 border-t border-rule-2 pt-4">
+      {/* il metodo in fondo, chiuso: la fonte e le probabilita' (10/10) */}
+      <HowItWorks summary={t.datiDa} className="mt-12">
+        <p>{t.fonte}</p>
         <DropNote scope={scope} />
-        <p className="m-0 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
-      </div>
+      </HowItWorks>
+      <p className="m-0 mt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
     </main>
   );
 }
 
-/** Le quattro difficolta' a confronto. */
-function LevelsTable({ data, scope, t }: { data: DemonKingIndex; scope: EndgameScope; t: T }) {
+/** Le quattro difficolta' a confronto; il nome di ogni riga porta alla difficolta', come i pulsanti. */
+function LevelsTable({
+  data,
+  scope,
+  t,
+  current,
+  href,
+}: {
+  data: DemonKingIndex;
+  scope: EndgameScope;
+  t: T;
+  current: number;
+  href: (level: number) => string;
+}) {
   const ruleName = (phase: DemonKingPhase | undefined) =>
     phase?.rules ? t.tipoRegola[phase.rules.type] : t.nessuna;
   return (
@@ -342,16 +386,18 @@ function LevelsTable({ data, scope, t }: { data: DemonKingIndex; scope: EndgameS
         <thead>
           <tr className="border-b border-rule text-left">
             {[t.difficolta, t.livello, t.energia, t.potenza, t.puntiX1, t.puntiX3, t.regoleFase(1), t.regoleFase(2)].map((head) => (
-              <th key={head} className={cx(eyebrow, "py-1.5 pr-3 font-medium")}>
+              <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
                 {head}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {data.difficulties.map((level) => (
-            <tr key={level.level} className="border-b border-rule-2">
-              <td className="py-1.5 pr-3 font-semibold">{say(level.name, scope)}</td>
+          {data.difficulties.map((level, index) => (
+            <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
+              <td className="py-0.5 pr-3 pl-2">
+                <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
+              </td>
               <td className={cx(numeric, "py-1.5 pr-3")}>{level.bossLevel}</td>
               <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
               <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
@@ -371,7 +417,7 @@ function LevelsTable({ data, scope, t }: { data: DemonKingIndex; scope: EndgameS
 function LevelPanel({ level, data, scope, t }: { level: DemonKingDifficulty; data: DemonKingIndex; scope: EndgameScope; t: T }) {
   const boxes = level.clear.filter((amount) => data.boxes[amount.id]);
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-12">
       <div className="grid gap-4 xl:grid-cols-2">
         {level.phases.map((phase, index) => (
           <div key={index} className="grid content-start gap-3">
@@ -382,11 +428,11 @@ function LevelPanel({ level, data, scope, t }: { level: DemonKingDifficulty; dat
       </div>
 
       <div>
-        <PartTitle>{t.verdetto}</PartTitle>
-        <p className="m-0 mb-2 text-[12px] text-ink-3">{t.verdettoSpiega}</p>
+        <PartTitle id="verdetto">{t.verdetto}</PartTitle>
+        <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-3">{t.verdettoSpiega}</p>
         <ol className="m-0 grid list-none gap-3 p-0 lg:grid-cols-3">
           {level.verdict.map((step, index) => (
-            <li key={index} className="min-w-0 rounded-card border border-rule p-3">
+            <li key={index} className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
               <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.verdettoPasso(index + 1, step.threshold)}</p>
               <PassiveList ids={[step.passive]} scope={scope} />
             </li>
@@ -395,7 +441,7 @@ function LevelPanel({ level, data, scope, t }: { level: DemonKingDifficulty; dat
       </div>
 
       <div>
-        <PartTitle>{t.ricompense}</PartTitle>
+        <PartTitle id="ricompense">{t.ricompense}</PartTitle>
         <div className="grid gap-5 lg:grid-cols-2">
           <div className="grid content-start gap-4">
             <div>
@@ -427,13 +473,13 @@ function LevelPanel({ level, data, scope, t }: { level: DemonKingDifficulty; dat
 /** Le regole di una fase: il tipo, e tutte le sequenze in un elenco richiudibile. */
 function Rules({ phase, scope, t }: { phase: DemonKingPhase; scope: EndgameScope; t: T }) {
   const rules = phase.rules;
-  if (!rules) return <p className="m-0 rounded-card border border-dashed border-rule p-3 text-[13px] text-ink-3">{t.senzaRegole}</p>;
+  if (!rules) return <p className="m-0 border border-dashed border-rule p-4 text-[13px] text-ink-3">{t.senzaRegole}</p>;
   return (
-    <div className="rounded-card border border-rule p-3">
+    <div className="p5-corner border border-rule bg-paper-2 p-4">
       <p className={cx(eyebrow, "m-0")}>{t.regole}</p>
       <p className="m-0 mt-1 text-[14px] font-semibold">{t.tipoRegola[rules.type]}</p>
       <details className="mt-2">
-        <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-brand">{t.sequenze(rules.sequences.length)}</summary>
+        <Summary>{t.sequenze(rules.sequences.length)}</Summary>
         <p className="m-0 mt-1.5 text-[12px] text-ink-3">{t.sequenzeSpiega}</p>
         {rules.type === "attack_type" ? <p className="m-0 mt-1 text-[12px] text-ink-3">{t.tipiSpiega}</p> : null}
         <table className="mt-2 w-full border-collapse text-[13px]">
@@ -505,5 +551,5 @@ function RuleStep({
       : key === "6,7"
         ? t.tipiCorti.atteggiamento
         : step.map((code) => skillKindLabel(ATTACK_TYPES[code] ?? String(code), scope)).join(" / ");
-  return <span className="rounded-[2px] bg-paper-3 px-1.5 py-0.5 text-[12px] text-ink-2">{text}</span>;
+  return <span className="p5-cut-sm inline-block bg-paper-3 px-2 py-0.5 text-[12px] text-ink-2">{text}</span>;
 }

@@ -13,7 +13,7 @@
  *   npm run db:smoke
  */
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 import { loadEnv, requireDatabaseUrl } from "./env.mjs";
@@ -489,6 +489,17 @@ async function main(): Promise<void> {
       (await guideStore.get("genshin-impact", guideSlugUsed)) === null,
     );
   }
+
+  // I post della verifica non restano nel database: finivano nella home e nelle
+  // Discussioni come se fossero della community (10/10, tolti su richiesta)
+  await db
+    .delete(schema.posts)
+    .where(
+      and(
+        eq(schema.posts.authorId, viewer.id),
+        inArray(schema.posts.title, ["Verifica di fumo sul database reale", "Allegato con mediana gonfiata, di proposito"]),
+      ),
+    );
 
   console.log(failures === 0 ? "\nTutti i controlli superati." : `\n${failures} controlli falliti.`);
   process.exit(failures === 0 ? 0 : 1);
