@@ -20,7 +20,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IconCard, IconPage, IconSearch, IconSword } from "@/components/icons";
 import { OPEN_SEARCH_EVENT } from "@/components/mobile-bar";
-import { cx, eyebrow } from "@/components/ui";
+import { cx, eyebrow, MoreArrow } from "@/components/ui";
 import { heroCardSrc } from "@/lib/games/heroes";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
@@ -37,7 +37,7 @@ const TESTI = testi({
     recenti: "Aperti di recente",
     nessuno: "Niente con queste parole.",
     caricamento: "Carico l'indice…",
-    discussioni: (q: string) => `Cerca «${q}» anche nelle discussioni →`,
+    discussioni: (q: string) => `Cerca «${q}» anche nelle discussioni`,
     tipo: { boss: "Scontro finale", bestia: "Bestia demoniaca", set: "Set artefatto", carta: "Carta artefatto", pagina: "Pagina", eroe: "Eroe" },
     scorciatoia: "Premi / per aprirla da qualunque pagina",
   },
@@ -51,7 +51,7 @@ const TESTI = testi({
     recenti: "Recently opened",
     nessuno: "Nothing matches these words.",
     caricamento: "Loading the index…",
-    discussioni: (q: string) => `Search “${q}” in the discussions too →`,
+    discussioni: (q: string) => `Search “${q}” in the discussions too`,
     tipo: { boss: "Death Match", bestia: "Demonic Beast", set: "Artifact Set", carta: "Artifact Card", pagina: "Page", eroe: "Hero" },
     scorciatoia: "Press / to open it from any page",
   },
@@ -290,9 +290,11 @@ export function QuickSearch({ games }: { games: readonly string[] }) {
             <Link
               href={`/cerca?q=${encodeURIComponent(query.trim())}`}
               onClick={() => dialog.current?.close()}
-              className="mt-1 block px-3 py-2 text-[13px] font-semibold text-brand-deep hover:underline"
+              className="group/more mt-1 flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold text-brand-deep hover:underline"
             >
-              {t.discussioni(query.trim())}
+              {/* nella frase c'e' quello che hai scritto: resta nel testo, non nel maiuscolo di MoreLink */}
+              <span className="min-w-0 break-words">{t.discussioni(query.trim())}</span>
+              <MoreArrow />
             </Link>
           ) : null}
         </div>

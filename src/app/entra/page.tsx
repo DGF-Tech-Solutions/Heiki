@@ -68,7 +68,7 @@ export default async function LoginPage() {
 
         {providers.length > 0 ? (
           <>
-            <div className="my-5 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 before:h-px before:flex-1 before:bg-rule after:h-px after:flex-1 after:bg-rule">
+            <div className="my-5 flex items-center gap-3 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3 before:h-px before:flex-1 before:bg-rule after:h-px after:flex-1 after:bg-rule">
               {t.oppure}
             </div>
             {providers.map((provider) => (

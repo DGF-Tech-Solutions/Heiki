@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Archivo, Atkinson_Hyperlegible_Next, DM_Mono } from "next/font/google";
+import { Archivo, Atkinson_Hyperlegible_Next, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { BackToTop } from "@/components/back-to-top";
 import { CookieBanner } from "@/components/cookie-banner";
@@ -18,9 +18,15 @@ import "./globals.css";
  * pesanti senza cambiare famiglia, e sembrano copertine sportive invece che
  * intestazioni di documento. Il testo lungo e' in Atkinson Hyperlegible Next,
  * disegnato per la leggibilita' (I, l e 1 non si confondono; prima era Public
- * Sans, che sul fondo a retino del tema Persona si leggeva peggio). DM Mono e'
- * riservato ai numeri: in un sito che vende calcoli le cifre devono
- * incolonnarsi, e il monospaziato le distingue subito dalla prosa.
+ * Sans, che sul fondo a retino del tema Persona si leggeva peggio). Il
+ * monospaziato e' riservato ai numeri: in un sito che vende calcoli le cifre
+ * devono incolonnarsi, e il monospaziato le distingue subito dalla prosa.
+ *
+ * Geist Mono e non piu' DM Mono (10/10): DM Mono esiste solo nei pesi 300-500,
+ * e il sito chiede i numeri a 600, 700 e 900 (tabelle del calcolatore, Uscite,
+ * Meccaniche). Il browser li ingrossava da solo, un grassetto finto e sbavato;
+ * e la sua «f» ricurva sotto la riga faceva leggere «ƒinali» nelle briciole.
+ * Geist Mono e' variabile da 100 a 900: un file solo, pesi veri.
  *
  * `axes: ["wdth"]`: next/font di suo scarica solo il peso, e fino al 10/10 il
  * file servito aveva `font-stretch: 100%`. Tutti i `'wdth' 75-85` dei titoli
@@ -32,10 +38,9 @@ const bodyFace = Atkinson_Hyperlegible_Next({
   variable: "--font-atkinson",
   display: "swap",
 });
-const dmMono = DM_Mono({
+const monoFace = Geist_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-dm-mono",
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -98,7 +103,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang={locale}
-      className={`${archivo.variable} ${bodyFace.variable} ${dmMono.variable}`}
+      className={`${archivo.variable} ${bodyFace.variable} ${monoFace.variable}`}
     >
       <body>
         <LocaleProvider locale={locale}>
@@ -128,7 +133,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <nav key={game.slug} aria-label={game.name} className="mb-7 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
                     {gameGroups(game.slug, locale).map((group) => (
                       <div key={group.label}>
-                        <p className="m-0 mb-2 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3">{group.label}</p>
+                        <p className="m-0 mb-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">{group.label}</p>
                         <ul className="m-0 grid list-none gap-1 p-0">
                           {group.items.map((item) => (
                             <li key={item.path}>

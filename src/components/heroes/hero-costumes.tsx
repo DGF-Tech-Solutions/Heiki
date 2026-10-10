@@ -7,11 +7,11 @@
  * qui si vedono tutti. Disegnata dal server, senza JavaScript.
  */
 
-import Link from "next/link";
 import { GameText } from "@/components/heroes/game-text";
+import { boxTitle } from "@/components/heroes/hero-parts";
 import { ItemIcon, costumeSrc } from "@/components/heroes/calculator/item-icon";
 import { formatStat, statName } from "@/components/heroes/calculator/stat-rows";
-import { cx, eyebrow, numeric } from "@/components/ui";
+import { cx, MoreLink, numeric } from "@/components/ui";
 import { COSTUME_KINDS, costumeFlat, costumeMaxStep } from "@/lib/games/gear";
 import type { CostumeIndex, CostumeKind, ItemIconLayers } from "@/lib/games/gear-types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
@@ -70,12 +70,16 @@ export function HeroCostumes({
   const total = COSTUME_KINDS.reduce((sum, kind) => sum + hero.all[kind].length, 0);
 
   return (
-    <section>
-      <h2 className={cx(eyebrow, "mb-2.5")}>{t.titolo(total)}</h2>
+    <>
+      {/*
+        Il titolo come quelli dei riquadri delle altre schede (10/10: era
+        un'etichetta grigia); i tipi sotto sono un gradino piu' piccoli.
+      */}
+      <h3 className={cx(boxTitle, "mb-2.5")}>{t.titolo(total)}</h3>
       <p className="m-0 max-w-[48ch] text-[13px] text-ink-2">{t.intro}</p>
-      <Link href="?scheda=statistiche" className="mt-1 inline-block text-[13px] text-brand-deep hover:underline">
+      <MoreLink href="?scheda=statistiche" className="mt-2.5">
         {t.calcolatore}
-      </Link>
+      </MoreLink>
 
       {COSTUME_KINDS.map((kind) => {
         const ids = hero.all[kind];
@@ -84,9 +88,14 @@ export function HeroCostumes({
         const flat = costumes.flatStat[kind];
         return (
           <div key={kind} className="mt-6">
-            <h3 className="m-0 mb-2 text-[14px] font-semibold text-ink">
-              {t.tipo[kind]} <span className="font-normal text-ink-3">· {ids.length} · {t.posti(hero.slots[kind])}</span>
-            </h3>
+            <h4 className="mb-2.5 flex flex-wrap items-baseline gap-x-2">
+              <span className="font-display text-[15px] font-extrabold uppercase tracking-[0.02em] text-ink [font-variation-settings:'wdth'_85]">
+                {t.tipo[kind]}
+              </span>
+              <span className="text-[13px] text-ink-3">
+                <span className={numeric}>{ids.length}</span> · {t.posti(hero.slots[kind])}
+              </span>
+            </h4>
             <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 @4xl:grid-cols-3">
               {ids.map((id) => {
                 const costume = costumes.costumes[id];
@@ -139,6 +148,6 @@ export function HeroCostumes({
         );
       })}
       <p className="mt-5 max-w-[75ch] text-[12px] text-ink-3">{t.fonte}</p>
-    </section>
+    </>
   );
 }

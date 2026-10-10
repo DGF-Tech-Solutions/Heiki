@@ -23,7 +23,7 @@ export async function SponsorSlot({ items }: { items: readonly SponsorItem[] }) 
 
   return (
     <aside className="p5-corner border border-rule bg-paper-2 p-4" aria-label={t.contenuto}>
-      <span className="mb-2.5 block font-mono text-[11px] uppercase tracking-[0.14em] text-ink-3">
+      <span className="mb-2.5 block font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
         {t.etichetta}
       </span>
 

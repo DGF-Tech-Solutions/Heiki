@@ -18,13 +18,12 @@
  * l'account (use-hero-box.ts, AccountSync).
  */
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { RangeField, StarRow, TrueAwakeningRow, UltimateRow } from "@/components/heroes/calculator/controls";
 import { IconClose } from "@/components/icons";
-import { Button, buttonClass, cx, display, Empty, eyebrow, Input, numeric } from "@/components/ui";
+import { Button, buttonClass, cx, display, Empty, eyebrow, heroNameClass, Input, MoreLink, numeric } from "@/components/ui";
 import {
   boxSize,
   clampEntry,
@@ -323,7 +322,7 @@ export function BoxBrowser({
                         </span>
                       ) : null}
                     </span>
-                    <span className="hero-card-name mt-1 line-clamp-2 font-display text-[12px] font-black uppercase leading-[1.08] [font-variation-settings:'wdth'_72]">
+                    <span className={cx(heroNameClass, "mt-1.5")}>
                       {heroName(hero, locale)}
                     </span>
                     <span className="sr-only">{mine ? t.nelBox : t.nonNelBox}</span>
@@ -391,9 +390,9 @@ function Editor({
         <div className="min-w-0">
           <p className="m-0 truncate text-[12px] text-ink-3">{heroEpithet(hero, locale)}</p>
           <p className={cx(display, "m-0 text-[22px] leading-none")}>{heroName(hero, locale)}</p>
-          <Link href={`/${game}/eroi/${hero.id}`} className="text-[12px] font-semibold text-brand-deep hover:underline">
-            {t.apriScheda} →
-          </Link>
+          <MoreLink href={`/${game}/eroi/${hero.id}`} className="mt-1">
+            {t.apriScheda}
+          </MoreLink>
         </div>
       </div>
 

@@ -323,7 +323,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                     <span className="block text-[13px]">
                       {badge.icon ?? "◇"} {badge.name}
                     </span>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.09em] text-ink-3">
+                    <span className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
                       {badge.trust.toLowerCase()}
                     </span>
                   </span>
@@ -463,7 +463,7 @@ function Subgroup({
 }) {
   return (
     <div className="mt-4 border-t border-rule-2 pt-4 first:mt-0 first:border-0 first:pt-0">
-      <span className="mb-2.5 flex items-baseline justify-between gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-3">
+      <span className="mb-2.5 flex items-baseline justify-between gap-2.5 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
         {label}
         <span className="text-[12px] normal-case tracking-normal">{hint}</span>
       </span>

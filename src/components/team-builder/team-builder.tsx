@@ -28,7 +28,7 @@ import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { IconCheck, IconChevronRight, IconClose, IconLink } from "@/components/icons";
 import { AssociateStrip, ChooseMark, PartyPanel } from "@/components/party-slot";
-import { buttonClass, chipClass, cx, eyebrow, Input, numeric, RadioChips } from "@/components/ui";
+import { buttonClass, chipClass, cx, eyebrow, heroNameClass, Input, numeric, RadioChips } from "@/components/ui";
 import { boxSize, ownsHero, type HeroBox } from "@/lib/games/hero-box";
 import { heroCardSrc, gameIconSrc } from "@/lib/games/heroes";
 import { searchText } from "@/lib/games/hero-terms";
@@ -645,7 +645,7 @@ function Picker({
                   className="block aspect-square w-full bg-paper"
                 />
               </span>
-              <span className="hero-card-name mt-1 line-clamp-2 font-display text-[11px] leading-[1.08] font-black uppercase [font-variation-settings:'wdth'_72]">
+              <span className={cx(heroNameClass, "mt-1")}>
                 {hero.name}
               </span>
             </button>

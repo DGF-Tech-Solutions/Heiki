@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
 import { chipClass, chipColors, cx, display, eyebrow, numeric } from "@/components/ui";
 import type {
@@ -157,7 +157,10 @@ const ACTION = chipClass(false);
 export function AccountEditor({ game, data }: { game: string; data: EditorData }) {
   const locale = useLocale();
   const t = TESTI[locale];
-  const id = useId();
+  // fisso e non useId(): come nel calcolatore della scheda eroe, useId dava id
+  // diversi fra server e browser (errore di idratazione su htmlFor/id, 10/10).
+  // L'editor e' uno solo per pagina
+  const id = "buff-account";
   const [setup, save] = useAccountSetup(game);
   const [selected, setSelected] = useState(0);
   const state = useMemo(() => stateFrom(data, setup), [data, setup]);

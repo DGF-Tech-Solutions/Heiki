@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { PostCard } from "@/components/community/post-card";
 import { Composer } from "@/components/community/composer";
 import { SponsorSlot } from "@/components/community/sponsor-slot";
-import { buttonClass, Card, chipColors, cx, display, Empty, Notice } from "@/components/ui";
+import { buttonClass, Card, chipColors, cx, display, Empty, Notice, PageHeader } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import {
   FEED_SORTS,
@@ -27,6 +28,8 @@ const TESTI = testi({
     descrizione: (gioco: string) =>
       `Discussioni, build e domande dei giocatori di ${gioco}.`,
     questoGioco: "questo gioco",
+    titolo: "Discussioni",
+    sottotitolo: "Build, squadre e domande dei giocatori: con i numeri e la patch su cui sono state provate.",
     demoTitolo: "Modalità dimostrativa.",
     demoTesto:
       "Puoi pubblicare, commentare e votare, ma i contenuti stanno nella memoria del server e spariscono al riavvio.",
@@ -53,6 +56,8 @@ const TESTI = testi({
     descrizione: (gioco: string) =>
       `Discussions, builds and questions from ${gioco} players.`,
     questoGioco: "this game",
+    titolo: "Discussions",
+    sottotitolo: "Players' builds, teams and questions: with numbers and the patch they were tested on.",
     demoTitolo: "Demo mode.",
     demoTesto:
       "You can post, comment and vote, but content lives in the server's memory and disappears on restart.",
@@ -140,6 +145,13 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
   return (
     <>
       <main className="pt-6 pb-20">
+        {/* il titolo che mancava (10/10): la pagina cominciava dal riquadro per
+            scrivere, e dalle briciole e dalla barra non si capiva dove si fosse */}
+        <Breadcrumb items={[{ label: findGame(game)?.shortName ?? game, href: `/${game}` }, { label: t.titolo }]} />
+        <PageHeader title={t.titolo}>
+          <p>{t.sottotitolo}</p>
+        </PageHeader>
+
         {store.volatile ? (
           <Notice className="mb-4">
             <span>

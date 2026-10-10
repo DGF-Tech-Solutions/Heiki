@@ -73,7 +73,7 @@ export function ReportButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-hot"
+        className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3 hover:text-hot"
       >
         {t.segnala}
       </button>
@@ -88,7 +88,7 @@ export function ReportButton({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="mt-2 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+            className="mt-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3 hover:text-ink"
           >
             {t.chiudi}
           </button>
@@ -125,7 +125,7 @@ export function ReportButton({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+              className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3 hover:text-ink"
             >
               {t.annulla}
             </button>

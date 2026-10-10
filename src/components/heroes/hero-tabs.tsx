@@ -145,13 +145,21 @@ export function HeroTabs({
         `@container`: le colonne dentro le schede (carte a coppie, comandi e
         tabella delle statistiche affiancati) le decide la larghezza della
         scheda, non quella della finestra.
+
+        Il titolo della scheda (h2) c'e' ma non si vede: a vederlo basta la
+        scheda accesa nella barra. Serve a chi scorre la pagina per titoli,
+        e fa dei blocchi dentro (Unica, Carta A, Reliquia sacra...) degli h3
+        sotto un h2, invece di titoli che saltano dall'h1 del nome all'h3.
       */}
       {tabs.map((tab, index) => (
         <section
           key={tab.key}
-          aria-label={tab.label}
+          aria-labelledby={`${ID}-${tab.key}-titolo`}
           className={cx("@container hidden", TAB_CLASSES[index]!.show)}
         >
+          <h2 id={`${ID}-${tab.key}-titolo`} className="sr-only">
+            {tab.label}
+          </h2>
           {tab.content}
         </section>
       ))}

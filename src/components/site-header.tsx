@@ -6,6 +6,7 @@ import { listGames } from "@/lib/games/catalog";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { unreadCount } from "@/lib/social/actions";
+import { IconUser } from "./icons";
 import { LanguageSwitch } from "./language-switch";
 import { PopoverPanel } from "./popover-panel";
 import { buttonClass, buttonColors, cx, Tag } from "./ui";
@@ -122,10 +123,7 @@ export async function SiteHeader() {
                     aria-label={unread > 0 ? `${t.menuDi(user.username)} · ${t.daLeggere(unread)}` : t.menuDi(user.username)}
                     className={cx("p5-cut grid h-8 w-10 cursor-pointer place-items-center", buttonColors("outline"))}
                   >
-                    <svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4">
-                      <circle cx="8" cy="5" r="3.2" fill="currentColor" />
-                      <path d="M1.5 16c.6-3.9 3.2-6 6.5-6s5.9 2.1 6.5 6z" fill="currentColor" />
-                    </svg>
+                    <IconUser size={17} />
                   </button>
                   {unread > 0 ? (
                     <span className="pointer-events-none absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-white">
@@ -140,7 +138,7 @@ export async function SiteHeader() {
                   {can(user.role, "moderate") ? (
                     <Link
                       href="/moderazione"
-                      className="font-mono text-[11px] uppercase tracking-[0.08em] text-hot hover:underline"
+                      className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-hot hover:underline"
                     >
                       {t.coda}
                     </Link>
@@ -148,7 +146,7 @@ export async function SiteHeader() {
                   {can(user.role, "administer") ? (
                     <Link
                       href="/admin"
-                      className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+                      className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3 hover:text-ink"
                     >
                       {t.admin}
                     </Link>

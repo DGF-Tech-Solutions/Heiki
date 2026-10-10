@@ -159,13 +159,13 @@ export default async function AdminPage({ searchParams }: Props) {
             <table className="w-full min-w-[620px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-ink text-left">
-                  <th className="pb-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+                  <th className="pb-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
                     {t.utente}
                   </th>
-                  <th className="pb-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+                  <th className="pb-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
                     {t.iscritto}
                   </th>
-                  <th className="pb-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+                  <th className="pb-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
                     {t.ruolo}
                   </th>
                 </tr>

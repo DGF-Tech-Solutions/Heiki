@@ -9,8 +9,9 @@
  * estrae solo cio' che si ripete abbastanza da valere un nome.
  */
 
+import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { IconChevronRight } from "./icons";
+import { IconArrowRight, IconChevronRight } from "./icons";
 
 export function cx(...parts: (string | false | null | undefined)[]): string {
   return parts.filter(Boolean).join(" ");
@@ -18,13 +19,33 @@ export function cx(...parts: (string | false | null | undefined)[]): string {
 
 /* --------------------------------------------------------------- testo -- */
 
-/** Titolo: pesante, stretto, maiuscolo. La voce della pagina. */
+/**
+ * Titolo: pesante, stretto, maiuscolo. La voce della pagina. Bilanciato: un
+ * titolo su due righe si spezza a meta' invece di lasciare una parola sola sotto.
+ */
 export const display =
-  "p5-title font-display font-black uppercase leading-[1.02] tracking-[-0.02em] [font-variation-settings:'wdth'_80]";
+  "p5-title font-display font-black uppercase leading-[1.02] tracking-[-0.02em] text-balance [font-variation-settings:'wdth'_80]";
 
-/** Etichetta strutturale: sempre monospaziata, mai decorativa. */
+/**
+ * Etichetta strutturale (il nome di un gruppo di comandi, di una colonna, di un
+ * campo): Archivo stretto e pesante, come le scritte dei menu di Persona. Fino
+ * al 10/10 era monospaziata e spaziata larga: un costume «tecnico» che faceva
+ * concorrenza ai numeri, gli unici che il monospaziato deve distinguere.
+ */
 export const eyebrow =
-  "font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-ink-3";
+  "font-display text-[12px] font-bold uppercase tracking-[0.06em] text-ink-3 [font-variation-settings:'wdth'_82]";
+
+/**
+ * Il nome dell'eroe sotto una card (griglia Eroi, menu del gioco, box, Squadra):
+ * due righe e non una troncata. Era Archivo nero alla larghezza 72 fra 11 e 13
+ * px, diverso in ogni pagina: a quella misura le lettere si chiudevano («RIPULITORE
+ * ENJIN» era una macchia). Ora una misura sola, un peso sotto e piu' largo.
+ */
+export const heroNameClass =
+  "hero-card-name line-clamp-2 font-display text-[12.5px] font-extrabold uppercase leading-[1.12] tracking-[0.01em] [font-variation-settings:'wdth'_84]";
+
+/** L'epiteto sopra il nome: una riga, nel testo. */
+export const heroEpithetClass = "block truncate text-[12px] leading-tight text-ink-3";
 
 /** Numeri: monospaziati e tabulari, cosi' le colonne non ballano. */
 export const numeric = "font-mono tabular-nums";
@@ -121,13 +142,55 @@ export function Tag({
     <span
       className={cx(
         "p5-cut-sm inline-flex h-5 items-center gap-1 whitespace-nowrap px-[9px]",
-        "font-mono text-[11px] font-medium uppercase tracking-[0.06em]",
+        "font-display text-[11px] font-extrabold uppercase tracking-[0.05em] [font-variation-settings:'wdth'_85]",
         TAG_TONE[tone],
         className,
       )}
     >
       {children}
     </span>
+  );
+}
+
+/* ------------------------------------------------------- collegamenti -- */
+
+/**
+ * Un collegamento «vai a» («Tutti gli eroi», «Nel calendario», «Community»): le
+ * parole e una freccia disegnata, che al passaggio scatta avanti di un passo.
+ * Fino al 10/10 la freccia era il carattere «→» scritto nel testo: cambiava
+ * forma da un font all'altro e il lettore di schermo lo leggeva ad alta voce.
+ */
+export const moreLinkClass =
+  "group/more inline-flex items-center gap-1.5 font-display text-[13px] font-extrabold uppercase tracking-[0.04em] " +
+  "text-brand-deep no-underline [font-variation-settings:'wdth'_85] hover:text-ink";
+
+/** La freccia di `MoreLink`, per chi la mette dentro un suo collegamento (dentro una frase, un pulsante). */
+export function MoreArrow({ className }: { className?: string }) {
+  return (
+    <IconArrowRight
+      size={14}
+      className={cx(
+        "shrink-0 transition-transform duration-200 ease-out group-hover/more:translate-x-[3px] motion-reduce:transition-none",
+        className,
+      )}
+    />
+  );
+}
+
+export function MoreLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={cx(moreLinkClass, className)}>
+      {children}
+      <MoreArrow />
+    </Link>
   );
 }
 
@@ -174,10 +237,15 @@ export function SectionHead({
 }
 
 /**
- * La testata di una pagina (10/10): il titolo e, a destra, una riga che dice cosa
+ * La testata di una pagina (10/10): il titolo e, sotto, una riga che dice cosa
  * c'e'. Niente etichetta sopra il titolo (la striscia del gioco e le briciole
  * dicono gia' dove sei) e niente paragrafi di metodo: quelli vanno in `HowItWorks`
  * o in fondo alla pagina. Una forma sola, perche' prima ogni pagina aveva la sua.
+ *
+ * La descrizione stava a DESTRA del titolo, allineata in basso: con un titolo
+ * corto («Eroi») galleggiava lontana, con una descrizione di quattro righe
+ * («Scontri finali») cominciava piu' in alto del titolo, e l'occhio la leggeva
+ * per ultima. Sotto il titolo si legge nell'ordine giusto (10/10, sera).
  */
 export function PageHeader({
   title,
@@ -190,14 +258,11 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <header
-      className={cx(
-        "mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b-2 border-brand pb-4",
-        className,
-      )}
-    >
+    <header className={cx("mb-5 border-b-2 border-brand pb-4", className)}>
       <h1 className={cx(display, "text-[clamp(34px,5vw,58px)]")}>{title}</h1>
-      {children ? <div className="m-0 max-w-[48ch] text-sm text-ink-2 [&_p]:m-0">{children}</div> : null}
+      {children ? (
+        <div className="m-0 mt-2.5 max-w-[56ch] text-[15px] leading-relaxed text-ink-2 [&_p]:m-0">{children}</div>
+      ) : null}
     </header>
   );
 }
@@ -339,7 +404,7 @@ export function Stat({
 }) {
   return (
     <div className="bg-paper px-3.5 py-3">
-      <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">{label}</dt>
+      <dt className={eyebrow}>{label}</dt>
       <dd
         className={cx(
           numeric,
@@ -371,9 +436,9 @@ export function Field({
 }) {
   return (
     <label className={cx("mb-4 block", className)}>
-      <span className="mb-1.5 flex items-baseline justify-between gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-3">
+      <span className={cx(eyebrow, "mb-1.5 flex items-baseline justify-between gap-2.5")}>
         {label}
-        {hint ? <span className="text-[12px] normal-case tracking-normal">{hint}</span> : null}
+        {hint ? <span className="font-body text-[12px] font-normal normal-case tracking-normal [font-variation-settings:normal]">{hint}</span> : null}
       </span>
       {children}
       {error ? <span className="mt-1.5 block text-xs text-hot">{error}</span> : null}

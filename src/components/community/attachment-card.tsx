@@ -137,7 +137,7 @@ function CheckBadge({ check, t }: { check: AttachmentCheck; t: Testi }) {
     <span
       title={verified ? t.verificatoTitolo : t.nonRiprodottoTitolo}
       className={cx(
-        "p5-cut-sm inline-flex h-5 items-center gap-1 px-[9px] font-mono text-[11px] font-medium uppercase tracking-[0.06em]",
+        "p5-cut-sm inline-flex h-5 items-center gap-1 px-[9px] font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em]",
         verified ? "bg-[#128a5b] text-white" : "bg-hot text-white",
       )}
     >

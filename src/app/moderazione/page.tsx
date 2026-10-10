@@ -109,7 +109,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Meta({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">{children}</span>
+    <span className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">{children}</span>
   );
 }
 
@@ -226,7 +226,7 @@ export default async function ModerationPage() {
 
                 {item.details ? (
                   <p className="m-0 mb-2.5 text-[13px] text-ink-2">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">
+                    <span className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
                       {t.dettagli}{" "}
                     </span>
                     {item.details}
@@ -249,7 +249,7 @@ export default async function ModerationPage() {
                   {item.gameSlug && item.postId ? (
                     <Link
                       href={`/${item.gameSlug}/post/${item.postId}`}
-                      className="font-mono text-[11px] tracking-[0.08em] text-brand-deep uppercase underline-offset-2 hover:underline"
+                      className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] tracking-[0.06em] text-brand-deep uppercase underline-offset-2 hover:underline"
                     >
                       {t.apriNelContesto}
                     </Link>
@@ -299,7 +299,7 @@ export default async function ModerationPage() {
         )}
 
         <div className="rounded-card border border-rule bg-paper-2 p-5">
-          <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+          <p className="mb-4 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
             {t.sospendiUnAccount}
           </p>
           <SuspendForm />

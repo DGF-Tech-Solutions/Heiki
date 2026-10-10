@@ -136,7 +136,7 @@ export function CardStamp({ children, title }: { children: ReactNode; title?: st
   return (
     <span
       title={title}
-      className="p5-cut-sm inline-flex h-7 items-center gap-1.5 bg-paper px-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-ink"
+      className="p5-cut-sm inline-flex h-7 items-center gap-1.5 bg-paper px-2.5 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink"
     >
       {children}
     </span>

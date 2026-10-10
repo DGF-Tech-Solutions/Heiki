@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { cx, eyebrow } from "@/components/ui";
+import { HeroBox } from "@/components/heroes/hero-parts";
+import { MoreLink } from "@/components/ui";
 import { drawChances } from "@/lib/games/mechanics";
 import type { MechanicsTeamEffect } from "@/lib/games/mechanics-types";
 import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
@@ -47,7 +47,11 @@ const TESTI = testi({
 const percento = (x: number, locale: Locale, decimali = 0) =>
   `${(x * 100).toLocaleString(intlLocale(locale), { minimumFractionDigits: decimali, maximumFractionDigits: decimali })}%`;
 
-/** Sotto le carte A e B: quanto spesso esce ognuna. */
+/**
+ * Sotto le carte A e B: quanto spesso esce ognuna. Un riquadro col suo titolo
+ * come le carte (10/10): prima era una riga con «Pesca» in testa, l'unico
+ * blocco della colonna senza riquadro.
+ */
 export function HeroDrawLine({
   game,
   locale,
@@ -61,18 +65,19 @@ export function HeroDrawLine({
   const [a, b] = weights;
   const three = drawChances(weights, 3);
   return (
-    <p className="m-0 text-[13px] text-ink-2">
-      <span className={cx(eyebrow, "mr-2")}>{t.pesca}</span>
-      {t.pescaTesto(
-        percento(a / (a + b), locale),
-        percento(b / (a + b), locale),
-        percento(three.a, locale),
-        percento(three.b, locale, 1),
-      )}{" "}
-      <Link href={`/${game}/meccaniche#pesca`} className="text-brand-deep underline-offset-2 hover:underline">
-        {t.comeFunziona} →
-      </Link>
-    </p>
+    <HeroBox title={t.pesca}>
+      <p className="m-0 max-w-[48ch] text-[14px] leading-relaxed text-ink-2">
+        {t.pescaTesto(
+          percento(a / (a + b), locale),
+          percento(b / (a + b), locale),
+          percento(three.a, locale),
+          percento(three.b, locale, 1),
+        )}
+      </p>
+      <MoreLink href={`/${game}/meccaniche#pesca`} className="mt-2.5">
+        {t.comeFunziona}
+      </MoreLink>
+    </HeroBox>
   );
 }
 
@@ -89,32 +94,28 @@ export function HeroTeamEffect({
   dark?: MechanicsTeamEffect;
 }) {
   const t = TESTI[locale];
-  const heading = cx(eyebrow, "mb-2.5");
-  const box = "grid gap-1.5 rounded-card border border-rule bg-paper-2 p-4 text-[14px] text-ink-2";
+  const text = "m-0 max-w-[48ch] text-[14px] leading-relaxed text-ink-2";
+  // Il rimando sta nell'ultimo riquadro, uno solo anche per Tristan che ne ha due
+  const link = (
+    <MoreLink href={`/${game}/meccaniche#attributi`} className="mt-2.5">
+      {t.attributi}
+    </MoreLink>
+  );
   return (
     <>
       {light ? (
-        <section>
-          <h2 className={heading}>{t.luce}</h2>
-          <div className={box}>
-            <p className="m-0">{t.luceTesto(light.sameAttribute, light.otherAllies)}</p>
-          </div>
-        </section>
+        <HeroBox title={t.luce}>
+          <p className={text}>{t.luceTesto(light.sameAttribute, light.otherAllies)}</p>
+          {dark ? null : link}
+        </HeroBox>
       ) : null}
       {dark ? (
-        <section>
-          <h2 className={heading}>{t.oscurita}</h2>
-          <div className={box}>
-            <p className="m-0">{t.oscuritaTesto(dark.sameAttribute, dark.otherAllies)}</p>
-            <p className="m-0 text-[12px] text-ink-3">{t.oscuritaNota}</p>
-          </div>
-        </section>
+        <HeroBox title={t.oscurita}>
+          <p className={text}>{t.oscuritaTesto(dark.sameAttribute, dark.otherAllies)}</p>
+          <p className="m-0 mt-1.5 text-[12px] text-ink-3">{t.oscuritaNota}</p>
+          {link}
+        </HeroBox>
       ) : null}
-      <p className="m-0 -mt-3 text-[13px]">
-        <Link href={`/${game}/meccaniche#attributi`} className="text-brand-deep underline-offset-2 hover:underline">
-          {t.attributi} →
-        </Link>
-      </p>
     </>
   );
 }

@@ -150,7 +150,7 @@ export default async function GuidesPage({ params }: Props) {
                     </Tag>
                   )}
                   {stale ? (
-                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-hot">
+                    <span className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-hot">
                       {t.daRivedere}
                     </span>
                   ) : null}

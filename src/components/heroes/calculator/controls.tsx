@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { IconStar } from "@/components/icons";
 import { chipClass, cx, numeric } from "@/components/ui";
 
 /**
@@ -81,7 +82,8 @@ export function Star({ src, lit, size = 18 }: { src?: string; lit: boolean; size
       />
     );
   }
-  return <span className={cx("text-[17px] leading-none", lit ? "text-gold" : "text-ink-3/40")}>★</span>;
+  // senza l'immagine del gioco (chi clona il repo senza gli asset), la stella di Phosphor
+  return <IconStar size={size} className={lit ? "text-gold" : "text-ink-3/40"} />;
 }
 
 /** Da 0 a `count` stelle: lo zero e' un riquadro, le altre stelle. */

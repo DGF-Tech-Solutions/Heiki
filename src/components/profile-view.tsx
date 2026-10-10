@@ -304,7 +304,7 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
                     </span>
                     <span
                       className={cx(
-                        "font-mono text-[11px] uppercase tracking-[0.09em]",
+                        "font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em]",
                         isVerified ? "font-medium text-[var(--accent)]" : "text-ink-3",
                       )}
                     >
@@ -377,7 +377,7 @@ export function ProfileView({ data, locale = "it" }: { data: ProfileViewData; lo
                 </p>
                 <p className={cx(numeric, "m-0 mt-3 text-xl font-medium tracking-[-0.02em]")}>
                   {Math.round(build.median).toLocaleString(numberLocale)}
-                  <span className="ml-1.5 font-mono text-[11px] font-normal tracking-normal text-ink-3 uppercase">
+                  <span className="ml-1.5 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] tracking-normal text-ink-3 uppercase">
                     {t.mediana}
                   </span>
                 </p>

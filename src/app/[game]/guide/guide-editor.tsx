@@ -226,7 +226,7 @@ export function GuideEditor({
       ) : null}
 
       <details className="mt-4 border border-rule bg-paper-2 p-4">
-        <summary className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+        <summary className="cursor-pointer font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
           {t.sintassi}
         </summary>
         <ul className="m-0 mt-3 grid list-none gap-1.5 p-0 text-[13px] text-ink-2">

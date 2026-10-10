@@ -58,16 +58,22 @@ export async function Breadcrumb({
   return (
     <>
       <nav aria-label={t.percorso} className={cx("mb-4", className)}>
-        <ol className="m-0 flex flex-wrap items-center gap-1.5 p-0 font-mono text-[11px] text-ink-3">
+        {/* nel testo e non in monospaziato (10/10): sono nomi, non numeri; la barra
+            obliqua rossa e' il taglio dei comandi del sito */}
+        <ol className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 p-0 text-[13px] leading-snug text-ink-3">
           {items.map((item, index) => (
-            <li key={`${item.label}-${index}`} className="flex items-center gap-1.5">
-              {index > 0 ? <span aria-hidden>/</span> : null}
+            <li key={`${item.label}-${index}`} className="flex items-center gap-2">
+              {index > 0 ? (
+                <span aria-hidden className="font-display font-black text-brand [font-variation-settings:'wdth'_80]">
+                  /
+                </span>
+              ) : null}
               {item.href ? (
-                <Link href={item.href} className="hover:text-brand-deep">
+                <Link href={item.href} className="no-underline underline-offset-4 hover:text-ink hover:underline">
                   {item.label}
                 </Link>
               ) : (
-                <span aria-current="page" className="text-ink-2">
+                <span aria-current="page" className="font-semibold text-ink-2">
                   {item.label}
                 </span>
               )}

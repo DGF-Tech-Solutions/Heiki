@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { AccountControls } from "@/components/account-buff/account-controls";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
 import { Button, buttonClass, cx, display, eyebrow, Input, numeric, Select } from "@/components/ui";
@@ -164,7 +164,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function GameAccountEditor(props: GameAccountEditorProps) {
   const { gameSlug, locale } = props;
   const t = TESTI[locale];
-  const id = useId();
+  // fisso e non useId() (vedi stat-calculator.tsx): l'editor e' uno per pagina
+  const id = "account";
   const [profile, saveProfile] = useGameProfile(gameSlug);
   const [setup, saveSetup] = useAccountSetup(gameSlug);
 

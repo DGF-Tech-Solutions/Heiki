@@ -7,7 +7,8 @@
  * serve a tutte sta qui.
  */
 
-import { cx } from "@/components/ui";
+import type { ReactNode } from "react";
+import { cx, display } from "@/components/ui";
 import { gameIconSrc, type IconFamily } from "@/lib/games/heroes";
 import type { HeroLabel } from "@/lib/games/types";
 import { inLingua, type Locale } from "@/lib/i18n/locale";
@@ -55,6 +56,60 @@ export function hasIcon(
   key: string,
 ): boolean {
   return icons?.[family]?.includes(key) ?? false;
+}
+
+/**
+ * Il titolo di un blocco delle schede: «Unica», «Carta A», «Reliquia sacra»,
+ * «Corpo». Lo stesso carattere dei titoli del sito, piccolo.
+ *
+ * Fino al 10/10 questi nomi erano etichette grigie appese SOPRA i riquadri:
+ * sei etichette uguali in colonna che l'occhio incontrava prima dei riquadri,
+ * e nessuna gerarchia fra il nome del blocco («Carta A») e quello della cosa
+ * («Mano oscura»). Ora il nome del blocco e' il titolo (h3, sotto l'h2 della
+ * scheda che mette `HeroTabs`) e la cosa ne e' il contenuto.
+ */
+// senza margini: i titoli non ne hanno (preflight), e chi lo usa aggiunge i
+// suoi senza scontrarsi con un m-0 qui dentro
+export const boxTitle = cx(display, "text-[20px]");
+
+/**
+ * Il riquadro di un blocco, col titolo dentro in testa.
+ *
+ * `gold` per l'Unica: e' la passiva dell'eroe, e l'oro la distingue dalle
+ * carte (prima un filo oro a sinistra, poi il bordo). Senza `group` fra le
+ * classi, e deve restare cosi': i ranghi delle carte guardano il primo antenato
+ * con `group` (RANK_CLASSES in hero-abilities.tsx), e un riquadro che lo avesse
+ * legherebbe fra loro le carte sbagliate.
+ */
+export function HeroBox({
+  title,
+  aside,
+  tone = "rule",
+  children,
+  className,
+}: {
+  title: ReactNode;
+  /** a destra del titolo, piccolo: un conteggio, una nota */
+  aside?: ReactNode;
+  tone?: "rule" | "gold";
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={cx(
+        "p5-corner border bg-paper-2 px-4 pt-3.5 pb-4",
+        tone === "gold" ? "border-gold/45" : "border-rule",
+        className,
+      )}
+    >
+      <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 pr-3">
+        <h3 className={boxTitle}>{title}</h3>
+        {aside ? <span className="text-[13px] text-ink-3">{aside}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
 }
 
 export function GameIcon({

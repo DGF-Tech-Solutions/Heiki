@@ -66,7 +66,7 @@
 
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-dm-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
 
   /* spigoli vivi: nel mondo scelto non ci sono angoli arrotondati */
   --radius-card: 0px;
@@ -130,6 +130,28 @@
     outline: 2px solid var(--color-ink);
     outline-offset: 2px;
     box-shadow: 0 0 0 5px var(--color-brand);
+  }
+
+  /*
+   * Le superfici del browser (10/10): le parti che nessuno disegna e che si
+   * vedono lo stesso. I paragrafi vanno a capo senza lasciare una parola sola
+   * sull'ultima riga; la sottolineatura dei collegamenti sta staccata dalle
+   * lettere invece di tagliare le discendenti; nelle tabelle le cifre si
+   * incolonnano anche dove il testo non e' in monospaziato.
+   */
+  p,
+  li,
+  dd,
+  figcaption,
+  blockquote {
+    text-wrap: pretty;
+  }
+  a {
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: from-font;
+  }
+  table {
+    font-variant-numeric: tabular-nums;
   }
 }
 

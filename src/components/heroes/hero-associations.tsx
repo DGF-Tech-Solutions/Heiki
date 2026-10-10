@@ -12,7 +12,8 @@
 import Link from "next/link";
 import { GameText } from "@/components/heroes/game-text";
 import { formatStat, statName } from "@/components/heroes/calculator/stat-rows";
-import { cx, eyebrow, numeric } from "@/components/ui";
+import { boxTitle } from "@/components/heroes/hero-parts";
+import { cx, MoreLink, numeric } from "@/components/ui";
 import { associatedTo } from "@/lib/games/gear";
 import type { HeroFate, HeroFateEffect, HeroFatesIndex } from "@/lib/games/hero-fates-types";
 import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
@@ -164,28 +165,30 @@ export function HeroAssociations({
   const own = (fates.heroes[hero.id] ?? []).map((fate) => ({ id: fate[0], fate }));
   const of = associatedTo(fates, hero.id).map(({ main, fate }) => ({ id: main, fate }));
 
+  // I tre titoli come quelli dei riquadri delle altre schede (10/10: erano
+  // etichette grigie sopra i blocchi)
   return (
     <div className="grid gap-8">
       <section>
-        <h2 className={cx(eyebrow, "mb-2")}>{t.suoi(own.length)}</h2>
+        <h3 className={cx(boxTitle, "mb-2")}>{t.suoi(own.length)}</h3>
         <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-2">{own.length ? t.suoiNota(name) : t.nessunoSuo}</p>
         {own.length ? <HeroList game={game} locale={locale} entries={own} fates={fates} heroes={heroes} /> : null}
       </section>
 
       <section>
-        <h2 className={cx(eyebrow, "mb-2")}>{t.diAltri(of.length)}</h2>
+        <h3 className={cx(boxTitle, "mb-2")}>{t.diAltri(of.length)}</h3>
         <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-2">{of.length ? t.diAltriNota(name) : t.nessunoAltri}</p>
         {of.length ? <HeroList game={game} locale={locale} entries={of} fates={fates} heroes={heroes} /> : null}
       </section>
 
       <section>
-        <h2 className={cx(eyebrow, "mb-2")}>{t.comune}</h2>
+        <h3 className={cx(boxTitle, "mb-2")}>{t.comune}</h3>
         <p className="m-0 font-semibold text-ink">{inLingua(fates.common.name, locale)}</p>
         <p className="m-0 mt-1 max-w-[48ch] text-[13px] text-ink-2">{t.comuneTesto(fates.common.base, fates.common.perLevel)}</p>
         <GameText text={inLingua(fates.common.basicStats, locale) ?? ""} className="mt-1 text-[12px] text-ink-3" />
-        <Link href="?scheda=statistiche" className="mt-2 inline-block text-[13px] text-brand-deep hover:underline">
+        <MoreLink href="?scheda=statistiche" className="mt-2.5">
           {t.calcolatore}
-        </Link>
+        </MoreLink>
       </section>
     </div>
   );

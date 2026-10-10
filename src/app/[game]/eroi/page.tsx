@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { DEFAULT_STAGE_ART, stageArtOf, type StageArt } from "@/components/heroes/hero-stage";
 import { EMPTY_QUERY, RosterBrowser, type RosterQuery } from "@/components/heroes/roster-browser";
-import { cx, display } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
 import { requireGameModule } from "@/lib/games/registry";
@@ -175,9 +175,8 @@ export default async function HeroesPage({ params, searchParams }: Props) {
   const intro = (
     <div className="pt-6">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.eroi }]} />
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b-2 border-brand pb-4">
-        <h1 className={cx(display, "text-[clamp(34px,5vw,58px)]")}>{t.eroi}</h1>
-        <p className="m-0 max-w-[48ch] text-sm text-ink-2">
+      <PageHeader title={t.eroi}>
+        <p>
           {t.introduzione(roster.heroes.length, counted, rarest ?? "")}{" "}
           {/*
             L'ordine di partenza e' quello d'uscita solo se il modulo ha il
@@ -195,7 +194,7 @@ export default async function HeroesPage({ params, searchParams }: Props) {
             </>
           ) : null}
         </p>
-      </header>
+      </PageHeader>
     </div>
   );
 

@@ -182,7 +182,7 @@ export function TableOfContents({
 
   return (
     <nav aria-label={t.indiceGuida} className={cx("text-sm", className)}>
-      <p className="mb-2.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+      <p className="mb-2.5 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
         {t.inQuestaGuida}
       </p>
       <ol className="m-0 grid list-none gap-1.5 p-0">

@@ -51,7 +51,7 @@ export function HeroChanges({
   return (
     <section className="mt-7 border-t border-rule-2 pt-5">
       <div className="mb-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <h2 className={cx(eyebrow, "m-0")}>{t.titolo}</h2>
+        <h3 className={cx(eyebrow, "m-0")}>{t.titolo}</h3>
         <Link href={`/${game}/cambiamenti`} className="inline-flex items-center gap-1 text-[13px] text-ink-3 hover:text-brand-deep">
           {t.tutti}
           <IconChevronRight size={14} />

@@ -23,6 +23,7 @@ import type { GameSectionGroup } from "@/lib/games/catalog";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 import { GameSidebar } from "./game-sidebar";
+import { IconClose } from "./icons";
 import { PopoverPanel } from "./popover-panel";
 import { buttonColors, cx, display } from "./ui";
 
@@ -63,9 +64,7 @@ export function GameMenu({
           aria-label={t.chiudi}
           className={cx("p5-cut grid h-8 w-9 shrink-0 cursor-pointer place-items-center", buttonColors("outline"))}
         >
-          <svg aria-hidden viewBox="0 0 14 14" className="h-3.5 w-3.5">
-            <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" />
-          </svg>
+          <IconClose size={15} />
         </button>
       </div>
 

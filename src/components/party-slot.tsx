@@ -107,7 +107,7 @@ export function PartyPanel({
 
       <span
         className={cx(
-          "p5-cut-sm self-start px-2 font-mono text-[11px] leading-5 font-medium tracking-[0.08em] uppercase",
+          "p5-cut-sm self-start px-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] leading-5 tracking-[0.06em] uppercase",
           bench ? "bg-gold text-paper" : "bg-ink text-paper",
         )}
       >

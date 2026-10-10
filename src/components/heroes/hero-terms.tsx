@@ -25,7 +25,7 @@
 import Link from "next/link";
 import { localized } from "@/components/heroes/hero-parts";
 import { TermPopoverClient } from "@/components/heroes/term-popover-client";
-import { cx, eyebrow } from "@/components/ui";
+import { cx, eyebrow, MoreArrow, moreLinkClass } from "@/components/ui";
 import { termWords } from "@/lib/games/hero-markup";
 import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import { inGroup, parseTarget, searchText, targetId, textKey, type TermMember } from "@/lib/games/hero-terms";
@@ -60,7 +60,7 @@ const TESTI = testi({
     cerca: "Cerca un eroe o un’abilità…",
     cercaEtichetta: "Cerca in questo elenco",
     nessunRisultato: "Nessuno in questo elenco.",
-    griglia: "Vedili nella griglia Eroi →",
+    griglia: "Vedili nella griglia Eroi",
     di: "di",
     cumulo: "Cumulo",
     regola: (s: MechanicsStacking) =>
@@ -94,7 +94,7 @@ const TESTI = testi({
     cerca: "Search a hero or a skill…",
     cercaEtichetta: "Search this list",
     nessunRisultato: "Nobody in this list.",
-    griglia: "See them in the Heroes grid →",
+    griglia: "See them in the Heroes grid",
     di: "of",
     cumulo: "Stacking",
     regola: (s: MechanicsStacking) =>
@@ -355,8 +355,10 @@ export function HeroTermPopovers({
           {section.stacking.length === 1
             ? t.regola(section.stacking[0]!)
             : section.stacking.map((s) => `${t.regola(s)} (${t.carte(s.cards)})`).join(" · ")}{" "}
-          <Link href={`/${game}/meccaniche#cumulo`} className="text-brand-deep hover:underline">
-            {t.comeSiCumula} →
+          {/* nella frase e non sotto: la freccia disegnata di MoreLink, il corpo del testo */}
+          <Link href={`/${game}/meccaniche#cumulo`} className="group/more inline-flex items-center gap-1 text-brand-deep hover:underline">
+            {t.comeSiCumula}
+            <MoreArrow className="size-3" />
           </Link>
         </p>
       ) : null}
@@ -475,9 +477,10 @@ export function HeroTermPopovers({
                     <p className="m-0 px-3.5 pb-3 text-[12px] text-ink-3">{t.soloQuesto}</p>
                   ) : null}
                   {section.grid ? (
-                    <p className="m-0 px-3.5 pb-3 text-[12px]">
-                      <Link href={section.grid} className="text-brand-deep hover:underline">
+                    <p className="m-0 px-3.5 pb-3">
+                      <Link href={section.grid} className={moreLinkClass}>
                         {t.griglia}
+                        <MoreArrow />
                       </Link>
                     </p>
                   ) : null}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { BoxBrowser, type BoxArt } from "@/components/game-account/box-browser";
 import { hasIcon } from "@/components/heroes/hero-parts";
-import { cx, display } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
 import { boxLimitsFrom } from "@/lib/games/hero-box";
@@ -78,10 +78,9 @@ export default async function BoxPage({ params }: Props) {
           { label: t.titolo },
         ]}
       />
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b-2 border-brand pb-4">
-        <h1 className={cx(display, "text-[clamp(34px,5vw,58px)]")}>{t.titolo}</h1>
-        <p className="m-0 max-w-[48ch] text-sm text-ink-2">{t.intro}</p>
-      </header>
+      <PageHeader title={t.titolo}>
+        <p>{t.intro}</p>
+      </PageHeader>
       <BoxBrowser game={game} roster={localized} icons={icons} limits={boxLimitsFrom(heroStats)} art={art} />
     </main>
   );

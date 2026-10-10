@@ -94,7 +94,7 @@ export function StatusControls({
 
   return (
     <div>
-      <p className="m-0 mb-3 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3">
+      <p className="m-0 mb-3 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
         {t.stato} {statusLabel(current, locale)}
       </p>
 

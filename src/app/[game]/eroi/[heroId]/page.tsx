@@ -6,7 +6,7 @@ import { HeroChanges } from "@/components/changes/hero-changes";
 import { HeroEndgameLine } from "@/components/endgame/hero-endgame";
 import { GameText } from "@/components/heroes/game-text";
 import { HeroAbilities } from "@/components/heroes/hero-abilities";
-import { GameIcon, hasIcon, localized } from "@/components/heroes/hero-parts";
+import { boxTitle, GameIcon, hasIcon, localized } from "@/components/heroes/hero-parts";
 import { Relics } from "@/components/heroes/hero-relics";
 import { HeroTermPopovers, termResolver } from "@/components/heroes/hero-terms";
 import { HeroTabs, type HeroTab } from "@/components/heroes/hero-tabs";
@@ -15,9 +15,9 @@ import { STAT_ROWS, formatStat } from "@/components/heroes/calculator/stat-rows"
 import { HeroAssociations } from "@/components/heroes/hero-associations";
 import { HeroCostumes } from "@/components/heroes/hero-costumes";
 import { HeroArrowKeys } from "@/components/heroes/hero-arrow-keys";
-import { IconChevronLeft, IconChevronRight } from "@/components/icons";
+import { IconArrowRight, IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
-import { buttonClass, cx, eyebrow, Notice, numeric, Tag } from "@/components/ui";
+import { buttonClass, cx, eyebrow, MoreArrow, MoreLink, Notice, numeric, Tag } from "@/components/ui";
 import { sliderData } from "@/lib/games/account-buff";
 import type { AccountBuffIndex } from "@/lib/games/account-buff-types";
 import { findGame } from "@/lib/games/catalog";
@@ -56,11 +56,16 @@ const TESTI = testi({
     precedente: "Eroe precedente",
     successivo: "Eroe successivo",
     nelGioco: "Nel gioco:",
-    uscita: "Uscita",
+    attributo: "Attributo",
+    raritaCampo: "Rarità",
+    razza: "Razza",
+    caratteristiche: "Caratteristiche",
+    personaggio: "Personaggio",
+    versioniPersonaggio: (personaggio: string) => `Tutte le versioni di ${personaggio} nella griglia Eroi`,
+    uscitaGlobale: "Uscita globale",
     giapponeCorea: "Giappone e Corea",
-    globale: "Globale",
-    evoluzioneLr: "evoluzione LR",
-    nelCalendario: "nel calendario",
+    evoluzioneLr: "Evoluzione LR",
+    nelCalendario: "Nel calendario",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustrazione di ${eroe}`,
     descrizione: "Descrizione",
@@ -72,7 +77,6 @@ const TESTI = testi({
       `Altre versioni di ${personaggio} · ${quante}`,
     crediti: (gioco: string, editore: string) =>
       `Testi e immagini provengono dal client di ${gioco} e appartengono a ${editore}.`,
-    rarita: (rarita: string) => `rarità ${rarita}`,
     percorsoRarita: (da: string, a: string, puoArrivare: boolean) =>
       `esce come ${da}, ${puoArrivare ? "può arrivare a" : "arriva a"} ${a}`,
     statisticheTitolo: "Calcolatore delle statistiche",
@@ -99,11 +103,16 @@ const TESTI = testi({
     precedente: "Previous hero",
     successivo: "Next hero",
     nelGioco: "In game:",
-    uscita: "Release",
+    attributo: "Attribute",
+    raritaCampo: "Rarity",
+    razza: "Race",
+    caratteristiche: "Characteristics",
+    personaggio: "Character",
+    versioniPersonaggio: (personaggio: string) => `All versions of ${personaggio} in the Heroes grid`,
+    uscitaGlobale: "Global release",
     giapponeCorea: "Japan and Korea",
-    globale: "Global",
     evoluzioneLr: "LR evolution",
-    nelCalendario: "in the calendar",
+    nelCalendario: "In the calendar",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustration of ${eroe}`,
     descrizione: "Description",
@@ -115,7 +124,6 @@ const TESTI = testi({
       `Other versions of ${personaggio} · ${quante}`,
     crediti: (gioco: string, editore: string) =>
       `Texts and images come from the ${gioco} client and belong to ${editore}.`,
-    rarita: (rarita: string) => `rarity ${rarita}`,
     percorsoRarita: (da: string, a: string, puoArrivare: boolean) =>
       `starts as ${da}, ${puoArrivare ? "can reach" : "reaches"} ${a}`,
     statisticheTitolo: "Stats calculator",
@@ -536,9 +544,9 @@ export default async function HeroPage({ params, searchParams }: Props) {
           L'intestazione resta sopra le schede, qualunque sia aperta: chi e',
           che rarita', quando e' uscito. Dal 10/10 e' un palco (hero-stage.tsx):
           l'illustrazione grande, che prima stava nell'ultima scheda a 340px, e
-          il nome in targa. Sotto, una striscia con razza, caratteristiche e
-          uscita; in alto a destra l'eroe prima e dopo nell'ordine della
-          griglia (anche coi tasti freccia).
+          il nome in targa. Sotto, la fascia dei dati (HeroFacts); in alto a
+          destra l'eroe prima e dopo nell'ordine della griglia (anche coi tasti
+          freccia).
         */}
         <header className="mb-5">
           <div className="relative">
@@ -572,84 +580,17 @@ export default async function HeroPage({ params, searchParams }: Props) {
             <HeroArrowKeys game={game} heroId={hero.id} prev={prev ? `/${game}/eroi/${prev.id}` : null} next={next ? `/${game}/eroi/${next.id}` : null} />
           </div>
 
-          <div className="mt-3">
-            <div className="flex flex-wrap items-center gap-2">
-              {/*
-                "LR" da solo era comodo e falso. Il numero da cui viene - il
-                `rating` del gioco - e' il TETTO che l'eroe puo' raggiungere,
-                non la rarita' che ha adesso: un eroe che esce SSR e arriva a LR
-                non e' un LR, lo diventa. Lo dicono l'enum RatingType del client
-                (UR=6, LR=7), la colonna hero_lr_special che esiste, e le
-                statistiche massime dei 32 eroi con rating 7, che sono quelle di
-                un UR. Qui si scrive quello che il dato dice davvero.
-              */}
-              {/*
-                L'attributo con l'icona del gioco al posto della pastiglia
-                colorata: chi gioca la riconosce prima di leggere. Tristan no -
-                il gioco non ha un'icona per l'attributo doppio - e per lui
-                resta il quadrato bicolore, che il progetto disegna da se'.
-              */}
-              {affinity?.iconKey && hasIcon(icons, "attributo", affinity.iconKey) ? (
-                <GameIcon
-                  game={game}
-                  family="attributo"
-                  iconKey={affinity.iconKey}
-                  label={affinityLabel(affinity.id, locale)}
-                  size={34}
-                />
-              ) : (
-                <AffinityTag affinity={affinity} fallback={hero.affinity} locale={locale} />
-              )}
-
-              <RarityPath
-                game={game}
-                locale={locale}
-                icons={icons}
-                from={hero.obtainedAs}
-                to={hero.rarity}
-                canReachLr={context?.rarity.canReachLr ?? false}
-              />
-
-              {/*
-                La razza tiene icona E testo: i sei simboli sono meno familiari
-                delle sigle di rarita', e da soli direbbero poco a chi arriva
-                da una ricerca senza conoscere il gioco.
-              */}
-              {raceLabel ? (
-                <Tag>
-                  {context?.race != null && hasIcon(icons, "razza", String(context.race)) ? (
-                    <GameIcon
-                      game={game}
-                      family="razza"
-                      iconKey={String(context.race)}
-                      label={raceLabel}
-                      size={20}
-                      className="mr-1.5 -ml-1 inline-block align-text-bottom"
-                    />
-                  ) : null}
-                  {raceLabel}
-                </Tag>
-              ) : null}
-
-              {/*
-                Le fazioni restano testo: il gioco non ha un'icona per loro.
-                Cercata su ogni pista - la famiglia icon_filter_*, icon_job,
-                icon_group, icon_category, hero_category, characteristic,
-                emblem e i nomi delle nove fazioni - zero risultati.
-              */}
-              {factionLabels.map((value) => (
-                <Tag key={value}>{value}</Tag>
-              ))}
-              <Link
-                href={`/${game}/eroi?cerca=${encodeURIComponent(hero.group)}`}
-                className="text-[13px] text-ink-2 hover:text-brand-deep"
-              >
-                {hero.group}
-              </Link>
-            </div>
-
-            {release ? <ReleaseLine game={game} release={release} locale={locale} /> : null}
-          </div>
+          <HeroFacts
+            game={game}
+            locale={locale}
+            icons={icons}
+            hero={hero}
+            affinity={affinity}
+            race={context?.race != null && raceLabel ? { code: String(context.race), label: raceLabel } : null}
+            factions={factionLabels}
+            canReachLr={context?.rarity.canReachLr ?? false}
+            release={release}
+          />
         </header>
 
         <HeroTabs tabs={tabs} initial={typeof scheda === "string" ? scheda : undefined} label={t.schede} />
@@ -746,7 +687,7 @@ function HeroInfo({
         <div className="grid min-w-0 gap-5">
           {description ? (
             <div>
-              <h2 className={cx(eyebrow, "mb-2.5")}>{t.descrizione}</h2>
+              <h3 className={cx(eyebrow, "mb-2.5")}>{t.descrizione}</h3>
               <GameText text={description} className="max-w-[48ch] text-[15px] leading-relaxed" />
             </div>
           ) : (
@@ -767,7 +708,7 @@ function HeroInfo({
           <HeroEndgameLine game={game} locale={locale} links={endgame} icons={icons} />
 
           <div>
-            <h2 className={cx(eyebrow, "mb-1.5")}>{t.identificativo}</h2>
+            <h3 className={cx(eyebrow, "mb-1.5")}>{t.identificativo}</h3>
             <p className={cx(numeric, "m-0 text-sm text-ink-2")}>
               {hero.id}
               <span className="ml-2 font-body text-[13px] text-ink-3">{t.spiegaId}</span>
@@ -780,7 +721,7 @@ function HeroInfo({
 
       {others.length > 0 ? (
         <section className="mt-7 border-t border-rule-2 pt-5">
-          <h2 className={cx(eyebrow, "mb-3")}>{t.altreVersioni(hero.group, others.length)}</h2>
+          <h3 className={cx(eyebrow, "mb-3")}>{t.altreVersioni(hero.group, others.length)}</h3>
           <ul
             className="m-0 grid list-none gap-x-3 gap-y-4 p-0"
             style={{ gridTemplateColumns: "repeat(auto-fill, minmax(96px, 116px))" }}
@@ -796,8 +737,157 @@ function HeroInfo({
 }
 
 /**
+ * Il valore di un dato della fascia: stretto e maiuscolo come le voci dei menu,
+ * un gradino sopra l'etichetta che lo nomina. Senza colore: lo sceglie chi lo
+ * usa (bianco il dato, rosso il collegamento).
+ */
+const factValue =
+  "font-display text-[15px] font-extrabold uppercase leading-tight tracking-[0.02em] [font-variation-settings:'wdth'_85]";
+
+/**
+ * Le celle della fascia: una griglia di riquadri divisi da un filo. Il filo e'
+ * il fondo della griglia che passa fra le celle (`gap-px`), non un bordo per
+ * cella: cosi' c'e' solo fra due celle, mai doppio, e la cella sola dell'ultima
+ * riga si allarga alle due colonne invece di lasciare un buco grigio.
+ * Sul telefono due colonne; dalla larghezza di un tablet (`@xl` sulla fascia)
+ * una riga sola, celle larghe uguali.
+ */
+const factGrid =
+  "m-0 grid grid-cols-2 gap-px bg-rule @xl:grid-flow-col @xl:auto-cols-fr @xl:grid-cols-none @max-xl:[&>div:last-child:nth-child(odd)]:col-span-2";
+
+/** Un dato: il suo nome sopra, il valore sotto. */
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0 bg-paper-2 px-3.5 py-3">
+      <dt className={eyebrow}>{label}</dt>
+      <dd className="m-0 mt-1.5">{children}</dd>
+    </div>
+  );
+}
+
+/**
+ * La fascia dei dati sotto il palco: attributo, rarita', razza,
+ * caratteristiche, personaggio, e sotto le uscite col calendario.
+ *
+ * Fino al 10/10 era una fila di icone e pastiglie senza nomi (l'icona
+ * dell'attributo, due icone di rarita', «DEMONE», «COMANDAMENTI», «Derieri»)
+ * seguita da una riga di date, e sul telefono andava a capo dove capitava: chi
+ * non conosce il gioco non sapeva cosa fosse «Derieri» accanto a «Demone».
+ * Ora ogni dato ha il suo nome sopra, come in una scheda, e sul telefono le
+ * celle stanno in due colonne fisse.
+ */
+function HeroFacts({
+  game,
+  locale,
+  icons,
+  hero,
+  affinity,
+  race,
+  factions,
+  canReachLr,
+  release,
+}: {
+  game: string;
+  locale: Locale;
+  icons: Readonly<Record<string, readonly string[]>> | undefined;
+  hero: HeroEntry;
+  affinity: HeroAffinity | undefined;
+  race: { code: string; label: string } | null;
+  factions: readonly string[];
+  canReachLr: boolean;
+  release: HeroRelease | undefined;
+}) {
+  const t = TESTI[locale];
+
+  return (
+    <div className="@container mt-3 border border-rule bg-paper-2">
+      <dl className={factGrid}>
+        {/*
+          L'attributo con l'icona del gioco: chi gioca la riconosce prima di
+          leggere, e il nome accanto la spiega a chi non gioca (l'icona e'
+          decorativa, il nome lo dice il testo). Tristan no - il gioco non ha
+          un'icona per l'attributo doppio - e per lui resta il quadrato
+          bicolore, che il progetto disegna da se'.
+        */}
+        <Fact label={t.attributo}>
+          {affinity?.iconKey && hasIcon(icons, "attributo", affinity.iconKey) ? (
+            <span className={cx(factValue, "flex items-center gap-2 text-ink")}>
+              <GameIcon game={game} family="attributo" iconKey={affinity.iconKey} label="" size={26} className="shrink-0" />
+              {affinityLabel(affinity.id, locale)}
+            </span>
+          ) : (
+            <AffinityTag affinity={affinity} fallback={hero.affinity} locale={locale} />
+          )}
+        </Fact>
+
+        {/*
+          "LR" da solo era comodo e falso. Il numero da cui viene - il
+          `rating` del gioco - e' il TETTO che l'eroe puo' raggiungere, non la
+          rarita' che ha adesso: un eroe che esce SSR e arriva a LR non e' un
+          LR, lo diventa. Lo dicono l'enum RatingType del client (UR=6, LR=7),
+          la colonna hero_lr_special che esiste, e le statistiche massime dei
+          32 eroi con rating 7, che sono quelle di un UR. Qui si scrive quello
+          che il dato dice davvero.
+        */}
+        <Fact label={t.raritaCampo}>
+          <RarityPath game={game} locale={locale} icons={icons} from={hero.obtainedAs} to={hero.rarity} canReachLr={canReachLr} />
+        </Fact>
+
+        {/*
+          La razza tiene icona E testo: i sei simboli sono meno familiari delle
+          sigle di rarita', e da soli direbbero poco a chi arriva da una
+          ricerca senza conoscere il gioco.
+        */}
+        {race ? (
+          <Fact label={t.razza}>
+            <span className={cx(factValue, "flex items-center gap-2 text-ink")}>
+              {hasIcon(icons, "razza", race.code) ? (
+                <GameIcon game={game} family="razza" iconKey={race.code} label="" size={22} className="shrink-0" />
+              ) : null}
+              {race.label}
+            </span>
+          </Fact>
+        ) : null}
+
+        {/*
+          Le caratteristiche (le fazioni) restano testo: il gioco non ha
+          un'icona per loro. Cercata su ogni pista - la famiglia icon_filter_*,
+          icon_job, icon_group, icon_category, hero_category, characteristic,
+          emblem e i nomi delle nove fazioni - zero risultati. Una per riga:
+          sono al massimo due, e certi nomi sono lunghi.
+        */}
+        {factions.length > 0 ? (
+          <Fact label={t.caratteristiche}>
+            {factions.map((value) => (
+              <span key={value} className={cx(factValue, "block text-ink [&+&]:mt-1")}>
+                {value}
+              </span>
+            ))}
+          </Fact>
+        ) : null}
+
+        {/* il personaggio porta alla griglia cercata per nome: tutte le sue versioni */}
+        <Fact label={t.personaggio}>
+          <Link
+            href={`/${game}/eroi?cerca=${encodeURIComponent(hero.group)}`}
+            title={t.versioniPersonaggio(hero.group)}
+            className={cx(factValue, "group/more inline-flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink")}
+          >
+            {hero.group}
+            <MoreArrow />
+          </Link>
+        </Fact>
+      </dl>
+
+      {release ? <ReleaseFacts game={game} release={release} locale={locale} /> : null}
+    </div>
+  );
+}
+
+/**
  * Quando e' uscito: globale, Giappone e Corea, e il collegamento alla sua riga
- * nel calendario.
+ * nel calendario. Le date sono dati come gli altri della fascia: una cella
+ * ciascuna, col nome sopra.
  *
  * Il globale prima: e' il server di chi legge in italiano. Le due date e non
  * una: fino a novembre 2024 il globale arrivava mesi dopo il Giappone, e in un
@@ -809,7 +899,7 @@ function HeroInfo({
  * dove il foglio scrive il martedi', e in qualche caso sbaglia di mesi
  * (Cardinal Helbram: marzo 2023 contro agosto 2020).
  */
-function ReleaseLine({ game, release, locale }: { game: string; release: HeroRelease; locale: Locale }) {
+function ReleaseFacts({ game, release, locale }: { game: string; release: HeroRelease; locale: Locale }) {
   const t = TESTI[locale];
   const format = new Intl.DateTimeFormat(intlLocale(locale), {
     day: "numeric",
@@ -817,16 +907,11 @@ function ReleaseLine({ game, release, locale }: { game: string; release: HeroRel
     year: "numeric",
     timeZone: "UTC",
   });
-  const day = (value: string) => (
-    <time dateTime={value} className={numeric}>
-      {format.format(new Date(`${value}T00:00:00Z`))}
-    </time>
-  );
-  const parts: { key: string; node: React.ReactNode }[] = [];
-  if (release.global) parts.push({ key: "gb", node: <>{t.globale} {day(release.global)}</> });
-  if (release.jp) parts.push({ key: "jp", node: <>{t.giapponeCorea} {day(release.jp)}</> });
+  const days: { key: string; label: string; value: string }[] = [];
+  if (release.global) days.push({ key: "gb", label: t.uscitaGlobale, value: release.global });
+  if (release.jp) days.push({ key: "jp", label: t.giapponeCorea, value: release.jp });
   const lr = release.lrGlobal ?? release.lrJp;
-  if (lr) parts.push({ key: "lr", node: <>{t.evoluzioneLr} {day(lr)}</> });
+  if (lr) days.push({ key: "lr", label: t.evoluzioneLr, value: lr });
   // La riga nel calendario globale, che e' quello da cui la pagina parte; se
   // l'eroe li' non c'e', quella giapponese.
   const calendar = release.updateGlobal
@@ -834,30 +919,33 @@ function ReleaseLine({ game, release, locale }: { game: string; release: HeroRel
     : release.updateJp
       ? `/${game}/uscite?server=giappone#u-${release.updateJp}`
       : null;
-  if (calendar) {
-    parts.push({
-      key: "cal",
-      node: (
-        <Link href={calendar} className="text-ink hover:text-brand-deep">
-          {t.nelCalendario}
-        </Link>
-      ),
-    });
-  }
-  if (parts.length === 0) return null;
+  if (days.length === 0 && !calendar) return null;
 
   return (
-    // Ogni data e' un pezzo che va a capo intero, separato dallo spazio e non da
-    // un «·»: sul telefono il punto finiva a inizio riga (10/10)
-    <p className="m-0 mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-ink-2">
-      <span className={eyebrow}>{t.uscita}</span>
-      {parts.map((part) => (
-        <span key={part.key} className="whitespace-nowrap">
-          {part.node}
-        </span>
-      ))}
-      {release.festival ? <Tag tone="gold">{t.festival}</Tag> : null}
-    </p>
+    <div className="border-t border-rule @xl:flex @xl:items-center">
+      {days.length > 0 ? (
+        // largo quanto le sue celle, non quanto la fascia: le date sono corte,
+        // e allargate a tutta riga si allontanerebbero dai loro nomi
+        <dl className={cx(factGrid, "@xl:border-r @xl:border-rule")}>
+          {days.map((item, index) => (
+            <Fact key={item.key} label={item.label}>
+              <span className="flex flex-wrap items-center gap-2">
+                <time dateTime={item.value} className={cx(numeric, "text-[15px] font-medium text-ink")}>
+                  {format.format(new Date(`${item.value}T00:00:00Z`))}
+                </time>
+                {/* il Festival e' un modo d'uscita: sta con la prima data */}
+                {index === 0 && release.festival ? <Tag tone="gold">{t.festival}</Tag> : null}
+              </span>
+            </Fact>
+          ))}
+        </dl>
+      ) : null}
+      {calendar ? (
+        <p className={cx("m-0 px-3.5 py-3 @xl:ml-auto", days.length > 0 && "@max-xl:border-t @max-xl:border-rule")}>
+          <MoreLink href={calendar}>{t.nelCalendario}</MoreLink>
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -866,36 +954,30 @@ function Rarity({
   game,
   icons,
   rarity,
-  size,
 }: {
   game: string;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   rarity: string;
-  size: number;
 }) {
   if (!hasIcon(icons, "rarita", rarity)) {
     return <Tag tone={rarity === "LR" ? "gold" : "brand"}>{rarity}</Tag>;
   }
-  return <GameIcon game={game} family="rarita" iconKey={rarity} label={rarity} size={size} />;
+  return <GameIcon game={game} family="rarita" iconKey={rarity} label={rarity} size={30} />;
 }
 
 /**
- * Da dove parte l'eroe e dove puo' arrivare: due icone e una freccia.
+ * Da dove parte l'eroe e dove puo' arrivare: le due icone con una freccia, e
+ * sotto la stessa cosa in parole.
  *
- * Le parole "esce come" e "arriva a" erano li' perche' due icone nude non
- * dicono quale delle due sia la rarita' d'uscita e quale il tetto - ed e'
- * esattamente l'affermazione che questa scheda prima sbagliava, dichiarando
- * "LR" un eroe che LR puo' soltanto diventarlo. La freccia porta quella
- * relazione meglio di quanto la portassero le parole, e in molto meno spazio.
+ * Le parole servono: due icone nude non dicono quale delle due sia la rarita'
+ * d'uscita e quale il tetto - ed e' esattamente l'affermazione che questa
+ * scheda prima sbagliava, dichiarando "LR" un eroe che LR puo' soltanto
+ * diventarlo. Dal 10/10 si vedono («esce come SR, arriva a UR»): prima stavano
+ * solo nel `title` e nell'`aria-label`, e chi non passava col mouse leggeva
+ * due sigle e una freccia. Le icone, con le parole sotto, sono decorative.
  *
- * Il significato pero' non sparisce: resta nel `title`, che lo mostra col
- * mouse fermo, e nell'`aria-label`, che lo detta a chi usa un lettore di
- * schermo. Il `role="img"` fa leggere l'etichetta al posto del contenuto, cosi'
- * le due sigle non vengono annunciate due volte.
- *
- * Quando partenza e tetto coincidono - 17 eroi escono UR e UR restano - la
- * freccia sparisce insieme alla seconda icona: "UR -> UR" e' una relazione che
- * non dice niente.
+ * Quando partenza e tetto coincidono - 17 eroi escono UR e UR restano - resta
+ * l'icona sola, col suo nome: "UR -> UR" e' una relazione che non dice niente.
  */
 function RarityPath({
   game,
@@ -913,26 +995,17 @@ function RarityPath({
   canReachLr: boolean;
 }) {
   const t = TESTI[locale];
-  const same = from === to;
-  const label = same ? t.rarita(from) : t.percorsoRarita(from, to, canReachLr);
+  if (from === to) return <Rarity game={game} icons={icons} rarity={from} />;
 
   return (
-    <span
-      role="img"
-      aria-label={label}
-      title={label}
-      className="inline-flex items-center gap-1.5"
-    >
-      <Rarity game={game} icons={icons} rarity={from} size={34} />
-      {same ? null : (
-        <>
-          <span aria-hidden className="text-[15px] leading-none text-ink-3">
-            →
-          </span>
-          <Rarity game={game} icons={icons} rarity={to} size={34} />
-        </>
-      )}
-    </span>
+    <>
+      <span aria-hidden className="flex items-center gap-1.5">
+        <Rarity game={game} icons={icons} rarity={from} />
+        <IconArrowRight className="shrink-0 text-ink-3" />
+        <Rarity game={game} icons={icons} rarity={to} />
+      </span>
+      <span className="mt-1 block text-[12px] leading-snug text-ink-2">{t.percorsoRarita(from, to, canReachLr)}</span>
+    </>
   );
 }
 
@@ -951,7 +1024,7 @@ function AffinityTag({
     <span
       className={cx(
         "inline-flex h-5 items-center px-[7px] text-white",
-        "font-mono text-[11px] font-medium uppercase tracking-[0.06em]",
+        "font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em]",
       )}
       style={{
         background: affinity.colorAlt
@@ -1014,7 +1087,8 @@ function Stats({
 
   return (
     <section>
-      <h2 className={cx(eyebrow, "mb-2.5")}>{t.statisticheTitolo}</h2>
+      {/* il titolo del calcolatore, come quelli dei riquadri delle altre schede */}
+      <h3 className={cx(boxTitle, "mb-3")}>{t.statisticheTitolo}</h3>
       {calculator ? (
         <StatCalculator
           game={game}

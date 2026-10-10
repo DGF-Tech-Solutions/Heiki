@@ -28,31 +28,40 @@ const TESTI = testi({
 export function MobileBar({ game, hasReleases }: { game: string; hasReleases: boolean }) {
   const t = TESTI[useLocale()];
   const pathname = usePathname();
+  // la voce attiva: icona piena e una lama rossa obliqua sopra (prima solo il colore
+  // del testo, che sul telefono al sole non si distingueva); premuta, affonda
   const item =
-    "flex min-h-14 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 border-0 bg-transparent font-display text-[11px] font-extrabold uppercase tracking-[0.04em] [font-variation-settings:'wdth'_85]";
+    "p5-press relative flex min-h-14 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 border-0 bg-transparent font-display text-[11px] font-extrabold uppercase tracking-[0.04em] [font-variation-settings:'wdth'_85]";
   const here = (path: string) => pathname === `/${game}${path}` || pathname.startsWith(`/${game}${path}/`);
+  const blade = (
+    <span aria-hidden className="absolute inset-x-[22%] top-0 h-[3px] bg-brand [clip-path:polygon(3px_0,100%_0,calc(100%-3px)_100%,0_100%)]" />
+  );
+  const eroi = here("/eroi");
+  const uscite = here("/uscite");
 
   return (
     <nav
       aria-label={t.barra}
       className="fixed inset-x-0 bottom-0 z-30 flex border-t-2 border-brand bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
-      <Link href={`/${game}/eroi`} aria-current={here("/eroi") ? "page" : undefined} className={cx(item, here("/eroi") ? "text-brand-deep" : "text-ink-2")}>
-        <IconHeroes size={20} />
+      <Link href={`/${game}/eroi`} aria-current={eroi ? "page" : undefined} className={cx(item, eroi ? "text-ink" : "text-ink-2")}>
+        {eroi ? blade : null}
+        <IconHeroes size={21} weight={eroi ? "fill" : "bold"} className={eroi ? "text-brand-deep" : undefined} />
         {t.eroi}
       </Link>
       {hasReleases ? (
-        <Link href={`/${game}/uscite`} aria-current={here("/uscite") ? "page" : undefined} className={cx(item, here("/uscite") ? "text-brand-deep" : "text-ink-2")}>
-          <IconCalendar size={20} />
+        <Link href={`/${game}/uscite`} aria-current={uscite ? "page" : undefined} className={cx(item, uscite ? "text-ink" : "text-ink-2")}>
+          {uscite ? blade : null}
+          <IconCalendar size={21} weight={uscite ? "fill" : "bold"} className={uscite ? "text-brand-deep" : undefined} />
           {t.uscite}
         </Link>
       ) : null}
       <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))} className={cx(item, "text-ink-2")}>
-        <IconSearch size={20} />
+        <IconSearch size={21} />
         {t.cerca}
       </button>
       <button type="button" popoverTarget="menu-sezioni" className={cx(item, "text-ink-2")}>
-        <IconMenu size={20} />
+        <IconMenu size={21} />
         {t.menu}
       </button>
     </nav>

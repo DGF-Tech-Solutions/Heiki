@@ -23,16 +23,34 @@
  *     una scheda, o ricaricando, si ritrovano. Si arriva gia' filtrati anche
  *     dalle tendine delle parole blu (`?razza=3`, `?caratteristica=6`)
  *   - «I miei»: solo gli eroi del tuo box, se ne hai segnati (use-hero-box.ts)
+ *
+ * Sul telefono (10/10, sera) le file dei filtri occupavano tutto il primo
+ * schermo: a 390x844 la prima card compariva sotto la piega. Ora sotto `lg`
+ * (dove il palco non c'e') restano in vista la ricerca e un comando «Filtri»
+ * che dice quanti filtri sono attivi; ordine e filtri si aprono sotto di lui.
+ * Un pannello e non una striscia che scorre di lato: le file di icone hanno
+ * bisogno della loro etichetta, e in una striscia unica si perderebbe dove
+ * finiscono le rarita' e cominciano gli attributi.
  */
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { readableColor } from "@/components/heroes/game-color";
 import { DEFAULT_STAGE_ART, HeroStage, type StageArt, type StageBadge } from "@/components/heroes/hero-stage";
-import { IconChevronRight } from "@/components/icons";
-import { buttonClass, cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
+import { IconCheck, IconChevronRight, IconClose, IconFilters } from "@/components/icons";
+import {
+  buttonClass,
+  chipClass,
+  cx,
+  Empty,
+  eyebrow,
+  heroEpithetClass,
+  heroNameClass,
+  Input,
+  numeric,
+} from "@/components/ui";
 import { boxSize, ownsHero } from "@/lib/games/hero-box";
 import {
   countHeroes,
@@ -62,12 +80,16 @@ const TESTI = testi({
     razza: "Razza",
     caratteristica: "Caratteristica",
     altriFiltri: "Altri filtri",
+    filtri: "Filtri",
+    attivi: (n: number) => (n === 1 ? "1 attivo" : `${n} attivi`),
     miei: "I miei",
     mieiTitolo: "Solo gli eroi del tuo box",
     eroi: (n: number): string => (n === 1 ? "eroe" : "eroi"),
-    suTotale: (n: number) => ` su ${n}`,
+    su: "su",
     azzera: "Azzera i filtri",
+    azzeraBreve: "Azzera",
     nessunEroe: "Nessun eroe con questi filtri.",
+    nessunaRicerca: (testo: string) => `Nessun eroe trovato per «${testo}».`,
     togliUltimo: (label: string) => `Togli «${label}»`,
     apri: "Apri la scheda",
     percorso: (da: string, a: string) => (da === a ? da : `${da} → ${a}`),
@@ -83,12 +105,16 @@ const TESTI = testi({
     razza: "Race",
     caratteristica: "Characteristic",
     altriFiltri: "More filters",
+    filtri: "Filters",
+    attivi: (n: number) => `${n} active`,
     miei: "Mine",
     mieiTitolo: "Only the heroes in your box",
     eroi: (n: number) => (n === 1 ? "hero" : "heroes"),
-    suTotale: (n: number) => ` of ${n}`,
+    su: "of",
     azzera: "Clear filters",
+    azzeraBreve: "Clear",
     nessunEroe: "No heroes match these filters.",
+    nessunaRicerca: (text: string) => `No heroes found for “${text}”.`,
     togliUltimo: (label: string) => `Remove “${label}”`,
     apri: "Open the page",
     percorso: (from: string, to: string) => (from === to ? from : `${from} → ${to}`),
@@ -96,6 +122,14 @@ const TESTI = testi({
 });
 
 const ORDERS: readonly HeroOrder[] = ["roster", "name", "group"];
+
+/**
+ * La colonna delle etichette dei filtri, sul computer: 116 px, misurati sulle
+ * parole piu' lunghe («Caratteristica» 101, «Characteristic» 102, e «More
+ * filters» con la sua freccia 115). Una costante sola perche' la usano le file e
+ * la riga «Altri filtri»: se divergono, la colonna si rompe.
+ */
+const LABEL_COLUMNS = "lg:grid-cols-[7.25rem_minmax(0,1fr)] lg:gap-x-3";
 
 /** Lo stato dei filtri, come sta nell'indirizzo. */
 export interface RosterQuery {
@@ -227,9 +261,19 @@ export function RosterBrowser({
   const [activeId, setActiveId] = useState<string | null>(null);
   const active = visible.find((hero) => hero.id === activeId) ?? visible[0];
 
-  const filtered =
-    rarity !== null || affinity !== null || obtainable !== null || race !== null || faction !== null || search !== "" || mine;
+  // i filtri scelti nel pannello (la ricerca e' sempre in vista, e un ordine non
+  // restringe l'elenco): e' il numero che il comando «Filtri» del telefono porta
+  const activeCount =
+    [rarity, affinity, obtainable, race, faction].filter((value) => value !== null).length + (mine ? 1 : 0);
+  const filtered = activeCount > 0 || search !== "";
   const moreOpen = obtainable !== null || faction !== null;
+  const reset = () => setQuery({ ...EMPTY_QUERY, order });
+
+  // Il pannello dei filtri sul telefono parte chiuso anche arrivando gia'
+  // filtrati (`?razza=3` dalle parole blu): chi arriva cosi' vuole vedere gli
+  // eroi, e il comando dice comunque quanti filtri ci sono.
+  const [panelOpen, setPanelOpen] = useState(false);
+  const panelId = useId();
 
   /** L'icona del gioco per un valore, solo se e' stata estratta. */
   const iconFor = (family: IconFamily, key: string | undefined) =>
@@ -249,142 +293,223 @@ export function RosterBrowser({
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
       <div className="min-w-0">
         {intro}
-        <div className="mb-4 grid gap-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* la ricerca e' un campo bianco tagliato: CONTROL lo darebbe nero, da qui gli `!` */}
-            <Input
-              type="search"
-              value={search}
-              onChange={(event) => change({ search: event.target.value })}
-              placeholder={t.cercaSegnaposto}
-              aria-label={t.cercaEtichetta}
-              className="p5-cut h-10 min-w-[200px] max-w-[340px] flex-1 border-ink! bg-ink! px-4 text-sm font-semibold text-paper! placeholder:text-paper/60 focus:shadow-[inset_0_-3px_0_var(--color-brand)]"
-            />
-            <div role="group" aria-label={t.ordina} className="flex items-center gap-1">
-              <span className={cx(eyebrow, "mr-1")}>{t.ordina}</span>
+        {/*
+          Ricerca, ordine, filtri e conteggio sono UNA fila che va a capo, non
+          blocchi separati: cosi' gli stessi comandi si dispongono in due modi
+          senza essere scritti due volte, e l'ordine del DOM resta quello che si
+          vede (anche per chi va col tabulatore).
+            - sul computer il pannello non e' una scatola (`lg:contents`): i suoi
+              pezzi entrano nella fila. L'ordine si mette accanto alla ricerca, le
+              file di icone sotto con le etichette in una colonna, poi il conteggio
+            - sul telefono la ricerca prende la prima riga; sotto, il comando
+              «Filtri» e il conteggio stanno accanto. Il pannello, aperto, si
+              mette fra i due (e' «basis-full») e spinge giu' il conteggio
+        */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-2.5 gap-y-3">
+          {/* la ricerca e' un campo bianco tagliato: CONTROL lo darebbe nero, da qui gli `!` */}
+          <Input
+            type="search"
+            value={search}
+            onChange={(event) => change({ search: event.target.value })}
+            placeholder={t.cercaSegnaposto}
+            aria-label={t.cercaEtichetta}
+            className="p5-cut h-10 border-ink! bg-ink! px-4 text-sm font-semibold text-paper! placeholder:text-paper/60 focus:shadow-[inset_0_-3px_0_var(--color-brand)] lg:min-w-[200px] lg:max-w-[340px] lg:flex-1"
+          />
+
+          {/*
+            Rosso se c'e' almeno un filtro, come i pulsanti dei filtri (il rosso
+            dice «hai ristretto l'elenco»); bianco quieto se e' solo aperto.
+          */}
+          <button
+            type="button"
+            aria-expanded={panelOpen}
+            aria-controls={panelId}
+            onClick={() => setPanelOpen((open) => !open)}
+            className={chipClass(activeCount > 0 || panelOpen, activeCount === 0, "shrink-0 lg:hidden")}
+          >
+            <IconFilters size={16} />
+            {t.filtri}
+            {activeCount > 0 ? (
+              <>
+                <span aria-hidden className={cx(numeric, "text-[12px]")}>
+                  {activeCount}
+                </span>
+                <span className="sr-only">{t.attivi(activeCount)}</span>
+              </>
+            ) : null}
+          </button>
+
+          <div
+            id={panelId}
+            className={cx(
+              "p5-corner basis-full gap-4 border border-rule bg-paper-2 p-4 lg:contents",
+              panelOpen ? "grid" : "hidden",
+            )}
+          >
+            <FilterGroup label={t.ordina} inline>
               {ORDERS.map((id) => (
                 <Chip key={id} active={order === id} quiet onClick={() => change({ order: id })} label={t.ordini[id]} />
               ))}
-            </div>
+            </FilterGroup>
             {hasBox ? (
-              <span title={t.mieiTitolo}>
-                <Chip
-                  active={mine}
-                  onClick={() => change({ mine: !mine })}
-                  label={t.miei}
-                  count={boxSize(box)}
-                />
+              <span title={t.mieiTitolo} className="justify-self-start">
+                <Chip active={mine} onClick={() => change({ mine: !mine })} label={t.miei} count={boxSize(box)} />
               </span>
             ) : null}
-          </div>
 
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <IconGroup label={t.rarita}>
-              {roster.rarities.map((value) => (
-                <Chip
-                  key={value}
-                  active={rarity === value}
-                  onClick={() => change({ rarity: rarity === value ? null : value })}
-                  label={value}
-                  iconSrc={iconFor("rarita", value)}
-                  count={rarityCounts.get(value) ?? 0}
-                />
-              ))}
-            </IconGroup>
-            <IconGroup label={t.attributo}>
-              {roster.affinities.map((item) => (
-                <Chip
-                  key={item.id}
-                  active={affinity === item.id}
-                  onClick={() => change({ affinity: affinity === item.id ? null : item.id })}
-                  label={item.label}
-                  iconSrc={iconFor("attributo", item.iconKey)}
-                  withLabel={affinity === item.id}
-                  count={affinityCounts.get(item.id) ?? 0}
-                  swatch={item}
-                />
-              ))}
-            </IconGroup>
-            {traits && traits.races.length > 0 ? (
-              <IconGroup label={t.razza}>
-                {traits.races.map((item) => (
+            <div className="grid gap-4 lg:basis-full lg:gap-2">
+              <FilterGroup label={t.rarita}>
+                {roster.rarities.map((value) => (
                   <Chip
-                    key={item.code}
-                    active={race === item.code}
-                    onClick={() => change({ race: race === item.code ? null : item.code })}
-                    label={item.label}
-                    iconSrc={iconFor("razza", item.iconKey)}
-                    withLabel={race === item.code}
-                    count={raceCounts.get(item.code) ?? 0}
+                    key={value}
+                    active={rarity === value}
+                    onClick={() => change({ rarity: rarity === value ? null : value })}
+                    label={value}
+                    iconSrc={iconFor("rarita", value)}
+                    count={rarityCounts.get(value) ?? 0}
                   />
                 ))}
-              </IconGroup>
-            ) : null}
+              </FilterGroup>
+              <FilterGroup label={t.attributo}>
+                {roster.affinities.map((item) => (
+                  <Chip
+                    key={item.id}
+                    active={affinity === item.id}
+                    onClick={() => change({ affinity: affinity === item.id ? null : item.id })}
+                    label={item.label}
+                    iconSrc={iconFor("attributo", item.iconKey)}
+                    withLabel={affinity === item.id}
+                    count={affinityCounts.get(item.id) ?? 0}
+                    swatch={item}
+                  />
+                ))}
+              </FilterGroup>
+              {traits && traits.races.length > 0 ? (
+                <FilterGroup label={t.razza}>
+                  {traits.races.map((item) => (
+                    <Chip
+                      key={item.code}
+                      active={race === item.code}
+                      onClick={() => change({ race: race === item.code ? null : item.code })}
+                      label={item.label}
+                      iconSrc={iconFor("razza", item.iconKey)}
+                      withLabel={race === item.code}
+                      count={raceCounts.get(item.code) ?? 0}
+                    />
+                  ))}
+                </FilterGroup>
+              ) : null}
+
+              {/*
+                Le due file che si usano meno, sotto un tocco. Aperte da sole se
+                uno dei loro filtri e' scelto (anche arrivando dall'indirizzo).
+                Chiuse, dicono cosa c'e' dentro: «Altri filtri» da solo era una
+                scritta appesa, che non diceva se valeva la pena aprirla.
+              */}
+              <details open={moreOpen || undefined} className="group/altri">
+                <summary
+                  className={cx(
+                    "flex min-h-9 cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-0.5 lg:grid",
+                    LABEL_COLUMNS,
+                    "[&::-webkit-details-marker]:hidden",
+                  )}
+                >
+                  <span className="inline-flex items-center gap-2 font-display text-[13px] font-extrabold uppercase tracking-[0.04em] text-ink-2 [font-variation-settings:'wdth'_85] hover:text-ink">
+                    <IconChevronRight size={14} className="transition-transform group-open/altri:rotate-90 motion-reduce:transition-none" />
+                    {t.altriFiltri}
+                  </span>
+                  <span className="text-[12px] text-ink-3 group-open/altri:hidden">
+                    {traits && traits.factions.length > 0 ? `${t.esceCome} · ${t.caratteristica}` : t.esceCome}
+                  </span>
+                </summary>
+                <div className="mt-2 grid gap-4 lg:gap-2">
+                  <FilterGroup label={t.esceCome}>
+                    {roster.obtainable.map((value) => (
+                      <Chip
+                        key={value}
+                        active={obtainable === value}
+                        onClick={() => change({ obtainable: obtainable === value ? null : value })}
+                        label={value}
+                        iconSrc={iconFor("rarita", value)}
+                        count={obtainableCounts.get(value) ?? 0}
+                      />
+                    ))}
+                  </FilterGroup>
+                  {traits && traits.factions.length > 0 ? (
+                    <FilterGroup label={t.caratteristica}>
+                      {traits.factions.map((item) => (
+                        <Chip
+                          key={item.code}
+                          active={faction === item.code}
+                          onClick={() => change({ faction: faction === item.code ? null : item.code })}
+                          label={item.label}
+                          count={factionCounts.get(item.code) ?? 0}
+                        />
+                      ))}
+                    </FilterGroup>
+                  ) : null}
+                </div>
+              </details>
+            </div>
           </div>
 
           {/*
-            Le due file che si usano meno, sotto un tocco. Aperte da sole se uno
-            dei loro filtri e' scelto (anche arrivando dall'indirizzo).
+            Il conteggio e' la testata dei risultati: il numero nella lama bianca
+            e «eroi» nella stessa voce dei comandi, alla stessa misura (prima
+            «eroi» era una parolina grigia appesa al numero). Sul computer un filo
+            lo separa dai filtri: sopra si sceglie, sotto si guarda.
           */}
-          <details open={moreOpen || undefined} className="group/altri">
-            <summary className="inline-flex cursor-pointer list-none items-center gap-2 font-display text-[13px] font-extrabold uppercase tracking-[0.04em] text-ink-2 [font-variation-settings:'wdth'_85] hover:text-ink [&::-webkit-details-marker]:hidden">
-              <IconChevronRight size={14} className="transition-transform group-open/altri:rotate-90" />
-              {t.altriFiltri}
-            </summary>
-            <div className="mt-2.5 grid gap-2.5">
-              <IconGroup label={t.esceCome}>
-                {roster.obtainable.map((value) => (
-                  <Chip
-                    key={value}
-                    active={obtainable === value}
-                    onClick={() => change({ obtainable: obtainable === value ? null : value })}
-                    label={value}
-                    iconSrc={iconFor("rarita", value)}
-                    count={obtainableCounts.get(value) ?? 0}
-                  />
-                ))}
-              </IconGroup>
-              {traits && traits.factions.length > 0 ? (
-                <IconGroup label={t.caratteristica}>
-                  {traits.factions.map((item) => (
-                    <Chip
-                      key={item.code}
-                      active={faction === item.code}
-                      onClick={() => change({ faction: faction === item.code ? null : item.code })}
-                      label={item.label}
-                      count={factionCounts.get(item.code) ?? 0}
-                    />
-                  ))}
-                </IconGroup>
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-2 lg:basis-full lg:border-t lg:border-rule-2 lg:pt-3">
+            <p className="m-0 flex items-center gap-2" aria-live="polite">
+              <strong className={cx(numeric, "p5-cut-sm bg-ink px-2 text-[14px] font-bold leading-6 text-paper")}>
+                {visible.length}
+              </strong>
+              <span className="font-display text-[14px] font-extrabold uppercase tracking-[0.04em] text-ink [font-variation-settings:'wdth'_85]">
+                {t.eroi(visible.length)}
+              </span>
+              {/*
+                «su 375» solo da 640 px in su: sul telefono sta accanto al
+                comando «Filtri» e con «Azzera» la riga andava a capo, e il
+                totale e' scritto due righe sopra, sotto il titolo
+              */}
+              {filtered ? (
+                <span className="text-[13px] text-ink-3 max-sm:hidden">
+                  {t.su} <span className={numeric}>{roster.heroes.length}</span>
+                </span>
               ) : null}
-            </div>
-          </details>
-        </div>
-
-        <div className="mb-3.5 flex items-baseline justify-between gap-3">
-          <p className="m-0 text-[13px] text-ink-2" aria-live="polite">
-            <strong className={cx(numeric, "p5-cut-sm inline-block bg-ink px-2 font-bold text-paper")}>
-              {visible.length}
-            </strong>{" "}
-            {t.eroi(visible.length)}
-            {filtered ? t.suTotale(roster.heroes.length) : null}
-          </p>
-          {filtered ? (
-            <button
-              type="button"
-              onClick={() => setQuery({ ...EMPTY_QUERY, order })}
-              className="cursor-pointer border-0 bg-transparent p-0 font-mono text-[12px] font-bold uppercase tracking-[0.08em] text-ink-2 underline-offset-2 hover:text-brand-deep hover:underline"
-            >
-              {t.azzera}
-            </button>
-          ) : null}
+            </p>
+            {/* con zero risultati il comando sta, piu' grande, nel riquadro vuoto: uno solo */}
+            {filtered && visible.length > 0 ? (
+              <button
+                type="button"
+                onClick={reset}
+                aria-label={t.azzera}
+                className={buttonClass("ghost", "sm", "shrink-0")}
+              >
+                <IconClose size={14} />
+                <span className="max-sm:hidden">{t.azzera}</span>
+                <span className="sm:hidden">{t.azzeraBreve}</span>
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {visible.length === 0 ? (
-          <Empty>{t.nessunEroe}</Empty>
+          <Empty>
+            {/* se c'e' solo la ricerca, «con questi filtri» farebbe cercare un filtro che non c'e' */}
+            {search !== "" && activeCount === 0 ? t.nessunaRicerca(search) : t.nessunEroe}
+            {filtered ? (
+              <span className="mt-4 flex justify-center">
+                <button type="button" onClick={reset} className={buttonClass("outline", "sm")}>
+                  <IconClose size={14} />
+                  {t.azzera}
+                </button>
+              </span>
+            ) : null}
+          </Empty>
         ) : (
           <ul
-            className="m-0 grid list-none gap-x-2.5 gap-y-3.5 p-0"
+            className="m-0 grid list-none gap-x-2.5 gap-y-4 p-0"
             style={{ gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))" }}
           >
             {visible.map((hero) => (
@@ -425,11 +550,42 @@ export function RosterBrowser({
   );
 }
 
-function IconGroup({ label, children }: { label: string; children: React.ReactNode }) {
+/**
+ * Una fila di pulsanti con la sua etichetta.
+ *
+ * Sul computer l'etichetta sta in una colonna larga quanto «Caratteristica», la
+ * piu' lunga: prima ogni fila partiva dove finiva la sua parola, e i pulsanti di
+ * Rarita', Attributo e Razza cominciavano a tre altezze diverse. Le file che
+ * vanno a capo restano nella loro colonna invece di finire sotto l'etichetta.
+ * Sul telefono l'etichetta sta sopra: una colonna si mangerebbe un terzo dei
+ * 358 px, e le file di icone andrebbero a capo una volta di piu'.
+ *
+ * `inline`: etichetta e pulsanti di seguito, per l'ordine accanto alla ricerca.
+ */
+function FilterGroup({
+  label,
+  inline = false,
+  children,
+}: {
+  label: string;
+  inline?: boolean;
+  children: React.ReactNode;
+}) {
+  const id = useId();
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1.5">
-      <span className={cx(eyebrow, "mr-0.5 shrink-0")}>{label}</span>
-      {children}
+    <div
+      role="group"
+      aria-labelledby={id}
+      className={cx(
+        "grid gap-1.5",
+        inline ? "lg:flex lg:items-center lg:gap-2" : cx(LABEL_COLUMNS, "lg:items-start"),
+      )}
+    >
+      {/* alta quanto un pulsante: resta in riga con la prima fila anche se i pulsanti vanno a capo */}
+      <span id={id} className={cx(eyebrow, "lg:leading-9")}>
+        {label}
+      </span>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   );
 }
@@ -488,22 +644,17 @@ function HeroCard({
           />
           {owned ? (
             <span className="hero-card-owned" title={locale === "en" ? "In your box" : "Nel tuo box"}>
-              <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden>
-                <path d="M2 6.4 4.8 9 10 3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square" />
-              </svg>
+              <IconCheck size={12} />
               <span className="sr-only">{locale === "en" ? "In your box" : "Nel tuo box"}</span>
             </span>
           ) : null}
         </span>
         <span className="mt-1.5 block">
-          <span className="block truncate text-[12px] leading-tight text-ink-3" title={epithet}>
+          <span className={heroEpithetClass} title={epithet}>
             {epithet}
           </span>
           {/* due righe e non una troncata: «Dio supremo Odino» non sta in 100px */}
-          <span
-            className="hero-card-name line-clamp-2 font-display text-[13px] font-black uppercase leading-[1.08] tracking-[0.01em] [font-variation-settings:'wdth'_72]"
-            title={name}
-          >
+          <span className={cx(heroNameClass, "mt-0.5")} title={name}>
             {name}
           </span>
         </span>

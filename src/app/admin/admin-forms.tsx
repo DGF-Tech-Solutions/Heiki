@@ -78,7 +78,7 @@ export function RoleForm({ user, self }: { user: AdminUser; self: boolean }) {
       </Button>
 
       {locked ? (
-        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3">
+        <span className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
           {self ? t.seiTu : t.amministratore}
         </span>
       ) : null}

@@ -56,13 +56,19 @@ export default async function GameLayout({
         e la barra sembrava staccata dal bordo. Lo spazio recuperato va tutto
         al contenuto, che qui sono griglie di card e schede fitte di dati.
       */}
-      <div className="mx-auto grid w-full max-w-shell items-start gap-9 px-6 lg:grid-cols-[minmax(0,210px)_minmax(0,1fr)]">
+      {/*
+        Nel menu principale del gioco (/<gioco>, la lista `.hub-menu`) la barra
+        laterale non c'e': ripeteva, a sinistra, le stesse voci dei comandi (10/10,
+        sera). Il layout non sa in che pagina e', quindi lo chiede alla pagina con
+        :has(); senza barra la griglia torna a una colonna.
+      */}
+      <div className="group/guscio mx-auto grid w-full max-w-shell items-start gap-9 px-6 lg:grid-cols-[minmax(0,210px)_minmax(0,1fr)] lg:has-[.hub-menu]:grid-cols-[minmax(0,1fr)]">
         {/*
           Ferma sotto l'intestazione (61px) e alta al massimo quanto lo schermo,
           con lo scorrimento suo: prima era ferma a 110px e alta ~900, e su uno
           schermo da 900 le ultime voci non si vedevano mai (10/10).
         */}
-        <aside className="hidden pt-6 lg:sticky lg:top-[61px] lg:block lg:max-h-[calc(100dvh-61px)] lg:overflow-x-hidden lg:overflow-y-auto lg:pr-2 lg:pb-6 lg:[scrollbar-color:var(--color-rule)_transparent] lg:[scrollbar-width:thin]">
+        <aside className="pt-6 max-lg:hidden group-has-[.hub-menu]/guscio:hidden lg:sticky lg:top-[61px] lg:max-h-[calc(100dvh-61px)] lg:overflow-x-hidden lg:overflow-y-auto lg:pr-2 lg:pb-6 lg:[scrollbar-color:var(--color-rule)_transparent] lg:[scrollbar-width:thin]">
           <GameSidebar game={game} groups={groups} />
         </aside>
 

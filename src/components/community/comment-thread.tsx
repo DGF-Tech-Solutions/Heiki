@@ -122,7 +122,7 @@ function CommentItem({
               {comment.author.displayName}
             </Link>
             {comment.author.role !== "USER" ? (
-              <span className="font-mono text-[11px] uppercase tracking-[0.09em] text-[var(--accent)]">
+              <span className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-[var(--accent)]">
                 {roleLabel(comment.author.role, locale)}
               </span>
             ) : null}

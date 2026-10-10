@@ -1,130 +1,94 @@
 /**
- * Le icone dell'interfaccia, disegnate qui: un tratto solo (2px, spigoli vivi
- * come il resto del mondo «Persona»), nessuna libreria. Sono poche e servono ai
- * comandi (cerca, menu, frecce, su, chiudi); le icone del GIOCO (attributi,
- * rarita', razze) restano le sue, da public/eroi.
+ * Le icone dell'interfaccia: Phosphor, una famiglia sola, nel peso «bold».
  *
- * Decorative di proposito: il nome lo da' il comando che le contiene
- * (`aria-label` o testo `sr-only`).
+ * Fino al 10/10 erano disegnate qui a mano, tracciato per tracciato, e altre
+ * quattro stavano sparse nei componenti (la X del menu, l'omino dell'utente, la
+ * spunta del box, il dado del Randomizer), ognuna col suo spessore. Una libreria
+ * da' lo stesso tratto e la stessa misura ottica a tutte, e ha gia' le icone
+ * che serviranno (non vanno disegnate una alla volta). «bold» e non «regular»:
+ * accanto ai titoli neri e stretti del mondo «Persona» il tratto sottile spariva.
+ *
+ * Si importa la versione «ssr» di ogni icona, un file per icona: non usa il
+ * contesto di React, quindi va bene nei componenti del server e in quelli del
+ * browser, e nel pacchetto finisce solo quello che si usa.
+ *
+ * Le icone del GIOCO (attributi, rarita', razze, stelle delle carte) restano le
+ * sue, da public/eroi. Queste sono decorative: il nome lo da' il comando che le
+ * contiene (`aria-label` o testo `sr-only`).
  */
 
-import type { SVGProps } from "react";
+import type { ComponentType, SVGProps } from "react";
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr/ArrowRight";
+import { ArrowUpIcon } from "@phosphor-icons/react/dist/ssr/ArrowUp";
+import { CalendarBlankIcon } from "@phosphor-icons/react/dist/ssr/CalendarBlank";
+import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr/CaretLeft";
+import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
+import { CardsThreeIcon } from "@phosphor-icons/react/dist/ssr/CardsThree";
+import { CheckIcon } from "@phosphor-icons/react/dist/ssr/Check";
+import { DiceFiveIcon } from "@phosphor-icons/react/dist/ssr/DiceFive";
+import { FileTextIcon } from "@phosphor-icons/react/dist/ssr/FileText";
+import { HeartIcon } from "@phosphor-icons/react/dist/ssr/Heart";
+import { LinkSimpleIcon } from "@phosphor-icons/react/dist/ssr/LinkSimple";
+import { ListIcon } from "@phosphor-icons/react/dist/ssr/List";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/ssr/MagnifyingGlass";
+import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
+import { SlidersHorizontalIcon } from "@phosphor-icons/react/dist/ssr/SlidersHorizontal";
+import { StarIcon } from "@phosphor-icons/react/dist/ssr/Star";
+import { SwordIcon } from "@phosphor-icons/react/dist/ssr/Sword";
+import { UserIcon } from "@phosphor-icons/react/dist/ssr/User";
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/ssr/UsersThree";
+import { XIcon } from "@phosphor-icons/react/dist/ssr/X";
 
-type IconProps = Omit<SVGProps<SVGSVGElement>, "children"> & { size?: number };
+type Weight = "regular" | "bold" | "fill";
 
-function Svg({ size = 18, children, ...props }: IconProps & { children: React.ReactNode }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.4}
-      strokeLinecap="square"
-      strokeLinejoin="miter"
-      aria-hidden
-      focusable="false"
-      {...props}
-    >
-      {children}
-    </svg>
-  );
+/**
+ * `strokeWidth` resta accettato perche' qualche chiamata lo passava alle icone
+ * disegnate a mano: Phosphor disegna pieni e non tratti, e lo ignora. Lo
+ * spessore si sceglie con `weight`.
+ */
+export type IconProps = Omit<SVGProps<SVGSVGElement>, "children" | "ref"> & {
+  size?: number;
+  weight?: Weight;
+};
+
+type PhosphorIcon = ComponentType<Omit<SVGProps<SVGSVGElement>, "ref"> & { size?: number; weight?: Weight }>;
+
+function make(Base: PhosphorIcon, defaults: { size?: number; weight?: Weight } = {}) {
+  function Icon({ size, weight, strokeWidth: _ignored, ...props }: IconProps) {
+    void _ignored;
+    return (
+      <Base
+        size={size ?? defaults.size ?? 18}
+        weight={weight ?? defaults.weight ?? "bold"}
+        aria-hidden
+        focusable="false"
+        {...props}
+      />
+    );
+  }
+  return Icon;
 }
 
-export const IconChevronLeft = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M15 5 8 12l7 7" />
-  </Svg>
-);
+export const IconChevronLeft = make(CaretLeftIcon);
+export const IconChevronRight = make(CaretRightIcon);
+export const IconArrowRight = make(ArrowRightIcon, { size: 14 });
+export const IconArrowUp = make(ArrowUpIcon);
+export const IconSearch = make(MagnifyingGlassIcon);
+export const IconClose = make(XIcon);
+export const IconMenu = make(ListIcon);
+export const IconFilters = make(SlidersHorizontalIcon);
 
-export const IconChevronRight = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="m9 5 7 7-7 7" />
-  </Svg>
-);
+export const IconHeroes = make(UsersThreeIcon);
+export const IconCalendar = make(CalendarBlankIcon);
+export const IconSword = make(SwordIcon);
+export const IconCard = make(CardsThreeIcon);
+export const IconPage = make(FileTextIcon);
+export const IconUser = make(UserIcon, { weight: "fill" });
+export const IconDice = make(DiceFiveIcon);
+export const IconStar = make(StarIcon, { size: 12, weight: "fill" });
 
-export const IconSearch = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM15.5 15.5 20 20" />
-  </Svg>
-);
-
-export const IconArrowUp = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M12 19V6M6 11l6-6 6 6" />
-  </Svg>
-);
-
-export const IconClose = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M6 6l12 12M18 6 6 18" />
-  </Svg>
-);
-
-/** Tre lame oblique, come il pulsante del menu del telefono. */
-export const IconMenu = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M5 7h15M3 12h15M5 17h15" />
-  </Svg>
-);
-
-export const IconHeroes = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
-  </Svg>
-);
-
-export const IconCalendar = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4" />
-  </Svg>
-);
-
-export const IconSword = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M14 4h6v6L10 20l-6-6L14 4ZM7 17l-3 3" />
-  </Svg>
-);
-
-export const IconCard = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M7 3h10v18H7zM10 8h4M10 12h4" />
-  </Svg>
-);
-
-export const IconPage = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6" />
-  </Svg>
-);
-
-/*
- * Piu', spunta, cuore, collegamento: dove prima c'erano «+», «✓», «♥», che
- * cambiano forma da un font all'altro e che un lettore di schermo legge ad alta
- * voce. Tratto 2,8: stanno piccole (14-16px) dentro le lame.
- */
-
-export const IconPlus = (props: IconProps) => (
-  <Svg size={16} strokeWidth={2.8} {...props}>
-    <path d="M12 4v16M4 12h16" />
-  </Svg>
-);
-
-export const IconCheck = (props: IconProps) => (
-  <Svg size={16} strokeWidth={2.8} {...props}>
-    <path d="M4 12.5 9.5 18 20 6" />
-  </Svg>
-);
-
-export const IconHeart = (props: IconProps) => (
-  <Svg size={16} strokeWidth={2.8} {...props}>
-    <path d="M12 20 4.5 12.5a4.2 4.2 0 0 1 6-6L12 8l1.5-1.5a4.2 4.2 0 0 1 6 6Z" />
-  </Svg>
-);
-
-export const IconLink = (props: IconProps) => (
-  <Svg size={16} strokeWidth={2.8} {...props}>
-    <path d="M10 14 14 10M8.5 11.5 6 14a3.5 3.5 0 0 0 5 5l2.5-2.5M15.5 12.5 18 10a3.5 3.5 0 0 0-5-5l-2.5 2.5" />
-  </Svg>
-);
+/* piccole, dentro le lame dei comandi: 16 di partenza */
+export const IconPlus = make(PlusIcon, { size: 16 });
+export const IconCheck = make(CheckIcon, { size: 16 });
+export const IconHeart = make(HeartIcon, { size: 16, weight: "fill" });
+export const IconLink = make(LinkSimpleIcon, { size: 16 });

@@ -24,6 +24,7 @@ import { useMemo, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { GameText } from "@/components/heroes/game-text";
+import { IconDice } from "@/components/icons";
 import { AssociateStrip, PartyPanel } from "@/components/party-slot";
 import { buttonClass, cx, eyebrow, RadioChips, Tag } from "@/components/ui";
 import { boxSize, ownsHero } from "@/lib/games/hero-box";
@@ -183,7 +184,7 @@ export function TeamRandomizer({
           </span>
         ) : null}
         <button type="button" onClick={pick} className={buttonClass("primary", "md", "h-11 px-7 text-base sm:ml-auto")}>
-          <DiceIcon />
+          <IconDice size={20} />
           {draw ? t.ripesca : t.pesca}
         </button>
         <p className="m-0 basis-full text-[13px] text-ink-2">{t.spiegaModo[mode]}</p>
@@ -279,15 +280,3 @@ function HeroLink({ game, hero, children }: { game: string; hero: RandomizerHero
   );
 }
 
-function DiceIcon() {
-  return (
-    <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
-      <rect x="3" y="3" width="18" height="18" />
-      <circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" />
-      <circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" />
-      <circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" />
-      <circle cx="8.5" cy="15.5" r="1.2" fill="currentColor" />
-      <circle cx="12" cy="12" r="1.2" fill="currentColor" />
-    </svg>
-  );
-}

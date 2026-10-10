@@ -8,10 +8,11 @@
  */
 
 import { GameNotes, GameText } from "@/components/heroes/game-text";
-import { hasIcon, localized, textIn } from "@/components/heroes/hero-parts";
+import { HeroBox, hasIcon, localized, textIn } from "@/components/heroes/hero-parts";
 import type { TermIds } from "@/components/heroes/hero-terms";
 import { HeroDrawLine, HeroTeamEffect } from "@/components/heroes/hero-mechanics";
-import { cx, eyebrow, numeric } from "@/components/ui";
+import { HeroStickyColumns } from "@/components/heroes/hero-sticky-columns";
+import { cx, numeric } from "@/components/ui";
 import {
   gameIconSrc,
   heroCardArtSrc,
@@ -113,6 +114,14 @@ function versionTerms(
 }
 
 /**
+ * Dove si ferma la colonna corta: sotto l'intestazione del sito (60px), la
+ * barra delle schede (55) e lo stesso spazio che la barra lascia sopra la
+ * scheda (20). Lo stesso numero sta scritto in `top-[135px]` qui sotto:
+ * Tailwind legge il sorgente, e una classe composta non finirebbe nel CSS.
+ */
+const STICKY_TOP = 135;
+
+/**
  * La scheda «Abilita'»: a sinistra l'Unica e sotto le abilita' speciali, a
  * destra le tre carte che l'eroe gioca, A, B e ultimate.
  *
@@ -133,6 +142,15 @@ function versionTerms(
  * quindi a parita' di finestra lo spazio cambia. Sotto i 896px una carta
  * avrebbe meno di 440px, e il testo accanto all'illustrazione scenderebbe sotto
  * i 280.
+ *
+ * Affiancate, la colonna piu' corta resta ferma mentre si scorre la lunga
+ * (HeroStickyColumns, 10/10): in cima sotto la barra se sta nello schermo,
+ * altrimenti col fondo in fondo allo schermo, quando ci arriva. Quasi sempre e'
+ * quella dell'Unica, e sotto di lei restava un vuoto di 600-900px accanto alle
+ * carte. Le alternative misurate erano peggiori: le
+ * colonne del CSS (`columns`) bilanciano l'altezza ma spostano i riquadri da
+ * una colonna all'altra a ogni rango scelto, e l'ultimate sotto l'Unica
+ * mescola i due generi che la scelta del 26/09 separa.
  */
 export function HeroAbilities({
   game,
@@ -177,8 +195,15 @@ export function HeroAbilities({
   const cardCount = assets?.cards ?? 0;
   const cards = abilities?.cards ?? [];
 
-  const heading = cx(eyebrow, "mb-2.5");
-  const column = "grid min-w-0 content-start gap-y-6";
+  // `data-ferma` lo mette HeroStickyColumns: `alto` ferma in cima sotto la
+  // barra, `basso` ferma col fondo in fondo allo schermo. `@4xl` perche' una
+  // colonna ferma sopra l'altra, nella scheda stretta, coprirebbe quella che
+  // scorre sotto
+  const column = cx(
+    "grid min-w-0 content-start gap-y-4",
+    "@4xl:data-[ferma=alto]:sticky @4xl:data-[ferma=alto]:top-[135px]",
+    "@4xl:data-[ferma=basso]:sticky @4xl:data-[ferma=basso]:bottom-4 @4xl:data-[ferma=basso]:self-end",
+  );
 
   const unique = !!(abilities?.passive?.text || assets?.skill);
   const left = unique || specials.length > 0;
@@ -194,12 +219,14 @@ export function HeroAbilities({
 
   return (
     <>
-      <div className={cx("grid items-start gap-x-5 gap-y-6", left && right && "@4xl:grid-cols-2")}>
+      <div
+        id={left && right ? "abilita-colonne" : undefined}
+        className={cx("grid items-start gap-x-5 gap-y-4", left && right && "@4xl:grid-cols-2")}
+      >
         {left ? (
           <div className={column}>
             {unique ? (
-              <section>
-                <h2 className={heading}>{t.passiva}</h2>
+              <HeroBox title={t.passiva} tone="gold">
                 {/*
                   Icona e testo vengono tutti e due dal client: l'icona e' il campo
                   `icon` della passiva (abilita_speciali.py, `icone_uniche`), il testo
@@ -208,9 +235,7 @@ export function HeroAbilities({
                   senza icona pure.
                 */}
                 <div
-                  // l'Unica e' la passiva dell'eroe: l'angolo tagliato oro la distingue
-                  // dalle carte (prima un filo oro a sinistra, 10/10)
-                  className="p5-corner grid items-start gap-4 border border-gold/45 bg-paper-2 p-4"
+                  className="grid items-start gap-4"
                   style={assets?.skill ? { gridTemplateColumns: "56px minmax(0, 1fr)" } : undefined}
                 >
                   {assets?.skill ? (
@@ -268,11 +293,11 @@ export function HeroAbilities({
                     )}
                   </div>
                 </div>
-              </section>
+              </HeroBox>
             ) : null}
 
             {/*
-              Comandamenti, Grazie, Unita' e Talenti: una sezione per abilita', col
+              Comandamenti, Grazie, Unita' e Talenti: un riquadro per abilita', col
               nome del suo tipo come titolo, subito sotto l'Unica a cui si
               aggiungono. Nessun eroe ne ha piu' di una, ma la lista regge anche quel
               caso.
@@ -280,8 +305,7 @@ export function HeroAbilities({
             {specials.map(({ id, ability }) => {
               const kind = specialKinds?.[ability.kind];
               return (
-                <section key={id}>
-                  <h2 className={heading}>{inLingua(kind?.label, locale) ?? ability.kind}</h2>
+                <HeroBox key={id} title={inLingua(kind?.label, locale) ?? ability.kind}>
                   <SpecialAbility
                     game={game}
                     locale={locale}
@@ -293,7 +317,7 @@ export function HeroAbilities({
                     reactive={(abilities?.ultimate?.ranks.length ?? 0) > 1}
                     termIds={termIds}
                   />
-                </section>
+                </HeroBox>
               );
             })}
 
@@ -308,10 +332,10 @@ export function HeroAbilities({
               il client (DB_skill_card_resource.icon, letto da accosta_carte.py).
             */}
             {cards.map((card, index) => (
-              <section key={index}>
-                <h2 className={heading}>
-                  {card.slot === "A" || card.slot === "B" ? t.carta(card.slot) : t.carteAttacco}
-                </h2>
+              <HeroBox
+                key={index}
+                title={card.slot === "A" || card.slot === "B" ? t.carta(card.slot) : t.carteAttacco}
+              >
                 <CardRow
                   game={game}
                   locale={locale}
@@ -322,7 +346,7 @@ export function HeroAbilities({
                   icons={icons}
                   termIds={termIds}
                 />
-              </section>
+              </HeroBox>
             ))}
 
             {draw && cards.some((card) => card.slot === "A" || card.slot === "B") ? (
@@ -339,17 +363,13 @@ export function HeroAbilities({
             {cards.length === 0 && cardCount > 0 ? (
               /* Ripiego: ci sono gli sprite ma nessun testo. Vale per un modulo che
                  abbia le immagini e non ancora il database delle abilita'. */
-              <section>
-                <h2 className={heading}>
-                  {t.carteAttacco} · {cardCount}
-                </h2>
+              <HeroBox title={t.carteAttacco} aside={<span className={numeric}>{cardCount}</span>}>
                 <Sprites game={game} heroId={heroId} count={cardCount} />
-              </section>
+              </HeroBox>
             ) : null}
 
             {abilities?.ultimate ? (
-              <section>
-                <h2 className={heading}>{t.ultimate}</h2>
+              <HeroBox title={t.ultimate}>
                 {/*
                   La carta dell'ultimate accanto al testo, come per le carte
                   d'attacco. Un'ultimate per eroe, quindi niente accostamento per
@@ -367,13 +387,14 @@ export function HeroAbilities({
                   artSrc={assets?.ultimate ? heroUltimateArtSrc(game, heroId) : undefined}
                   termIds={termIds}
                 />
-              </section>
+              </HeroBox>
             ) : null}
 
             {team}
           </div>
         ) : null}
       </div>
+      {left && right ? <HeroStickyColumns gridId="abilita-colonne" top={STICKY_TOP} /> : null}
 
       {cards.length > 0 ? (
         <p className="mt-5 text-[13px] text-ink-3">
@@ -627,8 +648,9 @@ function SpecialAbility({
     .filter((rule): rule is string => rule !== null);
 
   return (
+    // il riquadro e il titolo col tipo li mette HeroBox, nella scheda
     <div
-      className="grid items-start gap-4 rounded-card border border-rule bg-paper-2 p-4"
+      className="grid items-start gap-4"
       style={ability.icon ? { gridTemplateColumns: "76px minmax(0, 1fr)" } : undefined}
     >
       {ability.icon ? (
@@ -1074,11 +1096,8 @@ function CardRow({
   return (
     // `group` serve a :has(): i pulsanti stanno nella colonna dell'immagine e
     // il testo del rango nell'altra, quindi il legame passa dall'antenato
-    // comune.
-    <div
-      className="group grid items-start gap-4 rounded-card border border-rule bg-paper p-3"
-      style={columns}
-    >
+    // comune. Il riquadro intorno, col titolo «Carta A», e' HeroBox.
+    <div className="group grid items-start gap-4" style={columns}>
       {art ? (
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}

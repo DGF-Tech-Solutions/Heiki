@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { GameText } from "@/components/heroes/game-text";
 import { PassiveConditions, PassiveText } from "@/components/heroes/hero-abilities";
+import { HeroBox } from "@/components/heroes/hero-parts";
 import type { TermIds } from "@/components/heroes/hero-terms";
 import { cx, eyebrow, numeric } from "@/components/ui";
 import { gameItemSrc, heroRelicSrc } from "@/lib/games/heroes";
@@ -94,11 +95,13 @@ export function Relics({
   if (relics.length === 0) return null;
   const t = TESTI[locale];
 
+  // Il titolo sta nel riquadro di ogni reliquia (HeroBox), come nelle abilita':
+  // fino al 10/10 era un'etichetta sopra l'elenco. Con due reliquie la nota che
+  // spiega come convivono resta sopra, dove si legge prima di tutte e due.
   return (
-    <section>
-      <h2 className={cx(eyebrow, "mb-2.5")}>{t.reliquiaTitolo(relics.length)}</h2>
-      {relics.length > 1 ? <p className="m-0 mb-2.5 text-[13px] text-ink-3">{t.dueReliquie}</p> : null}
-      <ul className="m-0 grid list-none gap-3 p-0">
+    <>
+      {relics.length > 1 ? <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-2">{t.dueReliquie}</p> : null}
+      <ul className="m-0 grid list-none gap-4 p-0">
         {relics.map(({ id, relic }) => (
           <li key={id}>
             <RelicCard
@@ -116,7 +119,7 @@ export function Relics({
         ))}
       </ul>
       <p className="mt-3 text-[13px] text-ink-3">{t.fonteReliquia}</p>
-    </section>
+    </>
   );
 }
 
@@ -167,137 +170,134 @@ function RelicCard({
   const cell = cx(numeric, "py-1.5 pl-2.5 text-right");
 
   return (
-    <div
-      className={cx(
-        "grid items-start gap-4 rounded-card border border-rule bg-paper-2 p-4",
-        relic.image && "sm:grid-cols-[88px_minmax(0,1fr)]",
-      )}
-    >
-      {relic.image ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={heroRelicSrc(game, id)}
-          alt=""
-          width={256}
-          height={256}
-          loading="lazy"
-          className="block h-[88px] w-[88px] rounded-card border border-rule bg-paper"
-        />
-      ) : null}
-
-      <div className="min-w-0">
-        {name ? <GameText text={name} className="m-0 font-semibold [&>p]:m-0" /> : null}
-        {beasts.length > 0 ? (
-          <p className="m-0 mt-0.5 text-[12px] text-ink-3">
-            {t.bestia}{" "}
-            {beasts.map((beast, position) => (
-              <span key={beast.label}>
-                {position > 0 ? ", " : null}
-                {/* la bestia porta alla sua pagina, dove si vedono piani, drop e le altre reliquie */}
-                {beast.page ? (
-                  <Link href={`/${game}/bestie-demoniache/${beast.page}`} className="text-ink-2 hover:text-brand-deep">
-                    {beast.label}
-                  </Link>
-                ) : (
-                  beast.label
-                )}
-              </span>
-            ))}
-          </p>
-        ) : null}
-        {description ? (
-          <GameText text={description} className="mt-2 text-sm leading-relaxed text-ink-2" />
+    <HeroBox title={t.reliquiaTitolo(1)}>
+      <div className={cx("grid items-start gap-4", relic.image && "sm:grid-cols-[88px_minmax(0,1fr)]")}>
+        {relic.image ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={heroRelicSrc(game, id)}
+            alt=""
+            width={256}
+            height={256}
+            loading="lazy"
+            className="block h-[88px] w-[88px] rounded-card border border-rule bg-paper"
+          />
         ) : null}
 
-        {relic.passive && passiveText ? (
-          <div className="mt-3 border-t border-rule pt-3">
-            <p className={cx(eyebrow, "m-0 mb-1.5")}>
-              {t.effettoReliquia}
-              {passiveName && passiveName !== name ? ` · ${passiveName}` : ""}
+        <div className="min-w-0">
+          {name ? <GameText text={name} className="m-0 font-semibold [&>p]:m-0" /> : null}
+          {beasts.length > 0 ? (
+            <p className="m-0 mt-0.5 text-[12px] text-ink-3">
+              {t.bestia}{" "}
+              {beasts.map((beast, position) => (
+                <span key={beast.label}>
+                  {position > 0 ? ", " : null}
+                  {/* la bestia porta alla sua pagina, dove si vedono piani, drop e le altre reliquie */}
+                  {beast.page ? (
+                    <Link href={`/${game}/bestie-demoniache/${beast.page}`} className="text-ink-2 hover:text-brand-deep">
+                      {beast.label}
+                    </Link>
+                  ) : (
+                    beast.label
+                  )}
+                </span>
+              ))}
             </p>
-            <PassiveConditions
-              game={game}
-              locale={locale}
-              codes={relic.passive.conditions}
-              conditions={conditions}
-              icons={icons}
-            />
-            <PassiveText
-              game={game}
-              locale={locale}
-              text={passiveText}
-              icons={icons}
-              terms={relic.passive.text.en ? [termIds?.(relic.passive.text.en, passiveText)] : undefined}
-            />
-          </div>
-        ) : null}
+          ) : null}
+          {description ? (
+            <GameText text={description} className="mt-2 text-sm leading-relaxed text-ink-2" />
+          ) : null}
 
-        {rows.length > 0 ? (
-          <div className="mt-3 overflow-x-auto border-t border-rule pt-2">
-            <table className="w-full max-w-[460px] border-collapse text-[13px]">
-              <thead>
-                <tr className="text-[12px] text-ink-3">
-                  <th className="py-1 pr-2.5 text-left font-normal">
-                    <span className="sr-only">{t.statistica}</span>
-                  </th>
-                  <th className="py-1 pl-2.5 text-right font-normal">{t.base}</th>
-                  {relic.upgrades.map((_, i) => (
-                    <th key={i} className="py-1 pl-2.5 text-right font-normal" title={t.potenziamento(i + 1)}>
-                      <span aria-hidden>+{i + 1}</span>
-                      <span className="sr-only">{t.potenziamento(i + 1)}</span>
-                    </th>
-                  ))}
-                  {relic.upgrades.length > 0 ? (
-                    <th className="py-1 pl-2.5 text-right font-normal">{t.totale}</th>
-                  ) : null}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.key} className="border-t border-rule/60">
-                    <td className="py-1.5 pr-2.5 text-ink-2">{row.label[locale]}</td>
-                    <td className={cell}>{numero(relic.stats[row.key] ?? 0, locale)}</td>
-                    {relic.upgrades.map((u, i) => (
-                      <td key={i} className={cx(cell, "text-ink-3")}>
-                        {u.stats[row.key] ? `+${numero(u.stats[row.key]!, locale)}` : "—"}
-                      </td>
-                    ))}
-                    {relic.upgrades.length > 0 ? (
-                      <td className={cx(cell, "font-medium")}>{numero(total(row.key), locale)}</td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
-
-        {relic.materials.length > 0 || relic.upgrades.some((u) => u.materials.length > 0) ? (
-          <div className="mt-3 border-t border-rule pt-3">
-            <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.materiali}</p>
-            <dl className="m-0 grid gap-2 text-[12px]">
-              <Materials
+          {relic.passive && passiveText ? (
+            <div className="mt-3 border-t border-rule pt-3">
+              <p className={cx(eyebrow, "m-0 mb-1.5")}>
+                {t.effettoReliquia}
+                {passiveName && passiveName !== name ? ` · ${passiveName}` : ""}
+              </p>
+              <PassiveConditions
                 game={game}
                 locale={locale}
-                label={t.creazione}
-                amounts={[...relic.materials, ...(relic.cost ? [relic.cost] : [])]}
-                index={index}
+                codes={relic.passive.conditions}
+                conditions={conditions}
+                icons={icons}
               />
-              {relic.upgrades.map((u, i) => (
+              <PassiveText
+                game={game}
+                locale={locale}
+                text={passiveText}
+                icons={icons}
+                terms={relic.passive.text.en ? [termIds?.(relic.passive.text.en, passiveText)] : undefined}
+              />
+            </div>
+          ) : null}
+
+          {rows.length > 0 ? (
+            <div className="mt-3 overflow-x-auto border-t border-rule pt-2">
+              <table className="w-full max-w-[460px] border-collapse text-[13px]">
+                <thead>
+                  <tr className="text-[12px] text-ink-3">
+                    <th className="py-1 pr-2.5 text-left font-normal">
+                      <span className="sr-only">{t.statistica}</span>
+                    </th>
+                    <th className="py-1 pl-2.5 text-right font-normal">{t.base}</th>
+                    {relic.upgrades.map((_, i) => (
+                      <th key={i} className="py-1 pl-2.5 text-right font-normal" title={t.potenziamento(i + 1)}>
+                        <span aria-hidden>+{i + 1}</span>
+                        <span className="sr-only">{t.potenziamento(i + 1)}</span>
+                      </th>
+                    ))}
+                    {relic.upgrades.length > 0 ? (
+                      <th className="py-1 pl-2.5 text-right font-normal">{t.totale}</th>
+                    ) : null}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.key} className="border-t border-rule/60">
+                      <td className="py-1.5 pr-2.5 text-ink-2">{row.label[locale]}</td>
+                      <td className={cell}>{numero(relic.stats[row.key] ?? 0, locale)}</td>
+                      {relic.upgrades.map((u, i) => (
+                        <td key={i} className={cx(cell, "text-ink-3")}>
+                          {u.stats[row.key] ? `+${numero(u.stats[row.key]!, locale)}` : "—"}
+                        </td>
+                      ))}
+                      {relic.upgrades.length > 0 ? (
+                        <td className={cx(cell, "font-medium")}>{numero(total(row.key), locale)}</td>
+                      ) : null}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+
+          {relic.materials.length > 0 || relic.upgrades.some((u) => u.materials.length > 0) ? (
+            <div className="mt-3 border-t border-rule pt-3">
+              <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.materiali}</p>
+              <dl className="m-0 grid gap-2 text-[12px]">
                 <Materials
-                  key={i}
                   game={game}
                   locale={locale}
-                  label={t.potenziamento(i + 1)}
-                  amounts={[...u.materials, ...(u.cost ? [u.cost] : [])]}
+                  label={t.creazione}
+                  amounts={[...relic.materials, ...(relic.cost ? [relic.cost] : [])]}
                   index={index}
                 />
-              ))}
-            </dl>
-          </div>
-        ) : null}
+                {relic.upgrades.map((u, i) => (
+                  <Materials
+                    key={i}
+                    game={game}
+                    locale={locale}
+                    label={t.potenziamento(i + 1)}
+                    amounts={[...u.materials, ...(u.cost ? [u.cost] : [])]}
+                    index={index}
+                  />
+                ))}
+              </dl>
+            </div>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </HeroBox>
   );
 }
 

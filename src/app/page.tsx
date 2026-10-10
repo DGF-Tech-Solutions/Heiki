@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PostCard } from "@/components/community/post-card";
 import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
-import { buttonClass, cx, display, Empty, eyebrow, numeric, SectionHead } from "@/components/ui";
+import { buttonClass, cx, display, eyebrow, MoreLink, numeric, SectionHead } from "@/components/ui";
 import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
 import { listGames } from "@/lib/games/catalog";
 import { getGameModule } from "@/lib/games/registry";
-import { testi } from "@/lib/i18n/locale";
+import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 /**
@@ -27,11 +27,13 @@ const TESTI = testi({
     giochi: "Giochi",
     inArrivo: "In arrivo",
     entra: "Entra nel gioco",
-    eroi: (n: number) => `${n} eroi`,
+    // solo la parola: il numero va nel monospaziato, la parola no
+    eroi: (n: number): string => (n === 1 ? "eroe" : "eroi"),
     ultimiPost: "Ultimi post",
-    community: "Community →",
+    community: "Community",
+    discussioni: "Discussioni",
     nessunaDiscussione: "Ancora nessuna discussione: la prima la scrivi tu.",
-    scrivi: "Apri le Discussioni →",
+    scrivi: "Apri le Discussioni",
   },
   en: {
     titoloPagina: "GachaZone — pages, data and community for gacha games",
@@ -40,13 +42,17 @@ const TESTI = testi({
     giochi: "Games",
     inArrivo: "Coming soon",
     entra: "Enter the game",
-    eroi: (n: number) => `${n} ${n === 1 ? "hero" : "heroes"}`,
+    eroi: (n: number): string => (n === 1 ? "hero" : "heroes"),
     ultimiPost: "Latest posts",
-    community: "Community →",
+    community: "Community",
+    discussioni: "Discussions",
     nessunaDiscussione: "No discussions yet: you write the first one.",
-    scrivi: "Open the Discussions →",
+    scrivi: "Open the Discussions",
   },
 });
+
+/** Una riga di servizio sotto il palco: l'etichetta a sinistra, sul telefono sopra. */
+const INFO_ROW = "grid gap-x-5 gap-y-1 py-3 sm:grid-cols-[120px_minmax(0,1fr)] sm:items-baseline";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = TESTI[await getLocale()];
@@ -94,7 +100,9 @@ export default async function Home() {
               >
                 <span className="flex flex-wrap items-center gap-3">
                   <span className={buttonClass("primary", "md")}>{t.entra}</span>
-                  <span className={cx(numeric, "text-[13px] text-ink-2")}>{t.eroi(heroes.length)}</span>
+                  <span className="text-[13px] text-ink-2">
+                    <span className={cx(numeric, "font-medium text-ink")}>{heroes.length}</span> {t.eroi(heroes.length)}
+                  </span>
                 </span>
               </HeroStage>
             </Link>
@@ -104,47 +112,58 @@ export default async function Home() {
             </Link>
           );
         })}
-
-        {planned.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-rule-2 py-3">
-            <span className={eyebrow}>{t.inArrivo}</span>
-            {planned.map((game) => (
-              <span key={game.slug} className="font-display text-[15px] font-extrabold uppercase text-ink-3 [font-variation-settings:'wdth'_85]">
-                {game.shortName}
-              </span>
-            ))}
-          </div>
-        ) : null}
       </section>
 
-      <section className="mt-12">
-        <SectionHead
-          title={t.ultimiPost}
-          aside={
-            <Link
-              href={`/${active[0]?.slug ?? ""}/discussioni`}
-              className={buttonClass("outline", "sm", "shrink-0")}
-            >
-              {t.community}
-            </Link>
-          }
-        />
+      {/*
+        Due righe di servizio sotto il palco, alla stessa misura: i giochi che
+        arrivano e, finche' non c'e' un post, le Discussioni.
 
-        {latest.length === 0 ? (
-          <Empty>
-            {t.nessunaDiscussione}{" "}
-            <Link href={`/${active[0]?.slug ?? ""}/discussioni`} className="font-semibold text-brand-deep hover:underline">
-              {t.scrivi}
-            </Link>
-          </Empty>
-        ) : (
+        I giochi in arrivo non hanno ancora pagine: fino al 10/10 i loro nomi
+        corti erano nel carattere dei comandi (GENSHIN, STAR RAIL...) e si
+        prendevano per collegamenti. Ora sono una frase, coi nomi interi.
+
+        Senza post, al posto di «Ultimi post» c'era un riquadro con una frase:
+        in una home sembrava un errore. Ora e' una riga che lo dice e porta li'.
+      */}
+      {planned.length > 0 || latest.length === 0 ? (
+        <dl className="m-0 mt-5 divide-y divide-rule-2 border-y border-rule-2">
+          {planned.length > 0 ? (
+            <div className={INFO_ROW}>
+              <dt className={eyebrow}>{t.inArrivo}</dt>
+              <dd className="m-0 text-sm text-ink-2">
+                {new Intl.ListFormat(intlLocale(locale), { type: "conjunction" }).format(planned.map((game) => game.name))}
+              </dd>
+            </div>
+          ) : null}
+          {latest.length === 0 ? (
+            <div className={INFO_ROW}>
+              <dt className={eyebrow}>{t.discussioni}</dt>
+              <dd className="m-0 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
+                <span className="text-sm text-ink-2">{t.nessunaDiscussione}</span>
+                <MoreLink href={`/${active[0]?.slug ?? ""}/discussioni`}>{t.scrivi}</MoreLink>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+
+      {latest.length > 0 ? (
+        <section className="mt-12">
+          <SectionHead
+            title={t.ultimiPost}
+            aside={
+              <MoreLink href={`/${active[0]?.slug ?? ""}/discussioni`} className="shrink-0">
+                {t.community}
+              </MoreLink>
+            }
+          />
           <div className="grid gap-3.5">
             {latest.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
     </main>
   );
 }

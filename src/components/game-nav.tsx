@@ -69,7 +69,7 @@ export async function GameSwitcher({ game }: { game: string }) {
           <Link
             href="/"
             title={planned.map((entry) => entry.name).join(", ")}
-            className="ml-2 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-3 hover:text-ink"
+            className="ml-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3 hover:text-ink"
           >
             {t.altri(planned.length)}
           </Link>
