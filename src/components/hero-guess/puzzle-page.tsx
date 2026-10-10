@@ -78,7 +78,8 @@ export async function puzzleMetadata({ params }: Props, kind: PuzzleKind): Promi
   const entry = findGame(game);
   const locale = await getLocale();
   return {
-    title: `${guessTitle(locale)} (${VARIANT_LABELS[kind][locale]}) · ${entry?.shortName ?? "Grand Cross"} · GachaZone`,
+    // «· GachaZone» lo aggiunge il layout: qui darebbe il nome due volte
+    title: `${guessTitle(locale)} (${VARIANT_LABELS[kind][locale]}) · ${entry?.shortName ?? "Grand Cross"}`,
     description: TESTI[locale].descrizione[kind],
   };
 }
@@ -88,7 +89,7 @@ export async function PuzzlePage({ params, kind }: Props & { kind: PuzzleKind })
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster, heroContext, heroAbilities, heroAssets, icons } = requireGameModule(game);
+  const { roster, heroContext, heroAbilities, heroAssets, icons, releases } = requireGameModule(game);
   if (!roster || !heroContext || !heroAbilities) notFound();
 
   const locale = await getLocale();
@@ -100,6 +101,7 @@ export async function PuzzlePage({ params, kind }: Props & { kind: PuzzleKind })
     const passive = own?.passive;
     const base: PuzzleEntry = {
       ...hero,
+      date: releases?.heroes[hero.id]?.global ?? null,
       factions: context?.factions ?? [],
       attribute: context?.attribute ?? null,
       unique: inLingua(passive?.nameI18n, locale) ?? passive?.name ?? null,

@@ -22,8 +22,10 @@ import {
   maskWords,
   mosaicBlocks,
   previousDay,
+  seedOf,
   shareGrid,
   shareLine,
+  STABLE_DAILY_FROM,
   VARIANT_HINTS,
   zoomCrop,
   type GuessHero,
@@ -125,6 +127,75 @@ describe("l'eroe del giorno", () => {
     expect(dayKey(new Date(2026, 8, 7))).toBe("2026-09-07");
     expect(previousDay("2026-03-01")).toBe("2026-02-28");
     expect(previousDay("2026-01-01")).toBe("2025-12-31");
+  });
+});
+
+describe("l'eroe del giorno stabile (dal 12/10/2026)", () => {
+  const giorni = (da: Date, quanti: number) =>
+    Array.from({ length: quanti }, (_, i) => dayKey(new Date(da.getFullYear(), da.getMonth(), da.getDate() + i)));
+  const anno = giorni(new Date(2026, 9, 12), 365);
+  const nuovo = (date: string | null): GuessHero => ({ ...heroes[0]!, id: "9999999", date });
+
+  it("fino all'11/10 vale la regola di prima: i giorni gia' giocati non cambiano", () => {
+    const sorted = [...heroes].sort((a, b) => a.id.localeCompare(b.id));
+    for (const day of giorni(new Date(2026, 8, 1), 41)) {
+      expect(day < STABLE_DAILY_FROM).toBe(true);
+      for (const variant of GUESS_VARIANTS) {
+        const salt = variant === "classico" ? `gachazone-indovina:${day}` : `gachazone-indovina-${variant}:${day}`;
+        expect(dailyAnswer(heroes, day, variant).id, `${day} ${variant}`).toBe(sorted[seedOf(salt) % sorted.length]!.id);
+      }
+    }
+  });
+
+  it("un eroe nuovo non tocca i giorni prima della sua uscita, e dopo quasi nessuno", () => {
+    const uscita = "2027-03-01";
+    const con = [...heroes, nuovo(uscita)];
+    let cambiati = 0;
+    for (const day of anno) {
+      for (const variant of GUESS_VARIANTS) {
+        const prima = dailyAnswer(heroes, day, variant).id;
+        const dopo = dailyAnswer(con, day, variant).id;
+        if (day < uscita) expect(dopo, `${day} ${variant}`).toBe(prima);
+        else if (dopo !== prima) {
+          // se cambia, e' perche' ha vinto proprio l'eroe nuovo
+          expect(dopo).toBe("9999999");
+          cambiati++;
+        }
+      }
+    }
+    // su ~4 x 200 giorni dopo l'uscita, con 377 eroi: attesi un paio
+    expect(cambiati).toBeLessThan(15);
+  });
+
+  it("un eroe in piu' senza data (o gia' uscito) cambia pochi giorni su un anno", () => {
+    const con = [...heroes, nuovo(null)];
+    const cambiati = anno.filter((day) => dailyAnswer(con, day).id !== dailyAnswer(heroes, day).id).length;
+    expect(cambiati).toBeLessThan(10);
+  });
+
+  it("non sceglie mai un eroe non ancora uscito quel giorno", () => {
+    for (const day of anno) {
+      const scelto = dailyAnswer(heroes, day);
+      expect(!scelto.date || scelto.date <= day, `${day} ${scelto.id} ${scelto.date}`).toBe(true);
+    }
+    // Heimdallr esce l'08/10: non puo' essere l'eroe di un giorno prima, con la regola nuova
+    const finto = heroes.map((hero) => (hero.id === "2017501" ? { ...hero, date: "2030-01-01" } : hero));
+    for (const day of anno) expect(dailyAnswer(finto, day).id).not.toBe("2017501");
+  });
+
+  it("in un anno esce buona parte del roster, quasi mai lo stesso due giorni di fila, e l'ordine non conta", () => {
+    const seen = new Set<string>();
+    let repeats = 0;
+    let before = "";
+    for (const day of anno) {
+      const id = dailyAnswer(heroes, day).id;
+      expect(dailyAnswer([...heroes].reverse(), day).id).toBe(id);
+      if (id === before) repeats++;
+      before = id;
+      seen.add(id);
+    }
+    expect(seen.size).toBeGreaterThan(200);
+    expect(repeats).toBeLessThan(5);
   });
 });
 

@@ -187,23 +187,60 @@ export function seedOf(text: string): number {
   return hash >>> 0;
 }
 
+/** Il rimescolamento finale di MurmurHash3: bit vicini del seme non danno numeri vicini. */
+function mix32(hash: number): number {
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 0x85ebca6b);
+  hash ^= hash >>> 13;
+  hash = Math.imul(hash, 0xc2b2ae35);
+  hash ^= hash >>> 16;
+  return hash >>> 0;
+}
+
 /**
- * L'eroe del giorno: lo stesso per tutti nello stesso giorno, senza server. Un
- * numero dal giorno fra gli eroi in ordine d'id, che non cambia quando il roster
- * si riordina per uscita. Ogni modalita' ha il suo; il seme della classica e'
- * quello di prima delle altre modalita', per non cambiare la partita di chi
- * l'aveva gia' cominciata. Dopo una patch con eroi nuovi l'eroe del giorno puo'
- * cambiare: e' il prezzo di non avere un server che lo tenga.
+ * Il primo giorno della regola stabile (vedi dailyAnswer). Prima vale la regola di
+ * prima: i giorni gia' giocati, compreso quello in cui e' cambiata, restano com'erano.
  */
-export function dailyAnswer<T extends { readonly id: string }>(
+export const STABLE_DAILY_FROM = "2026-10-12";
+
+/**
+ * L'eroe del giorno: lo stesso per tutti nello stesso giorno, senza server, e
+ * non cambia se il roster si riordina. Ogni modalita' ha il suo; il seme della
+ * classica e' quello di prima delle altre modalita'.
+ *
+ * Fino all'11/10/2026 era un numero dal giorno usato come posizione fra gli eroi
+ * in ordine d'id: con un eroe in piu' (Heimdallr, 08/10) quasi ogni giorno, passati
+ * compresi, finiva su un altro eroe, e chi aveva gia' giocato si ritrovava i
+ * tentativi confrontati con un'altra risposta, e «l'eroe di ieri» era sbagliato.
+ * Dal 12/10 ogni eroe ha il suo numero per quel giorno (dal giorno e dal suo id)
+ * e vince il piu' basso: un eroe nuovo non tocca i numeri degli altri, e cambia
+ * l'eroe di un giorno solo se il suo numero e' il piu' basso (circa una volta su
+ * quanti sono gli eroi). In piu' partecipa solo dal giorno della sua uscita
+ * (`date`, globale), quindi i giorni prima non li tocca mai. Chi non ha la data
+ * partecipa sempre.
+ */
+export function dailyAnswer<T extends { readonly id: string; readonly date?: string | null }>(
   heroes: readonly T[],
   day: string,
   variant: GuessVariant = "classico",
 ): T {
   if (heroes.length === 0) throw new Error("dailyAnswer: nessun eroe");
   const salt = variant === "classico" ? `gachazone-indovina:${day}` : `gachazone-indovina-${variant}:${day}`;
-  const sorted = [...heroes].sort((a, b) => a.id.localeCompare(b.id));
-  return sorted[seedOf(salt) % sorted.length]!;
+  if (day < STABLE_DAILY_FROM) {
+    const sorted = [...heroes].sort((a, b) => a.id.localeCompare(b.id));
+    return sorted[seedOf(salt) % sorted.length]!;
+  }
+  const out = heroes.filter((hero) => !hero.date || hero.date <= day);
+  let best: T | undefined;
+  let bestScore = Infinity;
+  for (const hero of out.length > 0 ? out : heroes) {
+    const score = mix32(seedOf(`${salt}:${hero.id}`));
+    if (score < bestScore || (score === bestScore && hero.id < best!.id)) {
+      best = hero;
+      bestScore = score;
+    }
+  }
+  return best!;
 }
 
 /** Gli aiuti che si sbloccano coi tentativi sbagliati, per modalita'. */

@@ -41,6 +41,8 @@ export type PuzzleKind = "carta" | "unica" | "testo";
 
 /** Un eroe del gioco, con quello che la modalita' mostra di lui. */
 export type PuzzleEntry = Playable & {
+  /** uscita globale, AAAA-MM-GG: dal 12/10 l'eroe del giorno sceglie fra chi era gia' uscito */
+  readonly date: string | null;
   readonly attribute: number | null;
   /** il nome della sua Unica nella lingua della pagina */
   readonly unique: string | null;
