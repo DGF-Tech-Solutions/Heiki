@@ -154,7 +154,11 @@ const fileForme = carica<{
   termini: Record<string, Glossario>;
 }>("effetti/forme_carte.json");
 const forme = fileForme.forme;
-const segnaposto = carica<{ segnaposto: Record<string, Segnaposto> }>("effetti/segnaposto.json").segnaposto;
+const fileSegnaposto = carica<{
+  segnaposto: Record<string, Segnaposto>;
+  lacune?: { cosa: string; tag?: Record<string, number> }[];
+}>("effetti/segnaposto.json");
+const segnaposto = fileSegnaposto.segnaposto;
 const carte = carica<Record<string, Record<string, unknown>>>("concetti/carte.json");
 const fileTassonomia = carica<{ voci: Record<string, unknown>; per_tag: Record<string, string> }>("concetti/tassonomia.json");
 const tassonomia = fileTassonomia.voci;
@@ -276,7 +280,14 @@ describe("righe d'effetto delle carte: i file si citano senza buchi", () => {
 });
 
 describe("righe d'effetto delle carte: colonne, fonti e dizionari", () => {
-  const segnati = new Set(Object.values(segnaposto).map((s) => s.nel_testo));
+  // I nomi dell'enum TAG_SKILLEXPLAIN, piu' i tag che i testi del client usano senza
+  // un membro dell'enum, dichiarati nella lacuna di segnaposto.json: dal 08/10
+  // l'ultimate di Heimdallr (1010591) porta {effect_val}701903{/effect_val}, che
+  // modelli_client.py risolve col valore della passiva 701903, come nelle passive.
+  const segnati = new Set([
+    ...Object.values(segnaposto).map((s) => s.nel_testo),
+    ...(fileSegnaposto.lacune ?? []).flatMap((l) => Object.keys(l.tag ?? {})),
+  ]);
 
   it("le colonne dei ranghi sono della tabella; le righe «.p» hanno i numeri della lettura, con la sua fonte", () => {
     const colonne = new Set(base.colonne.map((c) => c.nome));

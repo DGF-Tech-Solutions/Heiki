@@ -130,8 +130,13 @@ describe("l'eroe del giorno", () => {
 
 describe("le altre modalita'", () => {
   it("la classica tiene l'eroe del giorno di prima delle altre modalita' (27/09: Gowther giovane paesano)", () => {
-    expect(dailyAnswer(heroes, "2026-09-27").id).toBe("1114001");
-    expect(dailyAnswer(heroes, "2026-09-27", "classico").id).toBe("1114001");
+    // L'eroe del giorno dipende da quanti eroi ci sono (senza server, vedi
+    // dailyAnswer): il 27/09 erano gli usciti fino a quel giorno. Con Heimdallr
+    // (08/10) quel giorno darebbe un altro eroe; il seme, che e' quello che si
+    // controlla qui, no.
+    const allora = heroes.filter((h) => !h.date || h.date <= "2026-09-27");
+    expect(dailyAnswer(allora, "2026-09-27").id).toBe("1114001");
+    expect(dailyAnswer(allora, "2026-09-27", "classico").id).toBe("1114001");
   });
 
   it("ogni modalita' ha il suo eroe del giorno", () => {

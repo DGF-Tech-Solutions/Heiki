@@ -66,6 +66,7 @@ const TESTI = testi({
     giapponeCorea: "Giappone e Corea",
     evoluzioneLr: "Evoluzione LR",
     nelCalendario: "Nel calendario",
+    dalloStendardo: "Data dello stendardo di debutto nel gioco: il calendario non ha ancora la sua riga",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustrazione di ${eroe}`,
     descrizione: "Descrizione",
@@ -113,6 +114,7 @@ const TESTI = testi({
     giapponeCorea: "Japan and Korea",
     evoluzioneLr: "LR evolution",
     nelCalendario: "In the calendar",
+    dalloStendardo: "Date of its debut banner in the game: the calendar doesn't have its row yet",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustration of ${eroe}`,
     descrizione: "Description",
@@ -943,6 +945,16 @@ function ReleaseFacts({ game, release, locale }: { game: string; release: HeroRe
       {calendar ? (
         <p className={cx("m-0 px-3.5 py-3 @xl:ml-auto", days.length > 0 && "@max-xl:border-t @max-xl:border-rule")}>
           <MoreLink href={calendar}>{t.nelCalendario}</MoreLink>
+        </p>
+      ) : release.banner ? (
+        // senza riga nel calendario la data viene dal client: si dice da dove
+        <p
+          className={cx(
+            "m-0 max-w-[48ch] px-3.5 py-3 text-[13px] text-ink-2 @xl:ml-auto",
+            days.length > 0 && "@max-xl:border-t @max-xl:border-rule",
+          )}
+        >
+          {t.dalloStendardo}
         </p>
       ) : null}
     </div>

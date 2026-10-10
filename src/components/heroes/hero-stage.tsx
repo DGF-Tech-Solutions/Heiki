@@ -115,6 +115,8 @@ export function HeroStage({
   const Heading = headingLevel;
   const splash = heroSplashSrc(game, hero.id);
   const [faceX, faceY] = art.face;
+  // la parola piu' lunga decide quanto puo' essere grande il nome (.stage-name)
+  const nameChars = Math.max(...name.split(/\s+/).map((word) => [...word].length));
 
   return (
     <div
@@ -130,6 +132,7 @@ export function HeroStage({
           "--fy": faceY / 100,
           // il primo piano dalla parte opposta al volto della figura
           "--echo-side": faceX >= 50 ? -1 : 1,
+          "--name-chars": nameChars,
         } as React.CSSProperties
       }
     >

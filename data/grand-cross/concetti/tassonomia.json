@@ -1,5 +1,5 @@
 {
-  "descrizione": "La tassonomia con cui il client filtra gli effetti delle abilita': 319 voci con nome e descrizione, e i gruppi della ricerca.",
+  "descrizione": "La tassonomia con cui il client filtra gli effetti delle abilita': 322 voci con nome e descrizione, e i gruppi della ricerca.",
   "generato_da": "concetti.py, nella pipeline _7dsgc",
   "fonti": {
     "DB_skill_search_info": "le voci della ricerca: `tag` (l'id che le carte citano in list_array_skill_search_tag), `gruppo`, `ordine`",
@@ -9,7 +9,7 @@
   "note": {
     "certezza": "nome, descrizione, tag e gruppo sono del client: dichiarati. Dove un testo non si legge vale null",
     "codici": "il numero della chiave del nome (DB_skill_search_name_056 -> 056); per le collaborazioni col prefisso (ffx_266). Le voci senza `tag` hanno solo il testo",
-    "leggibili": "nomi leggibili: it 319, en 319 su 319"
+    "leggibili": "nomi leggibili: it 322, en 322 su 322"
   },
   "voci": {
     "001": {
@@ -3387,6 +3387,49 @@
       "gruppo": "02",
       "ordine": 73
     },
+    "322": {
+      "nome": {
+        "it": "Rilevamento",
+        "en": "Detection"
+      },
+      "descrizione": {
+        "it": "Danni aggiuntivi in proporzione ai PS rimanenti del bersaglio.",
+        "en": "Additional damage proportional to the target's remaining HP."
+      },
+      "rimanda_a": null,
+      "tag": 1061,
+      "gruppo": "01",
+      "ordine": 160,
+      "tag_bersaglio": 261
+    },
+    "323": {
+      "nome": {
+        "it": "Occhio dell'osservatrice",
+        "en": "Observer's Eye"
+      },
+      "descrizione": {
+        "it": "Aumento Danni subiti, Riduzione Resistenza critico.",
+        "en": "Damage Taken Increase, Crit Resistance Decrease."
+      },
+      "rimanda_a": null,
+      "tag": 273,
+      "gruppo": "02",
+      "ordine": 74
+    },
+    "324": {
+      "nome": {
+        "it": "Vigilanza",
+        "en": "Watch"
+      },
+      "descrizione": {
+        "it": "Riduzione danni inflitti",
+        "en": "Damage Dealt Decrease"
+      },
+      "rimanda_a": null,
+      "tag": 274,
+      "gruppo": "02",
+      "ordine": 75
+    },
     "999": {
       "nome": {
         "it": "Varie",
@@ -4662,6 +4705,7 @@
     "1058": "317",
     "1059": "319",
     "1060": "320",
+    "1061": "322",
     "201": "030",
     "203": "032",
     "204": "033",
@@ -4733,6 +4777,8 @@
     "270": "309",
     "271": "312",
     "272": "321",
+    "273": "323",
+    "274": "324",
     "301": "056",
     "302": "057",
     "303": "058",

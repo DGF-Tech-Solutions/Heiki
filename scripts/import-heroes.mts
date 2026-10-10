@@ -293,7 +293,10 @@ interface SourceCalendar {
   allineamento?: string;
   giappone: SourceReleaseUpdate[];
   globale?: SourceReleaseUpdate[];
-  eroi: Record<string, { gb?: string; jpkr?: string; festival?: boolean; gbLr?: string; jpkrLr?: string }>;
+  eroi: Record<
+    string,
+    { gb?: string; jpkr?: string; festival?: boolean; gbLr?: string; jpkrLr?: string; stendardo?: string }
+  >;
 }
 
 /**
@@ -422,6 +425,8 @@ if (!calendarSource) {
     const inJp = jp.heroAt.get(id);
     if (inGlobal) entry.updateGlobal = inGlobal.date;
     if (inJp) entry.updateJp = inJp.date;
+    // la data dallo stendardo di debutto del client: vale finche' il foglio non ha la riga
+    if (dated?.stendardo && !inGlobal && !inJp) entry.banner = dated.stendardo;
     releaseHeroes[id] = entry;
   }
 

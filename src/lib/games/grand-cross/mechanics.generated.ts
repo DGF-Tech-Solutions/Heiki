@@ -390,6 +390,7 @@ const DRAW: MechanicsIndex["draw"] = {
   "2010501": [60,40],
   "2015501": [60,40],
   "2016501": [60,40],
+  "2017501": [60,40],
 };
 
 const TEAM_EFFECTS: MechanicsIndex["teamEffects"] = {
@@ -426,7 +427,7 @@ const STACKING: MechanicsIndex["stacking"] = {
   "assault_mode": [{"rule":"piu_forte","limit":0,"cards":1}],
   "attack_decrease": [{"rule":"piu_forte","limit":0,"cards":24}],
   "attack_disable": [{"rule":"piu_forte","limit":0,"cards":56}],
-  "attack_related_stats_decrease": [{"rule":"piu_forte","limit":0,"cards":58}],
+  "attack_related_stats_decrease": [{"rule":"piu_forte","limit":0,"cards":61}],
   "attack_related_stats_increase": [{"rule":"piu_forte","limit":0,"cards":55},{"rule":"accumula","limit":0,"cards":2}],
   "barnacle": [{"rule":"piu_forte","limit":0,"cards":1}],
   "blade": [{"rule":"accumula","limit":3,"cards":1}],
@@ -502,6 +503,7 @@ const STACKING: MechanicsIndex["stacking"] = {
   "mark_of_retribution": [{"rule":"piu_forte","limit":0,"cards":2}],
   "mind_break": [{"rule":"piu_forte","limit":0,"cards":1}],
   "mobility": [{"rule":"piu_forte","limit":0,"cards":1}],
+  "observer_s_eye": [{"rule":"piu_forte","limit":0,"cards":1}],
   "oxidize": [{"rule":"piu_forte","limit":0,"cards":3}],
   "peaceful_protection": [{"rule":"piu_forte","limit":0,"cards":6}],
   "piercing_arrow": [{"rule":"accumula","limit":3,"cards":1}],
@@ -541,6 +543,7 @@ const STACKING: MechanicsIndex["stacking"] = {
   "titan_transformation": [{"rule":"piu_forte","limit":0,"cards":6}],
   "twilight_covenant": [{"rule":"piu_forte","limit":0,"cards":1}],
   "ultimate_move_disable": [{"rule":"piu_forte","limit":0,"cards":22}],
+  "watch": [{"rule":"piu_forte","limit":0,"cards":3}],
 };
 
 export const MECHANICS: MechanicsIndex = {

@@ -4,8 +4,8 @@
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  * Si rigenera con `npm run eroi:import` dopo ogni aggiornamento del gioco.
  *
- * Le voci sono tuple e non oggetti perche' sono 375: una riga per eroe si
- * legge e si confronta in diff, 375 oggetti su otto righe l'uno no. Il tipo
+ * Le voci sono tuple e non oggetti perche' sono 376: una riga per eroe si
+ * legge e si confronta in diff, 376 oggetti su otto righe l'uno no. Il tipo
  * Row le tiene comunque controllate dal compilatore.
  *
  * L'ordine e' quello d'uscita nel GLOBALE, dal piu' recente: la data del
@@ -23,6 +23,7 @@ import type { HeroEntry } from "../types";
 type Row = readonly [string, string, string, string, string, string, string, string?, string?];
 
 const ROWS: readonly Row[] = [
+  ["2017501", "Heimdallr", "God of Observation Heimdallr", "Omniscient Watcher", "UR", "SSR", "Forza", "Heimdallr Dea dell'osservazione", "Osservatrice onnisciente"],
   ["2016501", "Odin", "Supreme God Odin", "Almighty", "UR", "UR", "Luce", "Dio supremo Odino", "Onnipotente"],
   ["1866503", "King", "Fairy King Harlequin", "The Grizzly Sin of Sloth", "UR", "SSR", "Forza", "Harlequin Re delle Fate", "Il Peccato d'Accidia col simbolo dell'Orso"],
   ["1967502", "Lancelot", "Young Knight Lancelot", "Free Wind", "UR", "SSR", "PS", "Lancelot giovane cavaliere", "Vento libero"],
@@ -177,7 +178,7 @@ const ROWS: readonly Row[] = [
   ["1595501", "Zeldris", "Prince of Darkness Zeldris", "Ominous Nebula", "UR", "SSR", "Velocita", "Zeldris Principe dell'oscurità", "Nebula malvagia"],
   ["1585501", "Estarossa", "Berserk Estarossa", "Twisted Darkness", "UR", "SSR", "Velocita", "Estarossa furioso", "Oscurità distorta"],
   ["1056502", "Diane", "Blessing of the Earth Diane", "Beach Guardian", "UR", "SSR", "Forza", "Diane Benedizione della Terra", "Guardia della spiaggia"],
-  ["1913501", "Freyr", "Sun God Freyr", "Master of Light", "UR", "SSR", "Forza", "Dio del Sole Freyr", "Maestro della Luce"],
+  ["1913501", "Freyr", "Sun God Freyr", "Master of Light", "LR", "SSR", "Forza", "Dio del Sole Freyr", "Maestro della Luce"],
   ["1005002", "Meliodas", "Captain Meliodas", "Tomorrow's Champion", "UR", "SSR", "Velocita", "Capitano Meliodas", "Campione del domani"],
   ["1901502", "Brunhild", "Princess Brunhild", "Bride of the Snow Country", "LR", "SSR", "Forza", "Principessa Brunhild", "Sposa del Paese innevato"],
   ["1030501", "Elizabeth", "Elizabeth of Eternal Rebirth", "Restored Memories", "UR", "SSR", "Luce", "Elizabeth dell'eterna rinascita", "Ricordi recuperati"],

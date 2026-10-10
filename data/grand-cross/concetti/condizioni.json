@@ -26,7 +26,7 @@
       "ruolo": "ingresso in battaglia",
       "contenuto": null,
       "uso": {
-        "eroi": 276,
+        "eroi": 277,
         "abilita_speciali": 34
       },
       "certezza": "dichiarato",
@@ -170,7 +170,7 @@
       "ruolo": "tutti i contenuti",
       "contenuto": null,
       "uso": {
-        "eroi": 295,
+        "eroi": 296,
         "abilita_speciali": 11
       },
       "certezza": "dichiarato",

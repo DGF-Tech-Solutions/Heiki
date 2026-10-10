@@ -294,6 +294,19 @@
     }
    ]
   },
+  "p4777c811": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "definizione",
+     "tassonomia": [
+      "072",
+      "260"
+     ]
+    }
+   ]
+  },
   "p2a33d263": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -304,6 +317,21 @@
      "tassonomia": [
       "061"
      ]
+    }
+   ]
+  },
+  "p0c3d6bcf": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "final damage"
     }
    ]
   },
@@ -405,15 +433,45 @@
     }
    ]
   },
-  "p4777c811": {
+  "p26c5587e": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "termine": 1
+    }
+   ]
+  },
+  "p69126ccd": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.hp",
+     "colonne": {
+      "atk_per": 2
+     },
+     "bersaglio": 3,
+     "a_chi": "bersaglio",
+     "termine": 1,
+     "tassonomia": [
+      "074"
+     ]
+    }
+   ]
+  },
+  "pb959623f": {
    "esito": "giusta",
    "quando": "2026-09-15",
    "lettura_vista": [
     {
      "effetto": "definizione",
      "tassonomia": [
-      "072",
-      "260"
+      "023"
      ]
     }
    ]
@@ -427,6 +485,22 @@
      "tassonomia": [
       "034"
      ]
+    }
+   ]
+  },
+  "p360f39ed": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "opzione",
+     "effetto": "danni_inflitti",
+     "verso": "aumento",
+     "in_base_a": "statistiche.hp",
+     "colonne": {
+      "valore": 1
+     },
+     "condizione": "the target's remaining HP"
     }
    ]
   },
@@ -486,7 +560,7 @@
     }
    ]
   },
-  "pb959623f": {
+  "pbfe66bdd": {
    "esito": "giusta",
    "quando": "2026-09-15",
    "lettura_vista": [
@@ -580,21 +654,6 @@
       "valore": 1
      },
      "condizione": "per Debuff on the target"
-    }
-   ]
-  },
-  "p0c3d6bcf": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "opzione",
-     "effetto": "danni_inflitti",
-     "verso": "aumento",
-     "colonne": {
-      "valore": 1
-     },
-     "condizione": "final damage"
     }
    ]
   },
@@ -932,17 +991,6 @@
     }
    ]
   },
-  "p26c5587e": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "effetto": "danni_inflitti",
-     "verso": "aumento",
-     "termine": 1
-    }
-   ]
-  },
   "p96651c59": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -1116,26 +1164,6 @@
     }
    ]
   },
-  "p69126ccd": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "base",
-     "effetto": "danno",
-     "in_base_a": "statistiche.hp",
-     "colonne": {
-      "atk_per": 2
-     },
-     "bersaglio": 3,
-     "a_chi": "bersaglio",
-     "termine": 1,
-     "tassonomia": [
-      "074"
-     ]
-    }
-   ]
-  },
   "p11f2af16": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -1243,18 +1271,6 @@
      "tassonomia": [
       "038",
       "077"
-     ]
-    }
-   ]
-  },
-  "pbfe66bdd": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "effetto": "definizione",
-     "tassonomia": [
-      "023"
      ]
     }
    ]
@@ -2692,22 +2708,6 @@
     }
    ]
   },
-  "p360f39ed": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "opzione",
-     "effetto": "danni_inflitti",
-     "verso": "aumento",
-     "in_base_a": "statistiche.hp",
-     "colonne": {
-      "valore": 1
-     },
-     "condizione": "the target's remaining HP"
-    }
-   ]
-  },
   "pd1788ba3": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -3287,6 +3287,28 @@
      },
      "tassonomia": [
       "103"
+     ]
+    }
+   ]
+  },
+  "p3ac5830a": {
+   "esito": "giusta",
+   "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "riduzione",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "a_chi": "bersaglio",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
+     },
+     "tassonomia": [
+      "045"
      ]
     }
    ]
@@ -4098,6 +4120,28 @@
      "a_chi": "self",
      "colonne": {
       "valore": 1
+     },
+     "tassonomia": [
+      "056"
+     ]
+    }
+   ]
+  },
+  "pa2ac6009": {
+   "esito": "giusta",
+   "quando": "2026-10-10",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "statistiche",
+     "verso": "aumento",
+     "statistiche": [
+      "gruppi.attacco"
+     ],
+     "a_chi": "self",
+     "colonne": {
+      "valore": 1,
+      "buff_turn": 2
      },
      "tassonomia": [
       "056"
@@ -6455,6 +6499,24 @@
     }
    ]
   },
+  "p2657fea5": {
+   "esito": "giusta",
+   "quando": "2026-10-10",
+   "lettura_vista": [
+    {
+     "tabella": "buff",
+     "effetto": "voce",
+     "tassonomia": [
+      "324"
+     ],
+     "colonne": {
+      "buff_turn": 2
+     },
+     "bersaglio": 1,
+     "a_chi": "bersaglio"
+    }
+   ]
+  },
   "p84e761b9": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -7433,28 +7495,6 @@
     }
    ]
   },
-  "p3ac5830a": {
-   "esito": "giusta",
-   "quando": "2026-09-15",
-   "lettura_vista": [
-    {
-     "tabella": "buff",
-     "effetto": "statistiche",
-     "verso": "riduzione",
-     "statistiche": [
-      "gruppi.attacco"
-     ],
-     "a_chi": "bersaglio",
-     "colonne": {
-      "valore": 1,
-      "buff_turn": 2
-     },
-     "tassonomia": [
-      "045"
-     ]
-    }
-   ]
-  },
   "p5fad7e66": {
    "esito": "giusta",
    "quando": "2026-09-15",
@@ -7976,6 +8016,24 @@
   "p3bde1e75": {
    "esito": "giusta",
    "quando": "2026-09-15",
+   "lettura_vista": [
+    {
+     "tabella": "base",
+     "effetto": "danno",
+     "in_base_a": "statistiche.hp",
+     "colonne": {
+      "atk_per": 2
+     },
+     "termine": 1,
+     "tassonomia": [
+      "074"
+     ]
+    }
+   ]
+  },
+  "p617338ed": {
+   "esito": "giusta",
+   "quando": "2026-10-10",
    "lettura_vista": [
     {
      "tabella": "base",

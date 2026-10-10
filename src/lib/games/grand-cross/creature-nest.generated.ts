@@ -5258,8 +5258,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
            "en": "Debuff"
           },
           "effect": {
-           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
-           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
+           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e [00D5FF]annulli gli Atteggiamenti[-], e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
+           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and [00D5FF]cancel Stances[-], and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
           }
          },
          {
@@ -5615,8 +5615,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
            "en": "Debuff"
           },
           "effect": {
-           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
-           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
+           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e [00D5FF]annulli gli Atteggiamenti[-], e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
+           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and [00D5FF]cancel Stances[-], and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
           }
          },
          {
@@ -5904,8 +5904,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
            "en": "Debuff"
           },
           "effect": {
-           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
-           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
+           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e [00D5FF]annulli gli Atteggiamenti[-], e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
+           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and [00D5FF]cancel Stances[-], and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
           }
          },
          {
@@ -6296,8 +6296,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
            "en": "Debuff"
           },
           "effect": {
-           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
-           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
+           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e [00D5FF]annulli gli Atteggiamenti[-], e aggiunge ad essa [00D5FF]Stordimento[-] per [FFAE00]1 turno[-].",
+           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and [00D5FF]cancel Stances[-], and adds [00D5FF]Stun[-] to it for [FFAE00]1 turn[-]."
           }
          },
          {
@@ -6478,8 +6478,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
            "en": "Debuff"
           },
           "effect": {
-           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e aggiunge ad essa [00D5FF]Stordimento[-] e [00D5FF]Riduzione Rango[-] Abilità per [FFAE00]1 turno[-].",
-           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage, and adds [00D5FF]Stun[-] and Skill [00D5FF]Rank Decrease[-] to it for [FFAE00]1 turn[-]."
+           "it": "Affrontare \"Laevateinn\" con un'[ff6347]Abilità Debuff[-] fa sì che \"Laevateinn\" di Surtr infligga danni [00D5FF]Giudizio ardente[-] e [00D5FF]annulli gli Atteggiamenti[-], e aggiunge ad essa [00D5FF]Stordimento[-] e [00D5FF]Riduzione Rango[-] Abilità per [FFAE00]1 turno[-].",
+           "en": "Facing \"Laevateinn\" with a [ff6347]Debuff Skill[-] causes Surtr's \"Laevateinn\" to inflict [00D5FF]Burning Judgment[-] damage and [00D5FF]cancel Stances[-], and adds [00D5FF]Stun[-] and Skill [00D5FF]Rank Decrease[-] to it for [FFAE00]1 turn[-]."
           }
          },
          {
@@ -19930,8 +19930,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
     "en": "Ultimate Move Damage Taken Decrease"
    },
    "text": {
-    "it": "Riduce del [FFAE00]40%[-] i danni subiti dal boss nelle Mosse finali. Quando un nemico usa una Mossa finale, applica Riduzione danni Mossa finale subiti del [FFAE00]40%[-] a tutti i nemici per [FFAE00]1 turno[-].\\n[00D5FF](Accumulo: 3 volte)[-]",
-    "en": "Decreases the boss's damage taken from Ultimate Moves by [FFAE00]40%[-]. When an enemy uses an Ultimate Move, it applies [FFAE00]40%[-] Ultimate Move Damage Taken Decrease on all enemies for [FFAE00]1 turn[-].\\n[00D5FF](Stacks 3 times)[-]"
+    "it": "Riduce del [FFAE00]40%[-] i danni subiti dal boss nelle Mosse finali. Quando un nemico usa una Mossa finale, applica Riduzione danni inflitti con la Mossa finale del [FFAE00]100%[-] a tutti i nemici per [FFAE00]2 turni[-].\\n[00D5FF](Accumulo: 3 volte)[-]",
+    "en": "Decreases the boss's damage taken from Ultimate Moves by [FFAE00]40%[-]. When an enemy uses an Ultimate Move, it applies a [FFAE00]100%[-] Ultimate Move Damage Dealt Decrease on all enemies for [FFAE00]2 turns[-].\\n[00D5FF](Stacks 3 times)[-]"
    }
   },
   "956752": {
@@ -19940,8 +19940,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
     "en": "Ultimate Move Damage Taken Decrease"
    },
    "text": {
-    "it": "Riduce del [FFAE00]50%[-] i danni subiti dal boss nelle Mosse finali. Quando un nemico usa una Mossa finale, applica Riduzione danni Mossa finale subiti del [FFAE00]50%[-] a tutti i nemici per [FFAE00]1 turno[-].\\n[00D5FF](Accumulo: 3 volte)[-]",
-    "en": "Decreases the boss's damage taken from Ultimate Moves by [FFAE00]50%[-]. When an enemy uses an Ultimate Move, it applies [FFAE00]50%[-] Ultimate Move Damage Taken Decrease on all enemies for [FFAE00]1 turn[-].\\n[00D5FF](Stacks 3 times)[-]"
+    "it": "Riduce del [FFAE00]50%[-] i danni subiti dal boss nelle Mosse finali. Quando un nemico usa una Mossa finale, applica Riduzione danni inflitti con la Mossa finale del [FFAE00]100%[-] a tutti i nemici per [FFAE00]2 turni[-].\\n[00D5FF](Accumulo: 3 volte)[-]",
+    "en": "Decreases the boss's damage taken from Ultimate Moves by [FFAE00]50%[-]. When an enemy uses an Ultimate Move, it applies a [FFAE00]100%[-] Ultimate Move Damage Dealt Decrease on all enemies for [FFAE00]2 turns[-].\\n[00D5FF](Stacks 3 times)[-]"
    }
   },
   "956753": {
@@ -19950,8 +19950,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
     "en": "Ultimate Move Damage Taken Decrease"
    },
    "text": {
-    "it": "Riduce del [FFAE00]60%[-] i danni subiti dal boss nelle Mosse finali. Quando un nemico usa una Mossa finale, applica Riduzione danni Mossa finale subiti del [FFAE00]60%[-] a tutti i nemici per [FFAE00]1 turno[-].\\n[00D5FF](Accumulo: 3 volte)[-]",
-    "en": "Decreases the boss's damage taken from Ultimate Moves by [FFAE00]60%[-]. When an enemy uses an Ultimate Move, it applies [FFAE00]60%[-] Ultimate Move Damage Taken Decrease on all enemies for [FFAE00]1 turn[-].\\n[00D5FF](Stacks 3 times)[-]"
+    "it": "Riduce del [FFAE00]60%[-] i danni subiti dal boss nelle Mosse finali. Quando un nemico usa una Mossa finale, applica Riduzione danni inflitti con la Mossa finale del [FFAE00]100%[-] a tutti i nemici per [FFAE00]2 turni[-].\\n[00D5FF](Accumulo: 3 volte)[-]",
+    "en": "Decreases the boss's damage taken from Ultimate Moves by [FFAE00]60%[-]. When an enemy uses an Ultimate Move, it applies a [FFAE00]100%[-] Ultimate Move Damage Dealt Decrease on all enemies for [FFAE00]2 turns[-].\\n[00D5FF](Stacks 3 times)[-]"
    }
   },
   "956754": {

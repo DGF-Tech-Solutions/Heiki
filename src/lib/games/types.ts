@@ -652,6 +652,13 @@ export interface HeroRelease {
   /** la riga dell'eroe nei due calendari (la sua data): serve al collegamento */
   updateGlobal?: string;
   updateJp?: string;
+  /**
+   * Lo stendardo di debutto del client da cui viene la data, per chi nel
+   * calendario non ha ancora una riga (Heimdallr, 08/10/2026: il foglio arriva
+   * qualche giorno dopo la patch). Lo scrive date_uscita.py; quando il foglio
+   * aggiunge la riga, sparisce.
+   */
+  banner?: string;
 }
 
 /**

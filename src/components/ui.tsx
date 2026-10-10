@@ -41,8 +41,11 @@ export const eyebrow =
  * px, diverso in ogni pagina: a quella misura le lettere si chiudevano («RIPULITORE
  * ENJIN» era una macchia). Ora una misura sola, un peso sotto e piu' largo.
  */
+// wrap-break-word: una parola piu' larga della card («Dell'osservazione»,
+// Heimdallr) va a capo, e il taglio a due righe mette i puntini come agli altri
+// nomi, invece di tagliarla a meta' lettera sul bordo
 export const heroNameClass =
-  "hero-card-name line-clamp-2 font-display text-[12.5px] font-extrabold uppercase leading-[1.12] tracking-[0.01em] [font-variation-settings:'wdth'_84]";
+  "hero-card-name line-clamp-2 wrap-break-word font-display text-[12.5px] font-extrabold uppercase leading-[1.12] tracking-[0.01em] [font-variation-settings:'wdth'_84]";
 
 /** L'epiteto sopra il nome: una riga, nel testo. */
 export const heroEpithetClass = "block truncate text-[12px] leading-tight text-ink-3";

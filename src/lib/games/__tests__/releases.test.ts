@@ -144,9 +144,21 @@ describe("calendario di Grand Cross", () => {
     });
   }
 
-  it("nel globale ogni eroe del roster ha la sua riga, o sta fra quelli del lancio", () => {
+  it("nel globale ogni eroe del roster ha la sua riga, o sta fra quelli del lancio, o ha la data dallo stendardo", () => {
     const ids = new Set(schedule("global").flatMap((u) => [...u.heroes.flatMap((h) => h.heroId ?? []), ...(u.launchHeroes ?? [])]));
-    expect([...known].filter((id) => !ids.has(id))).toEqual([]);
+    // senza riga solo chi ha la data dallo stendardo di debutto del client (date_uscita.py)
+    expect([...known].filter((id) => !ids.has(id) && !releases?.heroes[id]?.banner)).toEqual([]);
+  });
+
+  it("la data dallo stendardo vale solo senza una riga nel calendario, e ha le due date", () => {
+    const inRows = new Set(regions.flatMap((r) => schedule(r).flatMap((u) => u.heroes.flatMap((h) => h.heroId ?? []))));
+    for (const [id, release] of Object.entries(releases?.heroes ?? {})) {
+      if (!release.banner) continue;
+      expect(inRows.has(id), id).toBe(false);
+      expect(release.banner, id).toMatch(/^bg_banner_\d{6}_gacha_\d+$/);
+      expect(release.global, id).toBe(`20${release.banner.slice(10, 12)}-${release.banner.slice(12, 14)}-${release.banner.slice(14, 16)}`);
+      expect(release.jp, id).toBeDefined();
+    }
   });
 
   /*

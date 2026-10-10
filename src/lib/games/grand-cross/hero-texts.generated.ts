@@ -6,10 +6,10 @@
  * Sta in un file separato dal roster perche' ha un destinatario diverso: il
  * roster viaggia fino al browser per far funzionare i filtri, questi testi no.
  * Li legge solo la scheda del singolo eroe, che e' renderizzata sul server, e
- * tenerli qui evita di spedire 375 descrizioni a chi sta solo sfogliando
+ * tenerli qui evita di spedire 376 descrizioni a chi sta solo sfogliando
  * la griglia.
  *
- * Sono 375 eroi su 375: agli altri il gioco assegna i testi dal
+ * Sono 376 eroi su 376: agli altri il gioco assegna i testi dal
  * server, e nel client non ci sono.
  */
 
@@ -2640,5 +2640,12 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     epithet: "[Onnipotente]",
     description: "Il dio supremo di Asgard, la città degli dei, sovrano di ogni cosa, che predice il futuro attraverso il proprio potere, \"Onniscienza\".",
     i18n: {"name":{"it":"Dio supremo Odino","en":"Supreme God Odin"},"title":{"it":"[Onnipotente] Dio supremo Odino","en":"[Almighty] Supreme God Odin"},"epithet":{"it":"[Onnipotente]","en":"[Almighty]"},"description":{"it":"Il dio supremo di Asgard, la città degli dei, sovrano di ogni cosa, che predice il futuro attraverso il proprio potere, \"Onniscienza\".","en":"The Supreme God of Asgard, the city of the gods, and ruler of all things who foretells the future through his own power, \"Omniscience.\""}},
+  },
+  "2017501": {
+    name: "Heimdallr Dea dell'osservazione",
+    title: "[Osservatrice onnisciente] Heimdallr Dea dell'osservazione",
+    epithet: "[Osservatrice onnisciente]",
+    description: "In qualità di guardiana dei nove mondi di Yggdrasil e custode dei cancelli di Asgard, Heimdallr non permette ad alcun intruso di passare.",
+    i18n: {"name":{"it":"Heimdallr Dea dell'osservazione","en":"God of Observation Heimdallr"},"title":{"it":"[Osservatrice onnisciente] Heimdallr Dea dell'osservazione","en":"[Omniscient Watcher] God of Observation Heimdallr"},"epithet":{"it":"[Osservatrice onnisciente]","en":"[Omniscient Watcher]"},"description":{"it":"In qualità di guardiana dei nove mondi di Yggdrasil e custode dei cancelli di Asgard, Heimdallr non permette ad alcun intruso di passare.","en":"As the guardian of Yggdrasil's Nine Realms and the gatekeeper of Asgard, Heimdallr allows no intruder to pass."}},
   },
 };

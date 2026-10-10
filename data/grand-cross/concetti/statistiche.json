@@ -26,8 +26,8 @@
         "colonna 1 di 12 in DBCostumeBaseRow, posizione 1 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
         "nome 1 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
         "StatusData.TYPE ATK = 0 (stesso nome della colonna)",
-        "7dshub atk: la colonna in camelCase, in 375 eroi",
-        "costumi: i 2.885 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
+        "7dshub atk: la colonna in camelCase, in 376 eroi",
+        "costumi: i 2.889 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
       ]
     },
     "fixed_atk_per": {
@@ -47,8 +47,8 @@
         "colonna 2 di 12 in DBCostumeBaseRow, posizione 2 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
         "nome 2 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
         "StatusData.TYPE FIXED_ATK_PER = 1 (stesso nome della colonna)",
-        "7dshub fixedAtkPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 2.885 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
+        "7dshub fixedAtkPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 2.889 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
       ]
     },
     "crit_per": {
@@ -68,8 +68,8 @@
         "colonna 3 di 12 in DBCostumeBaseRow, posizione 3 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
         "nome 3 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
         "StatusData.TYPE CRIT_PER = 4 (stesso nome della colonna)",
-        "7dshub critPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 2.885 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
+        "7dshub critPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 2.889 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
       ]
     },
     "crit_atk_per": {
@@ -89,8 +89,8 @@
         "colonna 4 di 12 in DBCostumeBaseRow, posizione 4 nel blocco atk, fixed_atk_per, crit_per, crit_atk_per",
         "nome 4 di 4 negli elenchi DB_skill_search_desc_056 e DB_skill_search_desc_045, in tutte e due le lingue",
         "StatusData.TYPE CRIT_ATK_PER = 5 (stesso nome della colonna)",
-        "7dshub critAtkPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 2.885 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
+        "7dshub critAtkPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 2.889 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
       ]
     },
     "def": {
@@ -110,8 +110,8 @@
         "colonna 5 di 12 in DBCostumeBaseRow, posizione 1 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
         "nome 1 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
         "StatusData.TYPE DEF = 2 (stesso nome della colonna)",
-        "7dshub def: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.782 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub def: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.789 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "fixed_def_per": {
@@ -131,8 +131,8 @@
         "colonna 6 di 12 in DBCostumeBaseRow, posizione 2 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
         "nome 2 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
         "StatusData.TYPE FIXED_DEF_PER = 3 (stesso nome della colonna)",
-        "7dshub fixedDefPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.782 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub fixedDefPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.789 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "crit_res_per": {
@@ -152,8 +152,8 @@
         "colonna 7 di 12 in DBCostumeBaseRow, posizione 3 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
         "nome 3 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
         "StatusData.TYPE CRIT_RES_PER = 6 (stesso nome della colonna)",
-        "7dshub critResPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.782 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub critResPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.789 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "crit_def_per": {
@@ -173,8 +173,8 @@
         "colonna 8 di 12 in DBCostumeBaseRow, posizione 4 nel blocco def, fixed_def_per, crit_res_per, crit_def_per",
         "nome 4 di 4 negli elenchi DB_skill_search_desc_057 e DB_skill_search_desc_046, in tutte e due le lingue",
         "StatusData.TYPE CRIT_DEF_PER = 7 (stesso nome della colonna)",
-        "7dshub critDefPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.782 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub critDefPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.789 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "hp": {
@@ -194,8 +194,8 @@
         "colonna 9 di 12 in DBCostumeBaseRow, posizione 1 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
         "nome 1 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
         "StatusData.TYPE MAX_HP = 8 (l'unico con MAX_ davanti: la colonna e' hp)",
-        "7dshub hp: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.102 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub hp: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.109 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "hp_regen_per": {
@@ -215,8 +215,8 @@
         "colonna 10 di 12 in DBCostumeBaseRow, posizione 2 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
         "nome 2 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
         "StatusData.TYPE HP_REGEN_PER = 10 (stesso nome della colonna)",
-        "7dshub hpRegenPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.102 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub hpRegenPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.109 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "hp_recovery_per": {
@@ -236,8 +236,8 @@
         "colonna 11 di 12 in DBCostumeBaseRow, posizione 3 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
         "nome 3 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
         "StatusData.TYPE HP_RECOVERY_PER = 9 (stesso nome della colonna)",
-        "7dshub hpRecoveryPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.102 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub hpRecoveryPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.109 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "hp_steal_per": {
@@ -257,8 +257,8 @@
         "colonna 12 di 12 in DBCostumeBaseRow, posizione 4 nel blocco hp, hp_regen_per, hp_recovery_per, hp_steal_per",
         "nome 4 di 4 negli elenchi DB_skill_search_desc_058 e DB_skill_search_desc_047, in tutte e due le lingue",
         "StatusData.TYPE HP_STEAL_PER = 11 (stesso nome della colonna)",
-        "7dshub hpStealPer: la colonna in camelCase, in 375 eroi",
-        "costumi: i 3.102 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+        "7dshub hpStealPer: la colonna in camelCase, in 376 eroi",
+        "costumi: i 3.109 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "dmg_res": {
@@ -276,7 +276,7 @@
       "prove": [
         "StatusData.TYPE DMG_RES = 12",
         "stesso nome: DMG_RES, dmgRes, «Damage Resistance»",
-        "7dshub dmgRes: in 375 eroi"
+        "7dshub dmgRes: in 376 eroi"
       ]
     },
     "dmg_inc": {
@@ -317,13 +317,13 @@
       "costume": {
         "costume_stat_type": 1,
         "pezzo": "arma",
-        "pezzi": 2885
+        "pezzi": 2889
       },
       "certezza": "dichiarato",
       "prove": [
         "DB_skill_search_desc_056: «Increases Attack, Pierce Rate, Crit Chance, and Crit Damage.»",
         "DB_skill_search_desc_056: «Aumenta l'Attacco, la Perforazione, la Possibilità critico e il Danno critico.»",
-        "costumi: i 2.885 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
+        "costumi: i 2.889 pezzi con costume_stat_type 1 (arma) portano solo statistiche di questo gruppo, 0 fuori (esclusa 882805, arma di Odino con Difesa e PS)"
       ]
     },
     "difesa": {
@@ -345,13 +345,13 @@
       "costume": {
         "costume_stat_type": 5,
         "pezzo": "corpo",
-        "pezzi": 3782
+        "pezzi": 3789
       },
       "certezza": "dichiarato",
       "prove": [
         "DB_skill_search_desc_057: «Increases Defense, Resistance, Crit Resistance, and Crit Defense.»",
         "DB_skill_search_desc_057: «Aumenta la Difesa, la Resistenza, la Resistenza critico e la Difesa critico.»",
-        "costumi: i 3.782 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
+        "costumi: i 3.789 pezzi con costume_stat_type 5 (corpo) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "ps": {
@@ -373,13 +373,13 @@
       "costume": {
         "costume_stat_type": 9,
         "pezzo": "testa",
-        "pezzi": 3102
+        "pezzi": 3109
       },
       "certezza": "dichiarato",
       "prove": [
         "DB_skill_search_desc_058: «Increases HP, Regeneration Rate, Recovery Rate, and Lifesteal.»",
         "DB_skill_search_desc_058: «Aumenta i PS, la Velocità di rigenerazione, la Velocità di recupero e il Furto di vita.»",
-        "costumi: i 3.102 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
+        "costumi: i 3.109 pezzi con costume_stat_type 9 (testa) portano solo statistiche di questo gruppo, 0 fuori"
       ]
     },
     "base": {

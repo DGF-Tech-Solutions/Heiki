@@ -25,15 +25,15 @@
         "atk_per_add"
       ],
       "uso": {
-        "descrizioni_client": 982,
-        "ranghi_col_modello": 3652
+        "descrizioni_client": 990,
+        "ranghi_col_modello": 3670
       },
       "certezza": "dichiarato",
       "prove": [
-        "«{melee_val}» e' il nome del tag in minuscolo: compare in 982 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 3.652",
+        "«{melee_val}» e' il nome del tag in minuscolo: compare in 990 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 3.670",
         "DBSkillCardBaseRow: il valore d'attacco della carta: atk_per_add ha il suffisso degli incrementi, come effect_value_add accanto a effect_value (UnitSkillCardData.ChangeText, modelli_client.py)",
-        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.529 volte su 3.652"
+        "nei ranghi col modello melee_val sta in «equal to <V> of ...» 3.547 volte su 3.670"
       ]
     },
     "TARGET_VALUE": {
@@ -50,13 +50,13 @@
         "target"
       ],
       "uso": {
-        "descrizioni_client": 1110,
-        "ranghi_col_modello": 3840
+        "descrizioni_client": 1118,
+        "ranghi_col_modello": 3858
       },
       "certezza": "dichiarato",
       "prove": [
-        "«{target_val}» e' il nome del tag in minuscolo: compare in 1.110 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' bersaglio 3.840",
+        "«{target_val}» e' il nome del tag in minuscolo: compare in 1.118 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' bersaglio 3.858",
         "DBSkillCardBaseRow: stesso nome della colonna (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
@@ -75,13 +75,13 @@
         "effect_value_add"
       ],
       "uso": {
-        "descrizioni_client": 271,
-        "ranghi_col_modello": 912
+        "descrizioni_client": 274,
+        "ranghi_col_modello": 921
       },
       "certezza": "dichiarato",
       "prove": [
-        "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 271 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 673, intero 239",
+        "«{opt_1_val}» e' il nome del tag in minuscolo: compare in 274 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 682, intero 239",
         "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list: effect_value + effect_value_add x (livello - 1), una cifra decimale (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
@@ -100,13 +100,13 @@
         "effect_value_add"
       ],
       "uso": {
-        "descrizioni_client": 53,
-        "ranghi_col_modello": 122
+        "descrizioni_client": 54,
+        "ranghi_col_modello": 128
       },
       "certezza": "dichiarato",
       "prove": [
-        "«{opt_2_val}» e' il nome del tag in minuscolo: compare in 53 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 75, intero 43, altro 4",
+        "«{opt_2_val}» e' il nome del tag in minuscolo: compare in 54 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 81, intero 43, altro 4",
         "DBSkillCardOptionRow: la N-esima riga di list_array_option_id_list: effect_value + effect_value_add x (livello - 1), una cifra decimale (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
@@ -195,13 +195,13 @@
         "effect_value_add"
       ],
       "uso": {
-        "descrizioni_client": 339,
-        "ranghi_col_modello": 663
+        "descrizioni_client": 340,
+        "ranghi_col_modello": 666
       },
       "certezza": "dichiarato",
       "prove": [
-        "«{buff_1_val}» e' il nome del tag in minuscolo: compare in 339 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' percentuale 636, intero 27",
+        "«{buff_1_val}» e' il nome del tag in minuscolo: compare in 340 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' percentuale 639, intero 27",
         "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list: effect_value + effect_value_add x (livello - 1), per eccesso (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
@@ -319,13 +319,13 @@
         "buff_turn"
       ],
       "uso": {
-        "descrizioni_client": 439,
-        "ranghi_col_modello": 1085
+        "descrizioni_client": 440,
+        "ranghi_col_modello": 1088
       },
       "certezza": "dichiarato",
       "prove": [
-        "«{turn_1_val}» e' il nome del tag in minuscolo: compare in 439 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' turni 1.085",
+        "«{turn_1_val}» e' il nome del tag in minuscolo: compare in 440 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' turni 1.088",
         "DBSkillCardBuffRow: la N-esima riga di list_array_buff_id_list; buff_turn e' l'unica colonna di turni (effect_value_turn_add e' un incremento) (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
@@ -895,13 +895,13 @@
         "buff_turn"
       ],
       "uso": {
-        "descrizioni_client": 17,
-        "ranghi_col_modello": 28
+        "descrizioni_client": 20,
+        "ranghi_col_modello": 37
       },
       "certezza": "dichiarato",
       "prove": [
-        "«{buff_data_turn}» e' il nome del tag in minuscolo: compare in 17 descrizioni di abilita' del client",
-        "nei ranghi col modello il valore e' intero 28",
+        "«{buff_data_turn}» e' il nome del tag in minuscolo: compare in 20 descrizioni di abilita' del client",
+        "nei ranghi col modello il valore e' intero 37",
         "DBSkillCardBuffRow: la riga di buff con l'id scritto dentro il tag (UnitSkillCardData.ChangeText, modelli_client.py)"
       ]
     },
@@ -1105,7 +1105,7 @@
       "cosa": "tag nei testi senza un membro dell'enum",
       "stato": "si scrivono nelle descrizioni ma nessun nome dell'enum, portato in minuscolo, li da': quante volte compaiono",
       "tag": {
-        "effect_val": 4,
+        "effect_val": 5,
         "level": 2
       }
     }
