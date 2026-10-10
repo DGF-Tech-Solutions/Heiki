@@ -184,6 +184,11 @@ export function heroSplashSrc(gameSlug: string, heroId: string): string {
   return `/eroi/${gameSlug}/splash/${heroId}.png`;
 }
 
+/** Cut-in della Mossa finale: `public/eroi/<gioco>/cutin/<id>.webp`. */
+export function heroCutInSrc(gameSlug: string, heroId: string): string {
+  return `/eroi/${gameSlug}/cutin/${heroId}.webp`;
+}
+
 /** Carta d'attacco n-esima: `public/eroi/<gioco>/carte/<id>/<n>.png`. */
 export function heroCardArtSrc(gameSlug: string, heroId: string, n: number): string {
   return `/eroi/${gameSlug}/carte/${heroId}/${n}.png`;

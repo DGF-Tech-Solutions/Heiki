@@ -178,6 +178,7 @@ export function RosterBrowser({
   intro,
   art = {},
   faces = {},
+  withoutCutIn = [],
 }: {
   game: string;
   roster: HeroRoster;
@@ -202,8 +203,10 @@ export function RosterBrowser({
   intro?: React.ReactNode;
   /** il tipo d'illustrazione del palco, solo per chi non l'ha scontornata */
   art?: Readonly<Record<string, StageArt["art"]>>;
-  /** dove sta il volto nell'illustrazione di ogni eroe: il palco ci centra la fascia */
+  /** dove sta il volto nell'illustrazione di ogni eroe: il primo piano della fascia va dall'altra parte */
   faces?: Readonly<Record<string, StageArt["face"]>>;
+  /** gli eroi senza il cut-in della Mossa finale: la loro fascia resta vuota */
+  withoutCutIn?: readonly string[];
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
@@ -536,7 +539,11 @@ export function RosterBrowser({
             locale={locale}
             affinity={byAffinity.get(active.affinity)}
             badges={badgesFor(active)}
-            art={{ art: art[active.id] ?? DEFAULT_STAGE_ART.art, face: faces[active.id] ?? DEFAULT_STAGE_ART.face }}
+            art={{
+              art: art[active.id] ?? DEFAULT_STAGE_ART.art,
+              face: faces[active.id] ?? DEFAULT_STAGE_ART.face,
+              cutIn: !withoutCutIn.includes(active.id),
+            }}
             priority
             className="p5-corner h-full"
           >

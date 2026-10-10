@@ -236,6 +236,15 @@ describe("roster di Grand Cross", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  // Il palco mette il cut-in nella fascia rossa (11/10). Ce l'hanno tutte le skin
+  // vere del client: un eroe senza vuol dire che mappa_asset.py non l'ha trovato
+  // (un omonimo nuovo, una cartella cambiata), e la sua fascia resterebbe vuota
+  it("ogni eroe ha l'illustrazione e il cut-in", () => {
+    const assets = grandCrossModule.heroAssets ?? {};
+    const missing = roster?.heroes.filter((h) => !assets[h.id]?.splash || !assets[h.id]?.cutIn) ?? [];
+    expect(missing.map((h) => h.id)).toEqual([]);
+  });
+
   /**
    * Gli epiteti arrivano decorati in tre modi diversi - quadre esterne,
    * virgolette, BBCode rimasto dentro - e a ripulirli e' lo script di

@@ -6,17 +6,18 @@
  * Tre strati, dal fondo:
  *   - la FASCIA: una lama rossa obliqua che attraversa il palco col primo piano
  *     dell'eroe a due toni, rosso e nero, come gli «All-Out Attack» di Persona
- *     (il mondo scelto il 27/09). Il primo piano e' l'illustrazione stessa,
- *     molto ingrandita e centrata sul volto, che l'importazione trova in ogni
- *     illustrazione (`HeroAssets.face`)
+ *     (il mondo scelto il 27/09). Il primo piano e' il cut-in della Mossa
+ *     finale (`HeroAssets.cutIn`), messo dalla parte opposta al volto della
+ *     figura (`HeroAssets.face`)
  *   - la FIGURA: l'illustrazione scontornata del client, intera, con la sagoma
  *     nera sfalsata
  *   - la TARGA: epiteto su una lama bianca, nome con l'ombra rossa, attributo e
  *     rarita', i comandi
  *
- * Ogni eroe ha la sua illustrazione e solo quella (l'utente, 10/10: niente
- * cut-in). Fascia e figura chiedono la stessa immagine alla stessa misura: il
- * browser la scarica una volta.
+ * La figura e' sempre l'illustrazione dell'eroe (l'utente, 10/10: niente cut-in
+ * al suo posto). Nella fascia, dal 10/10 sera, c'era l'illustrazione stessa
+ * ingrandita sul volto; l'11/10 l'utente ha chiesto il cut-in, che e' gia' un
+ * primo piano: si sposta e si scala, senza ritagli.
  *
  * Il movimento e' uno solo, ed e' il momento della scelta: cambiando eroe la
  * figura entra con un taglio diagonale e la targa scatta al suo posto (classi
@@ -31,41 +32,49 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { cx } from "@/components/ui";
-import { heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
+import { heroCutInSrc, heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
 import type { HeroAffinity, HeroEntry } from "@/lib/games/types";
 import type { Locale } from "@/lib/i18n/locale";
 
 /**
- * L'illustrazione di un eroe per il palco: c'e' o no, e dove sta il volto. Lo
- * dice `HeroAssets` (`splash`, `face`).
+ * Le immagini di un eroe per il palco: l'illustrazione c'e' o no, dove sta il
+ * suo volto, e se c'e' il cut-in. Lo dice `HeroAssets` (`splash`, `face`,
+ * `cutIn`).
  */
 export interface StageArt {
   readonly art: "cutout" | "none";
   /** il volto nell'illustrazione, in centesimi del lato: [x, y] */
   readonly face: readonly [number, number];
+  /** il cut-in della Mossa finale, per la fascia */
+  readonly cutIn: boolean;
 }
 
 /** dove sta il volto in un'illustrazione tipo: al centro, nel quarto alto */
 export const DEFAULT_FACE: readonly [number, number] = [50, 25];
 
-export const DEFAULT_STAGE_ART: StageArt = { art: "cutout", face: DEFAULT_FACE };
+export const DEFAULT_STAGE_ART: StageArt = { art: "cutout", face: DEFAULT_FACE, cutIn: true };
 
 export function stageArtOf(
-  assets: { readonly splash?: boolean; readonly face?: readonly [number, number] } | undefined,
+  assets:
+    | { readonly splash?: boolean; readonly face?: readonly [number, number]; readonly cutIn?: boolean }
+    | undefined,
 ): StageArt {
   return {
     art: assets?.splash ? "cutout" : "none",
     face: assets?.face ?? DEFAULT_FACE,
+    cutIn: assets?.cutIn === true,
   };
 }
 
-/**
- * Una misura sola per la fascia e per la figura, cosi' il browser sceglie lo
- * stesso file per entrambe: 1080 px a densita' 1, l'originale da 1024 sopra. Il
- * primo piano ingrandito non chiede di piu': il retino e il due toni coprono la
- * grana.
- */
+/** la figura: 1080 px a densita' 1, l'originale da 1024 sopra */
 const ART_SIZES = "1080px";
+
+/**
+ * Il cut-in nella fascia: un terzo della pagina sul computer, quasi tutto il
+ * telefono. L'originale e' 512 px, e il servizio delle immagini non lo
+ * ingrandisce: chiedere di piu' non costa.
+ */
+const CUT_IN_SIZES = "(max-width: 639px) 80vw, 520px";
 
 export interface StageBadge {
   readonly label: string;
@@ -114,7 +123,7 @@ export function HeroStage({
   const tint = affinity?.color ?? "var(--color-brand)";
   const Heading = headingLevel;
   const splash = heroSplashSrc(game, hero.id);
-  const [faceX, faceY] = art.face;
+  const [faceX] = art.face;
   // la parola piu' lunga decide quanto puo' essere grande il nome (.stage-name)
   const nameChars = Math.max(...name.split(/\s+/).map((word) => [...word].length));
 
@@ -128,8 +137,6 @@ export function HeroStage({
       style={
         {
           "--stage-tint": tint,
-          "--fx": faceX / 100,
-          "--fy": faceY / 100,
           // il primo piano dalla parte opposta al volto della figura
           "--echo-side": faceX >= 50 ? -1 : 1,
           "--name-chars": nameChars,
@@ -150,11 +157,19 @@ export function HeroStage({
       <div aria-hidden className="absolute inset-0 -z-10">
         <div className="stage-band-edge absolute inset-0" />
         <div className="stage-band absolute inset-0">
-          {art.art === "none" ? null : (
-            <div className="stage-band-art">
-              <Image src={splash} alt="" fill sizes={ART_SIZES} priority={priority} className="stage-band-img object-cover" />
+          {art.cutIn ? (
+            // si rimonta a ogni eroe: senza, il cut-in di prima resta finche' il nuovo non arriva
+            <div key={hero.id} className="stage-band-art">
+              <Image
+                src={heroCutInSrc(game, hero.id)}
+                alt=""
+                fill
+                sizes={CUT_IN_SIZES}
+                priority={priority}
+                className="stage-band-img object-cover"
+              />
             </div>
-          )}
+          ) : null}
         </div>
         <div className="stage-band-line absolute inset-0" />
       </div>

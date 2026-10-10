@@ -317,9 +317,14 @@
    */
   .stage {
     --stage-tint: var(--color-brand);
-    /* dove sta il volto nell'illustrazione, da 0 a 1: lo scrive il componente */
-    --fx: 0.5;
-    --fy: 0.25;
+    /*
+     * Dove il gioco mette il volto nei suoi cut-in, da 0 a 1: li inquadra tutti
+     * allo stesso modo, il volto un po' a destra del centro e nella parte alta
+     * (misurato l'11/10 sui 376: x 0,49-0,64, y 0,22-0,52 per otto su dieci).
+     * Un punto solo per tutti: il cut-in si sposta intero, senza ritagli
+     */
+    --cut-fx: 0.57;
+    --cut-fy: 0.4;
     /* da che parte va il primo piano: -1 a sinistra, 1 a destra (il componente) */
     --echo-side: 1;
     /* le lettere della parola piu' lunga del nome (il componente): vedi .stage-name */
@@ -332,18 +337,19 @@
   /*
    * La geometria in variabili, una serie per misura del palco:
    *   - la fascia (`--band`) e il filo sotto (`--band-line`)
-   *   - il primo piano nella fascia: quanto e' grande l'illustrazione
-   *     (`--echo-size`, in larghezza del palco) e dove cade il volto
-   *     (`--echo-x`, `--echo-y`). Accanto alla griglia la figura sta al centro e
-   *     coprirebbe il volto grande: va dalla parte opposta al volto della
-   *     figura, dove la fascia e' piu' alta a sinistra e piu' bassa a destra
+   *   - il primo piano nella fascia: quanto e' grande il cut-in (`--echo-size`,
+   *     in larghezza del palco) e dove cade il suo volto (`--echo-x`,
+   *     `--echo-y`). Accanto alla griglia la figura sta al centro e coprirebbe
+   *     il volto grande: va dalla parte opposta al volto della figura, dove la
+   *     fascia e' piu' alta a sinistra e piu' bassa a destra. A destra il bordo
+   *     tagliato del cut-in esce dal palco, sotto esce dalla fascia
    */
   .stage--panel {
     height: 100%;
     min-height: 540px;
     --band: polygon(0 13%, 100% 3%, 100% 42%, 0 53%);
     --band-line: polygon(0 54.4%, 100% 43.4%, 100% 44.6%, 0 55.6%);
-    --echo-size: 430%;
+    --echo-size: 110%;
     --echo-x: calc(50% + var(--echo-side) * 27%);
     --echo-y: calc(27% - var(--echo-side) * 4%);
   }
@@ -351,7 +357,7 @@
     min-height: 380px;
     --band: polygon(0 0, 100% 9%, 100% 64%, 0 41%);
     --band-line: polygon(0 42.4%, 100% 65.4%, 100% 66.8%, 0 43.8%);
-    --echo-size: 140%;
+    --echo-size: 46%;
     --echo-x: 22%;
     --echo-y: 20%;
   }
@@ -364,7 +370,7 @@
     .stage--hero {
       --band: polygon(0 0, 100% 6%, 100% 40%, 0 31%);
       --band-line: polygon(0 32.4%, 100% 41.4%, 100% 42.8%, 0 33.8%);
-      --echo-size: 260%;
+      --echo-size: 80%;
       --echo-x: 20%;
       --echo-y: 17%;
     }
@@ -412,12 +418,16 @@
     clip-path: var(--band-line);
   }
   /*
-   * Il primo piano: la stessa illustrazione della figura, molto piu' grande, col
-   * volto dell'eroe sempre nello stesso punto della fascia. Il riquadro parte da
-   * quel punto e torna indietro di quanto il volto dista dal suo angolo
-   * (`translate` in percentuale si misura sul riquadro stesso): cosi' il primo
-   * piano e' uguale per tutti, anche per chi ha il volto in un angolo
-   * dell'illustrazione.
+   * Il primo piano: il cut-in della Mossa finale, il primo piano che il gioco fa
+   * entrare con l'ultimate (richiesta dell'utente, 11/10). Il riquadro parte dal
+   * punto del volto e torna indietro di quanto il volto dista dal suo angolo
+   * (`translate` in percentuale si misura sul riquadro stesso).
+   *
+   * Il gioco taglia i cut-in di netto a destra e in basso (286 su 376 da tutte
+   * e due le parti, 77 solo in basso): li' finiscono dentro la sua cornice.
+   * Qui il bordo in basso esce sempre dalla fascia, e quello a destra esce dal
+   * palco quando il primo piano sta a destra; quando sta a sinistra cadrebbe a
+   * meta' fascia, e una sfumatura lo scioglie nel rosso.
    */
   .stage-band-art {
     position: absolute;
@@ -425,8 +435,12 @@
     top: var(--echo-y);
     width: var(--echo-size);
     aspect-ratio: 1;
-    translate: calc(var(--fx) * -100%) calc(var(--fy) * -100%);
+    translate: calc(var(--cut-fx) * -100%) calc(var(--cut-fy) * -100%);
     mix-blend-mode: multiply;
+    -webkit-mask-image: linear-gradient(to left, transparent, #000 22%), linear-gradient(to top, transparent, #000 22%);
+    mask-image: linear-gradient(to left, transparent, #000 22%), linear-gradient(to top, transparent, #000 22%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
   }
   .stage-band-img {
     filter: grayscale(1) contrast(1.8) brightness(1.02);

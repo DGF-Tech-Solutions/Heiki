@@ -1821,14 +1821,16 @@ interface SourceAssets {
   splash?: string;
   abilita?: string;
   slug?: string;
+  /** il cut-in della Mossa finale, scelto con la regola del client (mappa_asset.py) */
+  cutin?: string;
 }
 
 /**
  * Dove sta il volto nell'illustrazione, in centesimi del lato: [x, y]. Il palco
- * (hero-stage.tsx) ci centra il primo piano rosso della fascia. Prima la fascia
- * aveva il cut-in, e l'utente il 10/10
- * l'ha voluta con l'illustrazione di ogni eroe: ma l'illustrazione e' a figura
- * intera, e ingrandita al centro mostrava la pancia, o il vuoto fra le ali.
+ * (hero-stage.tsx) mette il primo piano della fascia dalla parte opposta, cosi'
+ * la testa della figura non lo copre. Dal 10/10 al 11/10 il primo piano era
+ * l'illustrazione stessa, ingrandita e centrata su questo punto; ora e' il
+ * cut-in (richiesta dell'utente), e il punto serve solo a scegliere il lato.
  *
  * Il volto si cerca cosi', su una copia a 256 px:
  *   - la sagoma senza le parti sottili (erosa e ridilatata di 4 px): lance,
@@ -1969,13 +1971,15 @@ if (!existsSync(assetsJson)) {
   const mappa = JSON.parse(readFileSync(assetsJson, "utf8")) as Record<string, SourceAssets>;
   const estratti = resolve(SOURCE, "7dsgc_estratti");
   const rows: string[] = [];
-  const copied: Record<string, number> = { splash: 0, abilita: 0, ultimate: 0 };
+  const copied: Record<string, number> = { splash: 0, abilita: 0, ultimate: 0, cutin: 0 };
   const opaque: string[] = [];
+  const opaqueCutIns: string[] = [];
 
   for (const kind of ASSET_KINDS) {
     mkdirSync(resolve(DEST_IMAGES, kind.dir), { recursive: true });
   }
   mkdirSync(resolve(DEST_IMAGES, "ultimate"), { recursive: true });
+  mkdirSync(resolve(DEST_IMAGES, "cutin"), { recursive: true });
 
   for (const hero of heroes) {
     const hid = String(hero.heroId);
@@ -2009,6 +2013,22 @@ if (!existsSync(assetsJson)) {
       if (kind.key === "splash") {
         if ((await sharp(to).stats()).isOpaque) opaque.push(hid);
         flags.push(`face: ${JSON.stringify(VOLTI_A_MANO[hid] ?? (await faceOf(to)))}`);
+      }
+    }
+
+    // Il cut-in della Mossa finale, per la fascia rossa del palco. In WebP: nel
+    // palco esce a due toni col retino, e a qualita' 90 pesa un terzo del PNG
+    // (21 MB contro 66 per i 376). Si scrive sempre, come l'illustrazione: l'11/10
+    // mappa_asset.py ne ha corretti 11 (carte artefatto omonime, una copia
+    // coreana, il Meliodas demone preso dalla cartella sbagliata). I cut-in sono
+    // scontornati: uno con lo sfondo pieno e' di nuovo un omonimo
+    if (voce.cutin) {
+      const from = resolve(estratti, voce.cutin);
+      if (existsSync(from)) {
+        await sharp(from).webp({ quality: 90 }).toFile(resolve(DEST_IMAGES, "cutin", `${hid}.webp`));
+        if ((await sharp(from).stats()).isOpaque) opaqueCutIns.push(hid);
+        copied.cutin!++;
+        flags.push(`cutIn: true`);
       }
     }
 
@@ -2058,9 +2078,15 @@ ${rows.join("\n")}
   writeFileSync(DEST_ASSETS, generatedAssets, "utf8");
   console.log(
     `  ${copied.splash} illustrazioni, ${copied.abilita} icone abilita', ` +
-      `${copied.ultimate} carte dell'ultimate ` +
+      `${copied.ultimate} carte dell'ultimate, ${copied.cutin} cut-in ` +
       `(${rows.length}/${heroes.length} eroi con almeno un asset)`,
   );
+  if (opaqueCutIns.length > 0) {
+    console.log(
+      `  ATTENZIONE: ${opaqueCutIns.length} cut-in con lo sfondo pieno (${opaqueCutIns.join(", ")}): ` +
+        `di solito e' la carta artefatto omonima. Rifai mappa_bundle.py e illustrazioni_omonime.py, poi mappa_asset.py`,
+    );
+  }
   if (opaque.length > 0) {
     console.log(
       `  ATTENZIONE: ${opaque.length} illustrazioni con lo sfondo pieno (${opaque.join(", ")}): ` +

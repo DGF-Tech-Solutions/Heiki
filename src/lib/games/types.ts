@@ -179,10 +179,18 @@ export interface HeroAssets {
   splash?: boolean;
   /**
    * Dove sta il volto nell'illustrazione, in centesimi del lato: [x, y]. Il
-   * palco ci centra il primo piano rosso della fascia. Lo calcola l'importazione
-   * (faceOf in import-heroes.mts)
+   * palco mette il primo piano della fascia dalla parte opposta, perche' la
+   * testa della figura non lo copra. Lo calcola l'importazione (faceOf in
+   * import-heroes.mts)
    */
   face?: readonly [number, number];
+  /**
+   * C'e' il cut-in della Mossa finale, il primo piano scontornato che il gioco
+   * fa entrare con l'ultimate: il palco lo mette nella fascia rossa. Quale sia
+   * lo dice il client: `Cut_In_Portrait/<character_base>/cut_in_special_<ritratto>_01`
+   * della skin di rango piu' alto (mappa_asset.py)
+   */
+  cutIn?: boolean;
   /** icona dell'abilita' esclusiva */
   skill?: boolean;
   /** quante carte d'attacco, numerate da 1 */

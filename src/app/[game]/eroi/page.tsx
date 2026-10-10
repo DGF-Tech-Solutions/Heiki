@@ -155,14 +155,16 @@ export default async function HeroesPage({ params, searchParams }: Props) {
     mine: query.miei === "1",
   };
 
-  // Per il palco: dove sta il volto di ogni eroe, e il tipo d'illustrazione solo
-  // per chi non l'ha scontornata (poche). Al browser arriva questo, non l'elenco
-  // degli asset di tutti gli eroi
+  // Per il palco: dove sta il volto di ogni eroe, e solo per le eccezioni (poche)
+  // il tipo d'illustrazione e la mancanza del cut-in. Al browser arriva questo,
+  // non l'elenco degli asset di tutti gli eroi
   const stageKinds: Record<string, StageArt["art"]> = {};
   const stageFaces: Record<string, StageArt["face"]> = {};
+  const withoutCutIn: string[] = [];
   for (const hero of roster.heroes) {
     const stage = stageArtOf(heroAssets?.[hero.id]);
     if (stage.art !== DEFAULT_STAGE_ART.art) stageKinds[hero.id] = stage.art;
+    if (!stage.cutIn) withoutCutIn.push(hero.id);
     stageFaces[hero.id] = stage.face;
   }
 
@@ -209,6 +211,7 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         initial={initial}
         art={stageKinds}
         faces={stageFaces}
+        withoutCutIn={withoutCutIn}
       />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
