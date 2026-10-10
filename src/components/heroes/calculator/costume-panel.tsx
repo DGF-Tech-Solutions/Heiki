@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconPlus } from "@/components/icons";
 import { cx, numeric } from "@/components/ui";
 import type { Costume, CostumeKind, ItemIconLayers } from "@/lib/games/gear-types";
 import {
@@ -110,7 +111,7 @@ export function CostumePanel({
         type="button"
         aria-pressed={active}
         onClick={() => setSelected({ kind, index: i })}
-        className={cx("p-0.5", active ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
+        className={cx("p5-press p-0.5", active ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
       >
         {choice && costume ? (
           <ItemIcon
@@ -127,9 +128,9 @@ export function CostumePanel({
           <span
             role="img"
             aria-label={`${label}: ${t.vuoto}`}
-            className="grid h-[52px] w-[52px] place-items-center border border-dashed border-rule bg-paper text-[18px] text-ink-3"
+            className="grid h-[52px] w-[52px] place-items-center border border-dashed border-rule bg-paper text-ink-3"
           >
-            +
+            <IconPlus size={18} />
           </span>
         )}
       </button>
@@ -144,21 +145,23 @@ export function CostumePanel({
       <div className="grid gap-2">
         {COSTUME_KINDS.map((kind) =>
           hero.slots[kind] > 0 ? (
-            <div key={kind} className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-2">
+            // stretto (il telefono) l'etichetta sta sopra: accanto, i cinque posti non
+            // ci stavano e andavano a capo uno solo (10/10)
+            <div key={kind} className="grid items-center gap-x-2 gap-y-1 @md:grid-cols-[64px_minmax(0,1fr)]">
               <span className="text-ink-2">{t.tipo[kind]}</span>
-              <div className="flex flex-wrap gap-1">{Array.from({ length: hero.slots[kind] }, (_, i) => slotButton(kind, i))}</div>
+              <div className="flex flex-wrap gap-0.5 @md:gap-1">{Array.from({ length: hero.slots[kind] }, (_, i) => slotButton(kind, i))}</div>
             </div>
           ) : null,
         )}
         {data.relics.length > 0 ? (
-          <div className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-2">
+          <div className="grid items-center gap-x-2 gap-y-1 @md:grid-cols-[64px_minmax(0,1fr)]">
             <span className="text-ink-2">{t.reliquia}</span>
             <div>
               <button
                 type="button"
                 aria-pressed={selected === "relic"}
                 onClick={() => setSelected("relic")}
-                className={cx("p-0.5", selected === "relic" ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
+                className={cx("p5-press p-0.5", selected === "relic" ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
               >
                 <RelicThumb game={game} data={data} relic={build.relic} label={t.reliquia} empty={t.vuoto} />
               </button>

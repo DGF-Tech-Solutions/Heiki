@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
-import { chipClass, cx, display, eyebrow, numeric } from "@/components/ui";
+import { chipClass, chipColors, cx, display, eyebrow, numeric } from "@/components/ui";
 import type {
   AccountStatKey,
   Constellation,
@@ -308,8 +308,8 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
                 onClick={() => setSelected(index)}
                 title={c.label}
                 className={cx(
-                  "p5-cut-sm group grid w-[78px] cursor-pointer justify-items-center gap-0.5 px-1.5 py-2 text-[12px] leading-tight transition-colors",
-                  index === selected ? "bg-ink font-bold text-paper" : "bg-paper-3 text-ink-2 hover:bg-ink hover:text-paper",
+                  "p5-cut-sm p5-btn group grid w-[78px] cursor-pointer justify-items-center gap-0.5 px-1.5 py-2 text-[12px] leading-tight",
+                  chipColors(index === selected, true),
                 )}
               >
                 {c.symbolSrc ? (

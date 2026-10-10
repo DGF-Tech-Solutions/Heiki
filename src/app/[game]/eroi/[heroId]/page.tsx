@@ -16,7 +16,7 @@ import { HeroAssociations } from "@/components/heroes/hero-associations";
 import { HeroCostumes } from "@/components/heroes/hero-costumes";
 import { HeroArrowKeys } from "@/components/heroes/hero-arrow-keys";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
-import { HeroStage } from "@/components/heroes/hero-stage";
+import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
 import { buttonClass, cx, eyebrow, Notice, numeric, Tag } from "@/components/ui";
 import { sliderData } from "@/lib/games/account-buff";
 import type { AccountBuffIndex } from "@/lib/games/account-buff-types";
@@ -550,7 +550,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
               size="hero"
               priority
               headingLevel="h1"
-              art={assets?.splashFull ? "full" : assets?.splash ? "cutout" : "none"}
+              art={stageArtOf(assets)}
               className="p5-corner"
             />
             {prev || next ? (

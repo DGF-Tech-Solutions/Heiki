@@ -158,7 +158,7 @@ function NeighbourLink({ neighbour, icon }: { neighbour: StageNeighbour | null; 
       href={neighbour.href}
       aria-label={neighbour.label}
       title={neighbour.label}
-      className="p5-cut inline-flex h-10 w-12 items-center justify-center bg-paper text-ink transition-colors hover:bg-ink hover:text-paper"
+      className="p5-cut p5-btn inline-flex h-10 w-12 items-center justify-center [--btn-bg:var(--color-paper)] [--btn-fg:var(--color-ink)]"
     >
       {icon}
     </Link>

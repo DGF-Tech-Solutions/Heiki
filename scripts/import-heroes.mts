@@ -1818,6 +1818,139 @@ interface SourceAssets {
   slug?: string;
 }
 
+/**
+ * Dove sta il volto nell'illustrazione, in centesimi del lato: [x, y]. Il palco
+ * (hero-stage.tsx) ci centra il primo piano rosso della fascia. Prima la fascia
+ * aveva il cut-in, e l'utente il 10/10
+ * l'ha voluta con l'illustrazione di ogni eroe: ma l'illustrazione e' a figura
+ * intera, e ingrandita al centro mostrava la pancia, o il vuoto fra le ali.
+ *
+ * Il volto si cerca cosi', su una copia a 256 px:
+ *   - la sagoma senza le parti sottili (erosa e ridilatata di 4 px): lance,
+ *     spade, bastoni, nastri. Senza, la cima della figura era la punta dell'arma
+ *   - nella parte alta della sagoma (il 40%), la pelle: chiara, calda, poco
+ *     satura. La macchia di pelle piu' in alto e' il volto; le mani alzate sono
+ *     piu' piccole e quasi sempre piu' in basso
+ *   - senza pelle (armature, maschere, mostri) la cima della sagoma
+ * Provato su tutte le 375 il 10/10, guardandole una a una: dove sbagliava (17)
+ * il volto sta in VOLTI_A_MANO.
+ */
+const FACE_SIDE = 256;
+
+/**
+ * Il volto dove la ricerca sbaglia, misurato a occhio sull'illustrazione il
+ * 10/10: le ali grandi (angeli, fate), che senza pelle chiara la ricerca scambia
+ * per la cima della testa; la spada larga di Slader, la palla chiodata, il
+ * cappello col maialino, la mano di fuoco alzata, il piede alzato sopra la
+ * testa, il drago e gli artigli d'oro che girano attorno alla figura.
+ */
+const VOLTI_A_MANO: Readonly<Record<string, readonly [number, number]>> = {
+  "1057502": [49, 29],
+  "1295001": [37, 33],
+  "1505002": [49, 29],
+  "1535001": [35, 40],
+  "1535002": [52, 37],
+  "1845001": [34, 16],
+  "1845501": [44, 55],
+  "1870501": [47, 36],
+  "1875501": [39, 28],
+  "1893501": [48, 20],
+  "1944502": [45, 42],
+  "1945501": [50, 36],
+  "1965501": [48, 50],
+  "1975501": [65, 37],
+  "1982501": [47, 25],
+  "1990501": [25, 54],
+  "2006501": [54, 33],
+};
+
+/** erosione o dilatazione con un quadrato di lato 2r+1, in due passate */
+function morph(mask: Uint8Array, n: number, r: number, grow: boolean): Uint8Array {
+  const pass = (src: Uint8Array, horizontal: boolean) => {
+    const out = new Uint8Array(n * n);
+    for (let y = 0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        let v = grow ? 0 : 1;
+        for (let d = -r; d <= r; d++) {
+          const xx = horizontal ? x + d : x;
+          const yy = horizontal ? y : y + d;
+          const inside = xx >= 0 && xx < n && yy >= 0 && yy < n;
+          const bit = inside ? src[yy * n + xx]! : 0;
+          if (grow ? bit : !bit) {
+            v = grow ? 1 : 0;
+            break;
+          }
+        }
+        out[y * n + x] = v;
+      }
+    }
+    return out;
+  };
+  return pass(pass(mask, true), false);
+}
+
+async function faceOf(file: string): Promise<readonly [number, number]> {
+  const n = FACE_SIDE;
+  const data = await sharp(file).ensureAlpha().resize(n, n, { fit: "fill" }).raw().toBuffer();
+  const opaque = new Uint8Array(n * n);
+  for (let i = 0; i < n * n; i++) opaque[i] = data[i * 4 + 3]! > 127 ? 1 : 0;
+
+  let core = morph(morph(opaque, n, 4, false), n, 4, true);
+  if (core.reduce((sum, v) => sum + v, 0) < 200) core = opaque;
+  let y0 = n;
+  let y1 = -1;
+  for (let i = 0; i < n * n; i++) {
+    if (!core[i]) continue;
+    const y = Math.floor(i / n);
+    if (y < y0) y0 = y;
+    y1 = y;
+  }
+  const h = Math.max(1, y1 - y0);
+
+  const centroid = (keep: (x: number, y: number) => boolean): readonly [number, number] => {
+    let sx = 0;
+    let sy = 0;
+    let count = 0;
+    for (let y = y0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        if (keep(x, y)) {
+          sx += x;
+          sy += y;
+          count++;
+        }
+      }
+    }
+    return count === 0 ? [50, 25] : [Math.round((sx / count / n) * 100), Math.round((sy / count / n) * 100)];
+  };
+
+  const skin = new Uint8Array(n * n);
+  const skinRows: number[] = [];
+  const topEnd = Math.floor(y0 + 0.4 * h);
+  for (let y = y0; y < topEnd; y++) {
+    for (let x = 0; x < n; x++) {
+      const i = y * n + x;
+      if (!core[i]) continue;
+      const r = data[i * 4]! / 255;
+      const g = data[i * 4 + 1]! / 255;
+      const b = data[i * 4 + 2]! / 255;
+      const sat = (r - b) / r;
+      if (r > g && g > b && r > 0.6 && b > 0.3 && sat > 0.12 && sat < 0.5 && r - g < 0.3 && r - b > 0.12) {
+        skin[i] = 1;
+        skinRows.push(y);
+      }
+    }
+  }
+  if (skinRows.length > 40) {
+    // dalla prima riga di pelle (saltati i puntini sparsi), una fascia alta il
+    // 12% della figura: il volto, senza il collo e le spalle
+    const start = skinRows[Math.floor(skinRows.length * 0.03)]!;
+    const end = Math.floor(start + 0.12 * h);
+    return centroid((x, y) => y >= start && y < end && skin[y * n + x] === 1);
+  }
+  const end = Math.floor(y0 + 0.14 * h);
+  return centroid((x, y) => y < end && core[y * n + x] === 1);
+}
+
 const assetsJson = resolve(SOURCE, "eroi/asset_eroi.json");
 const ASSET_KINDS = [
   { key: "splash" as const, dir: "splash" },
@@ -1832,6 +1965,7 @@ if (!existsSync(assetsJson)) {
   const estratti = resolve(SOURCE, "7dsgc_estratti");
   const rows: string[] = [];
   const copied: Record<string, number> = { splash: 0, abilita: 0, ultimate: 0 };
+  const opaque: string[] = [];
 
   for (const kind of ASSET_KINDS) {
     mkdirSync(resolve(DEST_IMAGES, kind.dir), { recursive: true });
@@ -1847,23 +1981,30 @@ if (!existsSync(assetsJson)) {
     for (const kind of ASSET_KINDS) {
       // L'icona dell'Unica dal client si copia SEMPRE: il file preso prima per
       // nome puo' essere sul disco con una data piu' recente di quello giusto.
+      // Lo stesso vale dal 10/10 per l'illustrazione: mappa_asset.py ne ha
+      // corrette cinque (Thonar vagabondo aveva quella di Merlin), e il file
+      // giusto e' piu' vecchio di quello sbagliato gia' copiato.
       const unica = kind.key === "abilita" ? specialsSource?.icone_uniche?.[hid] : undefined;
       const rel = unica ? `m/Texture2D/${unica}` : voce[kind.key];
       if (!rel) continue;
       const from = resolve(estratti, rel);
       if (!existsSync(from)) continue;
       const to = resolve(DEST_IMAGES, kind.dir, `${hid}.png`);
-      if (unica) {
+      if (unica || kind.key === "splash") {
         copyFileSync(from, to);
         copied[kind.dir]!++;
       } else if (copyIfNewer(from, to)) {
         copied[kind.dir]!++;
       }
       flags.push(`${kind.key === "abilita" ? "skill" : "splash"}: true`);
-      // L'illustrazione e' quasi sempre scontornata (sfondo trasparente): 9 su
-      // 372 hanno lo sfondo dipinto, e sul palco della griglia e della scheda
-      // (hero-stage.tsx) vanno in una cornice e non come figura (10/10)
-      if (kind.key === "splash" && (await sharp(to).stats()).isOpaque) flags.push(`splashFull: true`);
+      // Dove sta il volto (faceOf). E le illustrazioni degli eroi sono tutte
+      // scontornate: una con lo sfondo pieno e' quasi certamente un omonimo
+      // preso al posto suo, come le 9 carte artefatto del 10/10
+      // (illustrazioni_omonime.py nella pipeline)
+      if (kind.key === "splash") {
+        if ((await sharp(to).stats()).isOpaque) opaque.push(hid);
+        flags.push(`face: ${JSON.stringify(VOLTI_A_MANO[hid] ?? (await faceOf(to)))}`);
+      }
     }
 
     // Le carte d'attacco le ha gia' copiate la sezione degli accostamenti: qui
@@ -1915,6 +2056,12 @@ ${rows.join("\n")}
       `${copied.ultimate} carte dell'ultimate ` +
       `(${rows.length}/${heroes.length} eroi con almeno un asset)`,
   );
+  if (opaque.length > 0) {
+    console.log(
+      `  ATTENZIONE: ${opaque.length} illustrazioni con lo sfondo pieno (${opaque.join(", ")}): ` +
+        `di solito e' la carta artefatto omonima. Rifai mappa_bundle.py e illustrazioni_omonime.py, poi mappa_asset.py`,
+    );
+  }
 }
 
 /* --------------------------------------------------------------- icone -- */

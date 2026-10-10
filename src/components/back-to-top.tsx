@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { IconArrowUp } from "@/components/icons";
+import { buttonColors, cx } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/client";
 
 export function BackToTop() {
@@ -29,7 +30,7 @@ export function BackToTop() {
       onClick={() =>
         window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
       }
-      className="p5-cut fixed right-4 bottom-[calc(72px+env(safe-area-inset-bottom))] z-30 grid h-11 w-12 cursor-pointer place-items-center border-0 bg-ink text-paper shadow-[4px_4px_0_var(--color-brand)] hover:bg-brand hover:text-white lg:bottom-6"
+      className={cx("p5-cut fixed right-4 bottom-[calc(72px+env(safe-area-inset-bottom))] z-30 grid h-11 w-12 cursor-pointer place-items-center border-0 lg:bottom-6", buttonColors("outline"))}
     >
       <IconArrowUp size={20} />
     </button>

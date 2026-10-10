@@ -10,7 +10,7 @@
  * ritocco.
  */
 
-import { cx, eyebrow, numeric } from "@/components/ui";
+import { chipColors, cx, eyebrow, numeric } from "@/components/ui";
 import type { HeroAffinity } from "@/lib/games/types";
 
 /* --------------------------------------------------------------- filtri -- */
@@ -90,14 +90,11 @@ export function Chip({
         // hanno - perche' pulsanti di altezze diverse nella stessa fila si
         // leggono come due gruppi diversi.
         // Persona: lama nera obliqua, rossa col testo bianco quando e' scelta
-        // (col rosso #e61421 il bianco fa 4.7:1), bianca al passaggio.
-        "p5-cut-sm group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3 max-sm:h-10",
-        "text-[12px] uppercase tracking-[0.04em] transition-colors disabled:cursor-not-allowed disabled:opacity-35",
-        active && quiet
-          ? "bg-ink font-bold text-paper"
-          : active
-            ? "bg-brand font-bold text-white"
-            : "bg-paper-3 font-semibold text-ink-2 enabled:hover:bg-ink enabled:hover:text-paper",
+        // (col rosso #e61421 il bianco fa 4.7:1), bianca al passaggio: la lama
+        // che spazza e l'affondo alla pressione li fa `p5-btn` (globals.css).
+        "p5-cut-sm p5-btn group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3 max-sm:h-10",
+        "text-[12px] uppercase tracking-[0.04em] disabled:cursor-not-allowed disabled:opacity-35",
+        chipColors(active, quiet),
       )}
     >
       {iconOnly ? (

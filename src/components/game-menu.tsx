@@ -24,7 +24,7 @@ import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 import { GameSidebar } from "./game-sidebar";
 import { PopoverPanel } from "./popover-panel";
-import { cx, display } from "./ui";
+import { buttonColors, cx, display } from "./ui";
 
 const TESTI = testi({
   it: { chiudi: "Chiudi il menu", cerca: "Cerca" },
@@ -61,7 +61,7 @@ export function GameMenu({
           popoverTarget="menu-sezioni"
           popoverTargetAction="hide"
           aria-label={t.chiudi}
-          className="p5-cut grid h-8 w-9 shrink-0 cursor-pointer place-items-center bg-ink text-paper transition-colors hover:bg-brand hover:text-white"
+          className={cx("p5-cut grid h-8 w-9 shrink-0 cursor-pointer place-items-center", buttonColors("outline"))}
         >
           <svg aria-hidden viewBox="0 0 14 14" className="h-3.5 w-3.5">
             <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" />

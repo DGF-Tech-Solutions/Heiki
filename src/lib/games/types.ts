@@ -177,8 +177,12 @@ export interface HeroText {
 export interface HeroAssets {
   /** illustrazione a figura intera, 1024x1024 */
   splash?: boolean;
-  /** l'illustrazione ha lo sfondo dipinto (9 su 372): sul palco va in cornice, non come figura scontornata */
-  splashFull?: boolean;
+  /**
+   * Dove sta il volto nell'illustrazione, in centesimi del lato: [x, y]. Il
+   * palco ci centra il primo piano rosso della fascia. Lo calcola l'importazione
+   * (faceOf in import-heroes.mts)
+   */
+  face?: readonly [number, number];
   /** icona dell'abilita' esclusiva */
   skill?: boolean;
   /** quante carte d'attacco, numerate da 1 */

@@ -285,8 +285,12 @@ export function RangeField({
   after?: ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
-      <label id={`${id}-etichetta`} htmlFor={id} className="text-ink-2">
+    // Una riga che va a capo e non una griglia a tre colonne: con un'etichetta e
+    // un seguito lunghi («Potenziamento», «UR · liv. 30») la colonna dello slider
+    // sul telefono scendeva a un pallino (10/10). Lo slider non va sotto 140 px;
+    // se non ci sta, va a capo la casella del numero.
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+      <label id={`${id}-etichetta`} htmlFor={id} className="shrink-0 text-ink-2">
         {label}
       </label>
       <input
@@ -297,9 +301,9 @@ export function RangeField({
         step={step}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="w-full min-w-0 accent-[var(--color-brand)]"
+        className="min-w-[140px] flex-1 basis-[140px] accent-[var(--color-brand)]"
       />
-      <span className="flex items-center gap-1.5">
+      <span className="ml-auto flex items-center gap-1.5">
         <input
           type="number"
           min={min}

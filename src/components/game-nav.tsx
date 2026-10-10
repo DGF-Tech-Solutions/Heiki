@@ -51,8 +51,10 @@ export async function GameSwitcher({ game }: { game: string }) {
               // il gioco scelto e' una lama rossa tagliata, gli altri si
               // accendono di bianco al passaggio: lo stesso gesto della barra laterale
               className={cx(
-                "p5-cut px-3.5 py-1 font-display text-[13px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82]",
-                entry.slug === game ? "bg-brand text-white" : "text-ink-2 hover:bg-ink hover:text-paper",
+                "p5-cut p5-btn px-3.5 py-1 font-display text-[13px] font-extrabold uppercase tracking-[0.02em] [font-variation-settings:'wdth'_82]",
+                entry.slug === game
+                  ? "[--btn-bg:var(--color-brand)] [--btn-fg:#fff] [--btn-hi:var(--color-brand)] [--btn-hi-fg:#fff]"
+                  : "[--btn-bg:transparent]",
               )}
             >
               {entry.shortName}

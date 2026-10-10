@@ -165,7 +165,7 @@ export function HeroAbilities({
   termIds?: TermIds;
   /** i pesi di pesca delle carte A e B (meccaniche): una riga sotto le carte */
   draw?: readonly [number, number];
-  /** l'effetto di squadra Luce/Oscurita' (meccaniche): un riquadro sotto l'Unica */
+  /** l'effetto di squadra Luce/Oscurita' (meccaniche): un riquadro sotto l'ultimate */
   teamEffect?: { readonly light?: MechanicsTeamEffect; readonly dark?: MechanicsTeamEffect };
 }) {
   const t = TESTI[locale];
@@ -183,6 +183,14 @@ export function HeroAbilities({
   const unique = !!(abilities?.passive?.text || assets?.skill);
   const left = unique || specials.length > 0;
   const right = cards.length > 0 || cardCount > 0 || !!abilities?.ultimate;
+
+  // L'effetto di squadra Luce/Oscurita' sta a destra, sotto l'ultimate e accanto
+  // alla riga della pesca: sono le due righe su come gioca l'eroe in squadra. Fino
+  // al 10/10 stava sotto l'Unica, e la colonna di sinistra (Unica, Talento,
+  // effetto) finiva lunga il doppio di quella delle carte, con un vuoto a destra.
+  const team = teamEffect ? (
+    <HeroTeamEffect game={game} locale={locale} light={teamEffect.light} dark={teamEffect.dark} />
+  ) : null;
 
   return (
     <>
@@ -289,7 +297,7 @@ export function HeroAbilities({
               );
             })}
 
-            {teamEffect ? <HeroTeamEffect game={game} locale={locale} light={teamEffect.light} dark={teamEffect.dark} /> : null}
+            {right ? null : team}
           </div>
         ) : null}
 
@@ -361,6 +369,8 @@ export function HeroAbilities({
                 />
               </section>
             ) : null}
+
+            {team}
           </div>
         ) : null}
       </div>

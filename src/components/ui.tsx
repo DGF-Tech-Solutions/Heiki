@@ -39,27 +39,42 @@ type ButtonVariant = "primary" | "outline" | "ghost";
 type ButtonSize = "md" | "sm";
 
 // Tagliati in obliquo come i comandi dei menu di Persona: il taglio e' clip-path
-// (p5-cut, in globals.css), quindi la misura del bottone non cambia.
+// (p5-cut, in globals.css), quindi la misura del bottone non cambia. Il passaggio
+// e la pressione li fa `p5-btn` (la lama che spazza, il comando che affonda): qui
+// solo i quattro colori di ogni variante, a riposo e al passaggio.
 const BUTTON_BASE =
-  "p5-cut inline-flex items-center justify-center gap-2 font-display font-extrabold uppercase " +
+  "p5-cut p5-btn inline-flex items-center justify-center gap-2 font-display font-extrabold uppercase " +
   "tracking-[0.03em] [font-variation-settings:'wdth'_85] " +
-  "transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
+  "cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
-  primary:
-    "bg-brand text-white hover:bg-ink hover:text-paper " +
-    "disabled:hover:bg-brand disabled:hover:text-white",
-  outline:
-    "bg-ink text-paper hover:bg-brand hover:text-white " +
-    "disabled:hover:bg-ink disabled:hover:text-paper",
-  ghost:
-    "bg-transparent text-ink-2 hover:bg-ink hover:text-paper",
+  primary: "[--btn-bg:var(--color-brand)] [--btn-fg:#fff] [--btn-hi:var(--color-ink)] [--btn-hi-fg:var(--color-paper)]",
+  outline: "[--btn-bg:var(--color-ink)] [--btn-fg:var(--color-paper)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:#fff]",
+  ghost: "[--btn-bg:transparent] [--btn-fg:var(--color-ink-2)] [--btn-hi:var(--color-ink)] [--btn-hi-fg:var(--color-paper)]",
 };
+
+/**
+ * I colori della lama dei filtri (`p5-btn`): spenta, scelta in rosso, scelta
+ * quieta (in nero, per le scelte che hanno sempre un valore). La scelta non
+ * cambia al passaggio: e' gia' accesa.
+ */
+export function chipColors(active: boolean, quiet = false): string {
+  return active && quiet
+    ? "font-bold [--btn-bg:var(--color-ink)] [--btn-fg:var(--color-paper)] [--btn-hi:var(--color-ink)] [--btn-hi-fg:var(--color-paper)]"
+    : active
+      ? "font-bold [--btn-bg:var(--color-brand)] [--btn-fg:#fff] [--btn-hi:var(--color-brand)] [--btn-hi-fg:#fff]"
+      : "font-semibold";
+}
 
 const BUTTON_SIZE: Record<ButtonSize, string> = {
   md: "h-[38px] px-[22px] text-sm",
   sm: "h-8 px-3.5 text-[13px]",
 };
+
+/** Solo i colori di una variante, per i comandi con una forma loro (icone, frecce). */
+export function buttonColors(variant: ButtonVariant): string {
+  return cx("p5-btn", BUTTON_VARIANT[variant]);
+}
 
 export function buttonClass(
   variant: ButtonVariant = "outline",
@@ -223,12 +238,8 @@ export function HowItWorks({
 export function chipClass(active: boolean, quiet = false, className?: string): string {
   return cx(
     // 40px sul telefono e non 36: si centrano col pollice (10/10)
-    "p5-cut-sm inline-flex h-9 cursor-pointer items-center gap-1.5 px-3 text-[12px] uppercase tracking-[0.04em] transition-colors no-underline max-sm:h-10",
-    active && quiet
-      ? "bg-ink font-bold text-paper"
-      : active
-        ? "bg-brand font-bold text-white"
-        : "bg-paper-3 font-semibold text-ink-2 hover:bg-ink hover:text-paper",
+    "p5-cut-sm p5-btn inline-flex h-9 cursor-pointer items-center gap-1.5 px-3 text-[12px] uppercase tracking-[0.04em] no-underline max-sm:h-10",
+    chipColors(active, quiet),
     className,
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { artOf } from "@/components/heroes/hero-stage";
+import { DEFAULT_STAGE_ART, stageArtOf, type StageArt } from "@/components/heroes/hero-stage";
 import { EMPTY_QUERY, RosterBrowser, type RosterQuery } from "@/components/heroes/roster-browser";
 import { cx, display } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
@@ -155,12 +155,15 @@ export default async function HeroesPage({ params, searchParams }: Props) {
     mine: query.miei === "1",
   };
 
-  // le illustrazioni da non trattare come figura scontornata: poche, e cosi' al
-  // browser non arriva l'elenco degli asset di tutti gli eroi
-  const stageArt: Record<string, "full" | "none"> = {};
+  // Per il palco: dove sta il volto di ogni eroe, e il tipo d'illustrazione solo
+  // per chi non l'ha scontornata (poche). Al browser arriva questo, non l'elenco
+  // degli asset di tutti gli eroi
+  const stageKinds: Record<string, StageArt["art"]> = {};
+  const stageFaces: Record<string, StageArt["face"]> = {};
   for (const hero of roster.heroes) {
-    const kind = artOf(heroAssets?.[hero.id]);
-    if (kind !== "cutout") stageArt[hero.id] = kind;
+    const stage = stageArtOf(heroAssets?.[hero.id]);
+    if (stage.art !== DEFAULT_STAGE_ART.art) stageKinds[hero.id] = stage.art;
+    stageFaces[hero.id] = stage.face;
   }
 
   const rarest = roster.rarities[0];
@@ -205,7 +208,8 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         icons={icons}
         traits={traits}
         initial={initial}
-        art={stageArt}
+        art={stageKinds}
+        faces={stageFaces}
       />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">

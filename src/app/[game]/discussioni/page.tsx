@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PostCard } from "@/components/community/post-card";
 import { Composer } from "@/components/community/composer";
 import { SponsorSlot } from "@/components/community/sponsor-slot";
-import { buttonClass, Card, cx, display, Empty, Notice } from "@/components/ui";
+import { buttonClass, Card, chipColors, cx, display, Empty, Notice } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import {
   FEED_SORTS,
@@ -93,11 +93,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Filtri come lame tagliate: rossa quella scelta, scure le altre (bianche al passaggio)
 const CHIP =
-  "p5-cut-sm inline-flex h-8 items-center px-3.5 font-display text-[13px] font-extrabold uppercase " +
-  "tracking-[0.03em] [font-variation-settings:'wdth'_85] transition-colors";
+  "p5-cut-sm p5-btn inline-flex h-8 items-center px-3.5 font-display text-[13px] font-extrabold uppercase " +
+  "tracking-[0.03em] [font-variation-settings:'wdth'_85]";
 
-const CHIP_ON = "bg-brand text-white";
-const CHIP_OFF = "bg-paper-3 text-ink-2 hover:bg-ink hover:text-paper";
+const CHIP_ON = chipColors(true);
+const CHIP_OFF = chipColors(false);
 
 export default async function GameFeedPage({ params, searchParams }: Props) {
   const { game } = await params;

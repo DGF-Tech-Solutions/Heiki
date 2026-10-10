@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PostCard } from "@/components/community/post-card";
-import { artOf, HeroStage } from "@/components/heroes/hero-stage";
+import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
 import { buttonClass, cx, display, Empty, eyebrow, numeric, SectionHead } from "@/components/ui";
 import { getStore } from "@/lib/community/store";
 import { sortFeed } from "@/lib/community/ranking";
@@ -89,7 +89,7 @@ export default async function Home() {
                 priority
                 headingLevel="h2"
                 plate={{ kicker: game.publisher, title: game.name }}
-                art={artOf(gameModule?.heroAssets?.[newest.id])}
+                art={stageArtOf(gameModule?.heroAssets?.[newest.id])}
                 className="p5-corner transition-[filter] duration-200 group-hover:drop-shadow-[6px_6px_0_var(--color-brand)]"
               >
                 <span className="flex flex-wrap items-center gap-3">

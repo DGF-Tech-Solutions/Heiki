@@ -1,13 +1,22 @@
 /**
- * Il palco di un eroe: l'illustrazione grande su una lama obliqua, il nome in
- * targa, attributo e rarita'. E' la «selezione del personaggio» chiesta
- * dall'utente il 10/10 (griglia + eroe in grande a lato, come un picchiaduro), e
- * la stessa forma apre la scheda dell'eroe.
+ * Il palco di un eroe: la «selezione del personaggio» chiesta dall'utente il
+ * 10/10 (griglia + eroe in grande a lato, come un picchiaduro), e la stessa forma
+ * apre la scheda dell'eroe.
  *
- * Le illustrazioni del client sono gia' scontornate (1024 px, sfondo
- * trasparente): l'eroe esce dal pannello senza maschere inventate, e l'ombra
- * rossa piena dietro la sagoma e' quella dei cut-in di Persona (il mondo scelto,
- * 27/09), non una profondita'.
+ * Tre strati, dal fondo:
+ *   - la FASCIA: una lama rossa obliqua che attraversa il palco col primo piano
+ *     dell'eroe a due toni, rosso e nero, come gli «All-Out Attack» di Persona
+ *     (il mondo scelto il 27/09). Il primo piano e' l'illustrazione stessa,
+ *     molto ingrandita e centrata sul volto, che l'importazione trova in ogni
+ *     illustrazione (`HeroAssets.face`)
+ *   - la FIGURA: l'illustrazione scontornata del client, intera, con la sagoma
+ *     nera sfalsata
+ *   - la TARGA: epiteto su una lama bianca, nome con l'ombra rossa, attributo e
+ *     rarita', i comandi
+ *
+ * Ogni eroe ha la sua illustrazione e solo quella (l'utente, 10/10: niente
+ * cut-in). Fascia e figura chiedono la stessa immagine alla stessa misura: il
+ * browser la scarica una volta.
  *
  * Il movimento e' uno solo, ed e' il momento della scelta: cambiando eroe la
  * figura entra con un taglio diagonale e la targa scatta al suo posto (classi
@@ -26,10 +35,37 @@ import { heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
 import type { HeroAffinity, HeroEntry } from "@/lib/games/types";
 import type { Locale } from "@/lib/i18n/locale";
 
-/** Da `HeroAssets` al tipo d'illustrazione del palco. */
-export function artOf(assets: { readonly splash?: boolean; readonly splashFull?: boolean } | undefined): "cutout" | "full" | "none" {
-  return assets?.splashFull ? "full" : assets?.splash ? "cutout" : "none";
+/**
+ * L'illustrazione di un eroe per il palco: c'e' o no, e dove sta il volto. Lo
+ * dice `HeroAssets` (`splash`, `face`).
+ */
+export interface StageArt {
+  readonly art: "cutout" | "none";
+  /** il volto nell'illustrazione, in centesimi del lato: [x, y] */
+  readonly face: readonly [number, number];
 }
+
+/** dove sta il volto in un'illustrazione tipo: al centro, nel quarto alto */
+export const DEFAULT_FACE: readonly [number, number] = [50, 25];
+
+export const DEFAULT_STAGE_ART: StageArt = { art: "cutout", face: DEFAULT_FACE };
+
+export function stageArtOf(
+  assets: { readonly splash?: boolean; readonly face?: readonly [number, number] } | undefined,
+): StageArt {
+  return {
+    art: assets?.splash ? "cutout" : "none",
+    face: assets?.face ?? DEFAULT_FACE,
+  };
+}
+
+/**
+ * Una misura sola per la fascia e per la figura, cosi' il browser sceglie lo
+ * stesso file per entrambe: 1080 px a densita' 1, l'originale da 1024 sopra. Il
+ * primo piano ingrandito non chiede di piu': il retino e il due toni coprono la
+ * grana.
+ */
+const ART_SIZES = "1080px";
 
 export interface StageBadge {
   readonly label: string;
@@ -50,7 +86,7 @@ export function HeroStage({
   className,
   headingLevel = "p",
   plate,
-  art = "cutout",
+  art = DEFAULT_STAGE_ART,
 }: {
   game: string;
   hero: HeroEntry;
@@ -71,65 +107,61 @@ export function HeroStage({
    * eroe uscito. Il nome grande sul fondo segue la targa.
    */
   plate?: { readonly kicker: string; readonly title: string };
-  /**
-   * Che illustrazione c'e': scontornata (quasi tutte), con lo sfondo dipinto (9
-   * su 372: va in una cornice obliqua, come una carta), o nessuna (il palco resta
-   * col nome e le lame). Lo dice `HeroAssets` (`splash`, `splashFull`).
-   */
-  art?: "cutout" | "full" | "none";
+  art?: StageArt;
 }) {
   const name = plate?.title ?? heroName(hero, locale);
   const epithet = plate?.kicker ?? heroEpithet(hero, locale);
   const tint = affinity?.color ?? "var(--color-brand)";
   const Heading = headingLevel;
+  const splash = heroSplashSrc(game, hero.id);
+  const [faceX, faceY] = art.face;
 
   return (
     <div
-      className={cx("stage relative isolate overflow-hidden bg-paper-2", size === "hero" ? "stage--hero" : "stage--panel", className)}
-      style={{ "--stage-tint": tint } as React.CSSProperties}
+      className={cx(
+        "stage relative isolate overflow-hidden bg-paper-2",
+        size === "hero" ? "stage--hero" : "stage--panel",
+        className,
+      )}
+      style={
+        {
+          "--stage-tint": tint,
+          "--fx": faceX / 100,
+          "--fy": faceY / 100,
+          // il primo piano dalla parte opposta al volto della figura
+          "--echo-side": faceX >= 50 ? -1 : 1,
+        } as React.CSSProperties
+      }
     >
-      {/* il fondo: retino rosso, la lama dell'attributo, la lama rossa */}
       <div aria-hidden className="stage-dots absolute inset-0 -z-10" />
-      <div aria-hidden className="stage-blade stage-blade--tint absolute -z-10" />
-      <div aria-hidden className="stage-blade stage-blade--brand absolute -z-10" />
 
       {/*
-        Il nome del personaggio enorme, a filo, dietro la figura: e' la grafica
-        delle schermate di scelta, e dice chi e' anche a chi guarda di sfuggita.
-        Decorativo per i lettori di schermo: il nome vero sta nella targa.
+        Il nome del personaggio enorme, solo contorno, sotto la fascia: e' la
+        grafica delle schermate di scelta, e dice chi e' anche a chi guarda di
+        sfuggita. Decorativo per i lettori di schermo: il nome vero sta nella targa.
       */}
       <p aria-hidden className="stage-word absolute -z-10 m-0">
         {name}
       </p>
 
-      {/* la figura: si rimonta a ogni eroe (key), e l'animazione riparte */}
-      {art === "none" ? null : (
-        <div key={hero.id} className={cx("stage-figure absolute", art === "full" && "stage-figure--full")}>
-          {art === "full" ? (
-            <div className="stage-frame">
-              <div className="relative h-full w-full">
-                <Image
-                  src={heroSplashSrc(game, hero.id)}
-                  alt=""
-                  fill
-                  sizes={size === "hero" ? "(min-width: 1024px) 560px, 100vw" : "(min-width: 1024px) 440px, 100vw"}
-                  priority={priority}
-                  className="object-cover"
-                />
-              </div>
+      <div aria-hidden className="absolute inset-0 -z-10">
+        <div className="stage-band-edge absolute inset-0" />
+        <div className="stage-band absolute inset-0">
+          {art.art === "none" ? null : (
+            <div className="stage-band-art">
+              <Image src={splash} alt="" fill sizes={ART_SIZES} priority={priority} className="stage-band-img object-cover" />
             </div>
-          ) : (
-            <Image
-              src={heroSplashSrc(game, hero.id)}
-              alt=""
-              fill
-              sizes={size === "hero" ? "(min-width: 1024px) 560px, 100vw" : "(min-width: 1024px) 440px, 100vw"}
-              priority={priority}
-              className="stage-figure-img object-contain"
-            />
           )}
         </div>
-      )}
+        <div className="stage-band-line absolute inset-0" />
+      </div>
+
+      {/* la figura: si rimonta a ogni eroe (key), e l'animazione riparte */}
+      {art.art === "cutout" ? (
+        <div key={hero.id} className="stage-figure absolute">
+          <Image src={splash} alt="" fill sizes={ART_SIZES} priority={priority} className="stage-figure-img object-contain" />
+        </div>
+      ) : null}
 
       <div key={`${hero.id}-targa`} className="stage-plate absolute">
         <p className="stage-epithet m-0">{epithet}</p>

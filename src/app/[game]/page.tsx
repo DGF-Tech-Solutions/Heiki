@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { artOf, HeroStage } from "@/components/heroes/hero-stage";
+import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
 import { buttonClass, cx, display, eyebrow, numeric } from "@/components/ui";
 import { findGame, gameGroups } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
@@ -157,7 +157,7 @@ export default async function GameHubPage({ params }: Props) {
               affinity={affinity}
               badges={affinity ? [{ label: affinityLabel(affinity.id, locale) }, { label: `${latest.obtainedAs} → ${latest.rarity}` }] : undefined}
               priority
-              art={artOf(gameModule?.heroAssets?.[latest.id])}
+              art={stageArtOf(gameModule?.heroAssets?.[latest.id])}
               className="p5-corner h-[min(640px,calc(100dvh-140px))] min-h-[480px]"
             >
               <Link href={`/${game}/eroi/${latest.id}`} className={buttonClass("primary", "md")}>

@@ -29,3 +29,6 @@ graphify-out/
 
 # Copie del database (npm run db:backup): account e hash delle password, mai nel repo
 /backups/
+
+# le foto e i registri del browser di prova (Playwright MCP)
+/.playwright-mcp/

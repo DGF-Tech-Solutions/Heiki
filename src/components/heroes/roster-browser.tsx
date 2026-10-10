@@ -30,7 +30,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { readableColor } from "@/components/heroes/game-color";
-import { HeroStage, type StageBadge } from "@/components/heroes/hero-stage";
+import { DEFAULT_STAGE_ART, HeroStage, type StageArt, type StageBadge } from "@/components/heroes/hero-stage";
 import { IconChevronRight } from "@/components/icons";
 import { buttonClass, cx, Empty, eyebrow, Input, numeric } from "@/components/ui";
 import { boxSize, ownsHero } from "@/lib/games/hero-box";
@@ -143,6 +143,7 @@ export function RosterBrowser({
   traits,
   intro,
   art = {},
+  faces = {},
 }: {
   game: string;
   roster: HeroRoster;
@@ -165,8 +166,10 @@ export function RosterBrowser({
    * palco parte dall'alto della pagina e su uno schermo da 900 px ci sta intero
    */
   intro?: React.ReactNode;
-  /** le illustrazioni che non sono scontornate: «full» (sfondo dipinto) o «none» (manca) */
-  art?: Readonly<Record<string, "full" | "none">>;
+  /** il tipo d'illustrazione del palco, solo per chi non l'ha scontornata */
+  art?: Readonly<Record<string, StageArt["art"]>>;
+  /** dove sta il volto nell'illustrazione di ogni eroe: il palco ci centra la fascia */
+  faces?: Readonly<Record<string, StageArt["face"]>>;
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
@@ -408,7 +411,7 @@ export function RosterBrowser({
             locale={locale}
             affinity={byAffinity.get(active.affinity)}
             badges={badgesFor(active)}
-            art={art[active.id] ?? "cutout"}
+            art={{ art: art[active.id] ?? DEFAULT_STAGE_ART.art, face: faces[active.id] ?? DEFAULT_STAGE_ART.face }}
             priority
             className="p5-corner h-full"
           >

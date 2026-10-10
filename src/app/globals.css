@@ -168,6 +168,58 @@
     clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
   }
 
+  /*
+   * La sensazione dei comandi (10/10, richiesta dell'utente: «migliorare il
+   * feeling di hovering e pressione dei pulsanti»). Prima il colore cambiava di
+   * colpo; ora, come le voci di menu:
+   *   - al passaggio il colore nuovo SPAZZA il comando in obliquo da sinistra:
+   *     un fondo a due colori con lo stacco inclinato, largo piu' del comando,
+   *     che scorre (background-position: niente che sposti il layout)
+   *   - alla pressione il comando AFFONDA: scende di un pixel e si stringe per
+   *     50 ms, poi torna con la curva lunga. E' la conferma del clic anche
+   *     quando la pagina dopo tarda ad arrivare
+   * I colori stanno in variabili, cosi' ogni variante (rosso, nero, quieto,
+   * scelto) e' quattro valori e il movimento resta uno: `--btn-bg` e `--btn-fg`
+   * a riposo, `--btn-hi` e `--btn-hi-fg` al passaggio. Su uno schermo a tocco il
+   * passaggio non c'e': la lama si vede mentre il dito preme.
+   */
+  .p5-btn {
+    --btn-bg: var(--color-paper-3);
+    --btn-fg: var(--color-ink-2);
+    --btn-hi: var(--color-ink);
+    --btn-hi-fg: var(--color-paper);
+    background: linear-gradient(112deg, var(--btn-hi) 0 50%, var(--btn-bg) 50% 100%) 100% 0 / 250% 100% no-repeat;
+    color: var(--btn-fg);
+    transition:
+      background-position 280ms cubic-bezier(0.16, 1, 0.3, 1),
+      color 120ms ease-out,
+      transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .p5-btn:not(:disabled, [aria-disabled="true"]):hover,
+  .p5-btn:not(:disabled, [aria-disabled="true"]):active {
+    background-position: 0 0;
+    color: var(--btn-hi-fg);
+  }
+  .p5-btn:not(:disabled, [aria-disabled="true"]):active,
+  .p5-press:active {
+    transform: translateY(1px) scale(0.96);
+    transition-duration: 280ms, 120ms, 50ms;
+  }
+  .p5-press {
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .p5-btn {
+      transition:
+        background-position 1ms,
+        color 120ms ease-out;
+    }
+    .p5-btn:active,
+    .p5-press:active {
+      transform: none;
+    }
+  }
+
   /* titolo: bianco con la sagoma rossa sfalsata dietro. In em e non in px:
      3px fissi impastavano le lettere dei titoli piccoli (18px) */
   .p5-title {
@@ -178,6 +230,12 @@
   .p5-menu-item {
     position: relative;
     isolation: isolate;
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* premuta, la voce scatta in avanti di un passo: va, non affonda */
+  .p5-menu-item:active {
+    transform: translateX(3px) scale(0.98);
+    transition-duration: 50ms;
   }
   .p5-menu-item::before {
     content: "";
@@ -214,8 +272,12 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .p5-menu-item,
     .p5-menu-item::before {
       transition: none;
+    }
+    .p5-menu-item:active {
+      transform: none;
     }
   }
 
@@ -223,8 +285,9 @@
    * Il palco dell'eroe (hero-stage.tsx): la «selezione del personaggio» della
    * griglia Eroi e la testa della scheda, 10/10. Fondo fermo, eroe che cambia:
    * come le schermate di scelta, la cornice resta e si alterna chi ci sta sopra.
-   *   - una lama rossa obliqua e una sottile del colore dell'attributo (il
-   *     colore del gioco: rosso Forza, verde PS, blu Velocita'...)
+   *   - la fascia: una lama rossa obliqua col primo piano dell'eroe a due toni,
+   *     rosso e nero, e sotto un filo nel colore dell'attributo (il colore del
+   *     gioco: rosso Forza, verde PS, blu Velocita'...)
    *   - il retino rosso, piu' fitto di quello della pagina
    *   - il nome del personaggio enorme, solo contorno, inclinato
    *   - la figura scontornata del client, con la sagoma nera sfalsata
@@ -232,47 +295,120 @@
    */
   .stage {
     --stage-tint: var(--color-brand);
+    /* dove sta il volto nell'illustrazione, da 0 a 1: lo scrive il componente */
+    --fx: 0.5;
+    --fy: 0.25;
+    /* da che parte va il primo piano: -1 a sinistra, 1 a destra (il componente) */
+    --echo-side: 1;
     min-height: 0;
   }
+
+  /*
+   * La geometria in variabili, una serie per misura del palco:
+   *   - la fascia (`--band`) e il filo sotto (`--band-line`)
+   *   - il primo piano nella fascia: quanto e' grande l'illustrazione
+   *     (`--echo-size`, in larghezza del palco) e dove cade il volto
+   *     (`--echo-x`, `--echo-y`). Accanto alla griglia la figura sta al centro e
+   *     coprirebbe il volto grande: va dalla parte opposta al volto della
+   *     figura, dove la fascia e' piu' alta a sinistra e piu' bassa a destra
+   */
   .stage--panel {
     height: 100%;
     min-height: 540px;
+    --band: polygon(0 13%, 100% 3%, 100% 42%, 0 53%);
+    --band-line: polygon(0 54.4%, 100% 43.4%, 100% 44.6%, 0 55.6%);
+    --echo-size: 430%;
+    --echo-x: calc(50% + var(--echo-side) * 27%);
+    --echo-y: calc(27% - var(--echo-side) * 4%);
   }
   .stage--hero {
     min-height: 380px;
+    --band: polygon(0 0, 100% 9%, 100% 64%, 0 41%);
+    --band-line: polygon(0 42.4%, 100% 65.4%, 100% 66.8%, 0 43.8%);
+    --echo-size: 140%;
+    --echo-x: 22%;
+    --echo-y: 20%;
   }
   @media (min-width: 640px) {
     .stage--hero {
       min-height: 460px;
     }
   }
+  @media (max-width: 639px) {
+    .stage--hero {
+      --band: polygon(0 0, 100% 6%, 100% 40%, 0 31%);
+      --band-line: polygon(0 32.4%, 100% 41.4%, 100% 42.8%, 0 33.8%);
+      --echo-size: 260%;
+      --echo-x: 20%;
+      --echo-y: 17%;
+    }
+  }
+
   .stage-dots {
     background-image: radial-gradient(color-mix(in srgb, var(--color-brand) 38%, transparent) 1.1px, transparent 1.8px);
     background-size: 8px 8px;
     -webkit-mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
     mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
   }
-  .stage-blade {
-    inset: 0;
+
+  /*
+   * La fascia: rossa, col primo piano a due toni. Il due toni e' l'illustrazione
+   * in bianco e nero contrastato fusa col rosso (multiply: il bianco diventa
+   * rosso, il nero resta nero), poi un retino nero da stampa. Dietro, la stessa
+   * lama nel colore del testo, sfalsata in alto a sinistra: il bordo che i menu
+   * di Persona stampano sotto ogni forma. Sotto, un filo nel colore
+   * dell'attributo.
+   */
+  .stage-band,
+  .stage-band-edge {
+    clip-path: var(--band);
   }
-  .stage-blade--brand {
+  .stage-band {
     background: var(--color-brand);
-    clip-path: polygon(62% 0, 100% 0, 100% 100%, 34% 100%);
+    isolation: isolate;
   }
-  .stage-blade--tint {
+  .stage-band::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#000 1.05px, transparent 1.6px);
+    background-size: 6px 6px;
+    opacity: 0.32;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+  .stage-band-edge {
+    background: var(--color-ink);
+    translate: -7px -8px;
+  }
+  .stage-band-line {
     background: var(--stage-tint);
-    clip-path: polygon(55% 0, 60% 0, 32% 100%, 27% 100%);
-    opacity: 0.85;
+    clip-path: var(--band-line);
   }
-  .stage--hero .stage-blade--brand {
-    clip-path: polygon(64% 0, 100% 0, 100% 100%, 50% 100%);
+  /*
+   * Il primo piano: la stessa illustrazione della figura, molto piu' grande, col
+   * volto dell'eroe sempre nello stesso punto della fascia. Il riquadro parte da
+   * quel punto e torna indietro di quanto il volto dista dal suo angolo
+   * (`translate` in percentuale si misura sul riquadro stesso): cosi' il primo
+   * piano e' uguale per tutti, anche per chi ha il volto in un angolo
+   * dell'illustrazione.
+   */
+  .stage-band-art {
+    position: absolute;
+    left: var(--echo-x);
+    top: var(--echo-y);
+    width: var(--echo-size);
+    aspect-ratio: 1;
+    translate: calc(var(--fx) * -100%) calc(var(--fy) * -100%);
+    mix-blend-mode: multiply;
   }
-  .stage--hero .stage-blade--tint {
-    clip-path: polygon(59% 0, 62% 0, 48% 100%, 45% 100%);
+  .stage-band-img {
+    filter: grayscale(1) contrast(1.8) brightness(1.02);
   }
+
   .stage-word {
-    top: 3%;
-    left: -3%;
+    top: 54%;
+    left: -4%;
     font-family: var(--font-display);
     font-weight: 900;
     font-variation-settings: "wdth" 62;
@@ -281,38 +417,22 @@
     text-transform: uppercase;
     white-space: nowrap;
     color: transparent;
-    -webkit-text-stroke: 2px color-mix(in srgb, var(--color-ink) 16%, transparent);
-    transform: rotate(-9deg);
+    -webkit-text-stroke: 2px color-mix(in srgb, var(--color-ink) 14%, transparent);
+    rotate: -9deg;
     transform-origin: left top;
     pointer-events: none;
     user-select: none;
   }
+  .stage--hero .stage-word {
+    top: 46%;
+    left: 30%;
+  }
+
   .stage-figure {
-    inset: -2% -24% 20% -24%;
+    inset: -1% -24% 19% -24%;
   }
   .stage--hero .stage-figure {
     inset: -4% -6% -2% 36%;
-  }
-  /* l'illustrazione con lo sfondo dipinto: in una cornice obliqua bianca, come una carta */
-  .stage-figure.stage-figure--full {
-    inset: 5% 7% 30% 14%;
-  }
-  .stage--hero .stage-figure.stage-figure--full {
-    inset: 7% 4% 9% 46%;
-  }
-  .stage-frame {
-    height: 100%;
-    padding: 4px;
-    background: var(--color-ink);
-    clip-path: polygon(9% 0, 100% 0, 91% 100%, 0 100%);
-  }
-  .stage-frame > div {
-    clip-path: polygon(9% 0, 100% 0, 91% 100%, 0 100%);
-  }
-  @media (max-width: 639px) {
-    .stage--hero .stage-figure.stage-figure--full {
-      inset: 4% 6% 40% 22%;
-    }
   }
   .stage-figure-img {
     object-position: center 30%;
@@ -351,7 +471,11 @@
   }
   @media (max-width: 639px) {
     .stage--hero .stage-figure {
-      inset: -2% -18% 18% 20%;
+      inset: 4% -18% 16% 20%;
+    }
+    .stage--hero .stage-word {
+      top: 36%;
+      left: -4%;
     }
     .stage--hero::after {
       inset: auto 0 0 0;
@@ -378,7 +502,7 @@
     letter-spacing: 0.02em;
     text-transform: uppercase;
     clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
-    transform: rotate(-2deg);
+    rotate: -2deg;
     transform-origin: left center;
   }
   .stage-name {
@@ -399,6 +523,54 @@
     margin-top: 2px;
   }
 
+  /*
+   * Il movimento del palco e' uno solo, il momento della scelta: cambiando eroe
+   * la figura entra con un taglio diagonale e la targa scatta al suo posto. Poi
+   * niente si muove: la fascia che entrava e scorreva e la figura che
+   * respirava, aggiunte il 10/10, sono state tolte la sera stessa (l'utente:
+   * «non e' bella»). Con «riduci movimento» resta una dissolvenza.
+   */
+  @keyframes stage-figure-in {
+    from {
+      clip-path: polygon(118% 0, 150% 0, 118% 100%, 86% 100%);
+      transform: translateX(32px);
+    }
+    to {
+      clip-path: polygon(-60% 0, 150% 0, 118% 100%, -92% 100%);
+      transform: none;
+    }
+  }
+  @keyframes stage-plate-in {
+    from {
+      transform: translateX(-28px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes stage-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .stage-figure {
+    animation: stage-figure-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .stage-plate {
+    animation: stage-plate-in 240ms cubic-bezier(0.16, 1, 0.3, 1) 70ms both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stage-figure,
+    .stage-plate {
+      animation: stage-fade-in 150ms ease-out both;
+    }
+  }
+
   /* le card della griglia Eroi: al passaggio, e quella sul palco, si alzano con la sagoma rossa */
   .hero-card-art img {
     transition:
@@ -411,6 +583,12 @@
   }
   .hero-card:hover .hero-card-name {
     color: var(--color-brand-deep);
+  }
+  /* premuta, la card torna giu' sulla sua sagoma: il clic si sente */
+  .hero-card:active .hero-card-art img {
+    transform: translate(1px, 1px) scale(0.95);
+    box-shadow: 2px 2px 0 var(--color-brand);
+    transition-duration: 50ms;
   }
   /* «sul palco» vale solo dove il palco c'e' */
   @media (min-width: 1024px) {
@@ -521,47 +699,6 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .hub-command {
-      animation: stage-fade-in 150ms ease-out both;
-    }
-  }
-
-  @keyframes stage-figure-in {
-    from {
-      clip-path: polygon(118% 0, 150% 0, 118% 100%, 86% 100%);
-      transform: translateX(32px);
-    }
-    to {
-      clip-path: polygon(-60% 0, 150% 0, 118% 100%, -92% 100%);
-      transform: none;
-    }
-  }
-  @keyframes stage-plate-in {
-    from {
-      transform: translateX(-28px);
-      opacity: 0;
-    }
-    to {
-      transform: none;
-      opacity: 1;
-    }
-  }
-  @keyframes stage-fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  .stage-figure {
-    animation: stage-figure-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .stage-plate {
-    animation: stage-plate-in 240ms cubic-bezier(0.16, 1, 0.3, 1) 70ms both;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .stage-figure,
-    .stage-plate {
       animation: stage-fade-in 150ms ease-out both;
     }
   }

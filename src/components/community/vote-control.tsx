@@ -34,8 +34,8 @@ interface Props {
 
 // 32px e non 20: la freccia si preme anche col pollice (10/10)
 const ARROW =
-  "grid place-items-center border-0 bg-transparent p-0 text-ink-3 transition-colors " +
-  "hover:bg-ink hover:text-paper cursor-pointer";
+  "p5-btn grid place-items-center border-0 p-0 cursor-pointer " +
+  "[--btn-bg:transparent] [--btn-fg:var(--color-ink-3)]";
 
 export function VoteControl({ targetType, targetId, score, myVote, compact = false }: Props) {
   const t = TESTI[useLocale()];

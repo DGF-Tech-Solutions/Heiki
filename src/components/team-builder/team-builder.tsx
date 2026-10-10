@@ -397,7 +397,7 @@ function Slot({
           aria-label={t.togliTitolo(hero.name)}
           title={t.togliTitolo(hero.name)}
           className={cx(
-            "absolute grid h-9 w-9 cursor-pointer place-items-center border-0 bg-paper/85 text-ink hover:bg-brand hover:text-white",
+            "p5-btn absolute grid h-9 w-9 cursor-pointer place-items-center border-0 [--btn-bg:color-mix(in_srgb,var(--color-paper)_85%,transparent)] [--btn-fg:var(--color-ink)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:#fff]",
             small ? "top-1/2 right-0.5 -translate-y-1/2" : "top-1.5 right-1.5",
           )}
         >

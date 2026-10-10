@@ -8,7 +8,7 @@ import { getLocale } from "@/lib/i18n/server";
 import { unreadCount } from "@/lib/social/actions";
 import { LanguageSwitch } from "./language-switch";
 import { PopoverPanel } from "./popover-panel";
-import { buttonClass, cx, Tag } from "./ui";
+import { buttonClass, buttonColors, cx, Tag } from "./ui";
 
 // Sul telefono i bottoni dell'intestazione si stringono: in maiuscolo e col
 // taglio obliquo «Iscriviti» finiva fuori dallo schermo, nella barra che scorre
@@ -120,7 +120,7 @@ export async function SiteHeader() {
                     type="button"
                     popoverTarget="menu-utente"
                     aria-label={unread > 0 ? `${t.menuDi(user.username)} · ${t.daLeggere(unread)}` : t.menuDi(user.username)}
-                    className="p5-cut grid h-8 w-10 cursor-pointer place-items-center bg-ink text-paper transition-colors hover:bg-brand hover:text-white"
+                    className={cx("p5-cut grid h-8 w-10 cursor-pointer place-items-center", buttonColors("outline"))}
                   >
                     <svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4">
                       <circle cx="8" cy="5" r="3.2" fill="currentColor" />
