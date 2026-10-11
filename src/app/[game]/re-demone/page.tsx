@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { BattleBrief, BriefLink, compareClass } from "@/components/endgame/endgame-brief";
 import {
   Amounts,
   AttributeIcon,
@@ -12,7 +13,6 @@ import {
   HeroGrid,
   ItemLabel,
   PartTitle,
-  InPageNav,
   LevelCell,
   PassiveList,
   RankStars,
@@ -26,9 +26,12 @@ import {
   type EndgameScope,
 } from "@/components/endgame/endgame-parts";
 import { EndgameStage, StageBadge } from "@/components/endgame/endgame-stage";
+import { SectionIndex } from "@/components/section-index";
+import { StrategySection } from "@/components/strategies/strategy-section";
 import { cx, eyebrow, HowItWorks, numeric } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { chosenLevel, endgameImageSrc, formatNumber, levelHref, type PageSearchParams } from "@/lib/games/endgame";
+import { heroName } from "@/lib/games/heroes";
 import type { DemonKingDifficulty, DemonKingIndex, DemonKingPhase, DemonKingRuleStep } from "@/lib/games/endgame-types";
 import { requireGameModule } from "@/lib/games/registry";
 import { testi } from "@/lib/i18n/locale";
@@ -46,6 +49,12 @@ import { getLocale } from "@/lib/i18n/server";
  *
  * La difficolta' scelta sta nell'indirizzo (`?difficolta=4`), come negli
  * Scontri finali: il server rende solo quel pannello.
+ *
+ * L'ordine (11/10): prima la difficolta' col suo riassunto (i numeri, il tipo
+ * di regola di ogni fase, gli esclusi), le squadre consigliate, le fasi con le
+ * regole, il Verdetto e le ricompense; «Come funziona» (la guida del gioco, i
+ * tentativi, i Punti Purgatorio, gli esclusi per esteso) dopo. Prima stava in
+ * testa, e la difficolta' cominciava a uno schermo e mezzo dal titolo.
  */
 
 const TESTI = testi({
@@ -63,11 +72,17 @@ const TESTI = testi({
     inPagina: "In questa pagina",
     difficoltaSezione: "Difficoltà",
     difficoltaConta: (n: number) => `${n} difficoltà`,
+    inBreve: "La difficoltà scelta in breve",
+    confronta: (n: number) => `Confronta le ${n} difficoltà`,
+    squadre: "Squadre consigliate",
+    fasiRegole: "Fasi e regole",
+    regoleBreve: "Regole",
     guida: "La guida del gioco",
     sblocco: "Si sblocca con",
     tentativi: "Tentativi",
     passiveAlleati: "Passiva data alla tua squadra",
     esclusi: "Eroi esclusi",
+    esclusiBreve: "Esclusi",
     punti: "Punti Purgatorio",
     puntiSpiega:
       "Dopo il tentativo gratuito della settimana si rigioca con le Monete eroe, convertite in Punti Purgatorio. Spendere il triplo dei punti (x3) vale ricompense per tre completamenti.",
@@ -124,11 +139,17 @@ const TESTI = testi({
     inPagina: "On this page",
     difficoltaSezione: "Difficulties",
     difficoltaConta: (n: number) => (n === 1 ? "1 difficulty" : `${n} difficulties`),
+    inBreve: "The chosen difficulty at a glance",
+    confronta: (n: number) => `Compare the ${n} difficulties`,
+    squadre: "Recommended teams",
+    fasiRegole: "Phases and rules",
+    regoleBreve: "Rules",
     guida: "The game's guide",
     sblocco: "Unlocked by",
     tentativi: "Attempts",
     passiveAlleati: "Passive given to your team",
     esclusi: "Banned heroes",
+    esclusiBreve: "Banned",
     punti: "Purgatory Points",
     puntiSpiega:
       "After the week's free attempt you replay with Hero Coins, converted into Purgatory Points. Spending three times the points (x3) gives the rewards of three clears.",
@@ -242,94 +263,106 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
       </EndgameStage>
       <p className="m-0 mb-6 max-w-[48ch] text-[15px] leading-relaxed text-ink-2">{t.introduzione(data.difficulties.length)}</p>
 
-      <InPageNav
+      <SectionIndex
         label={t.inPagina}
-        links={[
-          ["#come-funziona", t.comeFunziona],
-          ["#difficolta", t.difficoltaSezione],
-          chosen ? ["#verdetto", t.verdetto] : null,
-          chosen ? ["#ricompense", t.ricompense] : null,
-          data.exchange.length > 0 && ["#scambio", t.scambio],
+        numbered={false}
+        entries={[
+          { id: "difficolta", label: t.difficoltaSezione },
+          { id: "squadre", label: t.squadre },
+          ...(chosen
+            ? [
+                { id: "fasi", label: t.fasiRegole },
+                { id: "verdetto", label: t.verdetto },
+                { id: "ricompense", label: t.ricompense },
+              ]
+            : []),
+          { id: "come-funziona", label: t.comeFunziona },
+          ...(data.exchange.length > 0 ? [{ id: "scambio", label: t.scambio }] : []),
         ]}
       />
 
-      <section id="come-funziona" className="mb-14 scroll-mt-20">
+      <section id="difficolta" className="scroll-mt-[120px]">
+        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
+        <DifficultyLinks
+          legend={t.scegli}
+          current={current}
+          tabs={data.difficulties.map((level) => ({
+            label: say(level.name, scope),
+            color: level.color,
+            href: levelLink(level.level),
+          }))}
+        />
+        {chosen ? <LevelBrief level={chosen} data={data} scope={scope} t={t} /> : null}
+        <LevelsTable
+          data={data}
+          scope={scope}
+          t={t}
+          current={current}
+          href={levelLink}
+          summary={t.confronta(data.difficulties.length)}
+        />
+      </section>
+
+      {/* le squadre dipendono dalla difficolta': subito sotto il suo riassunto */}
+      <StrategySection game={game} mode="demon-king" level={chosen?.level ?? null} className="mt-14" />
+
+      {chosen ? <LevelPanel level={chosen} data={data} scope={scope} t={t} /> : null}
+
+      <section id="come-funziona" className="mt-16 scroll-mt-[120px]">
         <SectionTitle>{t.comeFunziona}</SectionTitle>
         {/*
-          La guida del gioco chiusa (10/10): aperta erano diciassette paragrafi
-          prima degli esclusi e delle difficolta', lo strumento della pagina.
+          I fatti e i Punti Purgatorio affiancati, la guida del gioco sotto a
+          tutta riga e chiusa (10/10: aperta erano diciassette paragrafi). Prima
+          la guida chiusa stava a sinistra dei due riquadri, e lasciava mezza
+          colonna vuota.
         */}
-        <div className="grid items-start gap-x-6 gap-y-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <details className="p5-corner border border-rule bg-paper-2 px-4 py-3">
-            <Summary className="text-[14px] font-semibold text-ink">{t.guida}</Summary>
-            <div className="mt-2 grid max-w-[80ch] gap-3 pb-1 text-[13px] leading-relaxed text-ink-2">
-              {data.guide.map((line, index) => (
-                <Said key={index} value={line} scope={scope} />
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          <div className="min-w-0 border border-rule p-4">
+            <Facts
+              rows={[
+                data.unlock !== null && [t.sblocco, sayPlain(data.unlock, scope)],
+                data.attempts !== null && [t.tentativi, <Said key="a" value={data.attempts} scope={scope} />],
+              ]}
+            />
+            {data.allyPassives.length > 0 ? (
+              <div className="mt-4">
+                <p className={cx(eyebrow, "m-0 mb-1")}>{t.passiveAlleati}</p>
+                <PassiveList ids={data.allyPassives} scope={scope} />
+              </div>
+            ) : null}
+          </div>
+          <div className="min-w-0 border border-rule p-4">
+            <p className={cx(eyebrow, "m-0")}>{t.punti}</p>
+            <p className="m-0 mt-1 text-[13px] text-ink-2">{t.puntiSpiega}</p>
+            <ul className="m-0 mt-3 grid list-none gap-1 p-0 text-[13px]">
+              {data.coinPoints.map((row) => (
+                <li key={row.rarity} className="flex justify-between gap-3">
+                  <span>{t.moneta(row.rarity)}</span>
+                  <span className={cx(numeric, "text-ink-2")}>{t.puntiValore(formatNumber(row.points, locale))}</span>
+                </li>
               ))}
-            </div>
-          </details>
-          <div className="grid content-start gap-4">
-            <div className="border border-rule p-4">
-              <Facts
-                rows={[
-                  data.unlock !== null && [t.sblocco, sayPlain(data.unlock, scope)],
-                  data.attempts !== null && [t.tentativi, <Said key="a" value={data.attempts} scope={scope} />],
-                ]}
-              />
-              {data.allyPassives.length > 0 ? (
-                <div className="mt-4">
-                  <p className={cx(eyebrow, "m-0 mb-1")}>{t.passiveAlleati}</p>
-                  <PassiveList ids={data.allyPassives} scope={scope} />
-                </div>
-              ) : null}
-            </div>
-            <div className="border border-rule p-4">
-              <p className={cx(eyebrow, "m-0")}>{t.punti}</p>
-              <p className="m-0 mt-1 text-[13px] text-ink-2">{t.puntiSpiega}</p>
-              <ul className="m-0 mt-3 grid list-none gap-1 p-0 text-[13px]">
-                {data.coinPoints.map((row) => (
-                  <li key={row.rarity} className="flex justify-between gap-3">
-                    <span>{t.moneta(row.rarity)}</span>
-                    <span className={cx(numeric, "text-ink-2")}>{t.puntiValore(formatNumber(row.points, locale))}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            </ul>
           </div>
         </div>
+        <details className="p5-corner mt-4 border border-rule bg-paper-2 px-4 py-3">
+          <Summary className="text-[14px] font-semibold text-ink">{t.guida}</Summary>
+          <div className="mt-2 grid max-w-[80ch] gap-3 pb-1 text-[13px] leading-relaxed text-ink-2">
+            {data.guide.map((line, index) => (
+              <Said key={index} value={line} scope={scope} />
+            ))}
+          </div>
+        </details>
 
         {data.banned.length > 0 ? (
           <div className="mt-10">
-            <PartTitle>{t.esclusi}</PartTitle>
+            <PartTitle id="esclusi">{t.esclusi}</PartTitle>
             <HeroGrid ids={data.banned} scope={scope} />
           </div>
         ) : null}
       </section>
 
-      <section id="difficolta" className="scroll-mt-20 border-t border-rule pt-10">
-        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
-        <LevelsTable data={data} scope={scope} t={t} current={current} href={levelLink} />
-
-        <div className="mt-6">
-          <DifficultyLinks
-            legend={t.scegli}
-            current={current}
-            tabs={data.difficulties.map((level) => ({
-              label: say(level.name, scope),
-              color: level.color,
-              href: levelLink(level.level),
-            }))}
-          />
-          {chosen ? (
-            <div className="mt-6">
-              <LevelPanel level={chosen} data={data} scope={scope} t={t} />
-            </div>
-          ) : null}
-        </div>
-      </section>
-
       {data.exchange.length > 0 ? (
-        <section id="scambio" className="mt-14 scroll-mt-20 border-t border-rule pt-10">
+        <section id="scambio" className="mt-16 scroll-mt-[120px]">
           <SectionTitle>{t.scambio}</SectionTitle>
           <p className="-mt-2 mb-0 text-sm text-ink-2">{t.scambioSpiega(data.exchange[0]!.weekly)}</p>
           <ul className="m-0 mt-4 grid list-none gap-2 p-0">
@@ -364,72 +397,140 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
   );
 }
 
-/** Le quattro difficolta' a confronto; il nome di ogni riga porta alla difficolta', come i pulsanti. */
+/**
+ * La difficolta' scelta in breve: i numeri, il tipo di regola di ogni fase (il
+ * cuore della modalita', prima in due colonne della tabella fuori schermo sul
+ * telefono), e chi non entra in squadra, col salto all'elenco per esteso.
+ */
+function LevelBrief({ level, data, scope, t }: { level: DemonKingDifficulty; data: DemonKingIndex; scope: EndgameScope; t: T }) {
+  const banned = data.banned.flatMap((id) => {
+    const hero = scope.heroes.get(id);
+    return hero ? [heroName(hero, scope.locale)] : [];
+  });
+  return (
+    <BattleBrief
+      label={t.inBreve}
+      title={say(level.name, scope)}
+      color={level.color}
+      stats={[
+        [t.livello, level.bossLevel],
+        [t.potenza, formatNumber(level.power, scope.locale)],
+        [t.energia, level.energy],
+        [t.puntiX1, level.points.x1 ?? "—"],
+        [t.puntiX3, level.points.x3 ?? "—"],
+      ]}
+      rows={[
+        [
+          t.regoleBreve,
+          <span key="r" className="inline-flex flex-wrap gap-x-4 gap-y-1">
+            {level.phases.map((phase, index) => (
+              <span key={index}>
+                <span className="text-ink-3">{t.fase(index + 1)}: </span>
+                <span className="font-semibold text-ink">{phase.rules ? t.tipoRegola[phase.rules.type] : t.nessuna}</span>
+              </span>
+            ))}
+          </span>,
+        ],
+        data.banned.length > 0 && [
+          t.esclusiBreve,
+          <BriefLink key="e" href="#esclusi">
+            {banned.length === data.banned.length && banned.length <= 3 ? banned.join(" · ") : data.banned.length}
+          </BriefLink>,
+        ],
+      ]}
+    />
+  );
+}
+
+/**
+ * Le quattro difficolta' a confronto, chiuse sotto il riassunto (vedi
+ * compareClass); il nome di ogni riga porta alla difficolta', come i pulsanti.
+ */
 function LevelsTable({
   data,
   scope,
   t,
   current,
   href,
+  summary,
 }: {
   data: DemonKingIndex;
   scope: EndgameScope;
   t: T;
   current: number;
+  /** il titolo della parte chiusa: «Confronta le 4 difficoltà» */
+  summary: string;
   href: (level: number) => string;
 }) {
   const ruleName = (phase: DemonKingPhase | undefined) =>
     phase?.rules ? t.tipoRegola[phase.rules.type] : t.nessuna;
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[720px] border-collapse text-[13px]">
-        <thead>
-          <tr className="border-b border-rule text-left">
-            {[t.difficolta, t.livello, t.energia, t.potenza, t.puntiX1, t.puntiX3, t.regoleFase(1), t.regoleFase(2)].map((head) => (
-              <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
-                {head}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.difficulties.map((level, index) => (
-            <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
-              <td className="py-0.5 pr-3 pl-2">
-                <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
-              </td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.bossLevel}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x1 ?? "—"}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x3 ?? "—"}</td>
-              <td className="py-1.5 pr-3 text-ink-2">{ruleName(level.phases[0])}</td>
-              <td className="py-1.5 pr-3 text-ink-2">{ruleName(level.phases[1])}</td>
+    <details className={compareClass.details}>
+      <Summary className={compareClass.summary}>{summary}</Summary>
+      <div className={compareClass.body}>
+        <table className="w-full min-w-[720px] border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b border-rule text-left">
+              {[t.difficolta, t.livello, t.energia, t.potenza, t.puntiX1, t.puntiX3, t.regoleFase(1), t.regoleFase(2)].map((head) => (
+                <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
+                  {head}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {data.difficulties.map((level, index) => (
+              <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
+                <td className="py-0.5 pr-3 pl-2">
+                  <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
+                </td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.bossLevel}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x1 ?? "—"}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x3 ?? "—"}</td>
+                <td className="py-1.5 pr-3 text-ink-2">{ruleName(level.phases[0])}</td>
+                <td className="py-1.5 pr-3 text-ink-2">{ruleName(level.phases[1])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
   );
 }
 
-/** Una difficolta': le due fasi con le loro regole, il Verdetto, le ricompense. */
+/**
+ * Una difficolta': le due fasi con le loro regole, una per colonna e nell'ordine
+ * in cui si combattono, il Verdetto, le ricompense. I consigli del gioco uguali
+ * nelle due fasi si leggono una volta.
+ */
 function LevelPanel({ level, data, scope, t }: { level: DemonKingDifficulty; data: DemonKingIndex; scope: EndgameScope; t: T }) {
   const boxes = level.clear.filter((amount) => data.boxes[amount.id]);
+  const firstTips = data.monsters[level.phases[0]?.foe.monster ?? ""]?.tips;
   return (
-    <div className="grid gap-12">
-      <div className="grid gap-4 xl:grid-cols-2">
-        {level.phases.map((phase, index) => (
-          <div key={index} className="grid content-start gap-3">
-            <FoeCard foe={phase.foe} scope={scope} heading={t.fase(index + 1)} />
-            <Rules phase={phase} scope={scope} t={t} />
-          </div>
-        ))}
-      </div>
+    <>
+      <section id="fasi" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.fasiRegole}</SectionTitle>
+        <ol className="m-0 grid list-none gap-4 p-0 xl:grid-cols-2">
+          {level.phases.map((phase, index) => (
+            <li key={index} className="grid min-w-0 content-start gap-3">
+              <FoeCard
+                foe={phase.foe}
+                scope={scope}
+                heading={t.fase(index + 1)}
+                id={`fase-${index + 1}`}
+                tipsLike={index > 0 && firstTips ? { tips: firstTips, href: "#fase-1", where: t.fase(1) } : undefined}
+              />
+              <Rules phase={phase} scope={scope} t={t} />
+            </li>
+          ))}
+        </ol>
+      </section>
 
-      <div>
-        <PartTitle id="verdetto">{t.verdetto}</PartTitle>
-        <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-3">{t.verdettoSpiega}</p>
+      <section id="verdetto" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.verdetto}</SectionTitle>
+        <p className="-mt-2 mb-4 max-w-[48ch] text-[13px] text-ink-3">{t.verdettoSpiega}</p>
         <ol className="m-0 grid list-none gap-3 p-0 lg:grid-cols-3">
           {level.verdict.map((step, index) => (
             <li key={index} className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
@@ -438,11 +539,11 @@ function LevelPanel({ level, data, scope, t }: { level: DemonKingDifficulty; dat
             </li>
           ))}
         </ol>
-      </div>
+      </section>
 
-      <div>
-        <PartTitle id="ricompense">{t.ricompense}</PartTitle>
-        <div className="grid gap-5 lg:grid-cols-2">
+      <section id="ricompense" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.ricompense}</SectionTitle>
+        <div className="grid gap-x-8 gap-y-5 lg:grid-cols-2">
           <div className="grid content-start gap-4">
             <div>
               <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.completamento}</p>
@@ -465,8 +566,8 @@ function LevelPanel({ level, data, scope, t }: { level: DemonKingDifficulty; dat
           </div>
           <DropTable drops={level.drops} scope={scope} title={t.drop} />
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
 
@@ -497,7 +598,7 @@ function Rules({ phase, scope, t }: { phase: DemonKingPhase; scope: EndgameScope
               <tr key={index} className="border-b border-rule-2 last:border-b-0">
                 {sequence.map((step, position) => (
                   <td key={position} className="py-1 pr-2 align-middle">
-                    <RuleStep step={step} type={rules.type} scope={scope} t={t} />
+                    {ruleStep(step, rules.type, scope, t)}
                   </td>
                 ))}
               </tr>
@@ -514,18 +615,17 @@ function Rules({ phase, scope, t }: { phase: DemonKingPhase; scope: EndgameScope
  * tipo di carta. I tipi a coppie ([3, 4] e [6, 7]) prendono il nome corto delle
  * icone delle regole del gioco (DB_demonlord_ruleinfo: «Abilità Debuff e
  * Abilità Att. debuff», «Abilità Atteggiamento»).
+ *
+ * Una funzione e non un componente: sono cento celle per pagina, e in sviluppo
+ * ogni componente server porta nella pagina le sue informazioni di debug
+ * (11/10).
  */
-function RuleStep({
-  step,
-  type,
-  scope,
-  t,
-}: {
-  step: DemonKingRuleStep;
-  type: "attribute_type" | "card_rank" | "attack_type";
-  scope: EndgameScope;
-  t: T;
-}) {
+function ruleStep(
+  step: DemonKingRuleStep,
+  type: "attribute_type" | "card_rank" | "attack_type",
+  scope: EndgameScope,
+  t: T,
+) {
   if (type === "attribute_type") {
     return (
       <span className="inline-flex items-center gap-0.5">

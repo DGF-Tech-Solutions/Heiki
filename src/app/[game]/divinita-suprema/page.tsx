@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { BattleBrief, BriefLink, compareClass } from "@/components/endgame/endgame-brief";
 import {
   Amounts,
   AttributeIcon,
@@ -11,7 +12,6 @@ import {
   FoeCard,
   HeroGrid,
   PartTitle,
-  InPageNav,
   langOf,
   LevelCell,
   PassiveList,
@@ -24,6 +24,9 @@ import {
   type EndgameScope,
 } from "@/components/endgame/endgame-parts";
 import { EndgameStage, StageBadge } from "@/components/endgame/endgame-stage";
+import { IconArrowRight } from "@/components/icons";
+import { SectionIndex } from "@/components/section-index";
+import { StrategySection } from "@/components/strategies/strategy-section";
 import { cx, eyebrow, HowItWorks, numeric } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import {
@@ -54,6 +57,13 @@ import { getLocale } from "@/lib/i18n/server";
  *
  * La difficolta' scelta sta nell'indirizzo (`?difficolta=3`), come nelle altre
  * pagine del gruppo.
+ *
+ * L'ordine (11/10): la difficolta' col suo riassunto (i numeri, la sequenza dei
+ * Giudizi, le regole della difficolta' e la magia, gli esclusi), le squadre
+ * consigliate, i Giudizi in ordine, gli Editti con le Maledizioni che scattano
+ * quando falliscono, le ricompense; «Come funziona» dopo. Prima la guida, le
+ * Maledizioni, le Stigmate e i quindici esclusi venivano prima della
+ * difficolta', che cominciava a due schermi e mezzo dal titolo.
  */
 
 const TESTI = testi({
@@ -71,6 +81,16 @@ const TESTI = testi({
     inPagina: "In questa pagina",
     difficoltaSezione: "Difficoltà",
     difficoltaConta: (n: number) => `${n} difficoltà`,
+    inBreve: "La difficoltà scelta in breve",
+    confronta: (n: number) => `Confronta le ${n} difficoltà`,
+    squadre: "Squadre consigliate",
+    // le voci dell'indice, corte: coi titoli interi l'ultima usciva dalla riga anche a 1400 px
+    indice: { giudizi: "Giudizi", finale: "Giudizio finale", nascosto: "Giudizio nascosto", editti: "Editti" },
+    sequenza: "I Giudizi",
+    giudiziN: (n: number, turni: number) => `${n} Giudizi da ${turni} turni`,
+    nascostoSotto: (soglia: number) => `Giudizio nascosto, con la magia sotto il ${soglia}%`,
+    esclusiBreve: "Esclusi",
+    eroiN: (n: number) => (n === 1 ? "1 eroe" : `${n} eroi`),
     sblocco: "Si sblocca con",
     tentativi: "Tentativi",
     maledizioni: "Le Maledizioni",
@@ -134,6 +154,15 @@ const TESTI = testi({
     inPagina: "On this page",
     difficoltaSezione: "Difficulties",
     difficoltaConta: (n: number) => (n === 1 ? "1 difficulty" : `${n} difficulties`),
+    inBreve: "The chosen difficulty at a glance",
+    confronta: (n: number) => `Compare the ${n} difficulties`,
+    squadre: "Recommended teams",
+    indice: { giudizi: "Judgments", finale: "Final Judgment", nascosto: "Hidden Judgment", editti: "Edicts" },
+    sequenza: "The Judgments",
+    giudiziN: (n: number, turni: number) => `${n} Judgments of ${turni} turns`,
+    nascostoSotto: (soglia: number) => `Hidden Judgment, with the magic below ${soglia}%`,
+    esclusiBreve: "Banned",
+    eroiN: (n: number) => (n === 1 ? "1 hero" : `${n} heroes`),
     sblocco: "Unlocked by",
     tentativi: "Attempts",
     maledizioni: "The Curses",
@@ -241,21 +270,54 @@ export default async function SupremeDeityPage({ params, searchParams }: Props) 
       </EndgameStage>
       <p className="m-0 mb-6 max-w-[48ch] text-[15px] leading-relaxed text-ink-2">{t.introduzione(data.difficulties.length)}</p>
 
-      {/* nove schermi di pagina: le parti della difficolta' scelta a un clic */}
-      <InPageNav
+      {/* nove schermi di pagina: le parti della difficolta' scelta a un clic, e l'indice resta fermo sotto la testata */}
+      <SectionIndex
         label={t.inPagina}
-        links={[
-          ["#come-funziona", t.comeFunziona],
-          ["#difficolta", t.difficoltaSezione],
-          chosen ? ["#giudizi", t.giudizi] : null,
-          chosen ? ["#giudizio-finale", t.finale] : null,
-          chosen?.hidden ? ["#giudizio-nascosto", t.nascostoTitolo] : null,
-          chosen ? ["#editti", t.editti] : null,
-          chosen ? ["#ricompense", t.ricompense] : null,
+        numbered={false}
+        entries={[
+          { id: "difficolta", label: t.difficoltaSezione },
+          { id: "squadre", label: t.squadre },
+          ...(chosen
+            ? [
+                { id: "giudizi", label: t.indice.giudizi },
+                { id: "giudizio-finale", label: t.indice.finale },
+                ...(chosen.hidden ? [{ id: "giudizio-nascosto", label: t.indice.nascosto }] : []),
+                { id: "editti", label: t.indice.editti },
+                { id: "ricompense", label: t.ricompense },
+              ]
+            : []),
+          { id: "come-funziona", label: t.comeFunziona },
         ]}
       />
 
-      <section id="come-funziona" className="mb-14 scroll-mt-20">
+      <section id="difficolta" className="scroll-mt-[120px]">
+        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
+        <DifficultyLinks
+          legend={t.scegli}
+          current={current}
+          tabs={data.difficulties.map((level) => ({
+            label: say(level.name, scope),
+            color: level.color,
+            href: levelLink(level.level),
+          }))}
+        />
+        {chosen ? <LevelBrief level={chosen} data={data} scope={scope} t={t} /> : null}
+        <LevelsTable
+          data={data}
+          scope={scope}
+          t={t}
+          current={current}
+          href={levelLink}
+          summary={t.confronta(data.difficulties.length)}
+        />
+      </section>
+
+      {/* le squadre dipendono dalla difficolta': subito sotto il suo riassunto */}
+      <StrategySection game={game} mode="supreme-deity" level={chosen?.level ?? null} className="mt-14" />
+
+      {chosen ? <LevelPanel level={chosen} data={data} scope={scope} t={t} /> : null}
+
+      <section id="come-funziona" className="mt-16 scroll-mt-[120px]">
         <SectionTitle>{t.comeFunziona}</SectionTitle>
         {/* la guida del gioco a fisarmonica, come nelle Bestie: cinque riquadri in griglia facevano due schermi */}
         <div className="grid items-start gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
@@ -281,66 +343,38 @@ export default async function SupremeDeityPage({ params, searchParams }: Props) 
           </div>
         </div>
 
-        <div className="mt-12 grid gap-x-8 gap-y-10 lg:grid-cols-2">
-          <div className="min-w-0">
-            <PartTitle>{t.maledizioni}</PartTitle>
-            <p className="m-0 mb-3 text-[13px] text-ink-3">{t.maledizioniSpiega}</p>
-            <PassiveList ids={data.curses.map((curse) => curse.passive)} scope={scope} />
-          </div>
-          <div className="min-w-0">
-            <PartTitle>{t.stigmate}</PartTitle>
-            <ul className="m-0 grid list-none gap-3 p-0">
-              {data.stigmata.map((stigma, index) => (
-                <li key={index} className="flex min-w-0 gap-3 text-[13px]">
-                  {stigma.icon ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={endgameImageSrc(game, `abilita/${stigma.icon}.png`)}
-                      alt=""
-                      width={40}
-                      height={40}
-                      loading="lazy"
-                      className="h-10 w-10 shrink-0 bg-paper-2"
-                    />
-                  ) : null}
-                  <div className="min-w-0">
-                    <p className="m-0 font-semibold">{sayPlain(stigma.name, scope)}</p>
-                    <Said value={stigma.ranks[0]} scope={scope} className="text-ink-2 [&>p]:m-0" />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="mt-12">
+          <PartTitle>{t.stigmate}</PartTitle>
+          <ul className="m-0 grid list-none gap-x-8 gap-y-3 p-0 lg:grid-cols-2">
+            {data.stigmata.map((stigma, index) => (
+              <li key={index} className="flex min-w-0 gap-3 text-[13px]">
+                {stigma.icon ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={endgameImageSrc(game, `abilita/${stigma.icon}.png`)}
+                    alt=""
+                    width={40}
+                    height={40}
+                    loading="lazy"
+                    className="h-10 w-10 shrink-0 bg-paper-2"
+                  />
+                ) : null}
+                <div className="min-w-0">
+                  <p className="m-0 font-semibold">{sayPlain(stigma.name, scope)}</p>
+                  <Said value={stigma.ranks[0]} scope={scope} className="text-ink-2 [&>p]:m-0" />
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {data.banned.length > 0 ? (
           <div className="mt-12">
-            <PartTitle>{t.esclusi}</PartTitle>
+            <PartTitle id="esclusi">{t.esclusi}</PartTitle>
             <p className="m-0 mb-3 text-[13px] text-ink-3">{t.esclusiSpiega}</p>
             <HeroGrid ids={data.banned} scope={scope} />
           </div>
         ) : null}
-      </section>
-
-      <section id="difficolta" className="scroll-mt-20 border-t border-rule pt-10">
-        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
-        <LevelsTable data={data} scope={scope} t={t} current={current} href={levelLink} />
-        <div className="mt-6">
-          <DifficultyLinks
-            legend={t.scegli}
-            current={current}
-            tabs={data.difficulties.map((level) => ({
-              label: say(level.name, scope),
-              color: level.color,
-              href: levelLink(level.level),
-            }))}
-          />
-          {chosen ? (
-            <div className="mt-6">
-              <LevelPanel level={chosen} data={data} scope={scope} t={t} />
-            </div>
-          ) : null}
-        </div>
       </section>
 
       {/* il metodo in fondo, chiuso: la fonte e le probabilita' (10/10) */}
@@ -353,59 +387,60 @@ export default async function SupremeDeityPage({ params, searchParams }: Props) 
   );
 }
 
-/** Le difficolta' a confronto; il nome di ogni riga porta alla difficolta', come i pulsanti. */
-function LevelsTable({
+/**
+ * La difficolta' scelta in breve: i numeri, la sequenza dei Giudizi coi salti
+ * alle loro parti, gli esclusi, e sotto le regole della difficolta' e la magia
+ * (prima due riquadri in testa al pannello, dopo la tabella e i pulsanti).
+ */
+function LevelBrief({
+  level,
   data,
   scope,
   t,
-  current,
-  href,
 }: {
+  level: SupremeDeityDifficulty;
   data: SupremeDeityIndex;
   scope: EndgameScope;
   t: T;
-  current: number;
-  href: (level: number) => string;
 }) {
+  const arrow = <IconArrowRight size={14} className="shrink-0 text-ink-3" />;
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] border-collapse text-[13px]">
-        <thead>
-          <tr className="border-b border-rule text-left">
-            {[t.difficolta, t.energia, t.potenza, t.turni, t.puntiX1, t.puntiX3, t.nascosto].map((head) => (
-              <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
-                {head}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.difficulties.map((level, index) => (
-            <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
-              <td className="py-0.5 pr-3 pl-2">
-                <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
-              </td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.turns}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x1 ?? "—"}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x3 ?? "—"}</td>
-              <td className="py-1.5 pr-3 text-ink-2">{level.hidden ? t.si : t.no}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; data: SupremeDeityIndex; scope: EndgameScope; t: T }) {
-  const boxes = level.clear.filter((amount) => data.boxes[amount.id]);
-  const { judgments, final, hidden, first } = placeGroups(level, scope, t);
-  return (
-    <div className="grid gap-12">
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
+    <BattleBrief
+      label={t.inBreve}
+      title={say(level.name, scope)}
+      color={level.color}
+      stats={[
+        [t.energia, level.energy],
+        [t.potenza, formatNumber(level.power, scope.locale)],
+        [t.turni, level.turns],
+        [t.puntiX1, level.points.x1 ?? "—"],
+        [t.puntiX3, level.points.x3 ?? "—"],
+      ]}
+      rows={[
+        [
+          t.sequenza,
+          <span key="g" className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+            <BriefLink href="#giudizi">{t.giudiziN(level.judgments.length, level.turns)}</BriefLink>
+            {arrow}
+            <BriefLink href="#giudizio-finale">{t.finale}</BriefLink>
+            {level.hidden ? (
+              <>
+                {arrow}
+                <BriefLink href="#giudizio-nascosto">{t.nascostoSotto(level.hidden.opensBelow)}</BriefLink>
+              </>
+            ) : null}
+          </span>,
+        ],
+        data.banned.length > 0 && [
+          t.esclusiBreve,
+          <BriefLink key="e" href="#esclusi">
+            {t.eroiN(data.banned.length)}
+          </BriefLink>,
+        ],
+      ]}
+    >
+      <div className="grid gap-x-8 gap-y-5 lg:grid-cols-2">
+        <div className="min-w-0">
           <p className={cx(eyebrow, "m-0 mb-2")}>{t.regole}</p>
           {level.modePassive ? (
             <div>
@@ -420,14 +455,82 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
             </div>
           ) : null}
         </div>
-        <div className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
+        <div className="min-w-0">
           <p className={cx(eyebrow, "m-0 mb-2")}>{t.magia}</p>
           <p className="m-0 text-[13px] text-ink-2">{t.magiaTesto(level.magic.perSurvivor, level.magic.inherited)}</p>
         </div>
       </div>
+    </BattleBrief>
+  );
+}
 
-      <div>
-        <PartTitle id="giudizi">{t.giudizi}</PartTitle>
+/**
+ * Le difficolta' a confronto, chiuse sotto il riassunto (vedi compareClass); il
+ * nome di ogni riga porta alla difficolta', come i pulsanti.
+ */
+function LevelsTable({
+  data,
+  scope,
+  t,
+  current,
+  href,
+  summary,
+}: {
+  data: SupremeDeityIndex;
+  scope: EndgameScope;
+  t: T;
+  current: number;
+  /** il titolo della parte chiusa: «Confronta le 4 difficoltà» */
+  summary: string;
+  href: (level: number) => string;
+}) {
+  return (
+    <details className={compareClass.details}>
+      <Summary className={compareClass.summary}>{summary}</Summary>
+      <div className={compareClass.body}>
+        <table className="w-full min-w-[640px] border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b border-rule text-left">
+              {[t.difficolta, t.energia, t.potenza, t.turni, t.puntiX1, t.puntiX3, t.nascosto].map((head) => (
+                <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
+                  {head}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.difficulties.map((level, index) => (
+              <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
+                <td className="py-0.5 pr-3 pl-2">
+                  <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
+                </td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.turns}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x1 ?? "—"}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.points.x3 ?? "—"}</td>
+                <td className="py-1.5 pr-3 text-ink-2">{level.hidden ? t.si : t.no}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
+
+/**
+ * Una difficolta': i Giudizi in ordine, il finale, il nascosto, gli Editti con
+ * le Maledizioni (la conseguenza di un Editto fallito: prima stavano in «Come
+ * funziona», lontane dagli Editti), le ricompense.
+ */
+function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; data: SupremeDeityIndex; scope: EndgameScope; t: T }) {
+  const boxes = level.clear.filter((amount) => data.boxes[amount.id]);
+  const { judgments, final, hidden, first } = placeGroups(level, scope, t);
+  return (
+    <>
+      <section id="giudizi" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.giudizi}</SectionTitle>
         <div className="grid gap-4">
           {judgments.map(({ judgment, place }) => (
             <GroupBlock
@@ -445,11 +548,11 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
             />
           ))}
         </div>
-      </div>
+      </section>
 
-      <div>
-        <PartTitle id="giudizio-finale">{t.finale}</PartTitle>
-        <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-3">{t.finaleSpiega}</p>
+      <section id="giudizio-finale" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.finale}</SectionTitle>
+        <p className="-mt-2 mb-4 max-w-[48ch] text-[13px] text-ink-3">{t.finaleSpiega}</p>
         <div className="grid gap-4">
           {final.map(({ step, groups }) => (
             <div key={step.upTo} className="border border-rule p-3 sm:p-4">
@@ -462,23 +565,23 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {level.hidden ? (
-        <div>
-          <PartTitle id="giudizio-nascosto">{t.nascostoTitolo}</PartTitle>
-          <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-3">{t.nascostoSpiega(level.hidden.opensBelow)}</p>
+        <section id="giudizio-nascosto" className="mt-16 scroll-mt-[120px]">
+          <SectionTitle>{t.nascostoTitolo}</SectionTitle>
+          <p className="-mt-2 mb-4 max-w-[48ch] text-[13px] text-ink-3">{t.nascostoSpiega(level.hidden.opensBelow)}</p>
           <div className="grid gap-4 xl:grid-cols-2">
             {hidden.map(({ group, place }) => (
               <GroupBlock key={place.key} group={group} place={place} first={first} scope={scope} t={t} />
             ))}
           </div>
-        </div>
+        </section>
       ) : null}
 
-      <div>
-        <PartTitle id="editti">{t.editti}</PartTitle>
-        <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-3">{t.edittiSpiega}</p>
+      <section id="editti" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.editti}</SectionTitle>
+        <p className="-mt-2 mb-4 max-w-[48ch] text-[13px] text-ink-3">{t.edittiSpiega}</p>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {level.edicts.map((step) => (
             <div key={step.upTo} className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
@@ -493,11 +596,19 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
             </div>
           ))}
         </div>
-      </div>
 
-      <div>
-        <PartTitle id="ricompense">{t.ricompense}</PartTitle>
-        <div className="grid gap-5 lg:grid-cols-2">
+        {data.curses.length > 0 ? (
+          <div className="mt-10">
+            <PartTitle>{t.maledizioni}</PartTitle>
+            <p className="m-0 mb-3 text-[13px] text-ink-3">{t.maledizioniSpiega}</p>
+            <PassiveList ids={data.curses.map((curse) => curse.passive)} scope={scope} />
+          </div>
+        ) : null}
+      </section>
+
+      <section id="ricompense" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.ricompense}</SectionTitle>
+        <div className="grid gap-x-8 gap-y-5 lg:grid-cols-2">
           <div className="grid content-start gap-4">
             <div>
               <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.completamento}</p>
@@ -520,8 +631,8 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
           </div>
           <DropTable drops={level.drops} scope={scope} title={t.drop} />
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
 
@@ -759,7 +870,7 @@ function TeamPassives({
           );
         }
         return (
-          <li key={id} id={passiveAnchor(id)} className="min-w-0 scroll-mt-20 target:bg-brand-soft/40">
+          <li key={id} id={passiveAnchor(id)} className="min-w-0 scroll-mt-[120px] target:bg-brand-soft/40">
             <p className="m-0 font-semibold" lang={langOf(passive.name, scope)}>
               {sayPlain(passive.name, scope)}
             </p>

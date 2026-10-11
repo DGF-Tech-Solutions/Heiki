@@ -19,8 +19,10 @@ import { findGame } from "@/lib/games/catalog";
 import { auth } from "@/lib/auth";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
-import { followedUserIds, suggestedUsers } from "@/lib/social/actions";
+import { followedUserIds, suggestedUsers } from "@/lib/social/server";
 import { databaseReachable } from "@/lib/db";
+import { getGameModule } from "@/lib/games/registry";
+import { hasStrategies, newStrategyHref } from "@/lib/strategies/rules";
 
 const TESTI = testi({
   it: {
@@ -29,6 +31,9 @@ const TESTI = testi({
       `Discussioni, build e domande dei giocatori di ${gioco}.`,
     questoGioco: "questo gioco",
     titolo: "Discussioni",
+    strategiaTitolo: "Una squadra per l'Endgame?",
+    strategiaTesto: "Scegli modalità, boss e difficoltà: la squadra senza testo esce subito nella pagina del boss, una guida passa prima da un moderatore.",
+    strategiaComando: "Nuova strategia",
     sottotitolo: "Build, squadre e domande dei giocatori: con i numeri e la patch su cui sono state provate.",
     demoTitolo: "Modalità dimostrativa.",
     demoTesto:
@@ -57,6 +62,9 @@ const TESTI = testi({
       `Discussions, builds and questions from ${gioco} players.`,
     questoGioco: "this game",
     titolo: "Discussions",
+    strategiaTitolo: "A team for the Endgame?",
+    strategiaTesto: "Pick the mode, boss and difficulty: a team without text shows up right away on the boss page, a guide goes through a moderator first.",
+    strategiaComando: "New strategy",
     sottotitolo: "Players' builds, teams and questions: with numbers and the patch they were tested on.",
     demoTitolo: "Demo mode.",
     demoTesto:
@@ -183,6 +191,19 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
               {t.seguiti}
             </Link>
           </nav>
+        ) : null}
+
+        {/* le strategie dell'Endgame hanno un modulo loro, col modello della modalita':
+            senza database non si scrivono (le decide un moderatore) */}
+        {!store.volatile && hasStrategies(getGameModule(game)) ? (
+          <div className="p5-corner mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 border border-rule border-l-4 border-l-brand bg-paper-2 px-4 py-3">
+            <p className="m-0 min-w-0 flex-1 text-sm text-ink-2">
+              <strong className="text-ink">{t.strategiaTitolo}</strong> {t.strategiaTesto}
+            </p>
+            <Link href={newStrategyHref(game)} className={buttonClass("primary", "sm")}>
+              {t.strategiaComando}
+            </Link>
+          </div>
         ) : null}
 
         <Composer game={game} defaultHub={hub ?? "build"} />

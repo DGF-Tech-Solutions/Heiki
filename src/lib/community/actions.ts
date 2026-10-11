@@ -12,12 +12,12 @@ import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { databaseReachable, db } from "@/lib/db";
-import { comments, users } from "@/lib/db/schema";
+import { databaseReachable, db, isDatabaseConfigured } from "@/lib/db";
+import { comments, posts, users } from "@/lib/db/schema";
 import { testi, type Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { normalizeCustomization } from "@/lib/profile/customization";
-import { notifyOnComment } from "@/lib/social/actions";
+import { notifyOnComment } from "@/lib/social/server";
 import { suspensionFor, suspensionMessage } from "@/lib/moderation/suspension";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { getGameModule } from "@/lib/games/registry";
@@ -41,6 +41,8 @@ const TESTI = testi({
     datiNonValidi: "Dati non validi.",
     entraPerCommentare: "Entra per commentare.",
     entraPerVotare: "Entra per votare.",
+    nonPubblicato: "Questa guida non è ancora pubblicata: si vota e si commenta dopo la revisione.",
+    nonDisponibile: "Questo contenuto non c'è più o non è aperto.",
   },
   en: {
     titoloCorto: "The title must be at least 8 characters long",
@@ -53,6 +55,8 @@ const TESTI = testi({
     datiNonValidi: "Invalid data.",
     entraPerCommentare: "Log in to comment.",
     entraPerVotare: "Log in to vote.",
+    nonPubblicato: "This guide isn't published yet: voting and comments open after review.",
+    nonDisponibile: "This content no longer exists or isn't open.",
   },
 });
 
@@ -97,9 +101,15 @@ const commentSchema = (t: Testi) =>
  * Senza database non c'e' sessione, e si agisce come ospite: e' l'unico modo per
  * poter provare la community prima di avere un account. Con il database attivo
  * serve invece una sessione vera.
+ *
+ * Ospite solo se il database NON e' configurato. Configurato ma per un attimo
+ * irraggiungibile, fino all'11/10 si scriveva come ospite nell'archivio in
+ * memoria, che tutti vedono: ora nessuno (segnalato dalla sessione sulla
+ * sicurezza).
  */
 export async function currentViewer(): Promise<Viewer | null> {
-  if (!(await databaseReachable())) return GUEST;
+  if (!isDatabaseConfigured()) return GUEST;
+  if (!(await databaseReachable())) return null;
 
   const session = await auth();
   const id = session?.user?.id;
@@ -119,6 +129,36 @@ export async function currentViewer(): Promise<Viewer | null> {
     role: row.role,
     accent: normalizeCustomization(row.profile?.cosmetics).accent,
   };
+}
+
+/**
+ * Se si puo' votare o commentare un post: deve esistere, non essere nascosto e,
+ * se e' una guida dell'Endgame, essere pubblicata. Fino all'11/10 si commentava
+ * un post nascosto (e l'autore riceveva la notifica col titolo) e si votava un id
+ * qualunque, lasciando righe orfane nei voti. Nella modalita' dimostrativa non
+ * c'e' niente da controllare.
+ */
+async function postBlock(postId: string): Promise<"missing" | "unpublished" | null> {
+  if (!(await databaseReachable())) return null;
+  const row = await db.query.posts.findFirst({
+    where: eq(posts.id, postId),
+    columns: { hidden: true },
+    with: { strategy: { columns: { status: true } } },
+  });
+  if (!row || row.hidden) return "missing";
+  if (row.strategy && row.strategy.status !== "PUBLISHED") return "unpublished";
+  return null;
+}
+
+/** Lo stesso per un commento: esiste, non e' nascosto, e il suo post e' aperto. */
+async function commentBlock(commentId: string): Promise<"missing" | "unpublished" | null> {
+  if (!(await databaseReachable())) return null;
+  const row = await db.query.comments.findFirst({
+    where: eq(comments.id, commentId),
+    columns: { hidden: true, postId: true },
+  });
+  if (!row || row.hidden) return "missing";
+  return postBlock(row.postId);
 }
 
 /**
@@ -203,6 +243,11 @@ export async function createCommentAction(
 
   if (!(await idsValid(parsed.data.postId, parsed.data.parentId))) return { error: t.datiNonValidi };
 
+  // una guida dell'Endgame in revisione si legge (autore e moderatori) ma non si
+  // discute: prima la decide un moderatore; e un post nascosto non si commenta
+  const closed = await postBlock(parsed.data.postId);
+  if (closed) return { error: closed === "unpublished" ? t.nonPubblicato : t.nonDisponibile };
+
   // La risposta deve stare nello stesso post del commento a cui risponde: senza
   // il controllo, una richiesta a mano mandava l'avviso di risposta all'autore
   // di un commento di un'altra discussione (11/10)
@@ -254,6 +299,12 @@ export async function voteAction(
 
   const blocked = await writeGuard(viewer, "vote", locale);
   if (blocked) return blocked;
+
+  const closed =
+    parsed.data.targetType === "POST"
+      ? await postBlock(parsed.data.targetId)
+      : await commentBlock(parsed.data.targetId);
+  if (closed) return { error: closed === "unpublished" ? t.nonPubblicato : t.nonDisponibile };
 
   const store = await getStore();
   if (parsed.data.targetType === "POST") await store.votePost(parsed.data.targetId, parsed.data.value, viewer);

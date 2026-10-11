@@ -109,10 +109,11 @@ export function HeroEndgameLine({
 
     // Dove porta: la pagina del boss o della bestia se il legame e' con uno solo
     // (Scontri finali e Bestie hanno una pagina per boss); se no la pagina della
-    // modalita', agli eroi o alla spiegazione dove stanno gli esclusi.
+    // modalita', agli eroi o all'elenco degli esclusi (`#esclusi`, dall'11/10:
+    // prima la spiegazione intera, dove l'elenco stava in fondo).
     const href = link.target
       ? `/${game}/${PATH[link.mode]}/${link.target.key}`
-      : `/${game}/${PATH[link.mode]}#${link.kind === "banned" ? "come-funziona" : "eroi"}`;
+      : `/${game}/${PATH[link.mode]}#${link.kind === "banned" ? "esclusi" : "eroi"}`;
     const condition =
       link.kind === "only" || link.kind === "excluded" ? CONDITION[`${link.mode}:${link.kind}`] : undefined;
     return { href, text, condition };

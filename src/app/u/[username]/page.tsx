@@ -7,7 +7,7 @@ import { ProfileWorkspace } from "@/components/profile-workspace";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
 import { saveProfileAction } from "@/lib/profile/actions";
 import { hasActivePremium, loadProfile, pickableGames } from "@/lib/profile/load";
-import { isFollowing } from "@/lib/social/actions";
+import { isFollowing } from "@/lib/social/server";
 import { FollowButton } from "@/components/social/follow-button";
 import { PostCard } from "@/components/community/post-card";
 import { getStore } from "@/lib/community/store";

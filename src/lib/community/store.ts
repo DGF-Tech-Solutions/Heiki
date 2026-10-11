@@ -14,11 +14,13 @@
  * funziona. Che i contenuti siano volatili viene dichiarato nell'interfaccia.
  */
 
-import { and, desc, eq, ilike, inArray, like, or } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, like, notInArray, or, sql } from "drizzle-orm";
 import { databaseReachable, db } from "@/lib/db";
-import { comments, games, hubs, posts, profiles, users, votes } from "@/lib/db/schema";
+import { comments, hubs, posts, profiles, users, votes } from "@/lib/db/schema";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { DEMO_POSTS, DEMO_SPONSORS } from "./demo-seed";
+import { strategyBriefs, unpublishedStrategyPosts } from "@/lib/strategies/server";
+import { ensureHub } from "./hubs";
 import { hubName, normalizeAttachment, toAttachmentRecord } from "./types";
 import type {
   Author,
@@ -241,6 +243,8 @@ function countComments(nodes: readonly CommentNode[]): number {
 
 /* ========================================================= archivio su DB */
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Lo slug di un hub sul database porta il gioco davanti ("grand-cross:build")
  * perche' deve essere unico nella tabella. Verso l'esterno conta solo la parte
@@ -263,6 +267,8 @@ const dbStore: CommunityStore = {
     const rows = await db.query.posts.findMany({
       where: and(
         eq(posts.hidden, false),
+        // una guida dell'Endgame in revisione o respinta non e' ancora nel feed
+        notInArray(posts.id, unpublishedStrategyPosts()),
         hubPattern ? inArray(posts.hubId, db.select({ id: hubs.id }).from(hubs).where(like(hubs.slug, hubPattern))) : undefined,
         filter.author ? inArray(posts.authorId, db.select({ id: users.id }).from(users).where(eq(users.username, filter.author.toLowerCase()))) : undefined,
         pattern ? or(ilike(posts.title, pattern), ilike(posts.bodyMd, pattern)) : undefined,
@@ -273,6 +279,7 @@ const dbStore: CommunityStore = {
     });
 
     const ballots = await ballotsFor(viewer, "POST", rows.map((row) => row.id));
+    const briefs = await strategyBriefs(rows.map((row) => row.id));
 
     return rows
       .map((row) => ({
@@ -288,10 +295,14 @@ const dbStore: CommunityStore = {
         createdAt: row.createdAt.toISOString(),
         attachment: readAttachment(row.attachment),
         myVote: ballots.get(row.id) ?? 0,
+        ...(briefs.has(row.id) ? { strategy: briefs.get(row.id) } : {}),
       }));
   },
 
   async getPost(id, viewer) {
+    // un id che non e' un UUID arrivava a Postgres e la pagina rispondeva 500:
+    // per chi chiama e' un post che non esiste (segnalato dalla sessione sulla sicurezza)
+    if (!UUID.test(id)) return null;
     const row = await db.query.posts.findFirst({
       where: eq(posts.id, id),
       with: {
@@ -412,59 +423,61 @@ const dbStore: CommunityStore = {
   },
 
   async votePost(postId, value, viewer) {
-    const delta = await recordVote(viewer, "POST", postId, value);
-    if (delta === 0) return;
-    const row = await db.query.posts.findFirst({
-      where: eq(posts.id, postId),
-      columns: { score: true },
-    });
-    await db
-      .update(posts)
-      .set({ score: (row?.score ?? 0) + delta })
-      .where(eq(posts.id, postId));
+    await recordVote(viewer, "POST", postId, value);
   },
 
   async voteComment(commentId, value, viewer) {
-    const delta = await recordVote(viewer, "COMMENT", commentId, value);
-    if (delta === 0) return;
-    const row = await db.query.comments.findFirst({
-      where: eq(comments.id, commentId),
-      columns: { score: true },
-    });
-    await db
-      .update(comments)
-      .set({ score: (row?.score ?? 0) + delta })
-      .where(eq(comments.id, commentId));
+    await recordVote(viewer, "COMMENT", commentId, value);
   },
 };
 
-/** Restituisce la variazione di punteggio da applicare. */
+/**
+ * Registra il voto e sposta il punteggio, in una transazione sola.
+ *
+ * Fino all'11/10 si leggeva il voto, poi lo si scriveva, poi si leggeva il
+ * punteggio e lo si riscriveva come «letto + variazione»: due richieste insieme
+ * con lo stesso cambio contavano due volte (segnalato dalla sessione sulla
+ * sicurezza). Ora la riga del voto si blocca (`for update`) finche' la
+ * transazione non finisce, e il punteggio cresce nel database
+ * (`score = score + variazione`), senza passare da una lettura.
+ */
 async function recordVote(
   viewer: Viewer,
   targetType: "POST" | "COMMENT",
   targetId: string,
   value: Vote,
-): Promise<number> {
-  const existing = await db.query.votes.findFirst({
-    where: and(
-      eq(votes.userId, viewer.id),
-      eq(votes.targetType, targetType),
-      eq(votes.targetId, targetId),
-    ),
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({ id: votes.id, value: votes.value })
+      .from(votes)
+      .where(and(eq(votes.userId, viewer.id), eq(votes.targetType, targetType), eq(votes.targetId, targetId)))
+      .for("update");
+
+    const previous = (existing?.value ?? 0) as Vote;
+    if (previous === value) return;
+
+    if (existing) {
+      if (value === 0) await tx.delete(votes).where(eq(votes.id, existing.id));
+      else await tx.update(votes).set({ value }).where(eq(votes.id, existing.id));
+    } else {
+      // due primi voti insieme: il secondo trova la riga gia' scritta dal primo e
+      // non conta (l'indice unico su utente e bersaglio fa da arbitro)
+      const [created] = await tx
+        .insert(votes)
+        .values({ userId: viewer.id, targetType, targetId, value })
+        .onConflictDoNothing()
+        .returning({ id: votes.id });
+      if (!created) return;
+    }
+
+    const delta = value - previous;
+    if (targetType === "POST") {
+      await tx.update(posts).set({ score: sql`${posts.score} + ${delta}` }).where(eq(posts.id, targetId));
+    } else {
+      await tx.update(comments).set({ score: sql`${comments.score} + ${delta}` }).where(eq(comments.id, targetId));
+    }
   });
-
-  const previous = (existing?.value ?? 0) as Vote;
-  if (previous === value) return 0;
-
-  if (value === 0) {
-    if (existing) await db.delete(votes).where(eq(votes.id, existing.id));
-  } else if (existing) {
-    await db.update(votes).set({ value }).where(eq(votes.id, existing.id));
-  } else {
-    await db.insert(votes).values({ userId: viewer.id, targetType, targetId, value });
-  }
-
-  return value - previous;
 }
 
 async function ballotsFor(
@@ -485,29 +498,6 @@ async function ballotsFor(
     if (wanted.has(row.targetId)) result.set(row.targetId, row.value as Vote);
   }
   return result;
-}
-
-async function ensureHub(slug: string, gameSlug: string): Promise<string> {
-  // Gli hub sono per gioco: lo stesso nome di sezione esiste in ognuno.
-  const key = `${gameSlug}:${slug}`;
-  const existing = await db.query.hubs.findFirst({
-    where: eq(hubs.slug, key),
-    columns: { id: true },
-  });
-  if (existing) return existing.id;
-
-  const game = await db.query.games.findFirst({
-    where: eq(games.slug, gameSlug),
-    columns: { id: true },
-  });
-
-  const [created] = await db
-    .insert(hubs)
-    .values({ slug: key, name: hubName(slug), gameId: game?.id ?? null })
-    .returning({ id: hubs.id });
-
-  if (!created) throw new Error(`Impossibile creare l'hub "${slug}"`);
-  return created.id;
 }
 
 type AuthorRow = typeof users.$inferSelect & {

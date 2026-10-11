@@ -17,6 +17,11 @@ import { cachedCheck } from "@/lib/community/verify";
 import { can, roleLabel } from "@/lib/auth/permissions";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { getGameModule } from "@/lib/games/registry";
+import { getStrategy } from "@/lib/strategies/server";
+import { strategyTitle } from "@/lib/strategies/view";
+import { StrategyView } from "@/components/strategies/strategy-view";
+import { StrategyReview } from "@/components/strategies/strategy-review";
 
 const TESTI = testi({
   it: {
@@ -29,6 +34,14 @@ const TESTI = testi({
       n === 0 ? "Risposte" : `${n} ${n === 1 ? "risposta" : "risposte"}`,
     serveProfilo: "Per rispondere e votare serve un profilo:",
     creaneUno: "creane uno",
+    inRevisioneAutore:
+      "La tua guida è in revisione: per ora la vedete solo tu e i moderatori. Quando un moderatore la pubblica ti arriva una notifica, e da lì si vota e si commenta.",
+    inRevisioneModeratore: "Guida in revisione: decidi qui o nella coda della moderazione.",
+    respinta: "La guida non è stata accettata. Il motivo del moderatore:",
+    respintaSenzaMotivo: "La guida non è stata accettata.",
+    correggi: "Correggila e mandala di nuovo",
+    modifica: "Modifica la strategia",
+    modificaGuida: "Modifica (se cambi il testo torna in revisione)",
   },
   en: {
     discussioneTitolo: "Discussion",
@@ -39,6 +52,14 @@ const TESTI = testi({
     risposte: (n: number) => (n === 0 ? "Replies" : `${n} ${n === 1 ? "reply" : "replies"}`),
     serveProfilo: "You need a profile to reply and vote:",
     creaneUno: "create one",
+    inRevisioneAutore:
+      "Your guide is under review: for now only you and the moderators can see it. You'll get a notification when a moderator publishes it, and from then on it can be voted and discussed.",
+    inRevisioneModeratore: "Guide under review: decide here or in the moderation queue.",
+    respinta: "The guide was not accepted. The moderator's reason:",
+    respintaSenzaMotivo: "The guide was not accepted.",
+    correggi: "Fix it and send it again",
+    modifica: "Edit the strategy",
+    modificaGuida: "Edit (changing the text sends it back to review)",
   },
 });
 
@@ -50,10 +71,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { postId } = await params;
   const store = await getStore();
   const post = await store.getPost(postId, null);
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
+  const strategy = post ? await getStrategy(postId) : null;
+  // una guida in revisione non e' ancora pubblica: nemmeno il titolo nella scheda del browser
+  if (!post || (strategy && strategy.status !== "PUBLISHED")) return { title: t.discussioneTitolo };
+  const gameModule = strategy ? getGameModule(strategy.game) : undefined;
   return {
-    title: post ? `${post.title}` : t.discussioneTitolo,
-    description: post?.excerpt,
+    title: strategy && gameModule ? strategyTitle(gameModule, { ...strategy, title: post.title }, locale) : post.title,
+    description: post.excerpt || undefined,
   };
 }
 
@@ -73,6 +99,16 @@ export default async function PostPage({ params }: Props) {
   // decisione. Per tutti gli altri e' come se non esistesse - 404 e non un
   // messaggio, perche' dire "esiste ma e' nascosto" e' comunque pubblicarlo.
   if (post.hidden && !isModerator) notFound();
+
+  // Una strategia dell'Endgame: la guida non ancora pubblicata la vedono solo
+  // l'autore e chi modera, come un post nascosto
+  const strategy = await getStrategy(post.id);
+  const gameModule = strategy ? getGameModule(strategy.game) : undefined;
+  const isAuthor = viewer !== null && viewer.username === post.author.username;
+  const published = !strategy || strategy.status === "PUBLISHED";
+  if (!published && !isAuthor && !isModerator) notFound();
+  const title = strategy && gameModule ? strategyTitle(gameModule, { ...strategy, title: post.title }, locale) : post.title;
+  const editHref = strategy ? `/${game}/strategie/${post.id}/modifica` : null;
 
   // La riverifica gira qui e non nel feed: e' costosa, e serve nel punto in cui
   // qualcuno valuta davvero l'affermazione invece di scorrere una lista.
@@ -99,13 +135,35 @@ export default async function PostPage({ params }: Props) {
           </Notice>
         ) : null}
 
+        {strategy?.status === "IN_REVIEW" ? (
+          <Notice tone="warn" className="mb-5">
+            {isAuthor ? t.inRevisioneAutore : t.inRevisioneModeratore}
+          </Notice>
+        ) : null}
+
+        {strategy?.status === "REJECTED" ? (
+          <Notice tone="warn" className="mb-5">
+            <span>
+              {strategy.reviewNote ? t.respinta : t.respintaSenzaMotivo}
+              {strategy.reviewNote ? <q className="mx-1 font-semibold text-ink">{strategy.reviewNote}</q> : null}
+              {isAuthor && editHref ? (
+                <Link href={editHref} className="ml-1 font-semibold text-ink underline decoration-brand underline-offset-2 hover:text-brand-deep">
+                  {t.correggi}
+                </Link>
+              ) : null}
+            </span>
+          </Notice>
+        ) : null}
+
         <article data-accent={post.author.accent} className="flex gap-3.5 border-b border-rule pb-6">
-          <VoteControl
-            targetType="POST"
-            targetId={post.id}
-            score={post.score}
-            myVote={post.myVote}
-          />
+          {published ? (
+            <VoteControl
+              targetType="POST"
+              targetId={post.id}
+              score={post.score}
+              myVote={post.myVote}
+            />
+          ) : null}
 
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2.5 text-xs text-ink-3">
@@ -126,19 +184,37 @@ export default async function PostPage({ params }: Props) {
               </span>
             </div>
 
-            <h1 className={cx(display, "mb-3.5 text-[clamp(24px,3.4vw,34px)]")}>{post.title}</h1>
+            <h1 className={cx(display, "mb-3.5 text-[clamp(24px,3.4vw,34px)]")}>{title}</h1>
 
-            <div className="text-[15px] leading-[1.68]">
-              {post.body.split(/\n{2,}/).map((paragraph, index) => (
-                <p key={index} className="m-0 mb-3.5">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            {strategy && gameModule ? (
+              <StrategyView strategy={strategy} module={gameModule} locale={locale} />
+            ) : (
+              <div className="text-[15px] leading-[1.68]">
+                {post.body.split(/\n{2,}/).map((paragraph, index) => (
+                  <p key={index} className="m-0 mb-3.5">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            )}
 
             {post.attachment ? <AttachmentCard data={post.attachment} check={check} /> : null}
 
+            {strategy?.status === "IN_REVIEW" && isModerator && !isAuthor ? (
+              <div className="p5-corner mt-6 border border-hot/60 bg-paper-2 p-4">
+                <StrategyReview postId={post.id} />
+              </div>
+            ) : null}
+
             <div className="mt-4 flex flex-wrap items-center gap-3">
+              {isAuthor && editHref && strategy?.status !== "REJECTED" ? (
+                <Link
+                  href={editHref}
+                  className="text-xs text-ink-2 underline decoration-rule underline-offset-2 hover:text-ink"
+                >
+                  {strategy?.status === "PUBLISHED" && !strategy.autoTitle ? t.modificaGuida : t.modifica}
+                </Link>
+              ) : null}
               <ReportButton targetType="POST" targetId={post.id} canReport={viewer !== null} />
               {isModerator ? (
                 <ModControls targetType="POST" targetId={post.id} hidden={post.hidden ?? false} />
@@ -147,6 +223,7 @@ export default async function PostPage({ params }: Props) {
           </div>
         </article>
 
+        {published ? (
         <section className="pt-9">
           <SectionHead title={t.risposte(post.commentCount)} />
 
@@ -169,6 +246,7 @@ export default async function PostPage({ params }: Props) {
             canModerate={isModerator}
           />
         </section>
+        ) : null}
       </main>
     </>
   );

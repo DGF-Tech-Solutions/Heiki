@@ -7,6 +7,9 @@ import { hubLabel, type FeedPost } from "@/lib/community/types";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { display, Tag } from "../ui";
+import { getGameModule } from "@/lib/games/registry";
+import { autoTitle } from "@/lib/strategies/rules";
+import { StrategyBriefLine } from "../strategies/strategy-brief";
 
 const TESTI = testi({
   it: {
@@ -29,6 +32,10 @@ const TESTI = testi({
 export async function PostCard({ post }: { post: FeedPost }) {
   const locale = await getLocale();
   const t = TESTI[locale];
+  // una strategia dell'Endgame: il titolo di un consiglio di squadra lo rifa' il
+  // sito nella lingua di chi legge, e sotto c'e' la squadra
+  const gameModule = post.strategy ? getGameModule(post.game) : undefined;
+  const title = post.strategy?.kind === "team" && gameModule ? autoTitle(gameModule, post.strategy, locale) : post.title;
 
   return (
     <article
@@ -69,11 +76,15 @@ export async function PostCard({ post }: { post: FeedPost }) {
           className={`${display} mb-1.5 text-[19px] leading-[1.2] [font-variation-settings:'wdth'_92]`}
         >
           <Link href={`/${post.game}/post/${post.id}`} className="hover:text-brand-deep">
-            {post.title}
+            {title}
           </Link>
         </h2>
 
-        <p className="m-0 text-sm leading-relaxed text-ink-2">{post.excerpt}</p>
+        {post.strategy && gameModule ? (
+          <StrategyBriefLine brief={post.strategy} module={gameModule} game={post.game} locale={locale} />
+        ) : null}
+
+        {post.excerpt ? <p className="m-0 text-sm leading-relaxed text-ink-2">{post.excerpt}</p> : null}
 
         {post.attachment ? <AttachmentCard data={post.attachment} /> : null}
 

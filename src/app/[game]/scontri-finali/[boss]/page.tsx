@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { BattleBrief, compareClass } from "@/components/endgame/endgame-brief";
 import { EndgameCard } from "@/components/endgame/endgame-card";
 import {
   Amounts,
@@ -28,6 +29,8 @@ import {
   type EndgameScope,
 } from "@/components/endgame/endgame-parts";
 import { EndgameStage, StageBadge } from "@/components/endgame/endgame-stage";
+import { SectionIndex } from "@/components/section-index";
+import { StrategySection } from "@/components/strategies/strategy-section";
 import { cx, eyebrow, HowItWorks, Notice, numeric, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { chosenLevel, endgameImageSrc, formatNumber, levelHref, type PageSearchParams } from "@/lib/games/endgame";
@@ -43,6 +46,14 @@ import { getLocale } from "@/lib/i18n/server";
  * prima i sei boss stavano tutti nella pagina della sezione, e c'era troppo da
  * scorrere. La difficolta' scelta sta nell'indirizzo (`?difficolta=4`) e il
  * server rende solo quel pannello; senza, si parte dalla piu' difficile.
+ *
+ * L'ordine (11/10) e' quello di chi prepara la battaglia: la difficolta' col
+ * suo riassunto (livello, potenza, attributi ammessi, eroi esclusi), le squadre
+ * consigliate, le fasi una dopo l'altra, le ricompense; poi quello che non
+ * cambia con la difficolta' (set, costumi, squadra IA) e dove il boss compare.
+ * Prima i fatti sulle regioni stavano fra il palco e la difficolta', e le
+ * restrizioni della squadra in una colonna della tabella che sul telefono
+ * restava fuori schermo.
  *
  * Quello che il client non scrive e la pipeline ha dedotto si vede come tale:
  * le statistiche del boss sono una stima dichiarata, l'attributo che lo batte
@@ -64,6 +75,7 @@ const TESTI = testi({
     loBatteSpiega:
       "L'attributo che batte il boss nel triangolo del gioco (Velocità batte Forza, Forza batte PS, PS batte Velocità). Il client non lo scrive per il boss: lo calcola.",
     regioni: "Dove compare",
+    dove: "Dove si trova",
     materiale: "Materiale",
     mammaHawk: "Scacciato con Mamma Hawk",
     avviso: "Attenzione",
@@ -77,9 +89,17 @@ const TESTI = testi({
     squadra: "Squadra",
     sblocco: "Si sblocca con",
     tutti: "tutti gli attributi",
+    solo: "solo",
     soloAttributi: "solo questi attributi",
     esclusi: (n: number) => (n === 1 ? "1 eroe escluso" : `${n} eroi esclusi`),
+    esclusiBreve: "Esclusi",
+    eroiN: (n: number) => (n === 1 ? "1 eroe" : `${n} eroi`),
     scegli: "Difficoltà",
+    inBreve: "La difficoltà scelta in breve",
+    confronta: (n: number) => `Confronta le ${n} difficoltà`,
+    inPagina: "In questa pagina",
+    squadre: "Squadre consigliate",
+    extra: "Set e squadra IA",
     fase: (n: number) => `Fase ${n}`,
     ricompense: "Ricompense",
     garantita: "Vittoria garantita",
@@ -114,6 +134,7 @@ const TESTI = testi({
     loBatteSpiega:
       "The attribute that beats the boss in the game's triangle (Speed beats Strength, Strength beats HP, HP beats Speed). The client does not store it for the boss: it computes it.",
     regioni: "Where it appears",
+    dove: "Where to find it",
     materiale: "Material",
     mammaHawk: "Repelled with Hawk's Mama",
     avviso: "Warning",
@@ -127,9 +148,17 @@ const TESTI = testi({
     squadra: "Team",
     sblocco: "Unlocked by",
     tutti: "all attributes",
+    solo: "only",
     soloAttributi: "only these attributes",
     esclusi: (n: number) => (n === 1 ? "1 hero banned" : `${n} heroes banned`),
+    esclusiBreve: "Banned",
+    eroiN: (n: number) => (n === 1 ? "1 hero" : `${n} heroes`),
     scegli: "Difficulty",
+    inBreve: "The chosen difficulty at a glance",
+    confronta: (n: number) => `Compare the ${n} difficulties`,
+    inPagina: "On this page",
+    squadre: "Recommended teams",
+    extra: "Sets and AI team",
     fase: (n: number) => `Phase ${n}`,
     ricompense: "Rewards",
     garantita: "Guaranteed victory reward",
@@ -196,6 +225,8 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
   const current = chosenLevel(query, LEVEL_PARAM, boss.difficulties.map((level) => level.level));
   const chosen = boss.difficulties[current];
   const name = sayPlain(boss.name, scope);
+  const hasExtras = !!boss.aiTeam || !!boss.artifactSet || boss.costumeSets.length > 0;
+  const hasWhere = regionNames.length > 0 || boss.material !== null || boss.repulse.length > 0;
 
   // il boss prima e dopo nell'ordine dell'indice, a giro: si scorrono come le schede eroe
   const position = data.bosses.findIndex((candidate) => candidate.key === boss.key);
@@ -216,8 +247,8 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
 
       {/*
         Il cut-in grande sul palco: e' il pezzo forte della pagina (10/10). La
-        scheda color seppia resta in testa, accanto ai fatti; senza cut-in sale
-        lei sul palco.
+        scheda color seppia sta nel riassunto della difficolta'; senza cut-in
+        sale lei sul palco.
       */}
       <EndgameStage
         title={name}
@@ -256,87 +287,111 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
         ) : null}
       </EndgameStage>
 
-      <div className="mb-14 grid grid-cols-[96px_minmax(0,1fr)] gap-x-5 gap-y-4 sm:grid-cols-[168px_minmax(0,1fr)] sm:gap-x-6">
-        {boss.image && boss.cutIn ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={endgameImageSrc(game, `scontri/${boss.key}.png`)}
-            alt=""
-            width={168}
-            height={168}
-            className="p5-corner h-auto w-full bg-paper-2"
-          />
-        ) : (
-          <span aria-hidden />
-        )}
-        <div className="min-w-0 self-center">
-          <Facts
-            rows={[
-              regionNames.length > 0 && [t.regioni, regionNames.join(" · ")],
-              boss.material !== null && [t.materiale, <ItemLabel key="m" id={boss.material} scope={scope} />],
-              boss.repulse.length > 0 && [t.mammaHawk, <Repulse key="r" boss={boss} scope={scope} />],
-            ]}
-          />
-        </div>
-
-        {boss.guide.length > 0 || boss.warnings.length > 0 ? (
-          <div className="col-span-2 grid max-w-[80ch] gap-3">
-            {boss.guide.length > 0 ? (
-              <div className="grid gap-1.5 text-[14px] leading-relaxed text-ink-2">
-                {boss.guide.map((line, index) => (
-                  <Said key={index} value={line} scope={scope} />
-                ))}
-              </div>
-            ) : null}
-            {boss.warnings.map((warning, index) => (
-              <Notice key={index} tone="warn">
-                <span>
-                  <Tag tone="gold" className="mr-2">
-                    {t.avviso}
-                  </Tag>
-                  {say(warning, scope)}
-                </span>
-              </Notice>
-            ))}
-          </div>
-        ) : null}
-      </div>
-
-      <section id="difficolta" className="scroll-mt-20">
-        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
-        <LevelsTable boss={boss} scope={scope} t={t} current={current} href={levelLink} />
-        <div className="mt-6">
-          <DifficultyLinks
-            legend={t.scegli}
-            current={current}
-            tabs={boss.difficulties.map((level) => ({
-              label: say(level.name, scope),
-              color: level.color,
-              href: levelLink(level.level),
-            }))}
-          />
-          {chosen ? (
-            <div className="mt-6">
-              <LevelPanel level={chosen} data={data} scope={scope} t={t} />
+      {/* il consiglio del gioco sul boss resta in testa: e' una riga, e vale per tutte le difficolta' */}
+      {boss.guide.length > 0 || boss.warnings.length > 0 ? (
+        <div className="mb-6 grid max-w-[80ch] gap-3">
+          {boss.guide.length > 0 ? (
+            <div className="grid gap-1.5 text-[14px] leading-relaxed text-ink-2">
+              {boss.guide.map((line, index) => (
+                <Said key={index} value={line} scope={scope} />
+              ))}
             </div>
           ) : null}
+          {boss.warnings.map((warning, index) => (
+            <Notice key={index} tone="warn">
+              <span>
+                <Tag tone="gold" className="mr-2">
+                  {t.avviso}
+                </Tag>
+                {say(warning, scope)}
+              </span>
+            </Notice>
+          ))}
         </div>
-      </section>
+      ) : null}
 
-      <BossExtras
-        boss={boss}
-        scope={scope}
-        t={t}
-        // il set ha la sua pagina nella sezione Set artefatto: lo stesso nome del client
-        setHref={(() => {
-          const set = gameModule.artifacts?.sets.find(
-            (entry) => boss.artifactSet && entry.name.en === boss.artifactSet.name.en,
-          );
-          return set ? `/${game}/set-artefatto/${set.number}` : null;
-        })()}
+      <SectionIndex
+        label={t.inPagina}
+        numbered={false}
+        entries={[
+          { id: "difficolta", label: t.difficoltaSezione },
+          { id: "squadre", label: t.squadre },
+          ...(chosen
+            ? [
+                { id: "fasi", label: t.fasi },
+                { id: "ricompense", label: t.ricompense },
+              ]
+            : []),
+          ...(hasExtras ? [{ id: "set", label: t.extra }] : []),
+          ...(hasWhere ? [{ id: "dove", label: t.dove }] : []),
+        ]}
       />
 
-      <section className="mt-14 border-t border-rule pt-8">
+      <section id="difficolta" className="scroll-mt-[120px]">
+        <SectionTitle>{t.difficoltaSezione}</SectionTitle>
+        <DifficultyLinks
+          legend={t.scegli}
+          current={current}
+          tabs={boss.difficulties.map((level) => ({
+            label: say(level.name, scope),
+            color: level.color,
+            href: levelLink(level.level),
+          }))}
+        />
+        {chosen ? (
+          <LevelBrief
+            level={chosen}
+            scope={scope}
+            t={t}
+            image={boss.image && boss.cutIn ? endgameImageSrc(game, `scontri/${boss.key}.png`) : null}
+          />
+        ) : null}
+        <LevelsTable
+          boss={boss}
+          scope={scope}
+          t={t}
+          current={current}
+          href={levelLink}
+          summary={t.confronta(boss.difficulties.length)}
+        />
+      </section>
+
+      {/* le squadre dipendono dalla difficolta': subito sotto il suo riassunto */}
+      <StrategySection game={game} mode="death-match" target={boss.key} level={chosen?.level ?? null} className="mt-14" />
+
+      {chosen ? <LevelPanel level={chosen} data={data} scope={scope} t={t} /> : null}
+
+      {hasExtras ? (
+        <BossExtras
+          boss={boss}
+          scope={scope}
+          t={t}
+          // il set ha la sua pagina nella sezione Set artefatto: lo stesso nome del client
+          setHref={(() => {
+            const set = gameModule.artifacts?.sets.find(
+              (entry) => boss.artifactSet && entry.name.en === boss.artifactSet.name.en,
+            );
+            return set ? `/${game}/set-artefatto/${set.number}` : null;
+          })()}
+        />
+      ) : null}
+
+      {hasWhere ? (
+        <section id="dove" className="mt-16 scroll-mt-[120px]">
+          <SectionTitle>{t.dove}</SectionTitle>
+          <div className="max-w-[80ch]">
+            <Facts
+              rows={[
+                regionNames.length > 0 && [t.regioni, regionNames.join(" · ")],
+                boss.material !== null && [t.materiale, <ItemLabel key="m" id={boss.material} scope={scope} />],
+                boss.repulse.length > 0 && [t.mammaHawk, <Repulse key="r" boss={boss} scope={scope} />],
+              ]}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      <section className="mt-16 border-t border-rule pt-8">
         <PartTitle>{t.altri}</PartTitle>
         <ul className="m-0 grid list-none gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {data.bosses.map((other) => (
@@ -387,8 +442,68 @@ function Repulse({ boss, scope }: { boss: DeathMatchBoss; scope: EndgameScope })
 }
 
 /**
- * Le difficolta' a confronto, in una tabella: si legge prima di scegliere il
- * pulsante, e il nome di ogni riga porta gia' alla difficolta'.
+ * La difficolta' scelta in breve: i numeri, chi entra in squadra e chi no, cosa
+ * la sblocca. Gli eroi esclusi (solo il Demone originale ne ha) stavano sotto
+ * tutte le fasi.
+ */
+function LevelBrief({
+  level,
+  scope,
+  t,
+  image,
+}: {
+  level: DeathMatchDifficulty;
+  scope: EndgameScope;
+  t: T;
+  image: string | null;
+}) {
+  return (
+    <BattleBrief
+      label={t.inBreve}
+      title={say(level.name, scope)}
+      color={level.color}
+      image={image}
+      stats={[
+        [t.livello, level.bossLevel],
+        [t.potenza, formatNumber(level.power, scope.locale)],
+        [t.energia, level.energy],
+        [t.fasi, level.phases.length],
+      ]}
+      rows={[
+        [
+          t.squadra,
+          level.allowedAttributes ? (
+            <span
+              key="s"
+              className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold text-ink"
+              title={t.soloAttributi}
+            >
+              <span className="font-normal text-ink-2">{t.solo}</span>
+              {level.allowedAttributes.map((code) => (
+                <AttributeLabel key={code} code={code} scope={scope} />
+              ))}
+            </span>
+          ) : (
+            t.tutti
+          ),
+        ],
+        level.bannedHeroes.length > 0 && [t.esclusiBreve, t.eroiN(level.bannedHeroes.length)],
+        level.unlock !== null && [t.sblocco, sayPlain(level.unlock, scope)],
+      ]}
+    >
+      {level.bannedHeroes.length > 0 ? (
+        <div>
+          <p className={cx(eyebrow, "m-0 mb-2")}>{t.eroiEsclusi}</p>
+          <HeroGrid ids={level.bannedHeroes} scope={scope} />
+        </div>
+      ) : null}
+    </BattleBrief>
+  );
+}
+
+/**
+ * Le difficolta' a confronto, in una tabella: si apre sotto il riassunto, e il
+ * nome di ogni riga porta gia' alla difficolta'.
  */
 function LevelsTable({
   boss,
@@ -396,44 +511,50 @@ function LevelsTable({
   t,
   current,
   href,
+  summary,
 }: {
   boss: DeathMatchBoss;
   scope: EndgameScope;
   t: T;
   current: number;
+  /** il titolo della parte chiusa: «Confronta le 4 difficoltà» */
+  summary: string;
   href: (level: number) => string;
 }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] border-collapse text-[13px]">
-        <thead>
-          <tr className="border-b border-rule text-left">
-            {[t.difficolta, t.livello, t.energia, t.potenza, t.fasi, t.squadra, t.sblocco].map((head) => (
-              <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
-                {head}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {boss.difficulties.map((level, index) => (
-            <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
-              <td className="py-0.5 pr-3 pl-2">
-                <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
-              </td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.bossLevel}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
-              <td className={cx(numeric, "py-1.5 pr-3")}>{level.phases.length}</td>
-              <td className="py-1.5 pr-3">
-                <TeamRule level={level} scope={scope} t={t} />
-              </td>
-              <td className="py-1.5 pr-3 text-ink-2">{level.unlock ? sayPlain(level.unlock, scope) : "—"}</td>
+    <details className={compareClass.details}>
+      <Summary className={compareClass.summary}>{summary}</Summary>
+      <div className={compareClass.body}>
+        <table className="w-full min-w-[640px] border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b border-rule text-left">
+              {[t.difficolta, t.livello, t.energia, t.potenza, t.fasi, t.squadra, t.sblocco].map((head) => (
+                <th key={head} className={cx(eyebrow, "py-2 pr-3 font-medium first:pl-2")}>
+                  {head}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {boss.difficulties.map((level, index) => (
+              <tr key={level.level} className={cx("border-b border-rule-2", index === current && "bg-paper-2")}>
+                <td className="py-0.5 pr-3 pl-2">
+                  <LevelCell label={say(level.name, scope)} color={level.color} href={href(level.level)} active={index === current} />
+                </td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.bossLevel}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.energy}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{formatNumber(level.power, scope.locale)}</td>
+                <td className={cx(numeric, "py-1.5 pr-3")}>{level.phases.length}</td>
+                <td className="py-1.5 pr-3">
+                  <TeamRule level={level} scope={scope} t={t} />
+                </td>
+                <td className="py-1.5 pr-3 text-ink-2">{level.unlock ? sayPlain(level.unlock, scope) : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
   );
 }
 
@@ -455,7 +576,14 @@ function TeamRule({ level, scope, t }: { level: DeathMatchDifficulty; scope: End
   );
 }
 
-/** Una difficolta': le fasi coi loro nemici, poi le ricompense. */
+/**
+ * Una difficolta': le fasi una sotto l'altra, nell'ordine in cui si combattono,
+ * poi le ricompense.
+ *
+ * Le fasi stavano due per riga, e la terza restava sola a sinistra; ora una per
+ * riga, e la carta larga mette i consigli del gioco accanto al nome. Dalla
+ * seconda fase i consigli uguali alla prima non si ripetono.
+ */
 function LevelPanel({
   level,
   data,
@@ -467,24 +595,29 @@ function LevelPanel({
   scope: EndgameScope;
   t: T;
 }) {
+  const firstTips = data.monsters[level.phases[0]?.foe.monster ?? ""]?.tips;
   return (
-    <div className="grid gap-10">
-      <div className="grid gap-3 xl:grid-cols-2">
-        {level.phases.map((phase, index) => (
-          <FoeCard key={index} foe={phase.foe} scope={scope} heading={t.fase(index + 1)} />
-        ))}
-      </div>
+    <>
+      <section id="fasi" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.fasi}</SectionTitle>
+        <ol className="m-0 grid list-none gap-3 p-0">
+          {level.phases.map((phase, index) => (
+            <li key={index} className="min-w-0">
+              <FoeCard
+                foe={phase.foe}
+                scope={scope}
+                heading={t.fase(index + 1)}
+                id={`fase-${index + 1}`}
+                tipsLike={index > 0 && firstTips ? { tips: firstTips, href: "#fase-1", where: t.fase(1) } : undefined}
+              />
+            </li>
+          ))}
+        </ol>
+      </section>
 
-      {level.bannedHeroes.length > 0 ? (
-        <div>
-          <PartTitle>{t.eroiEsclusi}</PartTitle>
-          <HeroGrid ids={level.bannedHeroes} scope={scope} />
-        </div>
-      ) : null}
-
-      <div>
-        <PartTitle>{t.ricompense}</PartTitle>
-        <div className="grid gap-5 lg:grid-cols-2">
+      <section id="ricompense" className="mt-16 scroll-mt-[120px]">
+        <SectionTitle>{t.ricompense}</SectionTitle>
+        <div className="grid gap-x-8 gap-y-5 lg:grid-cols-2">
           <div className="grid content-start gap-4">
             {level.guaranteed.length > 0 ? (
               <div>
@@ -497,12 +630,15 @@ function LevelPanel({
           </div>
           <DropTable drops={level.drops} scope={scope} regions={data.regions} title={t.drop} />
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
 
-/** Quello che non cambia con la difficolta': squadra IA, set di artefatti, costumi. */
+/**
+ * Quello che non cambia con la difficolta': il set di artefatti (prima, perche'
+ * alza i danni proprio in questo scontro), la squadra IA, i costumi.
+ */
 function BossExtras({
   boss,
   scope,
@@ -515,64 +651,66 @@ function BossExtras({
   /** la pagina del set nella sezione Set artefatto, se c'e' */
   setHref: string | null;
 }) {
-  if (!boss.aiTeam && !boss.artifactSet && boss.costumeSets.length === 0) return null;
   return (
-    <div className="mt-14 grid gap-x-6 gap-y-10 border-t border-rule pt-10 lg:grid-cols-2">
-      {boss.aiTeam ? (
-        <div className="min-w-0">
-          <PartTitle>
-            {t.squadraIa}{" "}
-            <span className={cx(numeric, "text-[12px] font-normal text-ink-3")}>
-              · {t.potenzaMostrata(formatNumber(boss.aiTeam.power, scope.locale))}
-            </span>
-          </PartTitle>
-          <HeroGrid ids={boss.aiTeam.heroes} scope={scope} />
-        </div>
-      ) : null}
+    <section id="set" className="mt-16 scroll-mt-[120px]">
+      <SectionTitle>{t.extra}</SectionTitle>
+      <div className="grid gap-x-8 gap-y-10 lg:grid-cols-2">
+        {boss.artifactSet ? (
+          <div className="min-w-0">
+            <PartTitle>
+              {t.setArtefatti}:{" "}
+              {setHref ? (
+                <Link href={setHref} className="text-brand-deep underline-offset-2 hover:underline">
+                  {sayPlain(boss.artifactSet.name, scope)}
+                </Link>
+              ) : (
+                sayPlain(boss.artifactSet.name, scope)
+              )}
+            </PartTitle>
+            <Facts rows={[[t.carte, boss.artifactSet.cards.map((card) => sayPlain(card, scope)).join(" · ")]]} />
+            {boss.artifactSet.levels.length > 0 ? (
+              <div className="mt-3">
+                <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.livelliSet}</p>
+                <PassiveList ids={boss.artifactSet.levels} scope={scope} />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
-      {boss.artifactSet ? (
-        <div className="min-w-0">
-          <PartTitle>
-            {t.setArtefatti}:{" "}
-            {setHref ? (
-              <Link href={setHref} className="text-brand-deep underline-offset-2 hover:underline">
-                {sayPlain(boss.artifactSet.name, scope)}
-              </Link>
-            ) : (
-              sayPlain(boss.artifactSet.name, scope)
-            )}
-          </PartTitle>
-          <Facts rows={[[t.carte, boss.artifactSet.cards.map((card) => sayPlain(card, scope)).join(" · ")]]} />
-          {boss.artifactSet.levels.length > 0 ? (
-            <div className="mt-3">
-              <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.livelliSet}</p>
-              <PassiveList ids={boss.artifactSet.levels} scope={scope} />
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        {boss.aiTeam ? (
+          <div className="min-w-0">
+            <PartTitle>
+              {t.squadraIa}{" "}
+              <span className={cx(numeric, "text-[12px] font-normal text-ink-3")}>
+                · {t.potenzaMostrata(formatNumber(boss.aiTeam.power, scope.locale))}
+              </span>
+            </PartTitle>
+            <HeroGrid ids={boss.aiTeam.heroes} scope={scope} />
+          </div>
+        ) : null}
 
-      {boss.costumeSets.length > 0 ? (
-        <div className="min-w-0 lg:col-span-2">
-          <PartTitle>{t.costumi}</PartTitle>
-          <ul className="m-0 grid list-none gap-3 p-0 lg:grid-cols-2">
-            {boss.costumeSets.map((set, index) => (
-              <li key={index} className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
-                <p className="m-0 text-[13px] font-semibold">{sayPlain(set.name, scope)}</p>
-                <Said value={set.effect} scope={scope} className="mt-1 text-[13px] text-ink-2 [&>p]:m-0" />
-                {set.heroes.length > 0 ? (
-                  <details className="mt-2">
-                    <Summary>{t.costumiEroi(set.heroes.length)}</Summary>
-                    <div className="mt-2">
-                      <HeroGrid ids={set.heroes} scope={scope} />
-                    </div>
-                  </details>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </div>
+        {boss.costumeSets.length > 0 ? (
+          <div className="min-w-0 lg:col-span-2">
+            <PartTitle>{t.costumi}</PartTitle>
+            <ul className="m-0 grid list-none gap-3 p-0 lg:grid-cols-2">
+              {boss.costumeSets.map((set, index) => (
+                <li key={index} className="p5-corner min-w-0 border border-rule bg-paper-2 p-4">
+                  <p className="m-0 text-[13px] font-semibold">{sayPlain(set.name, scope)}</p>
+                  <Said value={set.effect} scope={scope} className="mt-1 text-[13px] text-ink-2 [&>p]:m-0" />
+                  {set.heroes.length > 0 ? (
+                    <details className="mt-2">
+                      <Summary>{t.costumiEroi(set.heroes.length)}</Summary>
+                      <div className="mt-2">
+                        <HeroGrid ids={set.heroes} scope={scope} />
+                      </div>
+                    </details>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </section>
   );
 }

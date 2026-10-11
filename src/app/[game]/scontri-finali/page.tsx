@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { CardStamp, EndgameCard } from "@/components/endgame/endgame-card";
 import {
-  AttributeIcon,
+  AttributeLabel,
   ConditionIcon,
   Facts,
   HeroPassiveGrid,
@@ -55,6 +55,9 @@ const TESTI = testi({
     minuti: (n: number) => `${n} minuti`,
     caos: "Indura (Caos)",
     alGiorno: (n: number) => `fino a ${n} volte al giorno`,
+    loBatte: "Lo batte",
+    loBatteSpiega:
+      "L'attributo che batte il boss nel triangolo del gioco (Velocità batte Forza, Forza batte PS, PS batte Velocità). Il client non lo scrive per il boss: lo calcola.",
     eroi: "Eroi e Scontri finali",
     eroiIntro:
       "Passive di eroi che il client lega agli Scontri finali: quelle che valgono solo qui, e quelle che qui non si attivano. Un eroe compare una volta per passiva.",
@@ -82,6 +85,9 @@ const TESTI = testi({
     minuti: (n: number) => `${n} minutes`,
     caos: "Indura (Chaos)",
     alGiorno: (n: number) => `up to ${n} times a day`,
+    loBatte: "Beaten by",
+    loBatteSpiega:
+      "The attribute that beats the boss in the game's triangle (Speed beats Strength, Strength beats HP, HP beats Speed). The client does not store it for the boss: it computes it.",
     eroi: "Heroes and Death Match",
     eroiIntro:
       "Hero passives that the client ties to Death Match: the ones that only work here, and the ones that do not activate here. A hero appears once per passive.",
@@ -124,15 +130,16 @@ export default async function DeathMatchPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      {/* il titolo e la riga di cosa c'e'; la fonte in «Da dove vengono i dati» (10/10) */}
+      {/*
+        Il titolo e la riga di cosa c'e'. La fonte sta in «Da dove vengono i dati»
+        (10/10), in fondo come nelle pagine dei boss (11/10): fra il titolo e i
+        boss era la prima cosa da scavalcare.
+      */}
       <PageHeader title={t.titolo}>
         <p>{t.introduzione(data.bosses.length, levels)}</p>
       </PageHeader>
-      <HowItWorks summary={t.datiDa} className="mb-8">
-        <p>{t.fonte}</p>
-      </HowItWorks>
 
-      <nav aria-label={t.indice} className="mb-14">
+      <nav aria-label={t.indice} className="mt-8 mb-14">
         <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
           {data.bosses.map((boss) => {
             const bossLevels = boss.difficulties.map((level) => level.bossLevel);
@@ -160,9 +167,16 @@ export default async function DeathMatchPage({ params }: Props) {
                   }
                   title={sayPlain(boss.name, scope)}
                 >
-                  <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                    <AttributeIcon code={boss.attribute} scope={scope} size={16} />
+                  {/* l'attributo col suo nome, e quello che lo batte: le due cose che decidono la squadra */}
+                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <AttributeLabel code={boss.attribute} scope={scope} />
                     <RaceLabel code={boss.race} scope={scope} />
+                    {boss.advantage ? (
+                      <span className="inline-flex items-center gap-1.5" title={t.loBatteSpiega}>
+                        <span className="text-ink-3">{t.loBatte}</span>
+                        <AttributeLabel code={boss.advantage} scope={scope} />
+                      </span>
+                    ) : null}
                   </span>
                   <span className="mt-1.5 block">
                     {t.difficolta(boss.difficulties.length, Math.min(...bossLevels), Math.max(...bossLevels))}
@@ -224,7 +238,10 @@ export default async function DeathMatchPage({ params }: Props) {
         </details>
       </section>
 
-      <p className="mt-12 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
+      <HowItWorks summary={t.datiDa} className="mt-12">
+        <p>{t.fonte}</p>
+      </HowItWorks>
+      <p className="m-0 mt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
     </main>
   );
 }

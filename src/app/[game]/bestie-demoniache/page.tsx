@@ -117,16 +117,17 @@ export default async function CreatureNestPage({ params }: Props) {
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
-      {/* il titolo, il nome della modalita' nel gioco e cosa c'e'; la fonte in «Da dove vengono i dati» (10/10) */}
+      {/*
+        Il titolo, il nome della modalita' nel gioco e cosa c'e'. La fonte sta in
+        «Da dove vengono i dati» (10/10), in fondo come nelle pagine delle bestie
+        (11/10).
+      */}
       <PageHeader title={t.titolo}>
         <p className="font-semibold text-ink">{sayPlain(data.name, scope)}</p>
         <p className="mt-1">{t.introduzione(data.beasts.length, floors)}</p>
       </PageHeader>
-      <HowItWorks summary={t.datiDa} className="mb-8">
-        <p>{t.fonte}</p>
-      </HowItWorks>
 
-      <nav aria-label={t.indice} className="mb-14">
+      <nav aria-label={t.indice} className="mt-8 mb-14">
         <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
           {data.beasts.map((beast) => {
             const levels = beast.floors.map((floor) => floor.phases[0]?.foes[0]?.level ?? 0).filter(Boolean);
@@ -239,7 +240,10 @@ export default async function CreatureNestPage({ params }: Props) {
         </div>
       </section>
 
-      <p className="mt-12 border-t border-rule-2 pt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
+      <HowItWorks summary={t.datiDa} className="mt-12">
+        <p>{t.fonte}</p>
+      </HowItWorks>
+      <p className="m-0 mt-4 text-[13px] text-ink-3">{t.diritti(entry.publisher)}</p>
     </main>
   );
 }

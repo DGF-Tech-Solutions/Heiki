@@ -5,7 +5,8 @@ import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
 import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
-import { listNotifications, markAllReadAction } from "@/lib/social/actions";
+import { markAllReadAction } from "@/lib/social/actions";
+import { listNotifications } from "@/lib/social/server";
 import { relativeTime } from "@/lib/community/ranking";
 import { Button, cx, Empty, Notice, PageHeader } from "@/components/ui";
 
@@ -28,6 +29,8 @@ const TESTI = testi({
     verificata: (n: string) => `La classe di combattimento del tuo account è stata verificata: ${n}.`,
     rifiutata: "La verifica della classe del tuo account non è stata accettata.",
     ilMioAccount: "Il mio account",
+    guidaPubblicata: "La tua guida dell'Endgame è stata pubblicata:",
+    guidaRespinta: "La tua guida dell'Endgame non è stata accettata (il motivo è nella pagina):",
   },
   en: {
     titoloPagina: "Notifications",
@@ -45,6 +48,8 @@ const TESTI = testi({
     verificata: (n: string) => `Your Account Combat Class has been verified: ${n}.`,
     rifiutata: "The verification of your account's class was not accepted.",
     ilMioAccount: "My account",
+    guidaPubblicata: "Your Endgame guide has been published:",
+    guidaRespinta: "Your Endgame guide was not accepted (the reason is on its page):",
   },
 });
 
@@ -126,6 +131,11 @@ export default async function NotificationsPage() {
                     </Link>
                   ) : null}
                 </>
+              ) : item.type === "STRATEGY_PUBLISHED" || item.type === "STRATEGY_REJECTED" ? (
+                // come la verifica: la decisione e' della moderazione, non di una persona
+                <span className="text-ink">
+                  {item.type === "STRATEGY_PUBLISHED" ? t.guidaPubblicata : t.guidaRespinta}
+                </span>
               ) : (
                 <>
                   <Link href={`/u/${item.actor.username}`} className="font-semibold hover:text-brand-deep">

@@ -5,7 +5,7 @@ import { can, roleLabel } from "@/lib/auth/permissions";
 import { listGames } from "@/lib/games/catalog";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
-import { unreadCount } from "@/lib/social/actions";
+import { unreadCount } from "@/lib/social/server";
 import { getTheme } from "@/lib/theme/server";
 import { IconUser } from "./icons";
 import { LanguageSwitch } from "./language-switch";

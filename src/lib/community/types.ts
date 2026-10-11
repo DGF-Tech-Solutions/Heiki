@@ -10,6 +10,7 @@
 
 import type { Role } from "@/lib/auth/permissions";
 import type { Bilingual, Locale } from "@/lib/i18n/locale";
+import type { StrategyBrief } from "@/lib/strategies/types";
 
 export interface Author {
   username: string;
@@ -60,6 +61,8 @@ export interface FeedPost {
   createdAt: string;
   attachment: SimulationAttachment | null;
   myVote: Vote;
+  /** la strategia dell'Endgame del post, se ne ha una: il feed la riassume */
+  strategy?: StrategyBrief;
 }
 
 export interface CommentNode {
@@ -106,6 +109,9 @@ export const HUBS: readonly Hub[] = [
   { slug: "build", name: "Build e numeri", description: "Risultati, confronti, ottimizzazioni" },
   { slug: "rotazioni", name: "Rotazioni", description: "Sequenze, timing, uptime dei buff" },
   { slug: "aiuto", name: "Aiuto", description: "Domande su squadre e progressione" },
+  // le strategie dell'Endgame (squadre e guide) nascono qui; ci si possono scrivere
+  // anche post normali, le domande su una modalita' (11/10)
+  { slug: "endgame", name: "Endgame", description: "Squadre e guide per le modalità di fine gioco" },
   { slug: "generale", name: "Generale", description: "Tutto il resto" },
 ];
 
@@ -122,6 +128,7 @@ const HUB_LABELS: Readonly<Record<string, Bilingual>> = {
   build: { it: "Build e numeri", en: "Builds and numbers" },
   rotazioni: { it: "Rotazioni", en: "Rotations" },
   aiuto: { it: "Aiuto", en: "Help" },
+  endgame: { it: "Endgame", en: "Endgame" },
   generale: { it: "Generale", en: "General" },
 };
 

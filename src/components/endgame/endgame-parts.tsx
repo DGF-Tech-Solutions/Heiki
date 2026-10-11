@@ -16,7 +16,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { readableColor } from "@/components/heroes/game-color";
 import { GameNotes, GameText } from "@/components/heroes/game-text";
-import { IconArrowUp, IconChevronRight } from "@/components/icons";
 import { chipClass, cx, display, eyebrow, numeric, Tag } from "@/components/ui";
 import {
   dropChance,
@@ -63,6 +62,7 @@ const TESTI = testi({
     infoUnica: "Info unica",
     passiveDellaFase: "Passive in più in questa fase",
     vediCarta: (where?: string) => (where ? `vedi la carta in ${where}` : "vedi la carta qui sopra"),
+    comeIn: (where: string) => `come in ${where}`,
     estrazioni: (n: number) => (n === 1 ? "1 estrazione" : `${n} estrazioni`),
     aScelta: "a scelta",
     dipendeRegione: "Materiale dei costumi, secondo la regione",
@@ -117,6 +117,7 @@ const TESTI = testi({
     infoUnica: "Unique info",
     passiveDellaFase: "Extra passives in this phase",
     vediCarta: (where?: string) => (where ? `see the card in ${where}` : "see the card above"),
+    comeIn: (where: string) => `as in ${where}`,
     estrazioni: (n: number) => (n === 1 ? "1 draw" : `${n} draws`),
     aScelta: "your choice",
     dipendeRegione: "Costume material, by region",
@@ -176,17 +177,22 @@ export function endgameScope(
   gameModule: GameModule,
   dict: EndgameDictionary,
 ): EndgameScope {
-  return {
-    game,
-    locale,
-    dict,
-    heroes: new Map((gameModule.roster?.heroes ?? []).map((hero) => [hero.id, hero])),
-    affinities: new Map((gameModule.roster?.affinities ?? []).map((affinity) => [affinity.id, affinity])),
-    icons: gameModule.icons,
-    races: gameModule.heroContext?.codes.race ?? {},
-    attributes: gameModule.heroContext?.codes.attribute ?? {},
-    artifactCards: new Set((gameModule.artifacts?.cards ?? []).map((card) => card.id)),
-  };
+  // Le tabelle non enumerabili: si leggono come sempre, ma non si contano fra le
+  // proprieta' dell'oggetto. In sviluppo React scrive nella pagina le props di
+  // ogni componente server, e il primo che riceveva `scope` ci portava la mappa
+  // intera degli eroi (80 KB di HTML, misurato l'11/10); in produzione le props
+  // non viaggiano e non cambia niente.
+  const scope = { game, locale } as EndgameScope;
+  const table = (value: unknown) => ({ value, enumerable: false });
+  return Object.defineProperties(scope, {
+    dict: table(dict),
+    heroes: table(new Map((gameModule.roster?.heroes ?? []).map((hero) => [hero.id, hero]))),
+    affinities: table(new Map((gameModule.roster?.affinities ?? []).map((affinity) => [affinity.id, affinity]))),
+    icons: table(gameModule.icons),
+    races: table(gameModule.heroContext?.codes.race ?? {}),
+    attributes: table(gameModule.heroContext?.codes.attribute ?? {}),
+    artifactCards: table(new Set((gameModule.artifacts?.cards ?? []).map((card) => card.id))),
+  });
 }
 
 /* --------------------------------------------------------------- testi -- */
@@ -213,7 +219,15 @@ export function sayPlain(value: HeroLabel | null | undefined, scope: EndgameScop
   return plainHeroText(say(value, scope));
 }
 
-/** Un testo lungo del gioco, col suo markup e la sua lingua. */
+/**
+ * Un testo lungo del gioco, col suo markup e la sua lingua.
+ *
+ * Il contenitore con `lang` solo quando il testo e' nell'altra lingua: prima
+ * c'era sempre, un `<div>` vuoto attorno a ognuna delle centinaia di righe di
+ * una pagina (11/10). Il testo sta comunque in un blocco suo (quello di
+ * GameText), quindi chi lo mette in una griglia o in una riga flessibile vede
+ * lo stesso elemento di prima.
+ */
 export function Said({
   value,
   scope,
@@ -227,11 +241,9 @@ export function Said({
 }) {
   const text = say(value, scope);
   if (!text) return null;
-  return (
-    <div lang={langOf(value, scope)}>
-      <GameText text={text} className={className} omitNotes={omitNotes} />
-    </div>
-  );
+  const lang = langOf(value, scope);
+  const body = <GameText text={text} className={className} omitNotes={omitNotes} />;
+  return lang ? <div lang={lang}>{body}</div> : body;
 }
 
 /* ------------------------------------------------------------- icone -- */
@@ -511,6 +523,7 @@ export function FoeCard({
   open,
   fallbackName,
   id,
+  tipsLike,
   described,
 }: {
   foe: EndgameFoe;
@@ -526,6 +539,14 @@ export function FoeCard({
   fallbackName?: string;
   /** l'ancora della carta, a cui rimandano le altre carte dello stesso mostro */
   id?: string;
+  /**
+   * I consigli di una carta precedente (la fase 1): le voci uguali qui non si
+   * ripetono, e una riga dice quali sono e porta li'. Negli Scontri finali le
+   * tre fasi ripetevano parola per parola razze, abilita' consigliate e
+   * comportamento, e per trovare cosa cambiava (di solito l'«Info unica») si
+   * confrontavano tre riquadri (11/10).
+   */
+  tipsLike?: { readonly tips: EndgameTips; readonly href: string; readonly where: string };
   /**
    * Il mostro e' gia' descritto per intero piu' su nella pagina: `href` e' la
    * sua carta, `where` la parte in cui sta (senza, se e' nello stesso gruppo).
@@ -545,41 +566,46 @@ export function FoeCard({
       ? `${t.passive(monster.passives.length)}${monster.hiddenPassives > 0 ? ` ${t.nascoste(monster.hiddenPassives)}` : ""}`
       : null;
 
+  // Largo (una fase per riga negli Scontri finali), i consigli del gioco vanno a
+  // destra del nome invece che sotto: la carta si legge in meta' altezza. Stretto
+  // (due per riga, il telefono) resta una colonna sola.
+  const tips = monster.tips && !described ? <Tips tips={monster.tips} like={tipsLike} scope={scope} /> : null;
   return (
     <div
       id={id}
-      className={cx("p5-corner min-w-0 border border-rule bg-paper p-3 sm:p-4", id && "scroll-mt-20 target:border-brand")}
+      className={cx("@container p5-corner min-w-0 border border-rule bg-paper p-3 sm:p-4", id && "scroll-mt-[120px] target:border-brand")}
     >
-      <div className="flex min-w-0 items-start gap-3">
-        {monster.icon ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={endgameImageSrc(scope.game, `mostri/${foe.monster}.png`)}
-            alt=""
-            width={56}
-            height={56}
-            loading="lazy"
-            className="h-14 w-14 shrink-0 bg-paper-2"
-          />
-        ) : null}
-        <div className="min-w-0 flex-1">
-          {heading ? <Tag className="mb-1.5">{heading}</Tag> : null}
-          <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[15px] font-semibold leading-tight">
-            <span lang={langOf(monster.name, scope)} title={monster.nameDeduced ? t.nomeDedotto : undefined}>
-              {name || t.senzaNome}
-              {monster.nameDeduced ? <span className="ml-0.5 font-normal text-ink-3">*</span> : null}
-            </span>
-            <span className={cx(numeric, "text-[12px] font-normal text-ink-3")}>
-              {t.livello(formatNumber(foe.level, scope.locale))}
-            </span>
-            <AttributeIcon code={monster.attribute} scope={scope} />
-            <RaceLabel code={monster.race} scope={scope} />
-          </p>
-          <FoeStats foe={foe} scope={scope} />
+      <div className={tips ? "grid gap-x-6 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]" : undefined}>
+        <div className="flex min-w-0 items-start gap-3">
+          {monster.icon ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={endgameImageSrc(scope.game, `mostri/${foe.monster}.png`)}
+              alt=""
+              width={56}
+              height={56}
+              loading="lazy"
+              className="h-14 w-14 shrink-0 bg-paper-2"
+            />
+          ) : null}
+          <div className="min-w-0 flex-1">
+            {heading ? <Tag className="mb-1.5">{heading}</Tag> : null}
+            <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[15px] font-semibold leading-tight">
+              <span lang={langOf(monster.name, scope)} title={monster.nameDeduced ? t.nomeDedotto : undefined}>
+                {name || t.senzaNome}
+                {monster.nameDeduced ? <span className="ml-0.5 font-normal text-ink-3">*</span> : null}
+              </span>
+              <span className={cx(numeric, "text-[12px] font-normal text-ink-3")}>
+                {t.livello(formatNumber(foe.level, scope.locale))}
+              </span>
+              <AttributeIcon code={monster.attribute} scope={scope} />
+              <RaceLabel code={monster.race} scope={scope} />
+            </p>
+            <FoeStats foe={foe} scope={scope} />
+          </div>
         </div>
+        {tips}
       </div>
-
-      {monster.tips && !described ? <Tips tips={monster.tips} scope={scope} /> : null}
 
       {/*
         Aperte se sono una o due (di solito «Aumento uso abilità»), chiuse se
@@ -608,7 +634,7 @@ export function FoeCard({
         <details className="mt-2.5" open={open}>
           <Summary>{t.abilita(monster.skills.length)}</Summary>
           {monster.draw ? <p className="m-0 mt-1.5 text-[12px] text-ink-3">{t.pesca(monster.draw.a, monster.draw.b)}</p> : null}
-          <ul className="m-0 mt-2 grid list-none gap-2.5 p-0">
+          <ul className="m-0 mt-2 grid list-none gap-x-6 gap-y-2.5 p-0 @3xl:grid-cols-2">
             {monster.skills.map((skill, index) => (
               <li key={`${skill.slot}-${index}`}>
                 <SkillRow skill={skill} scope={scope} />
@@ -632,16 +658,33 @@ export function FoeCard({
 
 /**
  * Il rimando di una carta alla carta intera dello stesso mostro: quante abilita'
- * e passive ha (le righe che sostituisce dicevano lo stesso), e dove sono.
+ * e passive ha (le righe che sostituisce dicevano lo stesso), e dove sono. Lo
+ * usano anche le pagine per le meccaniche uguali a una fase precedente.
  */
-function DescribedAbove({ href, counts, text }: { href: string; counts: readonly (string | null)[]; text: string }) {
+export function DescribedAbove({
+  href,
+  counts,
+  text,
+  flush,
+}: {
+  href: string;
+  counts: readonly (string | null)[];
+  text: string;
+  /** senza lo spazio sopra: e' la prima riga del suo blocco */
+  flush?: boolean;
+}) {
   const shown = counts.filter((count): count is string => !!count).join(", ");
   return (
     <a
       href={href}
-      className="mt-2.5 flex min-h-8 items-center gap-1.5 text-[13px] text-ink-2 underline-offset-4 hover:text-ink hover:underline"
+      // la freccia «^» disegnata dal CSS come quella dei riassunti (vedi Summary): nella
+      // Divinita' Suprema i rimandi sono decine
+      className={cx(
+        "flex min-h-8 items-center gap-1.5 text-[13px] text-ink-2 underline-offset-4 hover:text-ink hover:underline",
+        "before:mx-[3px] before:mt-1 before:size-[7px] before:shrink-0 before:-rotate-45 before:border-t-2 before:border-r-2 before:border-current before:content-['']",
+        !flush && "mt-2.5",
+      )}
     >
-      <IconArrowUp size={14} className="shrink-0" />
       <span className="min-w-0">{shown ? `${shown}: ${text}` : text.charAt(0).toUpperCase() + text.slice(1)}</span>
     </a>
   );
@@ -678,29 +721,58 @@ function FoeStats({ foe, scope }: { foe: EndgameFoe; scope: EndgameScope }) {
   );
 }
 
-/** I consigli del gioco sul mostro. */
-function Tips({ tips, scope }: { tips: EndgameTips; scope: EndgameScope }) {
+const TIP_KEYS = ["favoredRaces", "unfavoredRaces", "skills", "behavior", "unique"] as const;
+
+/**
+ * I consigli del gioco sul mostro. Con `like`, le voci uguali a quelle della
+ * carta indicata non si ripetono: una riga le nomina e porta li'.
+ */
+function Tips({
+  tips,
+  like,
+  scope,
+}: {
+  tips: EndgameTips;
+  like?: { readonly tips: EndgameTips; readonly href: string; readonly where: string };
+  scope: EndgameScope;
+}) {
   const t = TESTI[scope.locale];
-  const rows: [string, HeroLabel | null][] = [
-    [t.razzeAvvantaggiate, tips.favoredRaces],
-    [t.razzeSvantaggiate, tips.unfavoredRaces],
-    [t.abilitaConsigliate, tips.skills],
-    [t.comportamento, tips.behavior],
-    [t.infoUnica, tips.unique],
-  ];
-  const shown = rows.filter((row): row is [string, HeroLabel] => row[1] !== null);
-  if (shown.length === 0) return null;
+  const labels: Record<(typeof TIP_KEYS)[number], string> = {
+    favoredRaces: t.razzeAvvantaggiate,
+    unfavoredRaces: t.razzeSvantaggiate,
+    skills: t.abilitaConsigliate,
+    behavior: t.comportamento,
+    unique: t.infoUnica,
+  };
+  const same = (key: (typeof TIP_KEYS)[number]) => !!like && JSON.stringify(like.tips[key]) === JSON.stringify(tips[key]);
+  const present = TIP_KEYS.filter((key) => tips[key] !== null);
+  const shown = present.filter((key) => !same(key));
+  const repeated = present.filter(same);
+  if (present.length === 0) return null;
   return (
-    <dl className="m-0 mt-2.5 grid gap-x-3 gap-y-1 text-[13px] sm:grid-cols-[max-content_minmax(0,1fr)]">
-      {shown.map(([label, value]) => (
-        <div key={label} className="contents">
-          <dt className={cx(eyebrow, "pt-px")}>{label}</dt>
-          <dd className="m-0 text-ink-2">
-            <Said value={value} scope={scope} />
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <div className="mt-2.5 @3xl:mt-0">
+      {shown.length > 0 ? (
+        <dl className="m-0 grid gap-x-3 gap-y-1 text-[13px] sm:grid-cols-[max-content_minmax(0,1fr)]">
+          {shown.map((key) => (
+            <div key={key} className="contents">
+              <dt className={cx(eyebrow, "pt-px")}>{labels[key]}</dt>
+              <dd className="m-0 text-ink-2">
+                <Said value={tips[key]} scope={scope} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {like && repeated.length > 0 ? (
+        <DescribedAbove
+          href={like.href}
+          // le etichette dentro una frase: maiuscola solo la prima
+          counts={[repeated.map((key, index) => (index ? labels[key].toLowerCase() : labels[key])).join(", ")]}
+          text={t.comeIn(like.where)}
+          flush={shown.length === 0}
+        />
+      ) : null}
+    </div>
   );
 }
 
@@ -967,10 +1039,14 @@ export function LevelCell({
 /* ------------------------------------------------------------- impaginazione -- */
 
 /**
- * Il riassunto di un `<details>`: la freccia disegnata del sito al posto del
- * triangolo del browser, come in «Come funziona» (ui.tsx). La freccia gira solo
- * col SUO details aperto: un `group-open` girerebbe anche quelle dei details
- * chiusi dentro uno aperto (le carte dei nemici dentro un gruppo).
+ * Il riassunto di un `<details>`: una freccia al posto del triangolo del
+ * browser, come in «Come funziona» (ui.tsx). La freccia gira solo col SUO
+ * details aperto: un `group-open` girerebbe anche quelle dei details chiusi
+ * dentro uno aperto (le carte dei nemici dentro un gruppo).
+ *
+ * La freccia e' disegnata dal CSS (due lati di un quadratino ruotato) e non e'
+ * l'icona SVG: una pagina ne ha fino a 125, e ognuna erano tre componenti in
+ * piu' nella pagina (11/10). Stessa misura e stesso tratto della «>» delle icone.
  */
 export function Summary({
   children,
@@ -984,42 +1060,19 @@ export function Summary({
     <summary
       className={cx(
         "flex min-h-8 cursor-pointer list-none items-center gap-1.5 hover:text-ink [&::-webkit-details-marker]:hidden",
+        "before:mr-0.5 before:ml-[3px] before:size-[7px] before:shrink-0 before:rotate-45 before:border-t-2 before:border-r-2 before:border-current before:content-[''] before:transition-transform motion-reduce:before:transition-none [details[open]>&]:before:rotate-[135deg]",
         className ?? "text-[13px] text-ink-2",
       )}
     >
-      <IconChevronRight size={14} className="shrink-0 transition-transform [details[open]>summary>&]:rotate-90" />
       <span className="min-w-0">{children}</span>
     </summary>
-  );
-}
-
-/**
- * I salti dentro una pagina lunga, nella forma delle scelte del sito: la
- * Divinita' Suprema arriva a nove schermi, e le parti della difficolta' scelta
- * stavano tutte sotto la tabella.
- */
-export function InPageNav({ label, links }: { label: string; links: readonly (readonly [string, string] | null | false)[] }) {
-  const shown = links.filter((link): link is readonly [string, string] => !!link);
-  if (shown.length === 0) return null;
-  return (
-    <nav aria-label={label} className="mb-10">
-      <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
-        {shown.map(([href, text]) => (
-          <li key={href}>
-            <a href={href} className={chipClass(false, true)}>
-              {text}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
   );
 }
 
 /** Il titolo di una sezione della pagina: la voce di Persona, piu' spazio sopra che sotto. */
 export function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
   return (
-    <h2 id={id} className={cx(display, "m-0 mb-5 scroll-mt-20 text-[clamp(24px,3vw,32px)]")}>
+    <h2 id={id} className={cx(display, "m-0 mb-5 scroll-mt-[120px] text-[clamp(24px,3vw,32px)]")}>
       {children}
     </h2>
   );
@@ -1035,9 +1088,10 @@ export function Facts({ rows }: { rows: readonly (readonly [string, ReactNode] |
   if (shown.length === 0) return null;
   return (
     <dl className="m-0 grid gap-x-4 gap-y-0.5 text-[13px] sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-y-1.5">
-      {shown.map(([label, value]) => (
+      {shown.map(([label, value], index) => (
         <div key={label} className="contents">
-          <dt className={cx(eyebrow, "pt-px")}>{label}</dt>
+          {/* sul telefono una coppia sotto l'altra: lo stacco fra le coppie, non fra etichetta e valore */}
+          <dt className={cx(eyebrow, "pt-px", index > 0 && "max-sm:mt-2")}>{label}</dt>
           <dd className="m-0 min-w-0 text-ink-2">{value}</dd>
         </div>
       ))}
@@ -1050,7 +1104,7 @@ export function PartTitle({ children, id }: { children: ReactNode; id?: string }
   return (
     <h3
       id={id}
-      className="m-0 mb-3 scroll-mt-20 font-display text-[17px] font-extrabold uppercase leading-tight tracking-[0.02em] [font-variation-settings:'wdth'_85]"
+      className="m-0 mb-3 scroll-mt-[120px] font-display text-[17px] font-extrabold uppercase leading-tight tracking-[0.02em] [font-variation-settings:'wdth'_85]"
     >
       {children}
     </h3>

@@ -110,7 +110,7 @@ clone pulito l'immagine funziona, ma senza immagini.
 | `AUTH_SECRET` | `npx auth secret`, diverso da quello di sviluppo |
 | `AUTH_URL` | l'indirizzo pubblico, con `https://`. Fa anche da indirizzo del sito (sitemap, robots, link del recupero password) e dice ad Auth.js di fidarsi dell'host |
 | `AUTH_DISCORD_ID`/`_SECRET`, `AUTH_GOOGLE_ID`/`_SECRET` | facoltative; nell'app di Discord o Google va registrato `<AUTH_URL>/api/auth/callback/discord` (o `/google`) |
-| `DISCORD_WEBHOOK_MODERAZIONE` | facoltativa; il webhook del canale Discord dei moderatori: a ogni schermata da verificare arriva un messaggio con utente, eroe del giorno, classe dichiarata e il collegamento a `/moderazione` (la schermata non parte: resta sul sito) |
+| `DISCORD_WEBHOOK_MODERAZIONE` | facoltativa; il webhook del canale Discord dei moderatori: a ogni schermata da verificare arriva un messaggio con utente, eroe del giorno, classe dichiarata e il collegamento a `/moderazione` (la schermata non parte: resta sul sito); lo stesso per ogni guida dell'Endgame da rivedere (autore, dove vale, titolo) |
 
 `NEXT_PUBLIC_SITE_URL` non va messa nell'ambiente della **build**: Next scrive nel
 codice le variabili `NEXT_PUBLIC_` che trova in quel momento. Se manca,
@@ -761,6 +761,40 @@ viene trasformato in un albero e gli elementi li scelgono `src/lib/markdown.ts` 
 prezzo è che tabelle e immagini non ci sono: sta scritto nella pagina di
 scrittura, così nessuno lo scopre dopo aver pubblicato.
 
+### Le strategie dell'Endgame
+
+Un post può portare una **strategia** per una delle quattro modalità di fine
+gioco: Scontri finali (boss e difficoltà), Bestie demoniache (la bestia, e se si
+punta al piano trascendente), Re Demone e Divinità Suprema (la difficoltà). Il
+modulo (`/<gioco>/strategie/nuova`) ha il modello della modalità scelta, letto
+dagli stessi dati delle pagine: la **squadra** (quattro eroi con l'Eroe
+associato), il **set di artefatti** e **una nota per ogni fase** di quella
+difficoltà. Gli eroi che la modalità esclude o con un attributo non ammesso non
+entrano; eroi e associati sono otto personaggi diversi, come nel gioco.
+
+Il tipo lo decide il contenuto, non una scelta:
+
+- **senza testo** è un consiglio di squadra e **si pubblica subito**; il titolo
+  lo scrive il sito nella lingua di chi legge;
+- **con un testo** (titolo, note o una fase) è una **guida**, e la rivede un
+  moderatore prima che esca. Il titolo conta come testo: è la prima cosa che si
+  legge nelle pagine dell'Endgame.
+
+Una guida in revisione la vedono solo l'autore e chi modera (per gli altri la
+pagina risponde 404, e non si vota né si commenta); respinta, l'autore legge il
+motivo e può correggerla, e torna in coda. Una guida pubblicata modificata torna
+in revisione solo se cambia il testo. L'esito arriva come notifica.
+
+Le strategie pubblicate compaiono nelle pagine dell'Endgame, nella sezione
+**«Squadre consigliate»** (`#squadre`) della difficoltà che la pagina mostra,
+dalla più votata, coi collegamenti alle altre difficoltà che ne hanno; e nel
+feed, nella sezione «Endgame», con la squadra in piccolo. I dati stanno in
+`post_strategies` (migrazione **0007**), uno a uno coi post: voti, commenti e
+segnalazioni sono quelli dei post. Il codice è in `src/lib/strategies/`
+(`rules.ts` col controllo `checkStrategy`, che è il confine; `server.ts`;
+`actions.ts`) e `src/components/strategies/`. Servono il database e un account:
+senza database le strategie non si scrivono, perché vivono della revisione.
+
 ### Moderazione
 
 Gli strumenti vanno costruiti **prima** che servano, perché il giorno in cui
@@ -785,7 +819,11 @@ servono non c'è tempo di scriverli.
   amministratore. Chi è sospeso non modera, non scrive, non segnala e non cambia
   il profilo. Lo staff non elimina il proprio account (il registro perderebbe il
   nome): prima un amministratore toglie il ruolo.
-- **Le verifiche della classe dell'account** stanno in cima a `/moderazione`:
+- **Le guide dell'Endgame da rivedere** stanno in cima a `/moderazione`
+  (`#guide`, l'avviso Discord ci porta lì): il testo intero, la squadra e il
+  set; pubblicare o respingere con un motivo, che l'autore legge. Chi modera non
+  decide le proprie; decidono in due, vince il primo.
+- **Le verifiche della classe dell'account** stanno in `/moderazione`:
   schermata, eroe del giorno (e quelli scartati), classe dichiarata e l'ultima
   confermata. Chi modera non può decidere la propria.
 - **`/moderazione` e `/admin` rispondono 404**, non 403, a chi non ha il ruolo:

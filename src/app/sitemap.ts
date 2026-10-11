@@ -78,13 +78,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
       const posts = await db.query.posts.findMany({
         columns: { id: true, updatedAt: true, hidden: true },
-        with: { hub: { with: { game: true } } },
+        with: { hub: { with: { game: true } }, strategy: { columns: { status: true } } },
         limit: 2000,
       });
 
       for (const post of posts) {
         const slug = post.hub.game?.slug;
-        if (!slug || post.hidden) continue;
+        // una guida dell'Endgame in revisione o respinta risponde 404 a chi non e' l'autore
+        if (!slug || post.hidden || (post.strategy && post.strategy.status !== "PUBLISHED")) continue;
         entries.push({
           url: `${base}/${slug}/post/${post.id}`,
           lastModified: post.updatedAt,
