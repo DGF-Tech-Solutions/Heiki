@@ -37,6 +37,15 @@ const TABS = [
  *
  * Il controllo della sessione sta qui e non nelle pagine: una pagina che si
  * dimentica di farlo mostrerebbe i dati di qualcun altro.
+ *
+ * La misura: 980px bastano ai moduli dell'account, non all'editor del profilo,
+ * che affianca i controlli all'anteprima della pagina vera (con la copertina
+ * larga quanto il profilo). La pagina che ha bisogno di spazio lo dice con un
+ * elemento `data-impostazioni-larghe`, e il guscio si allarga fino ai 1200px
+ * del sito (`has-[...]`, 11/10). Scartati: 1200px per tutte (i moduli
+ * dell'account in una colonna lunghissima) e i margini negativi nella pagina
+ * del profilo (calcoli sulla larghezza della finestra, barra di scorrimento
+ * compresa, che sul telefono fanno scorrere la pagina di lato).
  */
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   if (!(await databaseReachable())) {
@@ -54,7 +63,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   const t = TESTI[await getLocale()];
 
   return (
-    <main className="mx-auto w-full max-w-[980px] px-6 pt-9 pb-24">
+    <main className="mx-auto w-full max-w-[980px] px-6 pt-9 pb-24 has-[[data-impostazioni-larghe]]:max-w-[1200px]">
       <PageHeader title={t.ilTuoAccount} />
 
       {/* le schede dicono dove sei (10/10: prima erano due collegamenti uguali) */}

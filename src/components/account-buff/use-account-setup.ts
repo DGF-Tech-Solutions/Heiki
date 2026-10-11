@@ -67,6 +67,18 @@ export function storeSetup(gameSlug: string, next: AccountSetup): void {
   window.dispatchEvent(new Event(EVENT));
 }
 
+/** Toglie l'account dal browser: la usa la sincronizzazione quando entra un'altra persona. */
+export function forgetSetup(gameSlug: string): void {
+  const key = setupStorageKey(gameSlug);
+  memory.delete(key);
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    /* niente da togliere */
+  }
+  window.dispatchEvent(new Event(EVENT));
+}
+
 export function readSetup(gameSlug: string): AccountSetup {
   return snapshot(setupStorageKey(gameSlug));
 }

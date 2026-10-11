@@ -15,11 +15,15 @@
  *    verifica automatica. Se fossero modificabili a mano, la spunta
  *    "verificato" non varrebbe piu' niente per nessuno.
  * Si puo' decidere cosa esporre e in che ordine: quella e' presentazione.
+ *
+ * Dall'11/10 i preferiti si scelgono dal roster (prima erano nomi scritti a
+ * mano, che non portavano da nessuna parte) e il gruppo delle build non c'e'
+ * piu': si poteva riempire, ma il salvataggio lo ignorava.
  */
 
 import Link from "next/link";
-import type { ReactNode } from "react";
-import type { ProfileViewData } from "./profile-view";
+import { useDeferredValue, useId, useMemo, useState, type ReactNode } from "react";
+import type { ProfileBadge, ProfileViewData } from "./profile-view";
 import {
   ACCENTS,
   BADGE_SHOWCASE_LIMIT,
@@ -28,8 +32,12 @@ import {
   type CustomizationKey,
   type ProfileCustomization,
 } from "@/lib/profile/customization";
+import { FAVORITES_LIMIT, favoriteKey, moveItem } from "@/lib/profile/favorites";
+import { findPickable, type PickableGame } from "@/lib/profile/favorite-heroes";
+import { filterHeroes, heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
+import type { HeroEntry } from "@/lib/games/types";
 import { IconChevronRight, IconClose } from "./icons";
-import { Button, chipClass, cx, display, Empty, Field, Input, Textarea } from "./ui";
+import { chipClass, cx, display, Empty, eyebrow, Field, Input, Tag, Textarea } from "./ui";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 
@@ -37,6 +45,9 @@ import { testi } from "@/lib/i18n/locale";
 const ACCOUNT_PAGES: readonly { game: string; href: string }[] = [
   { game: "Grand Cross", href: "/grand-cross/account" },
 ];
+
+/** quante card mostra la ricerca: quattro o cinque file nel pannello, non il roster intero */
+const RESULTS = 20;
 
 const TESTI = testi({
   it: {
@@ -48,20 +59,29 @@ const TESTI = testi({
     facoltativo: "facoltativo",
     esempioPaese: "Italia",
     bio: "Bio",
+    preferiti: "Eroi preferiti",
+    preferitiNota: (limite: number) => `Fino a ${limite}, nell'ordine che scegli: il primo va in copertina`,
+    inCopertina: "In copertina",
+    nessunPreferito: "Nessun eroe scelto: cercane uno qui sotto.",
+    cerca: "Cerca un eroe",
+    cercaNota: "nome o epiteto, in italiano o inglese",
+    cercaEsempio: "Meliodas, Derieri, Dea dell'osservazione…",
+    recenti: "Usciti di recente",
+    risultati: (n: number) => (n === 1 ? "1 eroe" : `${n} eroi`),
+    primi: (n: number) => `i primi ${n}: scrivi di più per restringere`,
+    nessunRisultato: "Nessun eroe con questo nome.",
+    scelti: (n: number, limite: number) => `${n} su ${limite}`,
+    pieno: (limite: number) => `Hai scelto ${limite} eroi: togline uno per aggiungerne altri.`,
+    togli: (nome: string) => `Togli ${nome} dai preferiti`,
     aspetto: "Aspetto",
     aspettoNota: "Tutti i cosmetici sono disegni nostri: nessun asset dei giochi",
     accento: "Accento",
-    accentoNota: "colora livello, badge e dettagli",
+    accentoNota: "colora copertina, etichette e dettagli",
     premium: " (premium)",
     richiedePremium: (nome: string) => `${nome} — richiede il premium`,
-    preferiti: "Personaggi preferiti",
-    preferitiNota: "Compaiono in cima al profilo, nell'ordine che scegli",
-    aggiungiPreferito: "Aggiungi preferito",
-    nomePersonaggio: "Nome del personaggio",
     vetrina: "Vetrina dei badge",
     vetrinaNota: (esposti: number, posti: number) =>
       `${esposti} esposti su ${posti} posti. I badge si guadagnano: scegli quali mostrare e in che ordine, non come si chiamano.`,
-    nessunBadge: "Nessun badge ancora.",
     vetrinaPiena: "Vetrina piena",
     esponi: "esponi",
     profiliGioco: "Profili di gioco",
@@ -69,19 +89,8 @@ const TESTI = testi({
       "Solo quello che scrivi tu: nickname, Codice amico, server e classe dell'account. Non chiediamo mai le credenziali del tuo account di gioco.",
     profiliGiocoDove: "Si scrivono nella pagina «Il mio account» di ogni gioco, dove chiedi anche la verifica della classe:",
     ilMioAccount: "Il mio account",
-    mostra: "mostra",
-    build: "Build",
-    buildNota: "Decidi quali rendere pubbliche sul profilo",
-    nuovaBuild: "Nuova build",
-    aggiungiBuild: "Aggiungi build",
-    nomeBuild: "Nome della build",
-    personaggio: "Personaggio",
-    danno: "Danno",
-    pubblica: "pubblica",
-    spostaSu: "Sposta su",
-    spostaGiu: "Sposta giù",
-    rimuovi: "Rimuovi",
-    nienteQui: "Niente qui, per ora.",
+    spostaSu: (nome: string) => `Sposta su ${nome}`,
+    spostaGiu: (nome: string) => `Sposta giù ${nome}`,
   },
   en: {
     chiSei: "Who you are",
@@ -92,20 +101,29 @@ const TESTI = testi({
     facoltativo: "optional",
     esempioPaese: "Italy",
     bio: "Bio",
+    preferiti: "Favorite heroes",
+    preferitiNota: (limite: number) => `Up to ${limite}, in the order you choose: the first one becomes your cover`,
+    inCopertina: "Cover",
+    nessunPreferito: "No heroes picked yet: search for one below.",
+    cerca: "Search a hero",
+    cercaNota: "name or epithet, in English or Italian",
+    cercaEsempio: "Meliodas, Derieri, Omniscient Watcher…",
+    recenti: "Latest releases",
+    risultati: (n: number) => (n === 1 ? "1 hero" : `${n} heroes`),
+    primi: (n: number) => `the first ${n}: type more to narrow it down`,
+    nessunRisultato: "No hero with this name.",
+    scelti: (n: number, limite: number) => `${n} of ${limite}`,
+    pieno: (limite: number) => `You picked ${limite} heroes: remove one to add more.`,
+    togli: (nome: string) => `Remove ${nome} from favorites`,
     aspetto: "Appearance",
     aspettoNota: "All cosmetics are our own designs: no game assets",
     accento: "Accent",
-    accentoNota: "colors your level, badges and details",
+    accentoNota: "colors your cover, tags and details",
     premium: " (premium)",
     richiedePremium: (nome: string) => `${nome} — requires Premium`,
-    preferiti: "Favorite characters",
-    preferitiNota: "They appear at the top of your profile, in the order you choose",
-    aggiungiPreferito: "Add favorite",
-    nomePersonaggio: "Character name",
     vetrina: "Badge showcase",
     vetrinaNota: (esposti: number, posti: number) =>
       `${esposti} shown out of ${posti} slots. Badges are earned: choose which to show and in what order, not what they're called.`,
-    nessunBadge: "No badges yet.",
     vetrinaPiena: "Showcase full",
     esponi: "show",
     profiliGioco: "Game profiles",
@@ -113,54 +131,37 @@ const TESTI = testi({
       "Only what you enter: nickname, Friend Code, server and Account Combat Class. We never ask for your game account credentials.",
     profiliGiocoDove: "They are entered on each game's «My account» page, where you also request the class verification:",
     ilMioAccount: "My account",
-    mostra: "show",
-    build: "Builds",
-    buildNota: "Choose which ones are public on your profile",
-    nuovaBuild: "New build",
-    aggiungiBuild: "Add build",
-    nomeBuild: "Build name",
-    personaggio: "Character",
-    danno: "Damage",
-    pubblica: "public",
-    spostaSu: "Move up",
-    spostaGiu: "Move down",
-    rimuovi: "Remove",
-    nienteQui: "Nothing here yet.",
+    spostaSu: (nome: string) => `Move ${nome} up`,
+    spostaGiu: (nome: string) => `Move ${nome} down`,
   },
 });
-
-const ACCENT_SWATCH: Readonly<Record<string, string>> = {
-  brand: "#6425ff",
-  magenta: "#e0169a",
-  ocean: "#0870d8",
-  forest: "#12805a",
-  sunset: "#e2510f",
-  gold: "#b07d05",
-};
 
 export const BIO_LIMIT = 280;
 export const NAME_LIMIT = 40;
 
-export type ProfileDraft = Omit<
-  ProfileViewData,
-  "favorites" | "badges" | "gameAccounts" | "builds" | "customization"
-> & {
+/**
+ * Cio' che l'editor modifica: solo i campi che il salvataggio accetta. Il resto
+ * della vista (ruolo, numeri, account di gioco) resta quello caricato, e
+ * l'anteprima lo rimette insieme (profile-workspace.tsx).
+ */
+export interface ProfileDraft {
+  username: string;
+  displayName: string;
+  bio: string;
+  country: string;
   favorites: string[];
-  badges: ProfileViewData["badges"][number][];
-  gameAccounts: ProfileViewData["gameAccounts"][number][];
-  builds: ProfileViewData["builds"][number][];
+  badges: ProfileBadge[];
   customization: ProfileCustomization;
-};
+}
 
 export function toDraft(data: ProfileViewData): ProfileDraft {
   return {
-    ...data,
+    username: data.username,
+    displayName: data.displayName,
     bio: data.bio ?? "",
     country: data.country ?? "",
     favorites: [...data.favorites],
     badges: data.badges.map((badge) => ({ ...badge })),
-    gameAccounts: data.gameAccounts.map((account) => ({ ...account })),
-    builds: data.builds.map((build) => ({ ...build })),
     customization: { ...(data.customization ?? DEFAULT_CUSTOMIZATION) },
   };
 }
@@ -170,9 +171,11 @@ interface Props {
   onChange: (next: ProfileDraft) => void;
   /** false = le opzioni premium restano visibili ma non selezionabili */
   canUsePremium: boolean;
+  /** gli eroi fra cui scegliere i preferiti: arrivano solo a chi modifica */
+  heroes: readonly PickableGame[];
 }
 
-export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
+export function ProfileEditorPanel({ value, onChange, canUsePremium, heroes }: Props) {
   const locale = useLocale();
   const t = TESTI[locale];
 
@@ -184,7 +187,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
   const shownBadges = value.badges.filter((badge) => badge.shown !== false).length;
 
   return (
-    <div className="grid gap-5">
+    <div className="grid min-w-0 gap-5">
       <Group title={t.chiSei} hint={t.chiSeiNota}>
         <Field
           label={t.nomeVisualizzato}
@@ -208,7 +211,7 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
 
         <Field label={t.paese} hint={t.facoltativo}>
           <Input
-            value={value.country ?? ""}
+            value={value.country}
             maxLength={40}
             placeholder={t.esempioPaese}
             onChange={(event) => patch({ country: event.target.value })}
@@ -217,15 +220,19 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
 
         <Field
           label={t.bio}
-          hint={<Counter value={(value.bio ?? "").length} limit={BIO_LIMIT} />}
+          hint={<Counter value={value.bio.length} limit={BIO_LIMIT} />}
           className="mb-0"
         >
           <Textarea
-            value={value.bio ?? ""}
+            value={value.bio}
             maxLength={BIO_LIMIT}
             onChange={(event) => patch({ bio: event.target.value })}
           />
         </Field>
+      </Group>
+
+      <Group title={t.preferiti} hint={t.preferitiNota(FAVORITES_LIMIT)}>
+        <FavoritesPicker value={value.favorites} onChange={(favorites) => patch({ favorites })} games={heroes} />
       </Group>
 
       <Group title={t.aspetto} hint={t.aspettoNota}>
@@ -242,14 +249,19 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                   disabled={locked}
                   aria-pressed={active}
                   aria-label={`${label}${option.premium ? t.premium : ""}`}
-                  title={locked ? t.richiedePremium(label) : option.descriptions[locale]}
+                  title={locked ? t.richiedePremium(label) : `${label}: ${option.descriptions[locale]}`}
                   onClick={() => setCustom("accent", option.id)}
-                  style={{ background: ACCENT_SWATCH[option.id] ?? "#6425ff" }}
+                  // Il campione legge il colore vero dal CSS ([data-accent] in
+                  // globals.css), come il profilo: fino all'11/10 aveva una sua
+                  // tabella, e il «Viola» restava viola dopo che l'accento era
+                  // diventato il rosso del sito.
+                  data-accent={option.id}
+                  style={{ background: "var(--accent)" }}
                   className={cx(
                     // quadrati e non cerchi (10/10): nel mondo scelto non ci sono angoli tondi
                     "relative size-9 cursor-pointer border border-rule transition-transform",
                     "hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
-                    active && "ring-2 ring-ink ring-offset-2 ring-offset-paper",
+                    active && "ring-2 ring-ink ring-offset-2 ring-offset-paper-2",
                   )}
                 >
                   {/* il segno dorato del premium: una lama, non la stella del font */}
@@ -287,28 +299,10 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
         ))}
       </Group>
 
-      <ListGroup
-        title={t.preferiti}
-        hint={t.preferitiNota}
-        items={value.favorites}
-        onChange={(favorites) => patch({ favorites })}
-        create={() => ""}
-        addLabel={t.aggiungiPreferito}
-        renderFields={(item, update) => (
-          <MiniInput
-            value={item}
-            placeholder={t.nomePersonaggio}
-            maxLength={40}
-            onChange={(next) => update(next)}
-          />
-        )}
-      />
-
-      <Group title={t.vetrina} hint={t.vetrinaNota(shownBadges, BADGE_SHOWCASE_LIMIT)}>
-        {value.badges.length === 0 ? (
-          <Empty>{t.nessunBadge}</Empty>
-        ) : (
-          <div className="grid gap-2">
+      {/* solo a chi ha dei badge: una vetrina vuota non e' una cosa da sistemare */}
+      {value.badges.length > 0 ? (
+        <Group title={t.vetrina} hint={t.vetrinaNota(shownBadges, BADGE_SHOWCASE_LIMIT)}>
+          <ol className="m-0 grid list-none gap-2 p-0">
             {value.badges.map((badge, index) => {
               const shown = badge.shown !== false;
               const atLimit = !shown && shownBadges >= BADGE_SHOWCASE_LIMIT;
@@ -317,15 +311,14 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                   <Reorder
                     index={index}
                     length={value.badges.length}
-                    onMove={(from, to) => patch({ badges: move(value.badges, from, to) })}
+                    name={badge.name}
+                    onMove={(from, to) => patch({ badges: moveItem(value.badges, from, to) })}
                   />
                   <span className="min-w-0 flex-1 basis-40">
                     <span className="block text-[13px]">
                       {badge.icon ?? "◇"} {badge.name}
                     </span>
-                    <span className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
-                      {badge.trust.toLowerCase()}
-                    </span>
+                    <span className={eyebrow}>{badge.trust.toLowerCase()}</span>
                   </span>
                   <label
                     className="inline-flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-ink-2"
@@ -350,9 +343,9 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
                 </Row>
               );
             })}
-          </div>
-        )}
-      </Group>
+          </ol>
+        </Group>
+      ) : null}
 
       {/*
         Gli account di gioco non si scrivono qui (prima c'era un elenco che non si
@@ -375,58 +368,180 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium }: Props) {
           ))}
         </ul>
       </Group>
-
-      <ListGroup
-        title={t.build}
-        hint={t.buildNota}
-        items={value.builds}
-        onChange={(builds) => patch({ builds })}
-        create={() => ({
-          id: `build-${Date.now()}`,
-          name: t.nuovaBuild,
-          game: "",
-          character: "",
-          median: 0,
-          patch: "—",
-          isPublic: true,
-        })}
-        addLabel={t.aggiungiBuild}
-        renderFields={(build, update) => (
-          <>
-            <MiniInput
-              value={build.name}
-              placeholder={t.nomeBuild}
-              maxLength={50}
-              onChange={(name) => update({ ...build, name })}
-            />
-            <span className="flex gap-1.5">
-              <MiniInput
-                value={build.character}
-                placeholder={t.personaggio}
-                maxLength={40}
-                onChange={(character) => update({ ...build, character })}
-              />
-              <MiniInput
-                mono
-                value={build.median || ""}
-                placeholder={t.danno}
-                inputMode="numeric"
-                onChange={(raw) =>
-                  update({ ...build, median: Number(String(raw).replace(/\D/g, "")) || 0 })
-                }
-              />
-            </span>
-          </>
-        )}
-        renderAside={(build, update) => (
-          <Toggle
-            checked={build.isPublic !== false}
-            label={t.pubblica}
-            onChange={(isPublic) => update({ ...build, isPublic })}
-          />
-        )}
-      />
     </div>
+  );
+}
+
+/* --------------------------------------------------------- eroi preferiti */
+
+/**
+ * La scelta dei preferiti: in alto quelli scelti, in ordine, da spostare o
+ * togliere; sotto la ricerca nel roster, con le card come pulsanti. Una card
+ * gia' scelta resta premuta e un secondo clic la toglie, cosi' la griglia
+ * dice da sola cosa c'e' gia'.
+ *
+ * Tutto a pulsanti veri, quindi tastiera e lettori di schermo funzionano senza
+ * altro: niente trascinamento, che a tastiera non si fa.
+ */
+function FavoritesPicker({
+  value,
+  onChange,
+  games,
+}: {
+  value: string[];
+  onChange: (next: string[]) => void;
+  games: readonly PickableGame[];
+}) {
+  const locale = useLocale();
+  const t = TESTI[locale];
+  const searchId = useId();
+  const [query, setQuery] = useState("");
+  // la griglia dei risultati segue la battuta senza rallentare il campo
+  const search = useDeferredValue(query.trim());
+  const full = value.length >= FAVORITES_LIMIT;
+
+  const { results, total } = useMemo(() => {
+    const found: { key: string; game: string; hero: HeroEntry }[] = [];
+    let count = 0;
+    for (const game of games) {
+      // senza ricerca, gli ultimi usciti: il roster e' gia' dal piu' recente
+      const heroes = search ? filterHeroes(game.heroes, { search }) : game.heroes;
+      count += heroes.length;
+      for (const hero of heroes) {
+        if (found.length >= RESULTS) break;
+        found.push({ key: favoriteKey(game.game, hero.id), game: game.game, hero });
+      }
+    }
+    return { results: found, total: count };
+  }, [games, search]);
+
+  const toggle = (key: string) => {
+    if (value.includes(key)) onChange(value.filter((item) => item !== key));
+    else if (!full) onChange([...value, key]);
+  };
+
+  return (
+    <>
+      {value.length === 0 ? (
+        <Empty>{t.nessunPreferito}</Empty>
+      ) : (
+        <ol className="m-0 grid list-none gap-2 p-0">
+          {value.map((key, index) => {
+            const found = findPickable(games, key);
+            const name = found ? heroName(found.hero, locale) : key;
+            return (
+              <Row key={key}>
+                <Reorder
+                  index={index}
+                  length={value.length}
+                  name={name}
+                  onMove={(from, to) => onChange(moveItem(value, from, to))}
+                />
+                {found ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={heroCardSrc(found.game.game, found.hero.id)}
+                    alt=""
+                    width={44}
+                    height={44}
+                    className="size-11 flex-none bg-paper-3"
+                  />
+                ) : null}
+                <span className="min-w-0 flex-1 basis-28">
+                  {index === 0 ? <Tag tone="accent" className="mb-1">{t.inCopertina}</Tag> : null}
+                  <span className="block truncate text-[13px] font-semibold">{name}</span>
+                  {found ? (
+                    <span className="block truncate text-xs text-ink-3">{heroEpithet(found.hero, locale)}</span>
+                  ) : null}
+                </span>
+                <button
+                  type="button"
+                  className={cx(ICON_BTN, "size-9 hover:border-hot hover:text-hot")}
+                  aria-label={t.togli(name)}
+                  title={t.togli(name)}
+                  onClick={() => onChange(value.filter((item) => item !== key))}
+                >
+                  <IconClose size={14} />
+                </button>
+              </Row>
+            );
+          })}
+        </ol>
+      )}
+
+      <div className="mt-4 border-t border-rule-2 pt-4">
+        <Field label={<span id={`${searchId}-label`}>{t.cerca}</span>} hint={t.cercaNota} className="mb-3">
+          <Input
+            type="search"
+            value={query}
+            placeholder={t.cercaEsempio}
+            autoComplete="off"
+            aria-describedby={`${searchId}-status`}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </Field>
+
+        <p id={`${searchId}-status`} aria-live="polite" className="m-0 mb-2.5 flex flex-wrap items-baseline justify-between gap-2 text-xs text-ink-3">
+          <span>
+            {search ? t.risultati(total) : t.recenti}
+            {search && total > RESULTS ? ` · ${t.primi(RESULTS)}` : ""}
+          </span>
+          <span className={cx(eyebrow, full && "text-brand-deep")}>{t.scelti(value.length, FAVORITES_LIMIT)}</span>
+        </p>
+        {full ? <p className="m-0 mb-2.5 text-xs text-ink-2">{t.pieno(FAVORITES_LIMIT)}</p> : null}
+
+        {results.length === 0 ? (
+          <Empty>{t.nessunRisultato}</Empty>
+        ) : (
+          <ul
+            aria-labelledby={`${searchId}-label`}
+            className="m-0 grid list-none gap-x-2 gap-y-3 p-0"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(68px, 1fr))" }}
+          >
+            {results.map(({ key, game, hero }) => {
+              const chosen = value.includes(key);
+              const name = heroName(hero, locale);
+              const epithet = heroEpithet(hero, locale);
+              return (
+                <li key={key} className="min-w-0">
+                  <button
+                    type="button"
+                    aria-pressed={chosen}
+                    disabled={!chosen && full}
+                    // il nome e' il testo del pulsante, aria-pressed dice se e' gia' fra i preferiti
+                    title={`${name} · ${epithet}`}
+                    onClick={() => toggle(key)}
+                    className="hero-card group block w-full cursor-pointer border-0 bg-transparent p-0 text-left text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    <span className="hero-card-art relative block">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={heroCardSrc(game, hero.id)}
+                        alt=""
+                        width={128}
+                        height={128}
+                        loading="lazy"
+                        decoding="async"
+                        className={cx(
+                          "block aspect-square w-full bg-paper-3",
+                          chosen && "outline-3 -outline-offset-3 outline-brand outline-solid",
+                        )}
+                      />
+                      {chosen ? (
+                        <span aria-hidden className="p5-cut-sm absolute top-1 left-1 bg-brand px-1.5 font-display text-[11px] font-extrabold text-white">
+                          {value.indexOf(key) + 1}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="mt-1 block line-clamp-2 text-[11.5px] leading-tight font-semibold">{name}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -442,9 +557,9 @@ function Group({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-card border border-rule bg-paper p-5">
-      <div className="mb-3.5">
-        <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>{title}</h2>
+    <section className="p5-corner min-w-0 border border-rule bg-paper-2 p-5">
+      <div className="mb-3.5 pr-3">
+        <h2 className={cx(display, "text-[17px] [font-variation-settings:'wdth'_92]")}>{title}</h2>
         <span className="mt-1 block text-xs text-ink-3">{hint}</span>
       </div>
       {children}
@@ -463,9 +578,9 @@ function Subgroup({
 }) {
   return (
     <div className="mt-4 border-t border-rule-2 pt-4 first:mt-0 first:border-0 first:pt-0">
-      <span className="mb-2.5 flex items-baseline justify-between gap-2.5 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3">
+      <span className={cx(eyebrow, "mb-2.5 flex flex-wrap items-baseline justify-between gap-x-2.5")}>
         {label}
-        <span className="text-[12px] normal-case tracking-normal">{hint}</span>
+        <span className="font-body text-[12px] font-normal normal-case tracking-normal [font-variation-settings:normal]">{hint}</span>
       </span>
       {children}
     </div>
@@ -474,58 +589,9 @@ function Subgroup({
 
 function Row({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-card border border-rule-2 bg-paper-2 px-3 py-2.5">
+    <li className="flex flex-wrap items-center gap-2.5 border border-rule-2 bg-paper px-3 py-2.5">
       {children}
-    </div>
-  );
-}
-
-function MiniInput({
-  value,
-  onChange,
-  mono = false,
-  ...props
-}: {
-  value: string | number;
-  onChange: (value: string) => void;
-  mono?: boolean;
-  placeholder?: string;
-  maxLength?: number;
-  inputMode?: "numeric";
-}) {
-  return (
-    <input
-      {...props}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className={cx(
-        "h-9 w-full border border-rule bg-paper px-2.5 text-[13px] text-ink",
-        "focus:border-brand focus:outline-none",
-        mono && "font-mono text-xs",
-      )}
-    />
-  );
-}
-
-function Toggle({
-  checked,
-  label,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-ink-2">
-      <input
-        type="checkbox"
-        className="size-3.5 accent-brand"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      {label}
-    </label>
+    </li>
   );
 }
 
@@ -538,26 +604,30 @@ function Counter({ value, limit }: { value: number; limit: number }) {
 }
 
 const ICON_BTN =
-  "grid place-items-center border border-rule bg-transparent text-ink-3 cursor-pointer " +
+  "grid flex-none place-items-center border border-rule bg-transparent text-ink-3 cursor-pointer " +
   "hover:border-ink-3 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed";
 
 function Reorder({
   index,
   length,
+  name,
   onMove,
 }: {
   index: number;
   length: number;
+  /** di chi si parla, per il lettore di schermo: «Sposta su» da solo non dice cosa */
+  name: string;
   onMove: (from: number, to: number) => void;
 }) {
   const t = TESTI[useLocale()];
 
   return (
-    <span className="flex flex-col gap-0.5">
+    <span className="flex flex-none flex-col gap-0.5">
       <button
         type="button"
         className={cx(ICON_BTN, "h-[26px] w-9")}
-        aria-label={t.spostaSu}
+        aria-label={t.spostaSu(name)}
+        title={t.spostaSu(name)}
         disabled={index === 0}
         onClick={() => onMove(index, index - 1)}
       >
@@ -566,7 +636,8 @@ function Reorder({
       <button
         type="button"
         className={cx(ICON_BTN, "h-[26px] w-9")}
-        aria-label={t.spostaGiu}
+        aria-label={t.spostaGiu(name)}
+        title={t.spostaGiu(name)}
         disabled={index === length - 1}
         onClick={() => onMove(index, index + 1)}
       >
@@ -576,84 +647,9 @@ function Reorder({
   );
 }
 
-/**
- * Gruppo di elementi riordinabili, aggiungibili e rimovibili.
- * Generico perche' preferiti, account e build hanno la stessa meccanica e
- * cambiano solo i campi da mostrare.
- */
-function ListGroup<T>({
-  title,
-  hint,
-  items,
-  onChange,
-  create,
-  addLabel,
-  renderFields,
-  renderAside,
-}: {
-  title: string;
-  hint: string;
-  items: T[];
-  onChange: (items: T[]) => void;
-  create: () => T;
-  addLabel: string;
-  renderFields: (item: T, update: (next: T) => void) => ReactNode;
-  renderAside?: (item: T, update: (next: T) => void) => ReactNode;
-}) {
-  const t = TESTI[useLocale()];
-
-  return (
-    <Group title={title} hint={hint}>
-      {items.length === 0 ? (
-        <Empty>{t.nienteQui}</Empty>
-      ) : (
-        <div className="grid gap-2">
-          {items.map((item, index) => {
-            const update = (next: T) => onChange(replace(items, index, next));
-            return (
-              <Row key={index}>
-                <Reorder
-                  index={index}
-                  length={items.length}
-                  onMove={(from, to) => onChange(move(items, from, to))}
-                />
-                <span className="grid min-w-0 flex-1 basis-36 gap-1.5">
-                  {renderFields(item, update)}
-                </span>
-                {renderAside?.(item, update)}
-                <button
-                  type="button"
-                  className={cx(ICON_BTN, "size-9 hover:border-hot hover:text-hot")}
-                  aria-label={t.rimuovi}
-                  onClick={() => onChange(items.filter((_, i) => i !== index))}
-                >
-                  <IconClose size={14} />
-                </button>
-              </Row>
-            );
-          })}
-        </div>
-      )}
-
-      <Button size="sm" className="mt-3" onClick={() => onChange([...items, create()])}>
-        + {addLabel}
-      </Button>
-    </Group>
-  );
-}
-
 function replace<T>(items: readonly T[], index: number, next: T): T[] {
   const copy = items.slice();
   copy[index] = next;
-  return copy;
-}
-
-function move<T>(items: readonly T[], from: number, to: number): T[] {
-  if (to < 0 || to >= items.length) return items.slice();
-  const copy = items.slice();
-  const [moved] = copy.splice(from, 1);
-  if (moved === undefined) return copy;
-  copy.splice(to, 0, moved);
   return copy;
 }
 

@@ -21,9 +21,19 @@ import { redirect } from "next/navigation";
 import { and, eq, ne } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { auth, signOut } from "@/lib/auth";
+import { auth, signIn, signOut } from "@/lib/auth";
 import { databaseReachable, db } from "@/lib/db";
-import { comments, posts, profiles, sessions, users } from "@/lib/db/schema";
+import {
+  comments,
+  guideRevisions,
+  guides,
+  modActions,
+  posts,
+  profiles,
+  sessions,
+  suspensions,
+  users,
+} from "@/lib/db/schema";
 import { testi, type Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
@@ -201,9 +211,15 @@ export async function changePasswordAction(
     await tx.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, user.id));
 
     // Chi cambia password spesso lo fa perche' sospetta un accesso altrui:
-    // lasciare vive le altre sessioni renderebbe il cambio inutile.
+    // lasciare vive le altre sessioni renderebbe il cambio inutile. Le sessioni
+    // sono JWT: le chiude l'impronta della password nel gettone (passwordStamp
+    // in ./index.ts); le righe di `sessions` servono solo all'adapter.
     await tx.delete(sessions).where(eq(sessions.userId, user.id));
   });
+
+  // Questa sessione si rinnova con la password nuova, se no l'impronta vecchia
+  // farebbe uscire anche chi l'ha appena cambiata
+  await signIn("credentials", { email: user.email, password: parsed.data.next, redirect: false });
 
   revalidatePath("/impostazioni/account");
   return { success: t.passwordAggiornata };
@@ -271,6 +287,23 @@ export async function deleteAccountAction(
       .update(comments)
       .set({ authorId: placeholder.id })
       .where(eq(comments.authorId, user.id));
+    // Guide, revisioni e il registro della moderazione puntano all'utente senza
+    // cascata: fino all'11/10 chi aveva scritto una guida o moderato qualcosa non
+    // poteva eliminare l'account (errore di chiave esterna). Restano, col
+    // segnaposto al posto del nome.
+    await tx.update(guides).set({ authorId: placeholder.id }).where(eq(guides.authorId, user.id));
+    await tx
+      .update(guideRevisions)
+      .set({ editorId: placeholder.id })
+      .where(eq(guideRevisions.editorId, user.id));
+    await tx
+      .update(modActions)
+      .set({ moderatorId: placeholder.id })
+      .where(eq(modActions.moderatorId, user.id));
+    await tx
+      .update(suspensions)
+      .set({ moderatorId: placeholder.id })
+      .where(eq(suspensions.moderatorId, user.id));
 
     // Tutto il resto - profilo, badge, voti, notifiche, sessioni - se ne va in
     // cascata grazie alle chiavi esterne.

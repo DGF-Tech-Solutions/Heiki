@@ -19,6 +19,7 @@ import { databaseReachable, db } from "@/lib/db";
 import { comments, follows, notifications, posts, users } from "@/lib/db/schema";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { rateLimit, retryMessage } from "@/lib/rate-limit";
 
 export interface SocialResult {
   ok: boolean;
@@ -51,10 +52,15 @@ async function currentUserId(): Promise<string | null> {
 /* ------------------------------------------------------------- seguire -- */
 
 export async function toggleFollowAction(targetUsername: string): Promise<SocialResult> {
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const followerId = await currentUserId();
   if (!followerId) return { ok: false, error: t.entraPerSeguire };
+
+  // seguire e smettere in giro mandava una notifica a ogni giro (11/10)
+  const limit = rateLimit("follow", followerId);
+  if (!limit.allowed) return { ok: false, error: retryMessage(limit, locale) };
 
   const target = await db.query.users.findFirst({
     where: eq(users.username, targetUsername.toLowerCase()),
@@ -76,7 +82,16 @@ export async function toggleFollowAction(targetUsername: string): Promise<Social
       .where(and(eq(follows.followerId, followerId), eq(follows.followingId, target.id)));
   } else {
     await db.insert(follows).values({ followerId, followingId: target.id });
-    await notify(target.id, followerId, "NEW_FOLLOWER", {});
+    // una notifica sola per chi ti segue: chi smette e ricomincia non ne manda altre
+    const already = await db.query.notifications.findFirst({
+      where: and(
+        eq(notifications.userId, target.id),
+        eq(notifications.actorId, followerId),
+        eq(notifications.type, "NEW_FOLLOWER"),
+      ),
+      columns: { id: true },
+    });
+    if (!already) await notify(target.id, followerId, "NEW_FOLLOWER", {});
   }
 
   revalidatePath(`/u/${targetUsername}`);

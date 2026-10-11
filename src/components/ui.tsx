@@ -125,7 +125,8 @@ const TAG_TONE: Record<TagTone, string> = {
   neutral: "bg-ink text-paper",
   brand: "bg-brand text-white",
   gold: "bg-gold text-paper",
-  accent: "bg-[var(--accent)] text-white",
+  // il testo sopra l'accento lo decide l'accento (--accent-fg in globals.css): su oro e tramonto il bianco non si leggeva
+  accent: "bg-[var(--accent)] text-[color:var(--accent-fg,#fff)]",
 };
 
 /**

@@ -18,6 +18,7 @@ import {
   cleanProfile,
   challengePool,
   MAX_REROLLS,
+  nextVerificationAt,
   utcDay,
   type GameAccountProfile,
 } from "@/lib/games/game-account";
@@ -51,6 +52,13 @@ export interface VerificationSummary {
   readonly current: CurrentVerification | null;
   /** l'ultima decisione, se e' un rifiuto venuto dopo l'ultima conferma */
   readonly rejected: { readonly note: string | null; readonly reviewedAt: string } | null;
+  /**
+   * Da quando si puo' chiedere una nuova verifica, se non ancora: una settimana
+   * dall'ultima approvata (VERIFICATION_COOLDOWN_DAYS). Si legge dalle richieste
+   * e non da `verifiedAt` dell'account, che un cambio di Codice amico azzera:
+   * togliere e rimettere il codice non accorcia l'attesa.
+   */
+  readonly nextRequestAt: string | null;
 }
 
 export const EMPTY_SUMMARY: VerificationSummary = {
@@ -58,12 +66,20 @@ export const EMPTY_SUMMARY: VerificationSummary = {
   verifiedAt: null,
   current: null,
   rejected: null,
+  nextRequestAt: null,
 };
 
 type GameAccountRow = typeof gameAccounts.$inferSelect;
 
+// l'id di un gioco non cambia mentre il server gira: lo chiedevano tutte le
+// pagine del gioco per chi e' entrato, una query in piu' a ogni richiesta (11/10)
+const gameIds = new Map<string, string>();
+
 export async function gameIdBySlug(slug: string): Promise<string | null> {
+  const known = gameIds.get(slug);
+  if (known) return known;
   const row = await db.query.games.findFirst({ where: eq(games.slug, slug), columns: { id: true } });
+  if (row) gameIds.set(slug, row.id);
   return row?.id ?? null;
 }
 
@@ -118,6 +134,12 @@ export async function verificationSummary(
     (row) => row.status === "PENDING" || (row.status === "OPEN" && row.challengeDay === today),
   );
   const decided = rows.find((row) => row.status === "APPROVED" || row.status === "REJECTED");
+  // l'ultima approvata a parte: fra le ultime dieci richieste potrebbe non esserci
+  const approved = await db.query.powerVerifications.findFirst({
+    where: and(eq(powerVerifications.gameAccountId, account.id), eq(powerVerifications.status, "APPROVED")),
+    orderBy: [desc(powerVerifications.reviewedAt)],
+    columns: { reviewedAt: true },
+  });
 
   return {
     verifiedPower: account.verifiedPower,
@@ -137,6 +159,7 @@ export async function verificationSummary(
       decided?.status === "REJECTED" && decided.reviewedAt
         ? { note: decided.note, reviewedAt: decided.reviewedAt.toISOString() }
         : null,
+    nextRequestAt: nextVerificationAt(approved?.reviewedAt ?? null, now)?.toISOString() ?? null,
   };
 }
 

@@ -42,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface Props {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string | string[] }>;
 }
 
 /**
@@ -55,7 +55,8 @@ interface Props {
  */
 export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
-  const query = (q ?? "").trim();
+  // `?q=a&q=b` arriva come elenco: vale il primo (11/10); e niente ricerche da romanzo
+  const query = ((Array.isArray(q) ? q[0] : q) ?? "").trim().slice(0, 80);
   const needle = query.toLowerCase();
   const locale = await getLocale();
   const t = TESTI[locale];
@@ -66,11 +67,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const posts =
     needle.length >= 2
       ? sortFeed(
-          (await store.listPosts(null, null, viewer)).filter(
-            (post) =>
-              post.title.toLowerCase().includes(needle) ||
-              post.excerpt.toLowerCase().includes(needle),
-          ),
+          await store.listPosts(null, null, viewer, { search: needle }),
           "hot",
         )
       : [];

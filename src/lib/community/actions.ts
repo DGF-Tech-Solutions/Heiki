@@ -9,17 +9,18 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { databaseReachable, db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { comments, users } from "@/lib/db/schema";
 import { testi, type Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { notifyOnComment } from "@/lib/social/actions";
 import { suspensionFor, suspensionMessage } from "@/lib/moderation/suspension";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
+import { getGameModule } from "@/lib/games/registry";
 import { GUEST, getStore, type Viewer } from "./store";
 import { HUBS } from "./types";
 import type { Vote } from "./types";
@@ -57,13 +58,27 @@ const TESTI = testi({
 
 type Testi = (typeof TESTI)["it"];
 
+/**
+ * Col database gli id sono UUID; nella modalita' dimostrativa «local-N». Un id
+ * scritto a mano che non e' un UUID farebbe fallire la query con un errore 500:
+ * si respinge prima, come dato non valido.
+ */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function idsValid(...ids: readonly (string | null | undefined)[]): Promise<boolean> {
+  if (!(await databaseReachable())) return true;
+  return ids.every((id) => id == null || UUID.test(id));
+}
+
 const HUB_IDS = HUBS.map((hub) => hub.slug) as [string, ...string[]];
 
 // Gli schemi si costruiscono con i testi della lingua di chi scrive: i
 // messaggi di validazione arrivano a video cosi' come sono.
 const postSchema = (t: Testi) =>
   z.object({
-    game: z.string().min(1),
+    // solo i giochi del sito: senza, un post a mano creava un «gioco» che nessuna
+    // pagina mostra (11/10)
+    game: z.string().refine((slug) => getGameModule(slug) !== undefined),
     hub: z.enum(HUB_IDS),
     title: z.string().trim().min(8, t.titoloCorto).max(140, t.titoloLungo),
     body: z.string().trim().min(20, t.testoCorto).max(8000, t.testoLungo),
@@ -71,8 +86,8 @@ const postSchema = (t: Testi) =>
 
 const commentSchema = (t: Testi) =>
   z.object({
-    postId: z.string().min(1),
-    parentId: z.string().nullish(),
+    postId: z.string().min(1).max(64),
+    parentId: z.string().max(64).nullish(),
     body: z.string().trim().min(2, t.commentoCorto).max(4000, t.commentoLungo),
   });
 
@@ -118,7 +133,7 @@ export async function currentViewer(): Promise<Viewer | null> {
  */
 async function writeGuard(
   viewer: Viewer,
-  rule: "post" | "comment",
+  rule: "post" | "comment" | "vote",
   locale: Locale,
 ): Promise<ActionState | null> {
   const limit = rateLimit(rule, viewer.id);
@@ -186,6 +201,19 @@ export async function createCommentAction(
   const blocked = await writeGuard(viewer, "comment", locale);
   if (blocked) return blocked;
 
+  if (!(await idsValid(parsed.data.postId, parsed.data.parentId))) return { error: t.datiNonValidi };
+
+  // La risposta deve stare nello stesso post del commento a cui risponde: senza
+  // il controllo, una richiesta a mano mandava l'avviso di risposta all'autore
+  // di un commento di un'altra discussione (11/10)
+  if (parsed.data.parentId && (await databaseReachable())) {
+    const parent = await db.query.comments.findFirst({
+      where: and(eq(comments.id, parsed.data.parentId), eq(comments.postId, parsed.data.postId)),
+      columns: { id: true },
+    });
+    if (!parent) return { error: t.datiNonValidi };
+  }
+
   const store = await getStore();
   await store.createComment(parsed.data, viewer);
 
@@ -200,17 +228,36 @@ export async function createCommentAction(
   return {};
 }
 
+/**
+ * Il voto arriva dal browser cosi' com'e': fino all'11/10 il valore non si
+ * controllava, e il punteggio sommava qualunque numero (un voto da un milione).
+ * Ora solo -1, 0, 1, col tetto di frequenza e la sospensione di chi scrive.
+ */
+const voteSchema = z.object({
+  targetType: z.enum(["POST", "COMMENT"]),
+  targetId: z.string().min(1).max(64),
+  value: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
+});
+
 export async function voteAction(
   targetType: "POST" | "COMMENT",
   targetId: string,
   value: Vote,
 ): Promise<ActionState> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
   const viewer = await currentViewer();
-  if (!viewer) return { error: TESTI[await getLocale()].entraPerVotare };
+  if (!viewer) return { error: t.entraPerVotare };
+
+  const parsed = voteSchema.safeParse({ targetType, targetId, value });
+  if (!parsed.success || !(await idsValid(parsed.data.targetId))) return { error: t.datiNonValidi };
+
+  const blocked = await writeGuard(viewer, "vote", locale);
+  if (blocked) return blocked;
 
   const store = await getStore();
-  if (targetType === "POST") await store.votePost(targetId, value, viewer);
-  else await store.voteComment(targetId, value, viewer);
+  if (parsed.data.targetType === "POST") await store.votePost(parsed.data.targetId, parsed.data.value, viewer);
+  else await store.voteComment(parsed.data.targetId, parsed.data.value, viewer);
 
   revalidatePath("/", "layout");
   return {};

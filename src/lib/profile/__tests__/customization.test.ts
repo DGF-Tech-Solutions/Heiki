@@ -13,6 +13,9 @@ import {
   isPremiumOption,
   normalizeCustomization,
   optionsFor,
+  readShowcaseChosen,
+  SHOWCASE_FLAG_CHOSEN,
+  SHOWCASE_FLAG_KEY,
   stripPremium,
   toCosmeticRecord,
 } from "../customization";
@@ -109,6 +112,23 @@ describe("toCosmeticRecord", () => {
   it("il giro completo salva-e-rileggi non perde informazione", () => {
     const chosen = { accent: "gold", frame: "glow", background: "stripes", layout: "editorial" };
     expect(normalizeCustomization(toCosmeticRecord(chosen))).toEqual(chosen);
+  });
+});
+
+describe("segno della vetrina scelta", () => {
+  it("si scrive solo se richiesto, e non diventa un cosmetico", () => {
+    const record = toCosmeticRecord(DEFAULT_CUSTOMIZATION, { showcaseChosen: true });
+    expect(record[SHOWCASE_FLAG_KEY]).toBe(SHOWCASE_FLAG_CHOSEN);
+    expect(normalizeCustomization(record)).toEqual(DEFAULT_CUSTOMIZATION);
+    expect(SHOWCASE_FLAG_KEY in toCosmeticRecord(DEFAULT_CUSTOMIZATION)).toBe(false);
+  });
+
+  it("si rilegge dalla colonna, e manca nei profili mai configurati", () => {
+    expect(readShowcaseChosen(toCosmeticRecord(DEFAULT_CUSTOMIZATION, { showcaseChosen: true }))).toBe(true);
+    expect(readShowcaseChosen(toCosmeticRecord(DEFAULT_CUSTOMIZATION))).toBe(false);
+    expect(readShowcaseChosen({})).toBe(false);
+    expect(readShowcaseChosen(null)).toBe(false);
+    expect(readShowcaseChosen({ [SHOWCASE_FLAG_KEY]: "altro" })).toBe(false);
   });
 });
 

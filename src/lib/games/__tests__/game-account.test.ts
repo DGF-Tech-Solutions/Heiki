@@ -13,6 +13,7 @@ import {
   cleanFriendCode,
   cleanProfile,
   EMPTY_PROFILE,
+  nextVerificationAt,
   NICKNAME_MAX,
   parseProfile,
   pickChallenge,
@@ -107,5 +108,19 @@ describe("controlli", () => {
     expect(sniffImage(bytes(0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4, 0x57, 0x45, 0x42, 0x50))).toBe("image/webp");
     expect(sniffImage(bytes(0x3c, 0x73, 0x76, 0x67))).toBeNull(); // «<svg»: niente immagini con script
     expect(sniffImage(bytes(0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4, 0x57, 0x41, 0x56, 0x45))).toBeNull(); // RIFF WAVE
+  });
+});
+
+describe("nextVerificationAt", () => {
+  const approved = new Date("2026-10-12T10:00:00Z");
+
+  it("senza verifiche approvate si puo' chiedere subito", () => {
+    expect(nextVerificationAt(null, approved)).toBeNull();
+  });
+
+  it("per una settimana dall'ultima approvata no, poi si'", () => {
+    expect(nextVerificationAt(approved, new Date("2026-10-13T10:00:00Z"))?.toISOString()).toBe("2026-10-19T10:00:00.000Z");
+    expect(nextVerificationAt(approved, new Date("2026-10-19T09:59:59Z"))?.toISOString()).toBe("2026-10-19T10:00:00.000Z");
+    expect(nextVerificationAt(approved, new Date("2026-10-19T10:00:00Z"))).toBeNull();
   });
 });

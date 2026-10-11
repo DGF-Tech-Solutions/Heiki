@@ -27,6 +27,7 @@ import {
 } from "@/lib/db/schema";
 import { parseSetup, type AccountSetup } from "@/lib/games/account-setup";
 import { notifyModerators } from "@/lib/discord";
+import { suspensionFor } from "@/lib/moderation/suspension";
 import { boxLimitsFrom, boxToJson, parseBox, type HeroBox } from "@/lib/games/hero-box";
 import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { getGameModule } from "@/lib/games/registry";
@@ -64,6 +65,7 @@ const TESTI = testi({
     inAttesa: "La tua schermata aspetta già un moderatore: puoi ritirarla, se vuoi rifarla.",
     nessunEroe: "Non ci sono eroi da proporre per questo gioco.",
     nienteDaCambiare: "Non c'è un eroe del giorno da cambiare: chiedine uno.",
+    troppoPresto: "Una nuova verifica si può chiedere una settimana dopo l'ultima approvata.",
     cambiFiniti: `Hai già cambiato eroe ${MAX_REROLLS} volte oggi. Riprova domani.`,
     scaduto: "L'eroe del giorno è di ieri: chiedine uno nuovo e rifai la schermata.",
     serveFile: "Scegli la schermata da caricare.",
@@ -88,6 +90,7 @@ const TESTI = testi({
     inAttesa: "Your screenshot is already waiting for a moderator: you can withdraw it if you want to redo it.",
     nessunEroe: "There are no heroes to propose for this game.",
     nienteDaCambiare: "There is no hero of the day to change: request one.",
+    troppoPresto: "A new verification can be requested one week after the last approved one.",
     cambiFiniti: `You already changed hero ${MAX_REROLLS} times today. Try again tomorrow.`,
     scaduto: "The hero of the day is from yesterday: request a new one and retake the screenshot.",
     serveFile: "Choose the screenshot to upload.",
@@ -172,7 +175,36 @@ async function upsertAccount(
   };
   const existing = await findGameAccount(userId, gameId);
   if (existing) {
-    const [row] = await db.update(gameAccounts).set(values).where(eq(gameAccounts.id, existing.id)).returning();
+    // Un altro Codice amico o un altro server e' un altro account del gioco: la
+    // classe verificata era di quello di prima. Fino all'11/10 la spunta restava,
+    // e il profilo la mostrava sull'account nuovo. Un codice scritto la prima
+    // volta (prima era vuoto) non cambia account.
+    const otherAccount =
+      (existing.uid !== "" && existing.uid !== values.uid) || (existing.region ?? "global") !== values.region;
+    const reset =
+      otherAccount && (existing.trust === "VERIFIED" || existing.verifiedPower !== null)
+        ? { trust: "DECLARED" as const, verifiedPower: null, verifiedAt: null }
+        : {};
+    const [row] = await db
+      .update(gameAccounts)
+      .set({ ...values, ...reset })
+      .where(eq(gameAccounts.id, existing.id))
+      .returning();
+    if (otherAccount) {
+      // e la richiesta in corso, se c'e', riguardava l'account di prima
+      const live = await db.query.powerVerifications.findMany({
+        where: and(
+          eq(powerVerifications.gameAccountId, existing.id),
+          inArray(powerVerifications.status, ["OPEN", "PENDING"]),
+        ),
+        columns: { id: true },
+      });
+      if (live.length > 0) {
+        const ids = live.map((item) => item.id);
+        await db.delete(verificationScreenshots).where(inArray(verificationScreenshots.verificationId, ids));
+        await db.update(powerVerifications).set({ status: "CANCELLED" }).where(inArray(powerVerifications.id, ids));
+      }
+    }
     return copyOf(row!);
   }
   const [row] = await db
@@ -227,6 +259,9 @@ export async function requestChallengeAction(gameSlug: string, payload: unknown)
 
   if (summary.current?.status === "PENDING") return { ok: false, error: t.inAttesa, summary, updatedAt: copy.updatedAt };
   if (summary.current?.status === "OPEN") return { ok: true, summary, updatedAt: copy.updatedAt };
+  // una settimana dall'ultima approvata (scelta dell'utente, 11/10): la pagina
+  // spegne gia' il pulsante, qui il controllo che conta
+  if (summary.nextRequestAt) return { ok: false, error: t.troppoPresto, summary, updatedAt: copy.updatedAt };
 
   // Un eroe al giorno per utente: chi ritira e richiede, o e' stato rifiutato, ritrova
   // lo stesso eroe e i cambi che gli restano. Altrimenti ritirando si pescherebbe
@@ -319,6 +354,8 @@ export async function submitScreenshotAction(formData: FormData): Promise<Verifi
   if (!current) return { ok: false, error: t.scaduto, summary };
   if (current.status === "PENDING") return { ok: false, error: t.inAttesa, summary };
   if (current.challengeDay !== utcDay(now)) return { ok: false, error: t.scaduto, summary };
+  // anche qui: una richiesta aperta prima della regola non la scavalca
+  if (summary.nextRequestAt) return { ok: false, error: t.troppoPresto, summary };
 
   // La stessa immagine vale solo per chi l'ha fatta e solo il giorno del suo eroe:
   // chi ritira la richiesta e la ricarica non va respinto, chi usa quella di un
@@ -405,6 +442,7 @@ export interface ReviewResult {
 export async function reviewVerificationAction(formData: FormData): Promise<ReviewResult> {
   const { t, viewer } = await context();
   if (!viewer || !can(viewer.role, "moderate")) return { ok: false, error: t.nonHaiPermessi };
+  if ((await suspensionFor(viewer.id)).active) return { ok: false, error: t.nonHaiPermessi };
 
   const id = String(formData.get("id") ?? "");
   const decision = String(formData.get("decision") ?? "");
@@ -425,11 +463,16 @@ export async function reviewVerificationAction(formData: FormData): Promise<Revi
     if (!Number.isInteger(power) || power < 1 || power > POWER_MAX) return { ok: false, error: t.classeNonValida };
     const setup = parseSetup(row.gameAccount.setup ? JSON.stringify(row.gameAccount.setup) : null);
 
-    await db.transaction(async (tx) => {
-      await tx
+    const decided = await db.transaction(async (tx) => {
+      // condizionata a PENDING: con due moderatori sulla stessa richiesta decide
+      // il primo, e il secondo non lascia una richiesta respinta su un account
+      // gia' verificato (11/10)
+      const [taken] = await tx
         .update(powerVerifications)
         .set({ status: "APPROVED", verifiedPower: power, reviewerId: viewer.id, reviewedAt: now })
-        .where(eq(powerVerifications.id, row.id));
+        .where(and(eq(powerVerifications.id, row.id), eq(powerVerifications.status, "PENDING")))
+        .returning({ id: powerVerifications.id });
+      if (!taken) return false;
       await tx.delete(verificationScreenshots).where(eq(verificationScreenshots.verificationId, row.id));
       await tx
         .update(gameAccounts)
@@ -448,18 +491,21 @@ export async function reviewVerificationAction(formData: FormData): Promise<Revi
         type: "POWER_VERIFIED",
         verificationId: row.id,
       });
+      return true;
     });
     revalidatePath("/moderazione");
-    return { ok: true, message: t.approvata };
+    return decided ? { ok: true, message: t.approvata } : { ok: false, error: t.verificaInesistente };
   }
 
   const note = String(formData.get("note") ?? "").trim().slice(0, 500);
   if (note.length < 3) return { ok: false, error: t.serveMotivo };
-  await db.transaction(async (tx) => {
-    await tx
+  const decided = await db.transaction(async (tx) => {
+    const [taken] = await tx
       .update(powerVerifications)
       .set({ status: "REJECTED", note, reviewerId: viewer.id, reviewedAt: now })
-      .where(eq(powerVerifications.id, row.id));
+      .where(and(eq(powerVerifications.id, row.id), eq(powerVerifications.status, "PENDING")))
+      .returning({ id: powerVerifications.id });
+    if (!taken) return false;
     await tx.delete(verificationScreenshots).where(eq(verificationScreenshots.verificationId, row.id));
     await tx.insert(notifications).values({
       userId: row.userId,
@@ -467,7 +513,8 @@ export async function reviewVerificationAction(formData: FormData): Promise<Revi
       type: "POWER_REJECTED",
       verificationId: row.id,
     });
+    return true;
   });
   revalidatePath("/moderazione");
-  return { ok: true, message: t.rifiutata };
+  return decided ? { ok: true, message: t.rifiutata } : { ok: false, error: t.verificaInesistente };
 }

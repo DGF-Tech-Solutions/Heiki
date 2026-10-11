@@ -9,10 +9,12 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { Adapter, AdapterUser } from "next-auth/adapters";
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { accounts, sessions, users, verificationTokens } from "@/lib/db/schema";
+import { accounts, profiles, sessions, users, verificationTokens } from "@/lib/db/schema";
+import { rateLimit } from "@/lib/rate-limit";
 import { authConfig } from "./config";
 import { isRole } from "./permissions";
 
@@ -37,9 +39,37 @@ const adapter: Adapter = {
     const seed = data.name ?? data.email?.split("@")[0] ?? "utente";
     const username = await uniqueUsername(seed);
 
-    return create({ ...data, username } as AdapterUser & { username: string });
+    const created = await create({ ...data, username } as AdapterUser & { username: string });
+    // Il profilo nasce con l'utente, come nella registrazione con la password:
+    // senza la riga, le modifiche al profilo di chi entrava con Discord o Google
+    // si «salvavano» su niente (11/10)
+    await db
+      .insert(profiles)
+      .values({ userId: created.id, displayName: data.name?.trim() || username })
+      .onConflictDoNothing();
+    return created;
   },
 };
+
+/**
+ * Un'impronta corta della password salvata, nel gettone della sessione. Le
+ * sessioni sono JWT: cancellare le righe di `sessions` (che il JWT non usa) non
+ * chiudeva niente, e chi aveva rubato un cookie restava dentro dopo il cambio
+ * della password. Ora il gettone che porta l'impronta di una password vecchia
+ * non vale piu' (11/10).
+ */
+export function passwordStamp(hash: string | null | undefined): string {
+  return createHash("sha256").update(hash ?? "").digest("hex").slice(0, 16);
+}
+
+/**
+ * Ogni quanto il gettone rilegge ruolo, handle e password dal database. Prima
+ * li leggeva solo all'accesso: un moderatore declassato restava moderatore, e
+ * dopo un cambio di handle il sito non riconosceva piu' il proprietario sulla
+ * sua pagina. Un minuto: abbastanza vicino per un declassamento, una query di
+ * chiave primaria quando scade.
+ */
+const RECHECK_SECONDS = 60;
 
 export async function uniqueUsername(seed: string): Promise<string> {
   const base = slugifyUsername(seed) || "utente";
@@ -82,6 +112,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = typeof credentials?.password === "string" ? credentials.password : "";
         if (!email || !password) return null;
 
+        // Il tetto di loginAction non bastava: questa funzione risponde anche
+        // a /api/auth/callback/credentials, chiamato direttamente (11/10)
+        if (!rateLimit("credentials", email.trim().toLowerCase()).allowed) return null;
+
         const user = await db.query.users.findFirst({
           where: eq(users.email, email.trim().toLowerCase()),
         });
@@ -106,25 +140,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
-      // Al primo accesso `user` e' popolato: si copiano ruolo e handle nel token
-      // cosi' le richieste successive non interrogano il database.
+      // Al primo accesso `user` e' popolato: si copiano ruolo e handle nel token.
       if (user) {
         const candidate = user as { role?: unknown; username?: unknown };
         if (isRole(candidate.role)) token.role = candidate.role;
         if (typeof candidate.username === "string") token.username = candidate.username;
       }
 
-      // Rete di sicurezza per gli accessi OAuth, dove l'oggetto user arriva
-      // dall'adapter e potrebbe non portare i nostri campi.
-      if (token.sub && (!token.role || !token.username)) {
-        const stored = await db.query.users.findFirst({
-          where: eq(users.id, token.sub),
-          columns: { role: true, username: true },
-        });
-        if (stored) {
-          token.role = stored.role;
-          token.username = stored.username;
-        }
+      // All'accesso e poi ogni RECHECK_SECONDS: ruolo, handle e password dal
+      // database. Un utente cancellato, o con una password diversa da quella con
+      // cui e' entrato, non ha piu' una sessione.
+      const now = Math.floor(Date.now() / 1000);
+      // letto con typeof: il tipo del gettone che arriva qui e' quello di
+      // @auth/core, dove i campi in piu' sono `unknown`
+      const checkedAt = typeof token.checkedAt === "number" ? token.checkedAt : 0;
+      if (token.sub && (user || now - checkedAt >= RECHECK_SECONDS)) {
+        // un database che non risponde per un attimo non deve far uscire nessuno:
+        // il gettone resta quello che era, e si riprova alla richiesta dopo
+        const stored = await db.query.users
+          .findFirst({
+            where: eq(users.id, token.sub),
+            columns: { role: true, username: true, passwordHash: true },
+          })
+          .catch(() => "errore" as const);
+        if (stored === "errore") return token;
+        if (!stored) return null;
+        const stamp = passwordStamp(stored.passwordHash);
+        // i gettoni emessi prima dell'11/10 non hanno l'impronta: la prendono qui
+        if (user || token.pwd === undefined) token.pwd = stamp;
+        else if (token.pwd !== stamp) return null;
+        token.role = stored.role;
+        token.username = stored.username;
+        token.checkedAt = now;
       }
 
       return token;

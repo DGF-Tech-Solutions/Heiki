@@ -20,6 +20,10 @@ declare module "next-auth/jwt" {
   interface JWT {
     username?: string;
     role?: Role;
+    /** l'impronta della password con cui si e' entrati (passwordStamp) */
+    pwd?: string;
+    /** quando ruolo, handle e password sono stati riletti dal database, in secondi */
+    checkedAt?: number;
   }
 }
 

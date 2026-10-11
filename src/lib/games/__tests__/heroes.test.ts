@@ -203,8 +203,8 @@ describe("sortHeroes", () => {
 
 describe("heroCardSrc", () => {
   it("indirizza alla card e alla sua variante densa", () => {
-    expect(heroCardSrc("grand-cross", "1004001")).toBe("/eroi/grand-cross/1004001.png");
-    expect(heroCardSrc("grand-cross", "1004001", 2)).toBe("/eroi/grand-cross/2x/1004001.png");
+    expect(heroCardSrc("grand-cross", "1004001")).toBe("/eroi/grand-cross/1004001.webp");
+    expect(heroCardSrc("grand-cross", "1004001", 2)).toBe("/eroi/grand-cross/2x/1004001.webp");
   });
 });
 
@@ -243,6 +243,22 @@ describe("roster di Grand Cross", () => {
     const assets = grandCrossModule.heroAssets ?? {};
     const missing = roster?.heroes.filter((h) => !assets[h.id]?.splash || !assets[h.id]?.cutIn) ?? [];
     expect(missing.map((h) => h.id)).toEqual([]);
+  });
+
+  // Dall'11/10 il palco ingrandisce la figura col volto a un'altezza fissa, e la
+  // cima della sagoma e' il limite che tiene la testa dentro. Un volto senza
+  // cima, o una cima sotto il volto, vuol dire un'importazione rotta: la
+  // figura salirebbe fino a tagliare la testa
+  it("ogni illustrazione ha il volto e la cima della sagoma sopra il volto", () => {
+    const assets = grandCrossModule.heroAssets ?? {};
+    const wrong = (roster?.heroes ?? []).filter((h) => {
+      const a = assets[h.id];
+      if (!a?.splash) return false;
+      const [x, y] = a.face ?? [-1, -1];
+      const top = a.top ?? -1;
+      return !(x >= 0 && x <= 100 && y >= 0 && y <= 100 && top >= 0 && top <= y);
+    });
+    expect(wrong.map((h) => h.id)).toEqual([]);
   });
 
   /**

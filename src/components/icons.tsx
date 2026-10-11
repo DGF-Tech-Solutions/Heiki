@@ -53,6 +53,9 @@ export type IconProps = Omit<SVGProps<SVGSVGElement>, "children" | "ref"> & {
 
 type PhosphorIcon = ComponentType<Omit<SVGProps<SVGSVGElement>, "ref"> & { size?: number; weight?: Weight }>;
 
+// `/*#__PURE__*/` davanti a ogni make(): senza, il bundler non puo' sapere che
+// una chiamata non usata non ha effetti, e tutte le icone finivano in ogni pagina
+// (47 KB, misurato l'11/10)
 function make(Base: PhosphorIcon, defaults: { size?: number; weight?: Weight } = {}) {
   function Icon({ size, weight, strokeWidth: _ignored, ...props }: IconProps) {
     void _ignored;
@@ -69,26 +72,26 @@ function make(Base: PhosphorIcon, defaults: { size?: number; weight?: Weight } =
   return Icon;
 }
 
-export const IconChevronLeft = make(CaretLeftIcon);
-export const IconChevronRight = make(CaretRightIcon);
-export const IconArrowRight = make(ArrowRightIcon, { size: 14 });
-export const IconArrowUp = make(ArrowUpIcon);
-export const IconSearch = make(MagnifyingGlassIcon);
-export const IconClose = make(XIcon);
-export const IconMenu = make(ListIcon);
-export const IconFilters = make(SlidersHorizontalIcon);
+export const IconChevronLeft = /*#__PURE__*/ make(CaretLeftIcon);
+export const IconChevronRight = /*#__PURE__*/ make(CaretRightIcon);
+export const IconArrowRight = /*#__PURE__*/ make(ArrowRightIcon, { size: 14 });
+export const IconArrowUp = /*#__PURE__*/ make(ArrowUpIcon);
+export const IconSearch = /*#__PURE__*/ make(MagnifyingGlassIcon);
+export const IconClose = /*#__PURE__*/ make(XIcon);
+export const IconMenu = /*#__PURE__*/ make(ListIcon);
+export const IconFilters = /*#__PURE__*/ make(SlidersHorizontalIcon);
 
-export const IconHeroes = make(UsersThreeIcon);
-export const IconCalendar = make(CalendarBlankIcon);
-export const IconSword = make(SwordIcon);
-export const IconCard = make(CardsThreeIcon);
-export const IconPage = make(FileTextIcon);
-export const IconUser = make(UserIcon, { weight: "fill" });
-export const IconDice = make(DiceFiveIcon);
-export const IconStar = make(StarIcon, { size: 12, weight: "fill" });
+export const IconHeroes = /*#__PURE__*/ make(UsersThreeIcon);
+export const IconCalendar = /*#__PURE__*/ make(CalendarBlankIcon);
+export const IconSword = /*#__PURE__*/ make(SwordIcon);
+export const IconCard = /*#__PURE__*/ make(CardsThreeIcon);
+export const IconPage = /*#__PURE__*/ make(FileTextIcon);
+export const IconUser = /*#__PURE__*/ make(UserIcon, { weight: "fill" });
+export const IconDice = /*#__PURE__*/ make(DiceFiveIcon);
+export const IconStar = /*#__PURE__*/ make(StarIcon, { size: 12, weight: "fill" });
 
 /* piccole, dentro le lame dei comandi: 16 di partenza */
-export const IconPlus = make(PlusIcon, { size: 16 });
-export const IconCheck = make(CheckIcon, { size: 16 });
-export const IconHeart = make(HeartIcon, { size: 16, weight: "fill" });
-export const IconLink = make(LinkSimpleIcon, { size: 16 });
+export const IconPlus = /*#__PURE__*/ make(PlusIcon, { size: 16 });
+export const IconCheck = /*#__PURE__*/ make(CheckIcon, { size: 16 });
+export const IconHeart = /*#__PURE__*/ make(HeartIcon, { size: 16, weight: "fill" });
+export const IconLink = /*#__PURE__*/ make(LinkSimpleIcon, { size: 16 });

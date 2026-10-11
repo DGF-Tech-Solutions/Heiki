@@ -242,6 +242,58 @@
     }
   }
 
+  /*
+   * I pulsanti dei ranghi nella scheda eroe: stelle delle carte A e B, pietre
+   * dell'ultimate e dell'Unica (11/10, l'utente: «migliora il feeling di
+   * hovering e pressione»). Al passaggio il pulsante si alza e l'insegna cresce
+   * e si accende di un alone; alla pressione affonda e si stringe, piu' in fretta
+   * di come si e' alzato. Colori e stato scelto li mettono le classi del
+   * componente (utility: qui verrebbero scavalcate), qui solo il movimento.
+   */
+  .rank-chip {
+    transition-property: translate, scale, box-shadow, background-color, border-color, color, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .rank-chip img {
+    transition:
+      scale 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      filter 160ms ease-out;
+  }
+  @media (hover: hover) {
+    .rank-chip:hover {
+      translate: 0 -2px;
+    }
+    .rank-chip:hover img {
+      scale: 1.2;
+      filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-paper) 65%, transparent))
+        drop-shadow(0 0 6px color-mix(in srgb, var(--color-brand) 60%, transparent));
+    }
+  }
+  .rank-chip:active {
+    translate: 0 1px;
+    scale: 0.92;
+    transition-duration: 60ms;
+  }
+  .rank-chip:active img {
+    scale: 0.94;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rank-chip,
+    .rank-chip img {
+      transition-property: background-color, border-color, color, opacity, filter;
+    }
+    .rank-chip:hover,
+    .rank-chip:active {
+      translate: none;
+      scale: none;
+    }
+    .rank-chip:hover img,
+    .rank-chip:active img {
+      scale: none;
+    }
+  }
+
   /* titolo: bianco con la sagoma rossa sfalsata dietro. In em e non in px:
      3px fissi impastavano le lettere dei titoli piccoli (18px) */
   .p5-title {
@@ -329,6 +381,8 @@
     --echo-side: 1;
     /* le lettere della parola piu' lunga del nome (il componente): vedi .stage-name */
     --name-chars: 10;
+    /* la figura non sale oltre questa distanza fra la cima della sagoma e il bordo: vedi .stage-figure */
+    --fig-pad: 14px;
     min-height: 0;
     /* il nome si misura sulla larghezza del palco (cqi), non della finestra */
     container-type: inline-size;
@@ -347,6 +401,15 @@
   .stage--panel {
     height: 100%;
     min-height: 540px;
+    /* l'altezza la decide chi lo usa (la colonna della griglia, il menu del gioco): la figura la misura (cqh) */
+    container-type: size;
+    /*
+     * La figura (vedi .stage-figure): quasi due volte la larghezza del palco,
+     * mai piu' alta del palco; al centro, col volto a un quinto dell'altezza
+     */
+    --fig: min(186cqi, 100cqh);
+    --fig-x: 50%;
+    --fig-y: 21%;
     --band: polygon(0 13%, 100% 3%, 100% 42%, 0 53%);
     --band-line: polygon(0 54.4%, 100% 43.4%, 100% 44.6%, 0 55.6%);
     --echo-size: 110%;
@@ -354,7 +417,12 @@
     --echo-y: calc(27% - var(--echo-side) * 4%);
   }
   .stage--hero {
-    min-height: 380px;
+    --stage-h: 400px;
+    min-height: var(--stage-h);
+    /* la figura nella meta' destra, il volto a un quarto dell'altezza; le gambe escono sotto */
+    --fig: min(calc(var(--stage-h) * 1.4), 70cqi);
+    --fig-x: 71%;
+    --fig-y: 23%;
     --band: polygon(0 0, 100% 9%, 100% 64%, 0 41%);
     --band-line: polygon(0 42.4%, 100% 65.4%, 100% 66.8%, 0 43.8%);
     --echo-size: 46%;
@@ -363,11 +431,19 @@
   }
   @media (min-width: 640px) {
     .stage--hero {
-      min-height: 460px;
+      --stage-h: 460px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .stage--hero {
+      --stage-h: 500px;
     }
   }
   @media (max-width: 639px) {
     .stage--hero {
+      --fig: min(calc(var(--stage-h) * 1.08), 130cqi);
+      --fig-x: 60%;
+      --fig-y: 19%;
       --band: polygon(0 0, 100% 6%, 100% 40%, 0 31%);
       --band-line: polygon(0 32.4%, 100% 41.4%, 100% 42.8%, 0 33.8%);
       --echo-size: 80%;
@@ -468,14 +544,31 @@
     left: 30%;
   }
 
+  /*
+   * La figura: un quadrato (le illustrazioni sono 1024x1024) largo `--fig`, col
+   * volto all'altezza `--fig-y` del palco e il centro dell'illustrazione a
+   * `--fig-x`. In orizzontale conta il centro e non il volto: Tristan ha il
+   * volto a un quarto della larghezza e la sagoma tutta a destra, e messo col
+   * volto in `--fig-x` usciva dal palco (11/10). Fino all'11/10 stava
+   * intera nel palco, e la sua misura dipendeva dai margini vuoti del file: in
+   * media la sagoma e' il 61% della larghezza e l'82% dell'altezza, e nella
+   * scheda Derieri era alta 440 px su 460 di palco (l'utente: «un po' piccola»).
+   *
+   * Il secondo termine del max() e' il limite: la figura non sale oltre il
+   * punto in cui la cima della sagoma (`--crown`, misurata dall'import senza le
+   * parti sottili) tocca il bordo. Senza, gli eroi con ali o cappelli alti
+   * sopra il volto (fino a mezza illustrazione) perdevano la testa.
+   */
   .stage-figure {
-    inset: -1% -24% 19% -24%;
-  }
-  .stage--hero .stage-figure {
-    inset: -4% -6% -2% 36%;
+    width: var(--fig);
+    aspect-ratio: 1;
+    left: calc(var(--fig-x) - 0.5 * var(--fig));
+    top: max(
+      calc(var(--fig-y) - var(--face-y, 0.25) * var(--fig)),
+      calc(var(--fig-pad) - var(--crown, 0.1) * var(--fig))
+    );
   }
   .stage-figure-img {
-    object-position: center 30%;
     filter: drop-shadow(10px 8px 0 #000);
   }
   /* la base scura sotto la targa: il nome resta leggibile sopra qualunque figura */
@@ -510,9 +603,6 @@
     max-width: min(60%, 560px);
   }
   @media (max-width: 639px) {
-    .stage--hero .stage-figure {
-      inset: 4% -18% 16% 20%;
-    }
     .stage--hero .stage-word {
       top: 36%;
       left: -4%;
@@ -771,55 +861,96 @@
  * Ogni opzione e' disegno originale: nessun asset dei publisher, mai.
  */
 
-/* «brand» e' il rosso del sito: fino al 10/10 era ancora il viola di prima */
+/*
+ * «brand» e' il rosso del sito: fino al 10/10 era ancora il viola di prima.
+ *
+ * Ogni accento sta ad almeno 4:1 sul nero della carta (misurato l'11/10:
+ * oceano 4,1, bosco 4,0, il piu' scuro), perche' fa da filo, bordo e blocco su
+ * fondo nero. `--accent-fg` e' il colore del testo SOPRA l'accento (etichette,
+ * l'iniziale): bianco dove regge 4,5:1, nero carta su tramonto e oro, dove il
+ * bianco si fermava a 3,9 e 3,6. Il magenta e' sceso di un filo (#e0169a ->
+ * #db1597): col bianco sopra era a 4,4.
+ */
 [data-accent="brand"] {
   --accent: var(--color-brand);
+  --accent-fg: #fff;
 }
 [data-accent="magenta"] {
-  --accent: #e0169a;
+  --accent: #db1597;
+  --accent-fg: #fff;
 }
 [data-accent="ocean"] {
   --accent: #0870d8;
+  --accent-fg: #fff;
 }
 [data-accent="forest"] {
   --accent: #12805a;
+  --accent-fg: #fff;
 }
 [data-accent="sunset"] {
   --accent: #e2510f;
+  --accent-fg: var(--color-paper);
 }
 [data-accent="gold"] {
   --accent: #b07d05;
+  --accent-fg: var(--color-paper);
 }
 
-/* --- cornice dell'avatar --- */
+/*
+ * --- cornice della testata ---
+ *
+ * `.profile-frame` e' il palco dell'eroe in copertina o, senza copertina, il
+ * blocco con l'iniziale (profile-view.tsx). Spigoli vivi: fino all'11/10 i fili
+ * avevano ancora gli angoli arrotondati del tema chiaro. «glow» era un alone
+ * sfumato: ora e' l'ombra piena sfalsata dei menu di Persona.
+ */
 
-.profile-canvas[data-frame="hairline"] .avatar::after,
-.profile-canvas[data-frame="double"] .avatar::after,
-.profile-canvas[data-frame="double"] .avatar::before {
+.profile-canvas[data-frame="hairline"] .profile-frame::after,
+.profile-canvas[data-frame="double"] .profile-frame::after,
+.profile-canvas[data-frame="double"] .profile-frame::before {
   content: "";
   position: absolute;
   inset: -5px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
   pointer-events: none;
 }
 
-.profile-canvas[data-frame="double"] .avatar::before {
+.profile-canvas[data-frame="double"] .profile-frame::before {
   inset: -10px;
   opacity: 0.5;
-  border-radius: 8px;
 }
 
-.profile-canvas[data-frame="notched"] .avatar {
-  border-radius: 0;
-  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+.profile-canvas[data-frame="notched"] .profile-frame {
+  --frame-cut: 12px;
+  clip-path: polygon(
+    var(--frame-cut) 0,
+    100% 0,
+    100% calc(100% - var(--frame-cut)),
+    calc(100% - var(--frame-cut)) 100%,
+    0 100%,
+    0 var(--frame-cut)
+  );
+}
+.profile-canvas[data-frame="notched"][data-cover] .profile-frame {
+  --frame-cut: 32px;
 }
 
-.profile-canvas[data-frame="glow"] .avatar {
-  box-shadow: 0 6px 22px -4px color-mix(in srgb, var(--accent) 65%, transparent);
+.profile-canvas[data-frame="glow"] .profile-frame {
+  box-shadow: 6px 6px 0 var(--accent);
+}
+.profile-canvas[data-frame="glow"][data-cover] .profile-frame {
+  box-shadow: 10px 10px 0 var(--accent);
 }
 
-/* --- trama di sfondo dell'intestazione profilo --- */
+/*
+ * --- trama della testata ---
+ *
+ * Senza copertina sta dietro l'iniziale e il nome, e sfuma verso il basso. Con
+ * la copertina prende il posto del retino rosso del palco (`.stage-dots`, che
+ * sfuma gia' da solo): fuori dal palco non si vedrebbe, coperta dalla
+ * copertina. Le trame sono nell'accento: il grigio dei fili di prima, sul nero,
+ * non si vedeva.
+ */
 
 .profile-canvas[data-background]::before {
   content: "";
@@ -832,36 +963,50 @@
   mask-image: linear-gradient(180deg, #000 0%, transparent 100%);
 }
 
-.profile-canvas[data-background="plain"]::before {
+.profile-canvas[data-background="plain"]::before,
+.profile-canvas[data-cover]::before,
+.profile-canvas[data-background="plain"] .stage-dots {
   display: none;
 }
 
-.profile-canvas[data-background="grid"]::before {
+.profile-canvas[data-background="grid"]::before,
+.profile-canvas[data-background="grid"] .stage-dots {
   background-image:
-    linear-gradient(to right, var(--color-rule-2) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-rule-2) 1px, transparent 1px);
+    linear-gradient(to right, color-mix(in srgb, var(--accent) 24%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 24%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
-.profile-canvas[data-background="dots"]::before {
-  background-image: radial-gradient(circle, var(--color-rule) 1.5px, transparent 1.5px);
-  background-size: 18px 18px;
+.profile-canvas[data-background="dots"]::before,
+.profile-canvas[data-background="dots"] .stage-dots {
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 38%, transparent) 1.1px, transparent 1.8px);
+  background-size: 8px 8px;
 }
 
-.profile-canvas[data-background="wash"]::before {
-  background: linear-gradient(
-    120deg,
-    color-mix(in srgb, var(--accent) 12%, transparent),
-    transparent 60%
-  );
+.profile-canvas[data-background="wash"]::before,
+.profile-canvas[data-background="wash"] .stage-dots {
+  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 26%, transparent), transparent 65%);
 }
 
-.profile-canvas[data-background="stripes"]::before {
+.profile-canvas[data-background="stripes"]::before,
+.profile-canvas[data-background="stripes"] .stage-dots {
   background-image: repeating-linear-gradient(
     -45deg,
-    color-mix(in srgb, var(--accent) 8%, transparent) 0 10px,
+    color-mix(in srgb, var(--accent) 16%, transparent) 0 10px,
     transparent 10px 20px
   );
+  background-size: auto;
+}
+
+/* --- impaginazione: con la copertina cambia anche l'altezza del palco --- */
+
+.profile-canvas[data-layout="compact"] .stage--hero {
+  --stage-h: 340px;
+}
+@media (min-width: 1024px) {
+  .profile-canvas[data-layout="editorial"] .stage--hero {
+    --stage-h: 580px;
+  }
 }
 
 /*

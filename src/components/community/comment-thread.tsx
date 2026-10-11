@@ -126,7 +126,11 @@ function CommentItem({
                 {roleLabel(comment.author.role, locale)}
               </span>
             ) : null}
-            <span className="font-mono">{relativeTime(comment.createdAt, new Date(), locale)}</span>
+            {/* calcolato sul server e poi nel browser: a cavallo di un minuto i due testi
+                differiscono, e vale quello del browser */}
+            <span className="font-mono" suppressHydrationWarning>
+              {relativeTime(comment.createdAt, new Date(), locale)}
+            </span>
           </p>
 
           <p className="m-0 text-sm leading-relaxed">{comment.body}</p>

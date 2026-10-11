@@ -38,10 +38,13 @@ const bodyFace = Atkinson_Hyperlegible_Next({
   variable: "--font-atkinson",
   display: "swap",
 });
+// il mono e' solo per numeri e date: niente precaricamento, non e' il testo che
+// si legge per primo, e toglie 23 KB dal primo caricamento (11/10)
 const monoFace = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
   display: "swap",
+  preload: false,
 });
 
 const TESTI = testi({

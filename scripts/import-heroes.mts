@@ -1828,9 +1828,10 @@ interface SourceAssets {
 /**
  * Dove sta il volto nell'illustrazione, in centesimi del lato: [x, y]. Il palco
  * (hero-stage.tsx) mette il primo piano della fascia dalla parte opposta, cosi'
- * la testa della figura non lo copre. Dal 10/10 al 11/10 il primo piano era
+ * la testa della figura non lo copre. Dal 10/10 all'11/10 il primo piano era
  * l'illustrazione stessa, ingrandita e centrata su questo punto; ora e' il
- * cut-in (richiesta dell'utente), e il punto serve solo a scegliere il lato.
+ * cut-in (richiesta dell'utente). Dall'11/10 il punto mette anche la figura:
+ * il palco la ingrandisce attorno al volto (l'utente: «un po' piccola»).
  *
  * Il volto si cerca cosi', su una copia a 256 px:
  *   - la sagoma senza le parti sottili (erosa e ridilatata di 4 px): lance,
@@ -1839,8 +1840,8 @@ interface SourceAssets {
  *     satura. La macchia di pelle piu' in alto e' il volto; le mani alzate sono
  *     piu' piccole e quasi sempre piu' in basso
  *   - senza pelle (armature, maschere, mostri) la cima della sagoma
- * Provato su tutte le 375 il 10/10, guardandole una a una: dove sbagliava (17)
- * il volto sta in VOLTI_A_MANO.
+ * Provato su tutte le 375 il 10/10, guardandole una a una, e di nuovo sulle 376
+ * l'11/10: dove sbaglia (31 su 376) il volto sta in VOLTI_A_MANO.
  */
 const FACE_SIDE = 256;
 
@@ -1850,6 +1851,13 @@ const FACE_SIDE = 256;
  * per la cima della testa; la spada larga di Slader, la palla chiodata, il
  * cappello col maialino, la mano di fuoco alzata, il piede alzato sopra la
  * testa, il drago e gli artigli d'oro che girano attorno alla figura.
+ *
+ * L'11/10, quando il volto ha cominciato a decidere l'altezza della figura nel
+ * palco, riguardati tutti i 376 su fogli col segno sul volto: altri 15 sbagliati
+ * (le mani d'oro di Valenti e delle tre con l'armatura d'oro, le ali delle fate,
+ * l'ombrellino, l'elsa, la bacchetta, la fiamma alzata, l'arma di Zanka, i
+ * pugni alzati), e 1845001 scritto il 10/10 cadeva sull'ala. Letti su una
+ * griglia ogni 5% e controllati su ritagli stretti attorno al punto.
  */
 const VOLTI_A_MANO: Readonly<Record<string, readonly [number, number]>> = {
   "1057502": [49, 29],
@@ -1857,17 +1865,32 @@ const VOLTI_A_MANO: Readonly<Record<string, readonly [number, number]>> = {
   "1505002": [49, 29],
   "1535001": [35, 40],
   "1535002": [52, 37],
-  "1845001": [34, 16],
+  "1545001": [45, 22],
+  "1665004": [58, 31],
+  "1685001": [44, 28],
+  "1845001": [37, 40],
   "1845501": [44, 55],
+  "1866501": [36, 39],
   "1870501": [47, 36],
   "1875501": [39, 28],
+  "1878501": [42, 27],
+  "1878502": [37, 29],
+  "1878503": [45, 31],
+  "1886501": [60, 39],
+  "1886502": [57, 24],
+  "1886503": [49, 27],
   "1893501": [48, 20],
+  "1941501": [52, 30],
   "1944502": [45, 42],
   "1945501": [50, 36],
+  "1962501": [45, 25],
   "1965501": [48, 50],
+  "1966501": [49, 35],
   "1975501": [65, 37],
   "1982501": [47, 25],
   "1990501": [25, 54],
+  "1992501": [33, 41],
+  "2004501": [31, 43],
   "2006501": [54, 33],
 };
 
@@ -1896,7 +1919,14 @@ function morph(mask: Uint8Array, n: number, r: number, grow: boolean): Uint8Arra
   return pass(pass(mask, true), false);
 }
 
-async function faceOf(file: string): Promise<readonly [number, number]> {
+/**
+ * Il volto e la cima della sagoma, in centesimi del lato. La cima e' quella
+ * della sagoma senza le parti sottili, come per il volto: dall'11/10 il palco
+ * ingrandisce la figura attorno al volto, e la cima e' il limite che tiene la
+ * testa (con ali, cappelli, corna) dentro il palco. La punta di una lancia puo'
+ * uscire, la testa no.
+ */
+async function figureOf(file: string): Promise<{ face: readonly [number, number]; top: number }> {
   const n = FACE_SIDE;
   const data = await sharp(file).ensureAlpha().resize(n, n, { fit: "fill" }).raw().toBuffer();
   const opaque = new Uint8Array(n * n);
@@ -1913,8 +1943,9 @@ async function faceOf(file: string): Promise<readonly [number, number]> {
     y1 = y;
   }
   const h = Math.max(1, y1 - y0);
+  const top = y1 < 0 ? 0 : Math.floor((y0 / n) * 100);
 
-  const centroid = (keep: (x: number, y: number) => boolean): readonly [number, number] => {
+  const centroid =(keep: (x: number, y: number) => boolean): readonly [number, number] => {
     let sx = 0;
     let sy = 0;
     let count = 0;
@@ -1952,10 +1983,10 @@ async function faceOf(file: string): Promise<readonly [number, number]> {
     // 12% della figura: il volto, senza il collo e le spalle
     const start = skinRows[Math.floor(skinRows.length * 0.03)]!;
     const end = Math.floor(start + 0.12 * h);
-    return centroid((x, y) => y >= start && y < end && skin[y * n + x] === 1);
+    return { face: centroid((x, y) => y >= start && y < end && skin[y * n + x] === 1), top };
   }
   const end = Math.floor(y0 + 0.14 * h);
-  return centroid((x, y) => y < end && core[y * n + x] === 1);
+  return { face: centroid((x, y) => y < end && core[y * n + x] === 1), top };
 }
 
 const assetsJson = resolve(SOURCE, "eroi/asset_eroi.json");
@@ -2006,13 +2037,15 @@ if (!existsSync(assetsJson)) {
         copied[kind.dir]!++;
       }
       flags.push(`${kind.key === "abilita" ? "skill" : "splash"}: true`);
-      // Dove sta il volto (faceOf). E le illustrazioni degli eroi sono tutte
-      // scontornate: una con lo sfondo pieno e' quasi certamente un omonimo
-      // preso al posto suo, come le 9 carte artefatto del 10/10
+      // Dove sta il volto, e la cima della sagoma (figureOf). E le
+      // illustrazioni degli eroi sono tutte scontornate: una con lo sfondo
+      // pieno e' quasi certamente un omonimo preso al posto suo, come le 9
+      // carte artefatto del 10/10
       // (illustrazioni_omonime.py nella pipeline)
       if (kind.key === "splash") {
         if ((await sharp(to).stats()).isOpaque) opaque.push(hid);
-        flags.push(`face: ${JSON.stringify(VOLTI_A_MANO[hid] ?? (await faceOf(to)))}`);
+        const figure = await figureOf(to);
+        flags.push(`face: ${JSON.stringify(VOLTI_A_MANO[hid] ?? figure.face)}`, `top: ${figure.top}`);
       }
     }
 
@@ -2279,23 +2312,34 @@ const wanted = new Set(heroes.map((hero) => String(hero.heroId)));
 let copied = 0;
 let missing = 0;
 
+// Le card in WebP (11/10): la griglia ne mostra 376, e in PNG pesavano 38 KB a
+// 1x e 65 a 2x; a qualita' 90 sono 8 e 21 KB, la cornice resta netta. Si
+// rifanno quando la card della pipeline e' piu' nuova, e il PNG di prima si toglie.
 for (const scale of ["", "2x"]) {
   const from = resolve(cardsDir, scale);
   const to = resolve(DEST_IMAGES, scale);
   if (!existsSync(from)) continue;
+  mkdirSync(to, { recursive: true });
 
   const files = readdirSync(from).filter((name) => name.endsWith(".png"));
   for (const file of files) {
-    if (!wanted.has(file.slice(0, -4))) continue;
-    if (copyIfNewer(resolve(from, file), resolve(to, file))) copied++;
+    const id = file.slice(0, -4);
+    if (!wanted.has(id)) continue;
+    const source = resolve(from, file);
+    const target = resolve(to, `${id}.webp`);
+    if (!existsSync(target) || statSync(source).mtimeMs > statSync(target).mtimeMs) {
+      await sharp(source).webp({ quality: 90 }).toFile(target);
+      copied++;
+    }
+    rmSync(resolve(to, file), { force: true });
   }
 }
 
 for (const id of wanted) {
-  if (!existsSync(resolve(DEST_IMAGES, `${id}.png`))) missing++;
+  if (!existsSync(resolve(DEST_IMAGES, `${id}.webp`))) missing++;
 }
 
-console.log(`  ${copied} card copiate in public/eroi/${GAME}/`);
+console.log(`  ${copied} card convertite in WebP in public/eroi/${GAME}/`);
 if (missing > 0) console.log(`  ATTENZIONE: ${missing} eroi senza card`);
 
 console.log(`\n  Fatto. La sezione e' su /${GAME}/eroi\n`);

@@ -60,6 +60,18 @@ export function storeBox(gameSlug: string, box: HeroBox): void {
   window.dispatchEvent(new Event(EVENT));
 }
 
+/** Toglie il box dal browser: la usa la sincronizzazione quando entra un'altra persona. */
+export function forgetBox(gameSlug: string): void {
+  const key = boxStorageKey(gameSlug);
+  memory.delete(key);
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    /* niente da togliere */
+  }
+  window.dispatchEvent(new Event(EVENT));
+}
+
 export function readBox(gameSlug: string): HeroBox {
   return snapshot(boxStorageKey(gameSlug));
 }

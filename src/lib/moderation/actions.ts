@@ -25,6 +25,7 @@ import { auth } from "@/lib/auth";
 import { can, type Role } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
 import { comments, modActions, posts, reports, suspensions, users } from "@/lib/db/schema";
+import { suspensionFor } from "./suspension";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
@@ -52,6 +53,8 @@ const TESTI = testi({
     utenteInesistente: "Utente inesistente.",
     nonSospendereAmministratore: "Non puoi sospendere un amministratore.",
     nonSospendereTeStesso: "Non puoi sospendere te stesso.",
+    nonSospendereModeratore: "Solo un amministratore può sospendere un moderatore.",
+    nonRevocareTua: "Non puoi revocare una sospensione che riguarda te.",
     utenteSospeso: "Utente sospeso.",
     sospensioneRevocata: "Sospensione revocata.",
   },
@@ -76,6 +79,8 @@ const TESTI = testi({
     utenteInesistente: "User not found.",
     nonSospendereAmministratore: "You can't suspend an administrator.",
     nonSospendereTeStesso: "You can't suspend yourself.",
+    nonSospendereModeratore: "Only an administrator can suspend a moderator.",
+    nonRevocareTua: "You can't lift a suspension that concerns you.",
     utenteSospeso: "User suspended.",
     sospensioneRevocata: "Suspension lifted.",
   },
@@ -98,10 +103,16 @@ async function viewer(): Promise<{ id: string; role: Role } | null> {
   return { id: session.user.id, role: session.user.role };
 }
 
-/** Solo chi puo' moderare passa. Il controllo sta nell'azione, non nella pagina. */
+/**
+ * Solo chi puo' moderare passa. Il controllo sta nell'azione, non nella pagina.
+ * Un moderatore sospeso non modera: fino all'11/10 la sospensione fermava solo
+ * chi scrive, e un moderatore sospeso poteva revocarsela e sospendere chi
+ * l'aveva sospeso.
+ */
 async function moderator(): Promise<{ id: string; role: Role } | null> {
   const current = await viewer();
   if (!current || !can(current.role, "moderate")) return null;
+  if ((await suspensionFor(current.id)).active) return null;
   return current;
 }
 
@@ -288,6 +299,11 @@ export async function suspendAction(
   if (target.id === mod.id) {
     return { ok: false, error: t.nonSospendereTeStesso };
   }
+  // fra moderatori decide un amministratore: se no due moderatori in lite
+  // possono sospendersi a vicenda
+  if (target.role === "MODERATOR" && mod.role !== "ADMIN") {
+    return { ok: false, error: t.nonSospendereModeratore };
+  }
 
   await db.insert(suspensions).values({
     userId: target.id,
@@ -306,6 +322,14 @@ export async function liftSuspensionAction(suspensionId: string): Promise<ModRes
   const t = TESTI[await getLocale()];
   const mod = await moderator();
   if (!mod) return { ok: false, error: t.nonHaiPermessi };
+
+  if (!z.string().uuid().safeParse(suspensionId).success) return { ok: false, error: t.datiNonValidi };
+  const suspension = await db.query.suspensions.findFirst({
+    where: eq(suspensions.id, suspensionId),
+    columns: { userId: true },
+  });
+  if (!suspension) return { ok: false, error: t.datiNonValidi };
+  if (suspension.userId === mod.id) return { ok: false, error: t.nonRevocareTua };
 
   await db
     .update(suspensions)

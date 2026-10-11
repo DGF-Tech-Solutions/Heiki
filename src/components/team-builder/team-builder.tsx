@@ -23,6 +23,7 @@
  */
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
@@ -55,9 +56,17 @@ type Picking = { readonly kind: "main" | "associate"; readonly slot: number };
 /** l'ultimo eroe messo in un posto: solo lui entra col taglio del palco */
 type Placed = Picking & { readonly hero: string };
 
-export function TeamBuilder({ data, initial }: { data: BuilderData; initial: TeamSetup }) {
+export function TeamBuilder({ data }: { data: BuilderData }) {
   const locale = useLocale();
   const t = TESTI[locale];
+  // La squadra di partenza dall'indirizzo di adesso, non da un valore passato
+  // dalla pagina: fino all'11/10, tornando con Indietro, Next ridisegnava la
+  // pagina com'era arrivata dal server, e la squadra di allora si riscriveva
+  // nell'indirizzo e nel browser sopra le modifiche fatte dopo
+  const searchParams = useSearchParams();
+  const [initial] = useState(() =>
+    parseSetup((key) => searchParams.get(key), (id) => data.heroes.some((hero) => hero.id === id)),
+  );
   const [setup, setSetup] = useState<TeamSetup>(initial);
   const [picking, setPicking] = useState<Picking | null>(null);
   const [noCollab, setNoCollab] = useState(false);

@@ -21,7 +21,11 @@
  *     erano la cosa piu' accesa della pagina)
  *   - i filtri stanno nell'indirizzo (`?rarita=UR&attributo=...`): tornando da
  *     una scheda, o ricaricando, si ritrovano. Si arriva gia' filtrati anche
- *     dalle tendine delle parole blu (`?razza=3`, `?caratteristica=6`)
+ *     dalle tendine delle parole blu (`?razza=3`, `?caratteristica=6`). Si
+ *     leggono dall'indirizzo vivo (`useSearchParams`), non da un valore passato
+ *     dalla pagina: fino all'11/10 col tasto Indietro Next ridisegnava la pagina
+ *     com'era arrivata dal server, coi filtri del primo arrivo, e la griglia li
+ *     riscriveva nell'indirizzo cancellando quelli scelti dopo
  *   - «I miei»: solo gli eroi del tuo box, se ne hai segnati (use-hero-box.ts)
  *
  * Sul telefono (10/10, sera) le file dei filtri occupavano tutto il primo
@@ -34,6 +38,7 @@
  */
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
@@ -169,15 +174,44 @@ function toSearchParams(query: RosterQuery): string {
   return text ? `?${text}` : "";
 }
 
+/**
+ * Il contrario di `toSearchParams`. L'indirizzo lo puo' scrivere chiunque: un
+ * valore vale solo se e' fra quelli che la griglia offre. Un parametro ripetuto
+ * (`?cerca=a&cerca=b`) vale il primo: fino all'11/10 l'elenco finiva nella
+ * ricerca e la griglia si rompeva.
+ */
+function fromSearchParams(
+  params: Pick<URLSearchParams, "get">,
+  roster: HeroRoster,
+  traits: { races: readonly { code: number }[]; factions: readonly { code: number }[] } | undefined,
+): RosterQuery {
+  const one = (key: string, offered: readonly string[]) => {
+    const value = params.get(key);
+    return value !== null && offered.includes(value) ? value : null;
+  };
+  const code = (key: string, offered: readonly { code: number }[] | undefined) =>
+    offered?.find((item) => String(item.code) === params.get(key))?.code ?? null;
+  const order = params.get("ordine");
+  return {
+    search: (params.get("cerca") ?? "").slice(0, 80),
+    rarity: one("rarita", roster.rarities),
+    affinity: one("attributo", roster.affinities.map((a) => a.id)),
+    obtainable: one("esce", roster.obtainable),
+    race: code("razza", traits?.races),
+    faction: code("caratteristica", traits?.factions),
+    order: order === "name" || order === "group" ? order : "roster",
+    mine: params.get("miei") === "1",
+  };
+}
+
 export function RosterBrowser({
   game,
   roster,
   icons,
-  initial = EMPTY_QUERY,
   traits,
   intro,
   art = {},
-  faces = {},
+  figures = {},
   withoutCutIn = [],
 }: {
   game: string;
@@ -189,8 +223,6 @@ export function RosterBrowser({
    * restano testuali invece di mostrare riquadri rotti.
    */
   icons?: Readonly<Record<string, readonly string[]>>;
-  /** i filtri all'arrivo, letti dall'indirizzo dalla pagina */
-  initial?: RosterQuery;
   /** razze e caratteristiche coi nomi nella lingua della pagina; senza, niente filtri per quelle */
   traits?: {
     races: readonly { code: number; label: string; iconKey?: string }[];
@@ -203,14 +235,19 @@ export function RosterBrowser({
   intro?: React.ReactNode;
   /** il tipo d'illustrazione del palco, solo per chi non l'ha scontornata */
   art?: Readonly<Record<string, StageArt["art"]>>;
-  /** dove sta il volto nell'illustrazione di ogni eroe: il primo piano della fascia va dall'altra parte */
-  faces?: Readonly<Record<string, StageArt["face"]>>;
+  /**
+   * Volto e cima della sagoma nell'illustrazione di ogni eroe: la figura si
+   * ingrandisce attorno al volto, il primo piano della fascia va dall'altra parte
+   */
+  figures?: Readonly<Record<string, StageArt["figure"]>>;
   /** gli eroi senza il cut-in della Mossa finale: la loro fascia resta vuota */
   withoutCutIn?: readonly string[];
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
-  const [query, setQuery] = useState<RosterQuery>(initial);
+  // i filtri all'arrivo dall'indirizzo di adesso, anche tornando con Indietro (vedi in cima)
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState<RosterQuery>(() => fromSearchParams(searchParams, roster, traits));
   const [box] = useHeroBox(game);
   const hasBox = boxSize(box) > 0;
   const { search, rarity, affinity, obtainable, race, faction, order } = query;
@@ -293,7 +330,7 @@ export function RosterBrowser({
   };
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,min(30vw,480px))]">
       <div className="min-w-0">
         {intro}
         {/*
@@ -541,10 +578,9 @@ export function RosterBrowser({
             badges={badgesFor(active)}
             art={{
               art: art[active.id] ?? DEFAULT_STAGE_ART.art,
-              face: faces[active.id] ?? DEFAULT_STAGE_ART.face,
+              figure: figures[active.id] ?? DEFAULT_STAGE_ART.figure,
               cutIn: !withoutCutIn.includes(active.id),
             }}
-            priority
             className="p5-corner h-full"
           >
             <Link href={`/${game}/eroi/${active.id}`} className={buttonClass("primary", "md")}>

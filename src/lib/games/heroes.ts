@@ -171,12 +171,13 @@ export function sortHeroes(
 /**
  * Percorso della card di un eroe.
  *
- * Convenzione unica del progetto: `public/eroi/<gioco>/<id>.png` a 128px e la
+ * Convenzione unica del progetto: `public/eroi/<gioco>/<id>.webp` a 128px e la
  * stessa sotto `2x/` a 256px. Le immagini non sono versionate - sono asset del
- * gioco - e le mette in piedi `npm run eroi:import`.
+ * gioco - e le mette in piedi `npm run eroi:import`, che dall'11/10 le converte
+ * in WebP (un quinto del peso del PNG).
  */
 export function heroCardSrc(gameSlug: string, heroId: string, scale: 1 | 2 = 1): string {
-  return scale === 2 ? `/eroi/${gameSlug}/2x/${heroId}.png` : `/eroi/${gameSlug}/${heroId}.png`;
+  return scale === 2 ? `/eroi/${gameSlug}/2x/${heroId}.webp` : `/eroi/${gameSlug}/${heroId}.webp`;
 }
 
 /** Illustrazione a figura intera: `public/eroi/<gioco>/splash/<id>.png`. */

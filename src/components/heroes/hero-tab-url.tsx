@@ -17,10 +17,23 @@ import { useEffect } from "react";
  *   stessa scheda.
  * - se si era scesi dentro una scheda lunga, riporta la pagina all'inizio delle
  *   schede: la nuova si legge dall'alto, invece di trovarsi a meta' o in fondo.
+ * - all'arrivo accende la scheda che dice l'indirizzo. Di solito e' gia' quella
+ *   (la sceglie il server), ma tornando con Indietro Next ridisegna la pagina
+ *   com'era arrivata dal server: l'indirizzo restava `?scheda=statistiche` e
+ *   si vedeva la prima scheda (11/10). Il radio si spunta senza l'evento
+ *   `change`, quindi l'indirizzo non si riscrive e la pagina non scorre.
  *
  * Non disegna niente. Senza JavaScript le schede funzionano lo stesso.
  */
 export function HeroTabUrl({ name, first, wrapperId }: { name: string; first: string; wrapperId: string }) {
+  useEffect(() => {
+    // una scheda che non c'e' (`?scheda=nonesiste`) lascia quella del server, la prima
+    const wanted = new URLSearchParams(window.location.search).get(name) ?? first;
+    for (const input of document.getElementsByName(name)) {
+      if (input instanceof HTMLInputElement && input.value === wanted && !input.checked) input.checked = true;
+    }
+  }, [name, first]);
+
   useEffect(() => {
     const onChange = (event: Event) => {
       const input = event.target;

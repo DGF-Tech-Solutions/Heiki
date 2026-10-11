@@ -356,7 +356,11 @@ Il confine passa qui, e non è formale:
 - **i dati** (nomi, rarità, attributi) sono fatti, e stanno nel repository in
   `src/lib/games/grand-cross/heroes.generated.ts`
 - **le immagini** sono asset di Netmarble rielaborati, e non sono versionate.
-  Stanno in `public/eroi/`, che è in `.gitignore`
+  Stanno in `public/eroi/`, che è in `.gitignore`. Le card degli eroi e i
+  cut-in sono WebP (l'importazione li converte: un quinto del PNG); il sito le
+  serve con un giorno di cache nel browser, e il servizio delle immagini tiene
+  per una settimana le copie ridimensionate (`next.config.ts`): dopo
+  un'importazione che cambia delle immagini si svuota `.next/cache/images`
 - **i testi lunghi** stanno in `hero-texts.generated.ts`, separati dal roster:
   il roster viaggia fino al browser per i filtri, le descrizioni no
 - **il calendario delle uscite** sta in `releases.generated.ts`: il foglio della

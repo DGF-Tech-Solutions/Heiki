@@ -122,6 +122,22 @@ export function syncDirection(
 export const MAX_REROLLS = 2;
 
 /**
+ * Fra una verifica approvata e la richiesta della successiva passa una
+ * settimana (scelta dell'utente, 11/10): la classe verificata e' una foto del
+ * momento, e aggiornarla ogni giorno chiederebbe ai moderatori una schermata al
+ * giorno per account. Conta solo l'approvazione: chi e' stato respinto (una
+ * schermata sbagliata) puo' riprovare subito.
+ */
+export const VERIFICATION_COOLDOWN_DAYS = 7;
+
+/** Da quando si puo' chiedere una nuova verifica; null se si puo' gia'. */
+export function nextVerificationAt(lastApprovedAt: Date | null, now: Date): Date | null {
+  if (!lastApprovedAt) return null;
+  const next = new Date(lastApprovedAt.getTime() + VERIFICATION_COOLDOWN_DAYS * 86_400_000);
+  return next > now ? next : null;
+}
+
+/**
  * Da dove si pesca l'eroe del giorno: gli eroi che escono SR, senza le
  * collaborazioni (scelta dell'utente, 27/09). Sono della pescata di sempre, e
  * chiunque abbia un account avanti li ha: 30 eroi.

@@ -14,7 +14,7 @@
  * funziona. Che i contenuti siano volatili viene dichiarato nell'interfaccia.
  */
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, like, or } from "drizzle-orm";
 import { databaseReachable, db } from "@/lib/db";
 import { comments, games, hubs, posts, profiles, users, votes } from "@/lib/db/schema";
 import { normalizeCustomization } from "@/lib/profile/customization";
@@ -40,9 +40,23 @@ export interface Viewer {
   accent: string;
 }
 
+/**
+ * Filtri del feed oltre a gioco e sezione: l'autore (la pagina del profilo) e
+ * le parole cercate (la ricerca). Stanno nella query: fino all'11/10 si
+ * prendevano gli ultimi 100 post di tutto il sito e si filtrava dopo, e con 100
+ * post piu' recenti altrove il feed di un gioco tranquillo, la cronologia di un
+ * profilo o una ricerca restavano vuoti.
+ */
+export interface PostFilter {
+  /** l'handle dell'autore */
+  readonly author?: string;
+  /** nel titolo o nel testo, senza distinguere le maiuscole */
+  readonly search?: string;
+}
+
 export interface CommunityStore {
   readonly volatile: boolean;
-  listPosts(game: string | null, hub: string | null, viewer: Viewer | null): Promise<FeedPost[]>;
+  listPosts(game: string | null, hub: string | null, viewer: Viewer | null, filter?: PostFilter): Promise<FeedPost[]>;
   getPost(id: string, viewer: Viewer | null): Promise<PostDetail | null>;
   listSponsors(): Promise<SponsorItem[]>;
   createPost(input: CreatePostInput, viewer: Viewer): Promise<string>;
@@ -108,11 +122,14 @@ function applyBallots(post: PostDetail, ballots: Map<string, Vote>): PostDetail 
 const memoryStore: CommunityStore = {
   volatile: true,
 
-  async listPosts(game, hub) {
+  async listPosts(game, hub, _viewer, filter = {}) {
     const { posts: all, ballots } = state();
+    const needle = filter.search?.toLowerCase();
     return all
       .filter((post) => game === null || post.game === game)
       .filter((post) => hub === null || post.hub === hub)
+      .filter((post) => !filter.author || post.author.username.toLowerCase() === filter.author.toLowerCase())
+      .filter((post) => !needle || post.title.toLowerCase().includes(needle) || post.excerpt.toLowerCase().includes(needle))
       .map((post) => applyBallots(post, ballots));
   },
 
@@ -238,9 +255,18 @@ function hubSlugOf(full: string): string {
 const dbStore: CommunityStore = {
   volatile: false,
 
-  async listPosts(game, hub, viewer) {
+  async listPosts(game, hub, viewer, filter = {}) {
+    // lo slug dell'hub e' «<gioco>:<sezione>» (hubSlugOf): gioco e sezione sono
+    // un filtro sullo slug, con le sottoquery al posto delle join
+    const hubPattern = game !== null && hub !== null ? `${game}:${hub}` : game !== null ? `${game}:%` : hub !== null ? `%:${hub}` : null;
+    const pattern = filter.search ? `%${filter.search.replace(/[\\%_]/g, (c) => `\\${c}`)}%` : null;
     const rows = await db.query.posts.findMany({
-      where: eq(posts.hidden, false),
+      where: and(
+        eq(posts.hidden, false),
+        hubPattern ? inArray(posts.hubId, db.select({ id: hubs.id }).from(hubs).where(like(hubs.slug, hubPattern))) : undefined,
+        filter.author ? inArray(posts.authorId, db.select({ id: users.id }).from(users).where(eq(users.username, filter.author.toLowerCase()))) : undefined,
+        pattern ? or(ilike(posts.title, pattern), ilike(posts.bodyMd, pattern)) : undefined,
+      ),
       orderBy: [desc(posts.createdAt)],
       limit: 100,
       with: { hub: { with: { game: true } }, author: { with: { profile: true } } },
@@ -249,8 +275,6 @@ const dbStore: CommunityStore = {
     const ballots = await ballotsFor(viewer, "POST", rows.map((row) => row.id));
 
     return rows
-      .filter((row) => game === null || row.hub.game?.slug === game)
-      .filter((row) => hub === null || hubSlugOf(row.hub.slug) === hub)
       .map((row) => ({
         id: row.id,
         game: row.hub.game?.slug ?? "",

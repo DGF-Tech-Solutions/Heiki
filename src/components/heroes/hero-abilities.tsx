@@ -12,6 +12,7 @@ import { HeroBox, hasIcon, localized, textIn } from "@/components/heroes/hero-pa
 import type { TermIds } from "@/components/heroes/hero-terms";
 import { HeroDrawLine, HeroTeamEffect } from "@/components/heroes/hero-mechanics";
 import { HeroStickyColumns } from "@/components/heroes/hero-sticky-columns";
+import { FollowUltimate } from "@/components/heroes/follow-ultimate";
 import { cx, numeric } from "@/components/ui";
 import {
   gameIconSrc,
@@ -66,6 +67,10 @@ const TESTI = testi({
     ultimateAlRango: (rango: number) => `Ultimate al rango ${rango}`,
     segueRango: (soggetto: string) => `· ${soggetto} segue il rango scelto sulla carta dell’ultimate`,
     valoriArancione: ": i valori in arancione sono quelli legati al rango",
+    unicaRanghi: (da: number, a: number) => (da === a ? `Ultimate al rango ${da}` : `Ultimate ai ranghi ${da}–${a}`),
+    unicaCambia:
+      "L’Unica cambia solo ai ranghi dell’ultimate dei pulsanti, e segue anche quello scelto sulla carta dell’ultimate",
+    versioniUnica: "Versione dell’Unica secondo il rango dell’ultimate",
     rango: (rango: number) => `Rango ${rango}`,
     carta: (slot: string) => `carta ${slot}`,
   },
@@ -84,6 +89,11 @@ const TESTI = testi({
     ultimateAlRango: (rango: number) => `Ultimate Move at rank ${rango}`,
     segueRango: (soggetto: string) => `· ${soggetto} follows the rank chosen on the Ultimate Move card`,
     valoriArancione: ": values in orange are the ones tied to the rank",
+    unicaRanghi: (from: number, to: number) =>
+      from === to ? `Ultimate Move at rank ${from}` : `Ultimate Move at ranks ${from}–${to}`,
+    unicaCambia:
+      "The Unique only changes at the Ultimate Move ranks of these buttons, and also follows the rank chosen on the Ultimate Move card",
+    versioniUnica: "Version of the Unique by Ultimate Move rank",
     rango: (rango: number) => `Rank ${rango}`,
     carta: (slot: string) => `card ${slot}`,
   },
@@ -281,6 +291,7 @@ export function HeroAbilities({
                         context={context?.cards["passiva"]}
                         glossary={glossary}
                         icons={icons}
+                        own={{ group: `${heroId}-unica` }}
                         terms={versionTerms(
                           termIds,
                           { ...abilities.passive, text: abilities.passive.text },
@@ -533,32 +544,32 @@ function EffectTag({
 const RANK_CLASSES = [
   {
     hook: "rk1",
-    chip: "group-has-[.rk1:checked]:border-brand group-has-[.rk1:checked]:bg-brand-soft group-has-[.rk1:checked]:text-ink group-has-[.rk1:checked]:opacity-100 group-has-[.rk1:focus-visible]:outline-2 group-has-[.rk1:focus-visible]:outline-ink group-has-[.rk1:focus-visible]:opacity-100",
+    chip: "group-has-[.rk1:checked]:border-brand group-has-[.rk1:checked]:bg-brand-soft group-has-[.rk1:checked]:text-ink group-has-[.rk1:checked]:opacity-100 group-has-[.rk1:checked]:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.rk1:focus-visible]:outline-2 group-has-[.rk1:focus-visible]:outline-ink group-has-[.rk1:focus-visible]:opacity-100",
     show: "group-has-[.rk1:checked]:block",
   },
   {
     hook: "rk2",
-    chip: "group-has-[.rk2:checked]:border-brand group-has-[.rk2:checked]:bg-brand-soft group-has-[.rk2:checked]:text-ink group-has-[.rk2:checked]:opacity-100 group-has-[.rk2:focus-visible]:outline-2 group-has-[.rk2:focus-visible]:outline-ink group-has-[.rk2:focus-visible]:opacity-100",
+    chip: "group-has-[.rk2:checked]:border-brand group-has-[.rk2:checked]:bg-brand-soft group-has-[.rk2:checked]:text-ink group-has-[.rk2:checked]:opacity-100 group-has-[.rk2:checked]:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.rk2:focus-visible]:outline-2 group-has-[.rk2:focus-visible]:outline-ink group-has-[.rk2:focus-visible]:opacity-100",
     show: "group-has-[.rk2:checked]:block",
   },
   {
     hook: "rk3",
-    chip: "group-has-[.rk3:checked]:border-brand group-has-[.rk3:checked]:bg-brand-soft group-has-[.rk3:checked]:text-ink group-has-[.rk3:checked]:opacity-100 group-has-[.rk3:focus-visible]:outline-2 group-has-[.rk3:focus-visible]:outline-ink group-has-[.rk3:focus-visible]:opacity-100",
+    chip: "group-has-[.rk3:checked]:border-brand group-has-[.rk3:checked]:bg-brand-soft group-has-[.rk3:checked]:text-ink group-has-[.rk3:checked]:opacity-100 group-has-[.rk3:checked]:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.rk3:focus-visible]:outline-2 group-has-[.rk3:focus-visible]:outline-ink group-has-[.rk3:focus-visible]:opacity-100",
     show: "group-has-[.rk3:checked]:block",
   },
   {
     hook: "rk4",
-    chip: "group-has-[.rk4:checked]:border-brand group-has-[.rk4:checked]:bg-brand-soft group-has-[.rk4:checked]:text-ink group-has-[.rk4:checked]:opacity-100 group-has-[.rk4:focus-visible]:outline-2 group-has-[.rk4:focus-visible]:outline-ink group-has-[.rk4:focus-visible]:opacity-100",
+    chip: "group-has-[.rk4:checked]:border-brand group-has-[.rk4:checked]:bg-brand-soft group-has-[.rk4:checked]:text-ink group-has-[.rk4:checked]:opacity-100 group-has-[.rk4:checked]:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.rk4:focus-visible]:outline-2 group-has-[.rk4:focus-visible]:outline-ink group-has-[.rk4:focus-visible]:opacity-100",
     show: "group-has-[.rk4:checked]:block",
   },
   {
     hook: "rk5",
-    chip: "group-has-[.rk5:checked]:border-brand group-has-[.rk5:checked]:bg-brand-soft group-has-[.rk5:checked]:text-ink group-has-[.rk5:checked]:opacity-100 group-has-[.rk5:focus-visible]:outline-2 group-has-[.rk5:focus-visible]:outline-ink group-has-[.rk5:focus-visible]:opacity-100",
+    chip: "group-has-[.rk5:checked]:border-brand group-has-[.rk5:checked]:bg-brand-soft group-has-[.rk5:checked]:text-ink group-has-[.rk5:checked]:opacity-100 group-has-[.rk5:checked]:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.rk5:focus-visible]:outline-2 group-has-[.rk5:focus-visible]:outline-ink group-has-[.rk5:focus-visible]:opacity-100",
     show: "group-has-[.rk5:checked]:block",
   },
   {
     hook: "rk6",
-    chip: "group-has-[.rk6:checked]:border-brand group-has-[.rk6:checked]:bg-brand-soft group-has-[.rk6:checked]:text-ink group-has-[.rk6:checked]:opacity-100 group-has-[.rk6:focus-visible]:outline-2 group-has-[.rk6:focus-visible]:outline-ink group-has-[.rk6:focus-visible]:opacity-100",
+    chip: "group-has-[.rk6:checked]:border-brand group-has-[.rk6:checked]:bg-brand-soft group-has-[.rk6:checked]:text-ink group-has-[.rk6:checked]:opacity-100 group-has-[.rk6:checked]:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.rk6:focus-visible]:outline-2 group-has-[.rk6:focus-visible]:outline-ink group-has-[.rk6:focus-visible]:opacity-100",
     show: "group-has-[.rk6:checked]:block",
   },
 ] as const;
@@ -608,6 +619,53 @@ const ULTIMATE_LINK = [
     hook: "ult6",
     show: "group-has-[.ult6:checked]/scheda:block",
     inline: "group-has-[.ult6:checked]/scheda:inline-flex",
+  },
+] as const;
+
+/**
+ * I pulsanti dell'Unica (11/10, richiesta dell'utente): uno per ogni versione
+ * del suo testo, cioe' per ogni rango dell'ultimate in cui l'Unica cambia
+ * davvero. Il gruppo e' il riquadro dell'Unica (`group/unica`): il rango
+ * dell'ultimate lo leggeva l'articolo intero, e chiedendogli `.uni2:checked`
+ * non c'e' niente da confondere, ma il nome tiene il legame dentro il riquadro.
+ * Per esteso come le altre: Tailwind legge il sorgente.
+ */
+const UNICA_LINK = [
+  {
+    hook: "uni1",
+    chip: "group-has-[.uni1:checked]/unica:border-brand group-has-[.uni1:checked]/unica:bg-brand-soft group-has-[.uni1:checked]/unica:text-ink group-has-[.uni1:checked]/unica:opacity-100 group-has-[.uni1:checked]/unica:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.uni1:focus-visible]/unica:outline-2 group-has-[.uni1:focus-visible]/unica:outline-ink group-has-[.uni1:focus-visible]/unica:opacity-100",
+    show: "group-has-[.uni1:checked]/unica:block",
+    inline: "group-has-[.uni1:checked]/unica:inline",
+  },
+  {
+    hook: "uni2",
+    chip: "group-has-[.uni2:checked]/unica:border-brand group-has-[.uni2:checked]/unica:bg-brand-soft group-has-[.uni2:checked]/unica:text-ink group-has-[.uni2:checked]/unica:opacity-100 group-has-[.uni2:checked]/unica:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.uni2:focus-visible]/unica:outline-2 group-has-[.uni2:focus-visible]/unica:outline-ink group-has-[.uni2:focus-visible]/unica:opacity-100",
+    show: "group-has-[.uni2:checked]/unica:block",
+    inline: "group-has-[.uni2:checked]/unica:inline",
+  },
+  {
+    hook: "uni3",
+    chip: "group-has-[.uni3:checked]/unica:border-brand group-has-[.uni3:checked]/unica:bg-brand-soft group-has-[.uni3:checked]/unica:text-ink group-has-[.uni3:checked]/unica:opacity-100 group-has-[.uni3:checked]/unica:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.uni3:focus-visible]/unica:outline-2 group-has-[.uni3:focus-visible]/unica:outline-ink group-has-[.uni3:focus-visible]/unica:opacity-100",
+    show: "group-has-[.uni3:checked]/unica:block",
+    inline: "group-has-[.uni3:checked]/unica:inline",
+  },
+  {
+    hook: "uni4",
+    chip: "group-has-[.uni4:checked]/unica:border-brand group-has-[.uni4:checked]/unica:bg-brand-soft group-has-[.uni4:checked]/unica:text-ink group-has-[.uni4:checked]/unica:opacity-100 group-has-[.uni4:checked]/unica:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.uni4:focus-visible]/unica:outline-2 group-has-[.uni4:focus-visible]/unica:outline-ink group-has-[.uni4:focus-visible]/unica:opacity-100",
+    show: "group-has-[.uni4:checked]/unica:block",
+    inline: "group-has-[.uni4:checked]/unica:inline",
+  },
+  {
+    hook: "uni5",
+    chip: "group-has-[.uni5:checked]/unica:border-brand group-has-[.uni5:checked]/unica:bg-brand-soft group-has-[.uni5:checked]/unica:text-ink group-has-[.uni5:checked]/unica:opacity-100 group-has-[.uni5:checked]/unica:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.uni5:focus-visible]/unica:outline-2 group-has-[.uni5:focus-visible]/unica:outline-ink group-has-[.uni5:focus-visible]/unica:opacity-100",
+    show: "group-has-[.uni5:checked]/unica:block",
+    inline: "group-has-[.uni5:checked]/unica:inline",
+  },
+  {
+    hook: "uni6",
+    chip: "group-has-[.uni6:checked]/unica:border-brand group-has-[.uni6:checked]/unica:bg-brand-soft group-has-[.uni6:checked]/unica:text-ink group-has-[.uni6:checked]/unica:opacity-100 group-has-[.uni6:checked]/unica:shadow-[inset_0_-2px_0_var(--color-brand)] group-has-[.uni6:focus-visible]/unica:outline-2 group-has-[.uni6:focus-visible]/unica:outline-ink group-has-[.uni6:focus-visible]/unica:opacity-100",
+    show: "group-has-[.uni6:checked]/unica:block",
+    inline: "group-has-[.uni6:checked]/unica:inline",
   },
 ] as const;
 
@@ -785,6 +843,7 @@ export function PassiveText({
   icons,
   subject,
   terms,
+  own,
 }: {
   game: string;
   locale: Locale;
@@ -798,6 +857,11 @@ export function PassiveText({
   icons?: Readonly<Record<string, readonly string[]>>;
   /** le tendine delle parole blu, una fila per versione come `[text, ...steps]` */
   terms?: readonly (readonly (string | null)[] | undefined)[];
+  /**
+   * L'Unica ha pulsanti suoi (11/10): `group` e' il nome del loro gruppo di
+   * radio. Senza, il testo segue solo la carta dell'ultimate (i Talenti).
+   */
+  own?: { readonly group: string };
 }) {
   const t = TESTI[locale];
   const body = "text-sm leading-relaxed text-ink-2";
@@ -820,6 +884,96 @@ export function PassiveText({
   });
   const gems = ULTIMATE_LINK.every((link) => hasIcon(icons, "carta", `pietra_${link.hook.slice(3)}`));
   const orange = versions.some((version) => version.text.includes("[FF8000]"));
+
+  if (own) {
+    /*
+     * Un pulsante per versione, non per rango: se l'Unica cambia solo al 2 e al
+     * 5, i pulsanti sono 1, 2 e 5 (l'1 e' il testo di partenza, senza il quale
+     * non si potrebbe tornarci). Ognuno porta la pietra del rango da cui la
+     * versione vale, la stessa dei pulsanti dell'ultimate; la sua scritta dice
+     * fino a dove vale. Si parte, come sull'ultimate, dall'ultimo rango.
+     */
+    const last = ULTIMATE_LINK.length;
+    const until = (index: number) => (versions[index + 1]?.fromUltimateRank ?? last + 1) - 1;
+    return (
+      <div className="group/unica" data-unica>
+        <FollowUltimate group={own.group} />
+        <div role="radiogroup" aria-label={t.versioniUnica} className="mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <span className="flex gap-1">
+            {versions.map((version, index) => (
+              <input
+                key={`radio-${version.fromUltimateRank}`}
+                type="radio"
+                name={own.group}
+                id={`${own.group}-${version.fromUltimateRank}`}
+                data-ranks={Array.from(
+                  { length: until(index) - version.fromUltimateRank + 1 },
+                  (_, step) => version.fromUltimateRank + step,
+                ).join(" ")}
+                defaultChecked={index === versions.length - 1}
+                className={cx("sr-only", UNICA_LINK[index]?.hook)}
+              />
+            ))}
+            {versions.map((version, index) => (
+              <label
+                key={`label-${version.fromUltimateRank}`}
+                htmlFor={`${own.group}-${version.fromUltimateRank}`}
+                title={t.unicaRanghi(version.fromUltimateRank, until(index))}
+                className={cx(
+                  numeric,
+                  "rank-chip flex h-7 min-w-9 cursor-pointer items-center justify-center border border-rule bg-paper-2 px-1.5",
+                  "text-[12px] text-ink-3 opacity-50 hover:border-ink-3 hover:bg-paper-3 hover:text-ink hover:opacity-100",
+                  UNICA_LINK[index]?.chip,
+                )}
+              >
+                {gems ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={gameIconSrc(game, "carta", `pietra_${version.fromUltimateRank}`)}
+                    alt=""
+                    width={14}
+                    height={14}
+                    loading="lazy"
+                    className="h-3.5 w-3.5 object-contain"
+                  />
+                ) : (
+                  `R${version.fromUltimateRank}`
+                )}
+                <span className="sr-only">{t.unicaRanghi(version.fromUltimateRank, until(index))}</span>
+              </label>
+            ))}
+          </span>
+          {versions.map((version, index) => (
+            <span
+              key={`scritta-${version.fromUltimateRank}`}
+              aria-hidden
+              className={cx("hidden text-[12px] font-semibold text-ink-2", UNICA_LINK[index]?.inline)}
+            >
+              {t.unicaRanghi(version.fromUltimateRank, until(index))}
+            </span>
+          ))}
+        </div>
+        <p className="m-0 mb-2 text-[12px] leading-snug text-ink-3">
+          {t.unicaCambia}
+          {orange ? t.valoriArancione : ""}
+        </p>
+
+        {versions.map((version, index) => (
+          <div key={`testo-${version.fromUltimateRank}`} className={cx("hidden", UNICA_LINK[index]?.show)}>
+            <GameText text={version.text} omitNotes className={body} terms={terms?.[index]} />
+          </div>
+        ))}
+
+        <Effects context={context} glossary={glossary} locale={locale} />
+
+        {versions.map((version, index) => (
+          <div key={`note-${version.fromUltimateRank}`} className={cx("hidden", UNICA_LINK[index]?.show)}>
+            <GameNotes texts={[version.text]} className="mt-2.5" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -949,7 +1103,8 @@ function RankButtons({
             // il fuoco della tastiera (radio nascosti) sta in RANK_CLASSES: il
             // radio e' un fratello lontano, `peer` accenderebbe tutte le etichette
             "flex cursor-pointer items-center justify-center border border-rule bg-paper-2",
-            "text-[12px] text-ink-3 transition hover:text-ink",
+            // il movimento sta in .rank-chip (globals.css); qui i colori del passaggio
+            "rank-chip text-[12px] text-ink-3 hover:border-ink-3 hover:bg-paper-3 hover:text-ink",
             // Le insegne spente a meta' dicono quale rango NON e' scelto meglio
             // del solo bordo: le stelle sono tutte dello stesso giallo, e sei
             // pietre accese di sei colori non ne farebbero risaltare nessuna.

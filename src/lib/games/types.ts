@@ -180,10 +180,16 @@ export interface HeroAssets {
   /**
    * Dove sta il volto nell'illustrazione, in centesimi del lato: [x, y]. Il
    * palco mette il primo piano della fascia dalla parte opposta, perche' la
-   * testa della figura non lo copra. Lo calcola l'importazione (faceOf in
-   * import-heroes.mts)
+   * testa della figura non lo copra, e dall'11/10 ingrandisce la figura attorno
+   * al volto. Lo calcola l'importazione (figureOf in import-heroes.mts)
    */
   face?: readonly [number, number];
+  /**
+   * La cima della sagoma, in centesimi del lato, senza le parti sottili (lance,
+   * nastri): ali, cappelli e corna si'. Il limite oltre il quale il palco non
+   * alza la figura ingrandita (figureOf)
+   */
+  top?: number;
   /**
    * C'e' il cut-in della Mossa finale, il primo piano scontornato che il gioco
    * fa entrare con l'ultimate: il palco lo mette nella fascia rossa. Quale sia

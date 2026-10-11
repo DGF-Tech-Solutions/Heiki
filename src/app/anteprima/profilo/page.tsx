@@ -4,6 +4,9 @@ import { ProfileWorkspace } from "@/components/profile-workspace";
 import type { ProfileViewData } from "@/components/profile-view";
 import { buttonClass, Tag } from "@/components/ui";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/profile/customization";
+import { resolveFavorites } from "@/lib/profile/favorite-heroes";
+import { SERVER_NAMES } from "@/lib/games/game-account";
+import { pickableGames } from "@/lib/profile/load";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -45,14 +48,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const SAMPLE: ProfileViewData = {
+/** Le copertine di prova: tre eroi veri del roster, il primo va in copertina. */
+const SAMPLE_FAVORITES = ["grand-cross:2017501", "grand-cross:2007501", "grand-cross:1575001"];
+
+/** Tutto tranne i preferiti risolti, che dipendono dalla lingua: li aggiunge la pagina. */
+const SAMPLE: Omit<ProfileViewData, "favoriteHeroes" | "cover"> = {
   username: "franz",
   displayName: "Franz",
   role: "EDITOR",
-  bio: "Theorycrafting su Grand Cross e Star Rail. Scrivo rotazioni, misuro tutto due volte e pubblico solo quello che regge alla simulazione.",
+  bio: "Theorycrafting su Grand Cross. Scrivo rotazioni, misuro tutto due volte e pubblico solo quello che regge alla prova.",
   country: "Italia",
-  xp: 2480,
-  favorites: ["Unità Forza", "Unità Destrezza"],
+  memberSince: "2025-03-14T10:00:00.000Z",
+  stats: { followers: 128, following: 41, posts: 17 },
+  favorites: SAMPLE_FAVORITES,
   customization: DEFAULT_CUSTOMIZATION,
   badges: [
     { id: "b1", name: "Roster completo", trust: "VERIFIED", icon: "✦", shown: true },
@@ -66,53 +74,27 @@ const SAMPLE: ProfileViewData = {
     {
       id: "g1",
       game: "Grand Cross",
-      uid: "3941 8820",
+      uid: "394188201",
       nickname: "franz",
       trust: "VERIFIED",
+      power: 15_240_000,
+      verifiedPower: 15_240_000,
+      verifiedAt: "2026-10-02T09:00:00.000Z",
       shown: true,
-    },
-    {
-      id: "g2",
-      game: "Honkai Star Rail",
-      uid: "700412955",
-      nickname: "franz",
-      trust: "IMPORTED",
-      shown: true,
-    },
-  ],
-  builds: [
-    {
-      id: "s1",
-      name: "Apertura a 3 turni",
-      game: "Grand Cross",
-      character: "Unità Forza",
-      median: 186_400,
-      patch: "0.0.0",
-      isPublic: true,
-    },
-    {
-      id: "s2",
-      name: "Sostegno prolungato",
-      game: "Grand Cross",
-      character: "Unità Destrezza",
-      median: 94_150,
-      patch: "0.0.0",
-      isPublic: true,
-    },
-    {
-      id: "s3",
-      name: "Difensiva lunga",
-      game: "Grand Cross",
-      character: "Unità Vita",
-      median: 61_300,
-      patch: "0.0.0",
-      isPublic: false,
     },
   ],
 };
 
 export default async function ProfilePreviewPage() {
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
+  // il roster arriva da qui come al proprietario: l'anteprima serve proprio a provare l'editor
+  const heroes = pickableGames();
+  const sample: ProfileViewData = {
+    ...SAMPLE,
+    ...resolveFavorites(SAMPLE.favorites, heroes, locale),
+    gameAccounts: SAMPLE.gameAccounts.map((account) => ({ ...account, server: SERVER_NAMES.global[locale] })),
+  };
 
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 pt-8">
@@ -127,7 +109,7 @@ export default async function ProfilePreviewPage() {
         </Link>
       </div>
 
-      <ProfileWorkspace initial={SAMPLE} canEdit canUsePremium demoMode />
+      <ProfileWorkspace initial={sample} canEdit canUsePremium demoMode heroes={heroes} />
     </main>
   );
 }

@@ -56,10 +56,31 @@ export function writeStamp(gameSlug: string, stamp: number): void {
   writeLocal(stampStorageKey(gameSlug), String(stamp));
 }
 
-/** L'utente ha cambiato qualcosa in questo browser. */
+/**
+ * L'utente ha cambiato qualcosa in questo browser. Il timbro non torna mai
+ * indietro: dopo una sincronizzazione e' l'ora del server, e con l'orologio del
+ * telefono indietro una modifica nuova avrebbe un timbro piu' vecchio della
+ * copia del database, che alla prossima apertura l'avrebbe cancellata.
+ */
 export function markLocalChange(gameSlug: string): void {
-  writeStamp(gameSlug, Date.now());
+  writeStamp(gameSlug, Math.max(Date.now(), readStamp(gameSlug) + 1));
   window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: gameSlug }));
+}
+
+function removeLocal(key: string): void {
+  memory.delete(key);
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    /* niente da togliere */
+  }
+}
+
+/** Toglie profilo e timbro dal browser: la usa la sincronizzazione quando entra un'altra persona. */
+export function forgetProfile(gameSlug: string): void {
+  removeLocal(profileStorageKey(gameSlug));
+  removeLocal(stampStorageKey(gameSlug));
+  window.dispatchEvent(new Event(PROFILE_EVENT));
 }
 
 /** Scrive il profilo senza timbro: la usa la sincronizzazione. */

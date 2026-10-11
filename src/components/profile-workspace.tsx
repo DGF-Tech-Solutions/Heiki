@@ -13,10 +13,13 @@
  */
 
 import { useCallback, useMemo, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { ProfileView } from "./profile-view";
 import type { ProfileViewData } from "./profile-view";
 import { ProfileEditorPanel, toDraft, type ProfileDraft } from "./profile-editor";
 import { Button, cx, eyebrow, numeric } from "./ui";
+import type { ProfileSavePayload, SaveResult } from "@/lib/profile/actions";
+import { resolveFavorites, type PickableGame } from "@/lib/profile/favorite-heroes";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 
@@ -61,10 +64,7 @@ const TESTI = testi({
 
 const DRAFT_KEY = "gachazone:profile-draft";
 
-export interface SaveResult {
-  ok: boolean;
-  error?: string;
-}
+export type { SaveResult };
 
 interface Props {
   initial: ProfileViewData;
@@ -76,7 +76,24 @@ interface Props {
   demoMode: boolean;
   /** entra gia' in modalita' modifica (pagina impostazioni) */
   startEditing?: boolean;
-  saveAction?: (payload: ProfileViewData) => Promise<SaveResult>;
+  /** gli eroi fra cui scegliere i preferiti, con le figure per la copertina (load.ts, pickableGames) */
+  heroes: readonly PickableGame[];
+  /** nelle impostazioni il titolo della pagina c'e' gia': il nome scende a h2 */
+  headingLevel?: "h1" | "h2";
+  saveAction?: (payload: ProfileSavePayload) => Promise<SaveResult>;
+}
+
+/** Solo i campi che il salvataggio accetta: non la vista intera con roster e copertina. */
+function toPayload(draft: ProfileDraft): ProfileSavePayload {
+  return {
+    username: draft.username,
+    displayName: draft.displayName,
+    bio: draft.bio,
+    country: draft.country,
+    favorites: draft.favorites,
+    customization: { ...draft.customization },
+    badges: draft.badges.map((badge) => ({ id: badge.id, shown: badge.shown !== false })),
+  };
 }
 
 export function ProfileWorkspace({
@@ -85,19 +102,39 @@ export function ProfileWorkspace({
   canUsePremium,
   demoMode,
   startEditing = false,
+  heroes,
+  headingLevel = "h1",
   saveAction,
 }: Props) {
   const locale = useLocale();
   const t = TESTI[locale];
+  const router = useRouter();
+  const pathname = usePathname();
   const baseline = useMemo(() => toDraft(initial), [initial]);
   const [draft, setDraft] = useState<ProfileDraft>(baseline);
+  const [seen, setSeen] = useState(baseline);
   const [editing, setEditing] = useState(canEdit && startEditing);
   const [status, setStatus] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // Dopo il salvataggio la pagina ricarica i dati dal server, che li ha
+  // ripuliti (un'opzione premium tolta, un preferito che non esiste): la bozza
+  // riparte da li', se no resterebbe «modificata» rispetto a se stessa.
+  if (seen !== baseline) {
+    setSeen(baseline);
+    setDraft(baseline);
+  }
+
   const dirty = useMemo(
     () => JSON.stringify(draft) !== JSON.stringify(baseline),
     [draft, baseline],
+  );
+
+  // L'anteprima e' la vista vera con la bozza sopra: le card dei preferiti e la
+  // copertina si ricalcolano qui, nel browser, a ogni spostamento.
+  const view = useMemo<ProfileViewData>(
+    () => ({ ...initial, ...draft, ...resolveFavorites(draft.favorites, heroes, locale) }),
+    [initial, draft, heroes, locale],
   );
 
   const update = useCallback((next: ProfileDraft) => {
@@ -117,9 +154,19 @@ export function ProfileWorkspace({
     }
 
     startTransition(async () => {
-      const result = await saveAction(draft);
+      const result = await saveAction(toPayload(draft));
       setStatus(result.ok ? t.profiloAggiornato : (result.error ?? t.salvataggioNonRiuscito));
-      if (result.ok) setEditing(false);
+      if (!result.ok) return;
+      setEditing(false);
+      // Cambiato l'handle, /u/<vecchio> non esiste piu': si va al nuovo
+      // indirizzo invece di restare su una pagina che al prossimo caricamento
+      // sarebbe un 404. Nelle impostazioni basta ricaricare i dati.
+      const saved = result.username;
+      if (saved && saved !== initial.username && pathname === `/u/${initial.username}`) {
+        router.replace(`/u/${saved}`);
+      } else {
+        router.refresh();
+      }
     });
   }
 
@@ -149,7 +196,7 @@ export function ProfileWorkspace({
           <span className="ml-auto flex flex-wrap items-center gap-2.5">
             {editing ? (
               <>
-                <span className={cx(numeric, "text-[12px] text-ink-3")}>
+                <span className={cx(numeric, "text-[12px] text-ink-3")} aria-live="polite">
                   {status ?? (dirty ? t.modificheNonSalvate : t.nessunaModifica)}
                 </span>
                 <Button onClick={discard} disabled={!dirty}>
@@ -165,7 +212,9 @@ export function ProfileWorkspace({
             ) : (
               <>
                 {status ? (
-                  <span className={cx(numeric, "text-[12px] text-ink-3")}>{status}</span>
+                  <span className={cx(numeric, "text-[12px] text-ink-3")} aria-live="polite">
+                    {status}
+                  </span>
                 ) : null}
                 <Button
                   variant="primary"
@@ -183,22 +232,22 @@ export function ProfileWorkspace({
       ) : null}
 
       {editing ? (
-        <div className="grid items-start gap-10 pt-6 pb-20 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)]">
-          <ProfileEditorPanel value={draft} onChange={update} canUsePremium={canUsePremium} />
+        <div className="grid items-start gap-8 pt-6 pb-20 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+          <ProfileEditorPanel value={draft} onChange={update} canUsePremium={canUsePremium} heroes={heroes} />
 
-          <div className="overflow-hidden rounded-card border border-rule bg-paper px-7 pt-6 pb-8 lg:sticky lg:top-[124px]">
+          <div className="min-w-0 overflow-hidden border border-rule bg-paper px-4 pt-5 pb-8 sm:px-6 lg:sticky lg:top-[124px]">
             <div className="mb-5 flex items-center justify-between gap-3 border-b border-rule-2 pb-3.5">
               <span className={eyebrow}>{t.anteprimaDalVivo}</span>
               <span className={cx(numeric, "text-[12px] text-ink-3")}>
                 /u/{draft.username || "…"}
               </span>
             </div>
-            <ProfileView data={draft} locale={locale} />
+            <ProfileView data={view} locale={locale} owner={canEdit} headingLevel={headingLevel} />
           </div>
         </div>
       ) : (
         <div className="pt-6 pb-16">
-          <ProfileView data={draft} locale={locale} />
+          <ProfileView data={view} locale={locale} owner={canEdit} headingLevel={headingLevel} priority />
         </div>
       )}
     </>

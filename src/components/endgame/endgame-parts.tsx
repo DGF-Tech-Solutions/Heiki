@@ -16,7 +16,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { readableColor } from "@/components/heroes/game-color";
 import { GameNotes, GameText } from "@/components/heroes/game-text";
-import { IconChevronRight } from "@/components/icons";
+import { IconArrowUp, IconChevronRight } from "@/components/icons";
 import { chipClass, cx, display, eyebrow, numeric, Tag } from "@/components/ui";
 import {
   dropChance,
@@ -62,6 +62,7 @@ const TESTI = testi({
     comportamento: "Comportamento",
     infoUnica: "Info unica",
     passiveDellaFase: "Passive in più in questa fase",
+    vediCarta: (where?: string) => (where ? `vedi la carta in ${where}` : "vedi la carta qui sopra"),
     estrazioni: (n: number) => (n === 1 ? "1 estrazione" : `${n} estrazioni`),
     aScelta: "a scelta",
     dipendeRegione: "Materiale dei costumi, secondo la regione",
@@ -115,6 +116,7 @@ const TESTI = testi({
     comportamento: "Behavior",
     infoUnica: "Unique info",
     passiveDellaFase: "Extra passives in this phase",
+    vediCarta: (where?: string) => (where ? `see the card in ${where}` : "see the card above"),
     estrazioni: (n: number) => (n === 1 ? "1 draw" : `${n} draws`),
     aScelta: "your choice",
     dipendeRegione: "Costume material, by region",
@@ -508,6 +510,8 @@ export function FoeCard({
   heading,
   open,
   fallbackName,
+  id,
+  described,
 }: {
   foe: EndgameFoe;
   scope: EndgameScope;
@@ -520,14 +524,32 @@ export function FoeCard({
    * del loro gruppo («Forze della Punizione celeste...»).
    */
   fallbackName?: string;
+  /** l'ancora della carta, a cui rimandano le altre carte dello stesso mostro */
+  id?: string;
+  /**
+   * Il mostro e' gia' descritto per intero piu' su nella pagina: `href` e' la
+   * sua carta, `where` la parte in cui sta (senza, se e' nello stesso gruppo).
+   * Al posto di consigli, abilita' e passive, quante sono e il rimando; restano
+   * le cose che cambiano da una volta all'altra: livello, statistiche, passive
+   * della fase. Nella Divinita' Suprema lo stesso mostro torna fino a otto
+   * volte, e ripeterne ogni volta le carte faceva 445 KB di HTML (11/10).
+   */
+  described?: { readonly href: string; readonly where?: string };
 }) {
   const t = TESTI[scope.locale];
   const monster = scope.dict.monsters[foe.monster];
   if (!monster) return null;
   const name = sayPlain(monster.name, scope) || fallbackName;
+  const passivesLabel =
+    monster.passives.length > 0 || monster.hiddenPassives > 0
+      ? `${t.passive(monster.passives.length)}${monster.hiddenPassives > 0 ? ` ${t.nascoste(monster.hiddenPassives)}` : ""}`
+      : null;
 
   return (
-    <div className="p5-corner min-w-0 border border-rule bg-paper p-3 sm:p-4">
+    <div
+      id={id}
+      className={cx("p5-corner min-w-0 border border-rule bg-paper p-3 sm:p-4", id && "scroll-mt-20 target:border-brand")}
+    >
       <div className="flex min-w-0 items-start gap-3">
         {monster.icon ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -557,7 +579,7 @@ export function FoeCard({
         </div>
       </div>
 
-      {monster.tips ? <Tips tips={monster.tips} scope={scope} /> : null}
+      {monster.tips && !described ? <Tips tips={monster.tips} scope={scope} /> : null}
 
       {/*
         Aperte se sono una o due (di solito «Aumento uso abilità»), chiuse se
@@ -574,7 +596,15 @@ export function FoeCard({
         </details>
       ) : null}
 
-      {monster.skills.length > 0 ? (
+      {described ? (
+        <DescribedAbove
+          href={described.href}
+          counts={[monster.skills.length > 0 ? t.abilita(monster.skills.length) : null, passivesLabel]}
+          text={t.vediCarta(described.where)}
+        />
+      ) : null}
+
+      {monster.skills.length > 0 && !described ? (
         <details className="mt-2.5" open={open}>
           <Summary>{t.abilita(monster.skills.length)}</Summary>
           {monster.draw ? <p className="m-0 mt-1.5 text-[12px] text-ink-3">{t.pesca(monster.draw.a, monster.draw.b)}</p> : null}
@@ -588,18 +618,32 @@ export function FoeCard({
         </details>
       ) : null}
 
-      {monster.passives.length > 0 || monster.hiddenPassives > 0 ? (
+      {passivesLabel && !described ? (
         <details className="mt-1.5">
-          <Summary>
-            {t.passive(monster.passives.length)}
-            {monster.hiddenPassives > 0 ? ` ${t.nascoste(monster.hiddenPassives)}` : null}
-          </Summary>
+          <Summary>{passivesLabel}</Summary>
           <div className="mt-2">
             <PassiveList ids={monster.passives} scope={scope} />
           </div>
         </details>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Il rimando di una carta alla carta intera dello stesso mostro: quante abilita'
+ * e passive ha (le righe che sostituisce dicevano lo stesso), e dove sono.
+ */
+function DescribedAbove({ href, counts, text }: { href: string; counts: readonly (string | null)[]; text: string }) {
+  const shown = counts.filter((count): count is string => !!count).join(", ");
+  return (
+    <a
+      href={href}
+      className="mt-2.5 flex min-h-8 items-center gap-1.5 text-[13px] text-ink-2 underline-offset-4 hover:text-ink hover:underline"
+    >
+      <IconArrowUp size={14} className="shrink-0" />
+      <span className="min-w-0">{shown ? `${shown}: ${text}` : text.charAt(0).toUpperCase() + text.slice(1)}</span>
+    </a>
   );
 }
 

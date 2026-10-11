@@ -84,7 +84,10 @@ export async function Breadcrumb({
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        // «<» scritto come \u003c: i nomi arrivano anche dai titoli dei post, e un
+        // titolo con «</script>» chiuderebbe lo script e farebbe eseguire quello
+        // che segue (11/10)
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
     </>
   );

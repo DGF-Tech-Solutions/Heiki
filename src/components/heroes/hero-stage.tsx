@@ -9,8 +9,11 @@
  *     (il mondo scelto il 27/09). Il primo piano e' il cut-in della Mossa
  *     finale (`HeroAssets.cutIn`), messo dalla parte opposta al volto della
  *     figura (`HeroAssets.face`)
- *   - la FIGURA: l'illustrazione scontornata del client, intera, con la sagoma
- *     nera sfalsata
+ *   - la FIGURA: l'illustrazione scontornata del client, con la sagoma nera
+ *     sfalsata. Dall'11/10 (l'utente: «un po' piccola») non sta piu' intera nel
+ *     palco: e' ingrandita col volto sempre alla stessa altezza, e le gambe
+ *     scendono dietro la targa. La cima della sagoma (`HeroAssets.top`) e' il
+ *     limite: ali, cappelli e corna restano dentro
  *   - la TARGA: epiteto su una lama bianca, nome con l'ombra rossa, attributo e
  *     rarita', i comandi
  *
@@ -37,36 +40,42 @@ import type { HeroAffinity, HeroEntry } from "@/lib/games/types";
 import type { Locale } from "@/lib/i18n/locale";
 
 /**
- * Le immagini di un eroe per il palco: l'illustrazione c'e' o no, dove sta il
- * suo volto, e se c'e' il cut-in. Lo dice `HeroAssets` (`splash`, `face`,
- * `cutIn`).
+ * Le immagini di un eroe per il palco: l'illustrazione c'e' o no, dove stanno il
+ * suo volto e la cima della sagoma, e se c'e' il cut-in. Lo dice `HeroAssets`
+ * (`splash`, `face`, `top`, `cutIn`).
  */
 export interface StageArt {
   readonly art: "cutout" | "none";
-  /** il volto nell'illustrazione, in centesimi del lato: [x, y] */
-  readonly face: readonly [number, number];
+  /** nell'illustrazione, in centesimi del lato: [x del volto, y del volto, cima della sagoma] */
+  readonly figure: readonly [number, number, number];
   /** il cut-in della Mossa finale, per la fascia */
   readonly cutIn: boolean;
 }
 
-/** dove sta il volto in un'illustrazione tipo: al centro, nel quarto alto */
-export const DEFAULT_FACE: readonly [number, number] = [50, 25];
+/** un'illustrazione tipo: il volto al centro nel quarto alto, la sagoma che parte poco sotto il bordo */
+export const DEFAULT_FIGURE: readonly [number, number, number] = [50, 25, 10];
 
-export const DEFAULT_STAGE_ART: StageArt = { art: "cutout", face: DEFAULT_FACE, cutIn: true };
+export const DEFAULT_STAGE_ART: StageArt = { art: "cutout", figure: DEFAULT_FIGURE, cutIn: true };
 
 export function stageArtOf(
   assets:
-    | { readonly splash?: boolean; readonly face?: readonly [number, number]; readonly cutIn?: boolean }
+    | {
+        readonly splash?: boolean;
+        readonly face?: readonly [number, number];
+        readonly top?: number;
+        readonly cutIn?: boolean;
+      }
     | undefined,
 ): StageArt {
+  const [x, y] = assets?.face ?? DEFAULT_FIGURE;
   return {
     art: assets?.splash ? "cutout" : "none",
-    face: assets?.face ?? DEFAULT_FACE,
+    figure: [x, y, Math.min(assets?.top ?? DEFAULT_FIGURE[2], y)],
     cutIn: assets?.cutIn === true,
   };
 }
 
-/** la figura: 1080 px a densita' 1, l'originale da 1024 sopra */
+/** la figura: fino a ~800 px nel palco, a densita' 1 la misura da 1080; l'originale e' 1024 */
 const ART_SIZES = "1080px";
 
 /**
@@ -96,6 +105,7 @@ export function HeroStage({
   headingLevel = "p",
   plate,
   art = DEFAULT_STAGE_ART,
+  tint: tintOverride,
 }: {
   game: string;
   hero: HeroEntry;
@@ -117,13 +127,15 @@ export function HeroStage({
    */
   plate?: { readonly kicker: string; readonly title: string };
   art?: StageArt;
+  /** il colore del filo sotto la fascia, se non e' quello dell'attributo (il profilo: il suo accento) */
+  tint?: string;
 }) {
   const name = plate?.title ?? heroName(hero, locale);
   const epithet = plate?.kicker ?? heroEpithet(hero, locale);
-  const tint = affinity?.color ?? "var(--color-brand)";
+  const tint = tintOverride ?? affinity?.color ?? "var(--color-brand)";
   const Heading = headingLevel;
   const splash = heroSplashSrc(game, hero.id);
-  const [faceX] = art.face;
+  const [faceX, faceY, top] = art.figure;
   // la parola piu' lunga decide quanto puo' essere grande il nome (.stage-name)
   const nameChars = Math.max(...name.split(/\s+/).map((word) => [...word].length));
 
@@ -139,6 +151,9 @@ export function HeroStage({
           "--stage-tint": tint,
           // il primo piano dalla parte opposta al volto della figura
           "--echo-side": faceX >= 50 ? -1 : 1,
+          // la figura si mette col volto a un'altezza fissa del palco (.stage-figure)
+          "--face-y": faceY / 100,
+          "--crown": top / 100,
           "--name-chars": nameChars,
         } as React.CSSProperties
       }

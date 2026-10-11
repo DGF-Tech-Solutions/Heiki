@@ -1,35 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { databaseReachable, db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
 import { ProfileWorkspace } from "@/components/profile-workspace";
-import type { ProfileViewData } from "@/components/profile-view";
-import { DemoNotice, SetupHint } from "@/components/demo-notice";
-import { display } from "@/components/ui";
-import { normalizeCustomization } from "@/lib/profile/customization";
 import { saveProfileAction } from "@/lib/profile/actions";
-import { listGameModules } from "@/lib/games/registry";
-import { testi, type Locale } from "@/lib/i18n/locale";
-import { SERVER_NAMES, isServer } from "@/lib/games/game-account";
+import { hasActivePremium, loadProfile, pickableGames } from "@/lib/profile/load";
+import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
     titoloPagina: "Personalizza il profilo",
-    titolo: "Personalizza il profilo",
     intro:
-      "Cambi a sinistra, vedi il risultato a destra. Diventa pubblico solo quando salvi. La tua pagina è",
-    gioco: "Gioco",
+      "Cambi nei controlli, vedi il risultato nell'anteprima: è la pagina vera. Diventa pubblico solo quando salvi. La tua pagina è",
   },
   en: {
     titoloPagina: "Customize your profile",
-    titolo: "Customize your profile",
     intro:
-      "Make changes on the left, see the result on the right. It only goes public when you save. Your page is",
-    gioco: "Game",
+      "Make changes in the controls, see the result in the preview: it's the real page. It only goes public when you save. Your page is",
   },
 });
 
@@ -41,132 +29,49 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/**
+ * L'editor del profilo nelle impostazioni.
+ *
+ * Il guscio (layout.tsx) ha gia' il `<main>`, il titolo «Il tuo account» e il
+ * controllo del database e della sessione: fino all'11/10 questa pagina li
+ * ripeteva, con un secondo `<main>` dentro il primo e due titoli uno sotto
+ * l'altro. Qui resta solo una riga che dice cosa si fa e dov'e' la pagina.
+ */
 export default async function ProfileSettingsPage() {
-  if (!(await databaseReachable())) {
-    return (
-      <main className="mx-auto w-full max-w-[1200px] px-6 py-10">
-        <DemoNotice />
-        <SetupHint />
-      </main>
-    );
-  }
-
   const session = await auth();
   if (!session?.user?.id) redirect("/entra");
 
   const locale = await getLocale();
   const t = TESTI[locale];
 
-  const data = await loadOwnProfile(session.user.id, t.gioco, locale);
-  if (data === null) redirect("/entra");
-
-  const premiumActive =
-    session.user.id !== undefined && (await hasActivePremium(session.user.id));
+  const loaded = await loadProfile({ by: "id", value: session.user.id }, locale);
+  if (loaded === null) redirect("/entra");
+  const { ownerId, data } = loaded;
 
   return (
-    <main className="mx-auto w-full max-w-[1200px] px-6 pt-8">
-      <header style={{ marginBottom: 8 }}>
-        <h1 className={`${display} text-[clamp(30px,4vw,40px)]`}>{t.titolo}</h1>
-        <p className="mt-3 max-w-[48ch] text-[15px] text-ink-2">
-          {t.intro}{" "}
-          <Link href={`/u/${data.username}`} className="font-mono font-semibold text-ink underline decoration-brand decoration-2 underline-offset-2 hover:text-brand-deep">
-            /u/{data.username}
-          </Link>
-          .
-        </p>
-      </header>
+    // data-impostazioni-larghe: il guscio si allarga per affiancare controlli e anteprima
+    <div data-impostazioni-larghe="">
+      <p className="m-0 mb-2 max-w-[60ch] text-[15px] text-ink-2">
+        {t.intro}{" "}
+        <Link
+          href={`/u/${data.username}`}
+          className="font-mono font-semibold text-ink underline decoration-brand decoration-2 underline-offset-2 hover:text-brand-deep"
+        >
+          /u/{data.username}
+        </Link>
+        .
+      </p>
 
       <ProfileWorkspace
         initial={data}
         canEdit
         startEditing
-        canUsePremium={premiumActive}
+        canUsePremium={await hasActivePremium(ownerId)}
         demoMode={false}
+        heroes={pickableGames()}
+        headingLevel="h2"
         saveAction={saveProfileAction}
       />
-    </main>
+    </div>
   );
-}
-
-async function hasActivePremium(userId: string): Promise<boolean> {
-  const row = await db.query.subscriptions.findFirst({
-    where: (subscription, { eq: matches }) => matches(subscription.userId, userId),
-    columns: { status: true },
-  });
-  return row?.status === "ACTIVE" || row?.status === "TRIALING";
-}
-
-/** `unknownGame` e' il nome da mostrare per un gioco non piu' registrato, nella lingua di chi legge. */
-async function loadOwnProfile(userId: string, unknownGame: string, locale: Locale): Promise<ProfileViewData | null> {
-  try {
-    const row = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: { id: true, username: true, role: true },
-      with: {
-        profile: true,
-        badges: { with: { badge: true } },
-        showcase: true,
-        gameAccounts: { with: { game: { columns: { slug: true } } } },
-        builds: true,
-      },
-    });
-
-    if (!row) return null;
-
-    const gameNames = new Map(listGameModules().map((gameModule) => [gameModule.id, gameModule.name]));
-    const gameNamesBySlug = new Map(listGameModules().map((gameModule) => [gameModule.slug, gameModule.name]));
-    const showcased = new Set(row.showcase.map((slot) => slot.badgeId));
-    const order = new Map(row.showcase.map((slot) => [slot.badgeId, slot.position]));
-    const hasShowcase = row.showcase.length > 0;
-
-    return {
-      username: row.username,
-      displayName: row.profile?.displayName ?? row.username,
-      role: row.role,
-      bio: row.profile?.bio ?? "",
-      country: row.profile?.country ?? "",
-      xp: row.profile?.xp ?? 0,
-      favorites: row.profile?.favorites ?? [],
-      customization: normalizeCustomization(row.profile?.cosmetics),
-      badges: [...row.badges]
-        .sort(
-          (a, b) =>
-            (order.get(a.badgeId) ?? Number.MAX_SAFE_INTEGER) -
-            (order.get(b.badgeId) ?? Number.MAX_SAFE_INTEGER),
-        )
-        .map((entry) => ({
-        id: entry.id,
-        name: entry.badge.name,
-        description: entry.badge.description,
-        trust: entry.trust,
-        // Senza vetrina configurata si mostrano tutti: un profilo nuovo non deve
-        // apparire vuoto solo perche' l'utente non e' ancora passato di qui.
-        shown: hasShowcase ? showcased.has(entry.badgeId) : true,
-        })),
-      gameAccounts: row.gameAccounts.map((account) => ({
-        id: account.id,
-        // il gioco si riconosce dallo slug: `gameId` e' l'id del database, non quello del modulo
-        game: gameNamesBySlug.get(account.game.slug) ?? unknownGame,
-        uid: account.uid,
-        nickname: account.nickname,
-        trust: account.trust,
-        server: isServer(account.region) ? SERVER_NAMES[account.region][locale] : null,
-        power: account.accountPower,
-        verifiedPower: account.verifiedPower,
-        verifiedAt: account.verifiedAt?.toISOString() ?? null,
-        shown: true,
-      })),
-      builds: row.builds.map((build) => ({
-        id: build.id,
-        name: build.name,
-        game: gameNames.get(build.gameId) ?? unknownGame,
-        character: build.characterId,
-        median: 0,
-        patch: "—",
-        isPublic: build.isPublic,
-      })),
-    };
-  } catch {
-    return null;
-  }
 }

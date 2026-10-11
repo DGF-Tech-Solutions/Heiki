@@ -22,7 +22,9 @@ import {
   isServer,
 } from "@/lib/games/game-account";
 import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
-import { useGameProfile, writeStamp } from "./local-account";
+import { readStamp, useGameProfile, writeStamp } from "./local-account";
+import { hasStoredBox, readBox } from "./use-hero-box";
+import { boxToJson } from "@/lib/games/hero-box";
 import { shrinkScreenshot } from "./shrink-screenshot";
 
 const TESTI = testi({
@@ -49,6 +51,8 @@ const TESTI = testi({
     rifiutata: (quando: string) => `L'ultima richiesta, del ${quando}, non è stata accettata.`,
     motivo: "Motivo:",
     chiedi: "Chiedi l'eroe del giorno",
+    prossimaVerifica: (quando: string) =>
+      `Una nuova verifica si può chiedere dal ${quando}: fra una approvata e la successiva passa una settimana.`,
     serveClasse: "Scrivi prima la classe del tuo account, qui sopra.",
     eroeDelGiorno: "Il tuo eroe di oggi",
     valeFino: (giorno: string, ora: string) =>
@@ -100,6 +104,8 @@ const TESTI = testi({
     rifiutata: (quando: string) => `Your last request, from ${quando}, was not accepted.`,
     motivo: "Reason:",
     chiedi: "Get the hero of the day",
+    prossimaVerifica: (when: string) =>
+      `A new verification can be requested from ${when}: a week passes between an approved one and the next.`,
     serveClasse: "Enter your account's class first, above.",
     eroeDelGiorno: "Your hero of today",
     valeFino: (giorno: string, ora: string) =>
@@ -263,9 +269,12 @@ function Verification({
   const run = (action: () => Promise<{ ok: boolean; error?: string; summary?: VerificationSummary; updatedAt?: number }>) =>
     startTransition(async () => {
       setError(null);
+      const sentStamp = readStamp(gameSlug);
       const result = await action();
       if (result.summary) setSummary(result.summary);
-      if (result.updatedAt) writeStamp(gameSlug, result.updatedAt);
+      // come la sincronizzazione: se nel frattempo e' cambiato altro, il timbro
+      // nuovo resta e quella modifica partira' ancora
+      if (result.updatedAt && readStamp(gameSlug) === sentStamp) writeStamp(gameSlug, result.updatedAt);
       if (!result.ok) setError(result.error ?? null);
     });
 
@@ -278,13 +287,26 @@ function Verification({
           <div>
             <Button
               variant="primary"
-              disabled={pending || power <= 0}
-              onClick={() => run(() => requestChallengeAction(gameSlug, { profile, setup }))}
+              disabled={pending || power <= 0 || summary.nextRequestAt !== null}
+              onClick={() =>
+                run(() =>
+                  requestChallengeAction(gameSlug, {
+                    profile,
+                    setup,
+                    // anche il box: il timbro che torna dice che il database ha tutto
+                    box: hasStoredBox(gameSlug) ? boxToJson(readBox(gameSlug)) : undefined,
+                  }),
+                )
+              }
             >
               {t.chiedi}
             </Button>
           </div>
-          {power <= 0 ? <p className="m-0 text-xs text-ink-3">{t.serveClasse}</p> : null}
+          {summary.nextRequestAt ? (
+            <p className="m-0 text-xs text-ink-3">{t.prossimaVerifica(data(summary.nextRequestAt, locale))}</p>
+          ) : power <= 0 ? (
+            <p className="m-0 text-xs text-ink-3">{t.serveClasse}</p>
+          ) : null}
         </div>
       ) : current.status === "OPEN" ? (
         <Challenge

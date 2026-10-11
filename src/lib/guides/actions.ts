@@ -48,6 +48,8 @@ const TESTI = testi({
     nonEsiste: "Questa guida non esiste più.",
     soloTue: "Puoi modificare solo le tue guide.",
     modificheSalvate: "Modifiche salvate. La versione precedente è nella cronologia.",
+    tornaInRevisione:
+      "Modifiche salvate. La guida era pubblicata: torna in revisione, e la patch verificata va dichiarata di nuovo.",
     entraPerFarlo: "Entra per farlo.",
     statoNonValido: "Stato non valido.",
     senzaPermessi: "Non hai i permessi per questo passaggio.",
@@ -69,6 +71,8 @@ const TESTI = testi({
     nonEsiste: "This guide no longer exists.",
     soloTue: "You can only edit your own guides.",
     modificheSalvate: "Changes saved. The previous version is in the history.",
+    tornaInRevisione:
+      "Changes saved. The guide was published: it goes back to review, and the verified patch must be declared again.",
     entraPerFarlo: "Log in to do this.",
     statoNonValido: "Invalid status.",
     senzaPermessi: "You don't have permission for this step.",
@@ -195,7 +199,8 @@ export async function updateGuideAction(
   _previous: GuideActionState,
   formData: FormData,
 ): Promise<GuideActionState> {
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const current = await writer();
   if (!current) return { error: t.entraPerModificare };
@@ -220,9 +225,19 @@ export async function updateGuideAction(
   // in su. Il controllo sta qui e non nell'interfaccia: il modulo nel browser
   // si puo' ricostruire a mano.
   const own = authorId === current.writer.id;
-  if (!own && !can(current.role, "publishGuide")) {
+  const editor = can(current.role, "publishGuide");
+  if (!own && !editor) {
     return { error: t.soloTue };
   }
+
+  if (await databaseReachable()) {
+    const suspension = await suspensionFor(current.writer.id);
+    if (suspension.active) return { error: suspensionMessage(suspension, locale) };
+  }
+
+  // la guida dell'indirizzo deve essere quella dell'id: il modulo si ricostruisce a mano
+  const before = await store.get(parsed.data.game, parsed.data.slug);
+  if (!before || before.id !== parsed.data.id) return { error: t.nonEsiste };
 
   await store.update(
     parsed.data.id,
@@ -231,9 +246,18 @@ export async function updateGuideAction(
     parsed.data.note,
   );
 
+  // Una guida pubblicata con la patch verificata non cambia senza che un
+  // redattore la riveda: fino all'11/10 l'autore poteva riscriverla da capo e
+  // restava pubblica, col contrassegno «verificata» (la regola in testa al file)
+  const backToReview = !editor && before.status === "PUBLISHED";
+  if (backToReview) {
+    await store.setStatus(parsed.data.id, "IN_REVIEW");
+    await store.setVerifiedPatch(parsed.data.id, null, current.writer);
+  }
+
   revalidatePath(`/${parsed.data.game}/guide/${parsed.data.slug}`);
   revalidatePath(`/${parsed.data.game}/guide`);
-  return { success: t.modificheSalvate };
+  return { success: backToReview ? t.tornaInRevisione : t.modificheSalvate };
 }
 
 const statusSchema = z.object({

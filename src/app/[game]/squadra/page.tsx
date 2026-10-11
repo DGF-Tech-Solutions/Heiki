@@ -10,7 +10,7 @@ import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { searchText } from "@/lib/games/hero-terms";
 import { isCollab } from "@/lib/games/randomizer";
 import { requireGameModule } from "@/lib/games/registry";
-import { parseSetup, teamHeroesOf } from "@/lib/games/team";
+import { teamHeroesOf } from "@/lib/games/team";
 import type { TeamIndex } from "@/lib/games/team-types";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -30,8 +30,9 @@ import { getLocale } from "@/lib/i18n/server";
  * prepara quello che gli serve, nella lingua della pagina: il roster con razza,
  * caratteristiche, attributo e Unita', l'indice della squadra (team.generated.ts)
  * con le frasi solo nella lingua della pagina, i legami, i nomi dei codici. La
- * squadra di partenza la dice l'indirizzo, cosi' il primo disegno del server e
- * quello del browser coincidono.
+ * squadra di partenza no: la legge team-builder.tsx dall'indirizzo vivo (anche
+ * nel disegno del server, che cosi' coincide con quello del browser). Letta
+ * qui, tornando con Indietro arrivava quella del primo arrivo (11/10).
  */
 
 const TESTI = testi({
@@ -77,7 +78,6 @@ const TESTI = testi({
 
 interface Props {
   params: Promise<{ game: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function TeamPage({ params, searchParams }: Props) {
+export default async function TeamPage({ params }: Props) {
   const { game } = await params;
   const entry = findGame(game);
   if (!entry) notFound();
@@ -160,13 +160,6 @@ export default async function TeamPage({ params, searchParams }: Props) {
     conditionIcons: Object.values(heroContext.passiveConditions).every((c) => hasIcon(icons, "condizione", c.icon)),
   };
 
-  const query = await searchParams;
-  const first = (key: string) => {
-    const value = query[key];
-    return Array.isArray(value) ? value[0] : value;
-  };
-  const initial = parseSetup(first, (id) => base.has(id));
-
   return (
     <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
@@ -176,7 +169,7 @@ export default async function TeamPage({ params, searchParams }: Props) {
         <p>{t.introduzione}</p>
       </PageHeader>
 
-      <TeamBuilder data={data} initial={initial} />
+      <TeamBuilder data={data} />
 
       <HowItWorks summary={t.comeFunziona} className="mt-12 max-w-[1100px]">
         <p>{t.lettura}</p>

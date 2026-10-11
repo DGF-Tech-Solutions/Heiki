@@ -52,6 +52,12 @@ export interface RateLimitResult {
 export const RULES = {
   /** L'accesso e' il bersaglio piu' ovvio: pochi tentativi, finestra lunga. */
   login: { limit: 8, windowSeconds: 300 },
+  /**
+   * Lo stesso controllo dentro Auth.js, per chi chiama direttamente
+   * /api/auth/callback/credentials. Un po' piu' largo di `login`: chi passa
+   * dal modulo incontra prima quello, col messaggio che dice quanto aspettare.
+   */
+  credentials: { limit: 10, windowSeconds: 300 },
   /** La registrazione crea righe: si limita per non farne creare a macchina. */
   register: { limit: 5, windowSeconds: 3600 },
   /** Il recupero manda email: un limite basso protegge il destinatario. */
@@ -60,6 +66,10 @@ export const RULES = {
   post: { limit: 10, windowSeconds: 3600 },
   comment: { limit: 30, windowSeconds: 3600 },
   report: { limit: 20, windowSeconds: 3600 },
+  /** Un voto e' un clic: il tetto e' alto, ferma solo chi vota a macchina. */
+  vote: { limit: 120, windowSeconds: 600 },
+  /** Seguire e smettere manda una notifica a ogni giro: senza tetto e' un modo di molestare. */
+  follow: { limit: 30, windowSeconds: 600 },
   /**
    * L'account di gioco si salva da solo mentre si muovono gli slider (dopo un
    * attimo di pausa): il tetto ferma un ciclo impazzito, non una persona.

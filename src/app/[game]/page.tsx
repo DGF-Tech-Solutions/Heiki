@@ -222,7 +222,6 @@ export default async function GameHubPage({ params }: Props) {
               locale={locale}
               affinity={affinity}
               badges={affinity ? [{ label: affinityLabel(affinity.id, locale) }, { label: `${latest.obtainedAs} → ${latest.rarity}` }] : undefined}
-              priority
               art={stageArtOf(gameModule?.heroAssets?.[latest.id])}
               className="p5-corner h-[min(640px,calc(100dvh-140px))] min-h-[480px]"
             >

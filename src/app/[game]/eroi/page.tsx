@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { DEFAULT_STAGE_ART, stageArtOf, type StageArt } from "@/components/heroes/hero-stage";
-import { EMPTY_QUERY, RosterBrowser, type RosterQuery } from "@/components/heroes/roster-browser";
+import { RosterBrowser } from "@/components/heroes/roster-browser";
 import { PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
@@ -51,22 +51,13 @@ const TESTI = testi({
   },
 });
 
+/**
+ * I filtri della griglia (`?rarita=UR`, `?razza=3`...) non passano di qui: li
+ * legge e li scrive roster-browser.tsx dall'indirizzo vivo. Letti qui, tornando
+ * con Indietro arrivavano quelli del primo arrivo (11/10).
+ */
 interface Props {
   params: Promise<{ game: string }>;
-  /**
-   * I filtri della griglia (roster-browser.tsx li scrive mentre si cliccano):
-   * `?razza=3`, `?caratteristica=6` ci portano anche le tendine delle parole blu
-   */
-  searchParams: Promise<{
-    cerca?: string;
-    razza?: string;
-    caratteristica?: string;
-    rarita?: string;
-    attributo?: string;
-    esce?: string;
-    ordine?: string;
-    miei?: string;
-  }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -79,9 +70,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function HeroesPage({ params, searchParams }: Props) {
+export default async function HeroesPage({ params }: Props) {
   const { game } = await params;
-  const query = await searchParams;
 
   const entry = findGame(game);
   if (!entry) notFound();
@@ -136,36 +126,18 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         }),
       }
     : undefined;
-  // un codice nell'indirizzo vale solo se e' fra quelli offerti
-  const chosen = (value: string | undefined, offered: readonly { code: number }[] | undefined) =>
-    offered?.find((item) => String(item.code) === value)?.code ?? null;
 
-  // un valore dell'indirizzo vale solo se e' fra quelli che la griglia offre
-  const one = (value: string | undefined, offered: readonly string[]) =>
-    value !== undefined && offered.includes(value) ? value : null;
-  const initial: RosterQuery = {
-    ...EMPTY_QUERY,
-    search: (query.cerca ?? "").slice(0, 80),
-    rarity: one(query.rarita, roster.rarities),
-    affinity: one(query.attributo, roster.affinities.map((a) => a.id)),
-    obtainable: one(query.esce, roster.obtainable),
-    race: chosen(query.razza, traits?.races),
-    faction: chosen(query.caratteristica, traits?.factions),
-    order: query.ordine === "name" || query.ordine === "group" ? query.ordine : "roster",
-    mine: query.miei === "1",
-  };
-
-  // Per il palco: dove sta il volto di ogni eroe, e solo per le eccezioni (poche)
+  // Per il palco: volto e cima della sagoma di ogni eroe, e solo per le eccezioni (poche)
   // il tipo d'illustrazione e la mancanza del cut-in. Al browser arriva questo,
   // non l'elenco degli asset di tutti gli eroi
   const stageKinds: Record<string, StageArt["art"]> = {};
-  const stageFaces: Record<string, StageArt["face"]> = {};
+  const stageFigures: Record<string, StageArt["figure"]> = {};
   const withoutCutIn: string[] = [];
   for (const hero of roster.heroes) {
     const stage = stageArtOf(heroAssets?.[hero.id]);
     if (stage.art !== DEFAULT_STAGE_ART.art) stageKinds[hero.id] = stage.art;
     if (!stage.cutIn) withoutCutIn.push(hero.id);
-    stageFaces[hero.id] = stage.face;
+    stageFigures[hero.id] = stage.figure;
   }
 
   const rarest = roster.rarities[0];
@@ -208,9 +180,8 @@ export default async function HeroesPage({ params, searchParams }: Props) {
         roster={localized}
         icons={icons}
         traits={traits}
-        initial={initial}
         art={stageKinds}
-        faces={stageFaces}
+        figures={stageFigures}
         withoutCutIn={withoutCutIn}
       />
 

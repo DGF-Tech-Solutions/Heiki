@@ -12,6 +12,7 @@ import {
   HeroGrid,
   PartTitle,
   InPageNav,
+  langOf,
   LevelCell,
   PassiveList,
   Said,
@@ -109,6 +110,7 @@ const TESTI = testi({
       "Gli attributi che il client segna contro questo gruppo: il primo è forte contro di lui, il secondo debole. Il verso viene dal triangolo degli attributi, che il gioco calcola nel codice del combattimento.",
     abilitaEfficaci: "Abilità efficaci",
     passiveSquadra: "Passive del gruppo",
+    descrittaIn: (dove: string) => `descritta in ${dove}`,
     nemici: (n: number) => (n === 1 ? "1 nemico" : `${n} nemici`),
     editti: "Gli Editti divini",
     edittiSpiega: "Un Editto per Giudizio, a caso fra quelli del livello di magia raggiunto.",
@@ -170,6 +172,7 @@ const TESTI = testi({
       "The attributes the client marks against this group: the first is strong against it, the second weak. The direction comes from the attribute triangle, which the game computes in its combat code.",
     abilitaEfficaci: "Effective skills",
     passiveSquadra: "Group passives",
+    descrittaIn: (where: string) => `described in ${where}`,
     nemici: (n: number) => (n === 1 ? "1 enemy" : `${n} enemies`),
     editti: "The Divine Edicts",
     edittiSpiega: "One Edict per Judgment, at random among those of the magic level reached.",
@@ -398,6 +401,7 @@ function LevelsTable({
 
 function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; data: SupremeDeityIndex; scope: EndgameScope; t: T }) {
   const boxes = level.clear.filter((amount) => data.boxes[amount.id]);
+  const { judgments, final, hidden, first } = placeGroups(level, scope, t);
   return (
     <div className="grid gap-12">
       <div className="grid gap-4 lg:grid-cols-2">
@@ -425,10 +429,12 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
       <div>
         <PartTitle id="giudizi">{t.giudizi}</PartTitle>
         <div className="grid gap-4">
-          {level.judgments.map((judgment, index) => (
+          {judgments.map(({ judgment, place }) => (
             <GroupBlock
-              key={index}
+              key={place.key}
               group={judgment.group}
+              place={place}
+              first={first}
               scope={scope}
               t={t}
               heading={
@@ -445,12 +451,12 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
         <PartTitle id="giudizio-finale">{t.finale}</PartTitle>
         <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-3">{t.finaleSpiega}</p>
         <div className="grid gap-4">
-          {level.final.map((step) => (
+          {final.map(({ step, groups }) => (
             <div key={step.upTo} className="border border-rule p-3 sm:p-4">
               <p className={cx(eyebrow, "m-0 mb-2")}>{t.finoA(step.upTo)}</p>
               <div className="grid gap-3 xl:grid-cols-2">
-                {step.groups.map((group, index) => (
-                  <GroupBlock key={index} group={group} scope={scope} t={t} compact />
+                {groups.map(({ group, place }) => (
+                  <GroupBlock key={place.key} group={group} place={place} first={first} scope={scope} t={t} compact />
                 ))}
               </div>
             </div>
@@ -463,8 +469,8 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
           <PartTitle id="giudizio-nascosto">{t.nascostoTitolo}</PartTitle>
           <p className="m-0 mb-3 max-w-[48ch] text-[13px] text-ink-3">{t.nascostoSpiega(level.hidden.opensBelow)}</p>
           <div className="grid gap-4 xl:grid-cols-2">
-            {level.hidden.groups.map((group, index) => (
-              <GroupBlock key={index} group={group} scope={scope} t={t} />
+            {hidden.map(({ group, place }) => (
+              <GroupBlock key={place.key} group={group} place={place} first={first} scope={scope} t={t} />
             ))}
           </div>
         </div>
@@ -520,20 +526,104 @@ function LevelPanel({ level, data, scope, t }: { level: SupremeDeityDifficulty; 
 }
 
 /**
+ * Dove sta un gruppo nella pagina: la chiave che lo distingue (`g0` i Giudizi,
+ * `f20-1` il finale, soglia e posizione, `h2` il nascosto) e il nome della
+ * parte per i rimandi («Primo Giudizio», «Magia fino al 20%»).
+ */
+interface Place {
+  readonly key: string;
+  readonly where: string;
+}
+
+/** La carta intera di un mostro: il gruppo, la posizione fra i nemici contati, e di quale mostro e' (l'ancora). */
+interface FoeHome extends Place {
+  readonly index: number;
+  readonly monster: string;
+}
+
+/** Dove la pagina descrive per intero ogni mostro (per id) e ogni passiva di gruppo. */
+interface FirstSeen {
+  readonly foes: ReadonlyMap<string, FoeHome>;
+  readonly passives: ReadonlyMap<string, Place>;
+}
+
+const foeAnchor = (monster: string) => `nemico-${monster}`;
+const passiveAnchor = (id: string) => `passiva-gruppo-${id}`;
+
+/**
+ * I gruppi della difficolta' col loro posto, e la prima volta di ogni mostro e
+ * di ogni passiva di gruppo. Le stesse truppe tornano in quasi tutti i gruppi
+ * (a Inferno un mostro fino a otto volte, una passiva di gruppo dodici): il
+ * Giudizio finale erano 445 KB di HTML da 12 KB di dati. Ora la pagina li
+ * descrive per intero la prima volta e poi rimanda li' con un'ancora (11/10).
+ * Calcolato prima del render, nell'ordine della pagina (i Giudizi, il finale,
+ * il nascosto), e non contando mentre si rende: l'ordine in cui React visita i
+ * componenti non e' un contratto.
+ *
+ * Due mostri sono lo stesso se ne hanno lo stesso nome e le stesse carte e
+ * passive, anche con id diversi: i quattro «Guerriero della Dea» del finale
+ * (6000007, 6000013, 6000024, 6000025) cambiano solo le statistiche.
+ */
+function placeGroups(level: SupremeDeityDifficulty, scope: EndgameScope, t: T) {
+  const homes = new Map<string, FoeHome>(); // per contenuto
+  const foes = new Map<string, FoeHome>(); // per id
+  const passives = new Map<string, Place>();
+  const contentOf = (id: string) => {
+    const monster = scope.dict.monsters[id];
+    if (!monster) return id;
+    return JSON.stringify([monster.name, monster.skills, monster.passives, monster.hiddenPassives, monster.draw, monster.tips ?? null]);
+  };
+  const visit = (group: DeityGroup, key: string, where: string): Place => {
+    const place = { key, where };
+    countFoes(group.foes).forEach(({ foe }, index) => {
+      if (foes.has(foe.monster)) return;
+      const content = contentOf(foe.monster);
+      const home = homes.get(content) ?? { ...place, index, monster: foe.monster };
+      homes.set(content, home);
+      foes.set(foe.monster, home);
+    });
+    for (const id of group.teamPassives) if (!passives.has(id)) passives.set(id, place);
+    return place;
+  };
+  const judgments = level.judgments.map((judgment, index) => ({
+    judgment,
+    place: visit(judgment.group, `g${index}`, sayPlain(judgment.name, scope)),
+  }));
+  const final = level.final.map((step) => ({
+    step,
+    groups: step.groups.map((group, index) => ({ group, place: visit(group, `f${step.upTo}-${index}`, t.finoA(step.upTo)) })),
+  }));
+  const hidden = (level.hidden?.groups ?? []).map((group, index) => ({
+    group,
+    place: visit(group, `h${index}`, sayPlain(group.name, scope) || t.nascostoTitolo),
+  }));
+  const first: FirstSeen = { foes, passives };
+  return { judgments, final, hidden, first };
+}
+
+/**
  * Un gruppo di nemici: nome, cosa lo rende diverso, e i nemici contati.
  *
  * `compact` per i gruppi del Giudizio finale, due per riga: lo stesso contenuto,
  * con i nemici chiusi in un `<details>`, perche' le righe sono cinque e i gruppi
  * dieci.
+ *
+ * Un mostro gia' descritto in un gruppo precedente (o piu' su nello stesso,
+ * o uguale a uno gia' descritto) ha la carta corta: livello, statistiche e passive della fase, che cambiano, e un
+ * rimando alla carta intera per abilita' e passive, che non cambiano.
  */
 function GroupBlock({
   group,
+  place,
+  first,
   scope,
   t,
   heading,
   compact,
 }: {
   group: DeityGroup;
+  place: Place;
+  first: FirstSeen;
   scope: EndgameScope;
   t: T;
   heading?: React.ReactNode;
@@ -543,9 +633,25 @@ function GroupBlock({
   const foes = countFoes(group.foes);
   const foeCards = (
     <div className={cx("grid gap-3", compact ? "" : "lg:grid-cols-2")}>
-      {foes.map(({ foe, count }, index) => (
-        <FoeCard key={index} foe={foe} scope={scope} heading={count > 1 ? `×${count}` : undefined} fallbackName={name} />
-      ))}
+      {foes.map(({ foe, count }, index) => {
+        const home = first.foes.get(foe.monster);
+        const own = !home || (home.key === place.key && home.index === index);
+        return (
+          <FoeCard
+            key={index}
+            foe={foe}
+            scope={scope}
+            heading={count > 1 ? `×${count}` : undefined}
+            fallbackName={name}
+            id={own ? foeAnchor(foe.monster) : undefined}
+            described={
+              home && !own
+                ? { href: `#${foeAnchor(home.monster)}`, where: home.key === place.key ? undefined : home.where }
+                : undefined
+            }
+          />
+        );
+      })}
     </div>
   );
   return (
@@ -597,7 +703,7 @@ function GroupBlock({
             {t.passiveSquadra} ({group.teamPassives.length})
           </Summary>
           <div className="mt-2">
-            <PassiveList ids={group.teamPassives} scope={scope} />
+            <TeamPassives ids={group.teamPassives} place={place} first={first} scope={scope} t={t} />
           </div>
         </details>
       ) : null}
@@ -611,5 +717,56 @@ function GroupBlock({
         <div className="mt-3">{foeCards}</div>
       )}
     </div>
+  );
+}
+
+/**
+ * Le passive di un gruppo, nell'ordine e nel numero del client: intere la
+ * prima volta che compaiono nella pagina, con l'ancora; dopo, il nome che porta
+ * li' e la parte in cui sono. La forma delle righe e' quella di PassiveList.
+ */
+function TeamPassives({
+  ids,
+  place,
+  first,
+  scope,
+  t,
+}: {
+  ids: readonly string[];
+  place: Place;
+  first: FirstSeen;
+  scope: EndgameScope;
+  t: T;
+}) {
+  return (
+    <ul className="m-0 grid list-none gap-2 p-0 text-[13px] leading-snug">
+      {ids.map((id) => {
+        const passive = scope.dict.passives[id];
+        if (!passive) return null;
+        const home = first.passives.get(id);
+        if (home && home.key !== place.key) {
+          return (
+            <li key={id} className="min-w-0">
+              <a
+                href={`#${passiveAnchor(id)}`}
+                lang={langOf(passive.name, scope)}
+                className="font-semibold text-brand-deep underline-offset-2 hover:underline"
+              >
+                {sayPlain(passive.name, scope)}
+              </a>
+              <span className="text-ink-3"> · {t.descrittaIn(home.where)}</span>
+            </li>
+          );
+        }
+        return (
+          <li key={id} id={passiveAnchor(id)} className="min-w-0 scroll-mt-20 target:bg-brand-soft/40">
+            <p className="m-0 font-semibold" lang={langOf(passive.name, scope)}>
+              {sayPlain(passive.name, scope)}
+            </p>
+            <Said value={passive.text} scope={scope} className="text-ink-2 [&>p]:m-0" />
+          </li>
+        );
+      })}
+    </ul>
   );
 }

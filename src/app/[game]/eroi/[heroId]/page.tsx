@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
@@ -10,7 +11,7 @@ import { boxTitle, GameIcon, hasIcon, localized } from "@/components/heroes/hero
 import { Relics } from "@/components/heroes/hero-relics";
 import { HeroTermPopovers, termResolver } from "@/components/heroes/hero-terms";
 import { HeroTabs, type HeroTab } from "@/components/heroes/hero-tabs";
-import { StatCalculator } from "@/components/heroes/calculator/stat-calculator";
+import { StatCalculatorLazy } from "@/components/heroes/calculator/stat-calculator-lazy";
 import { STAT_ROWS, formatStat } from "@/components/heroes/calculator/stat-rows";
 import { HeroAssociations } from "@/components/heroes/hero-associations";
 import { HeroCostumes } from "@/components/heroes/hero-costumes";
@@ -675,14 +676,15 @@ function HeroInfo({
           non la guarda qualcuno che conosce il personaggio.
         */}
         {splash ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          // dal servizio delle immagini, alla misura del riquadro: il PNG da 1024
+          // pesava 180 KB per un posto largo 340 px (11/10)
+          <Image
             src={heroSplashSrc(game, hero.id)}
             alt={t.altIllustrazione(name)}
             width={1024}
             height={1024}
-            loading="lazy"
-            className="w-full max-w-[340px] rounded-card border border-rule bg-paper-2"
+            sizes="340px"
+            className="h-auto w-full max-w-[340px] rounded-card border border-rule bg-paper-2"
           />
         ) : null}
 
@@ -1102,7 +1104,7 @@ function Stats({
       {/* il titolo del calcolatore, come quelli dei riquadri delle altre schede */}
       <h3 className={cx(boxTitle, "mb-3")}>{t.statisticheTitolo}</h3>
       {calculator ? (
-        <StatCalculator
+        <StatCalculatorLazy
           game={game}
           data={calculator}
           starSrc={star}
