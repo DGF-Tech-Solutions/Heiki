@@ -183,7 +183,12 @@ export default async function AdminPage({ searchParams }: Props) {
                       {formatDate(person.createdAt, locale)}
                     </td>
                     <td className="py-2.5">
-                      <RoleForm user={person} self={person.id === session.user.id} />
+                      {/* al componente del browser solo cio' che gli serve: l'email
+                          finirebbe nei dati serializzati della pagina */}
+                      <RoleForm
+                        user={{ id: person.id, username: person.username, role: person.role }}
+                        self={person.id === session.user.id}
+                      />
                     </td>
                   </tr>
                 ))}

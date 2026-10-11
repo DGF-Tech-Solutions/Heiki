@@ -7,7 +7,7 @@ import { can } from "@/lib/auth/permissions";
 import { currentViewer } from "@/lib/community/actions";
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
-import { getGuideStore } from "@/lib/guides/store";
+import { canViewGuide, getGuideStore, isGuideDemo } from "@/lib/guides/store";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -60,10 +60,17 @@ export default async function EditGuidePage({ params }: Props) {
   const guide = await store.get(game, slug);
   if (!guide) notFound();
 
+  // Ruolo di redattore solo nella modalita' dimostrativa vera: con un database
+  // configurato ma fermo chi guarda resta un visitatore (vedi isGuideDemo).
+  const demo = isGuideDemo(store);
   const viewer = await currentViewer();
-  const role = store.volatile ? "EDITOR" : viewer?.role;
+  const role = demo ? "EDITOR" : viewer?.role;
   const canReview = can(role, "publishGuide");
-  const own = store.volatile || (viewer !== null && viewer.username === guide.author.username);
+  const own = demo || (viewer !== null && viewer.username === guide.author.username);
+
+  // Le briciole portano il titolo: per una bozza altrui la pagina non esiste,
+  // come la guida stessa, invece di dire «non puoi modificarla» col titolo sopra.
+  if (!canViewGuide(guide.status, { own, editor: canReview })) notFound();
 
   return (
     <main className="pt-6 pb-24">

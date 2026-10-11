@@ -34,8 +34,32 @@ export type Block =
 
 /* -------------------------------------------------------------- inline -- */
 
+/**
+ * Il collegamento ha i quantificatori limitati e non ammette "[" ne' nel testo
+ * ne' nell'indirizzo.
+ *
+ * Fino all'11/10 era `\[[^\]\n]+\]\([^)\s]+\)`: da ogni "[" il motore scorreva
+ * fino in fondo alla riga cercando la chiusura, e una riga di sole "[" costava
+ * un numero di passi pari al quadrato della lunghezza. 60.000 "[" tenevano il
+ * server fermo 4 secondi per una sola analisi, e la pagina della guida ne
+ * faceva due. Ora la scansione partita da una "[" si ferma alla "[" successiva,
+ * quindi le scansioni non si sovrappongono e il costo cresce con la lunghezza
+ * del testo, non col suo quadrato. I limiti (200 e 500 caratteri) sono un
+ * tetto in piu': nessun collegamento vero li sfiora.
+ */
 const INLINE_PATTERN =
-  /(\*\*[^*\n]+\*\*)|(\*[^*\n]+\*)|(`[^`\n]+`)|(\[[^\]\n]+\]\([^)\s]+\))/g;
+  /(\*\*[^*\n]+\*\*)|(\*[^*\n]+\*)|(`[^`\n]+`)|(\[[^[\]\n]{1,200}\]\([^)\s[]{1,500}\))/g;
+
+/** Origine fittizia su cui si risolvono i percorsi interni per controllarli. */
+const INTERNAL_ORIGIN = "https://x.invalid";
+
+/**
+ * Barra rovesciata e caratteri di controllo. Il browser li "corregge" prima di
+ * seguire il collegamento: "\" diventa "/" e tabulazioni e a capo spariscono,
+ * quindi "/\evil.com" e "/<TAB>/evil.com" diventano "//evil.com", che porta
+ * fuori dal sito.
+ */
+const UNSAFE_PATH_CHARS = /[\\\x00-\x1f\x7f]/;
 
 /**
  * Sono ammessi solo indirizzi http(s) e percorsi interni.
@@ -44,16 +68,43 @@ const INLINE_PATTERN =
  * al clic, e passerebbe qualunque controllo fatto sul solo testo. Anche `data:`
  * resta fuori, perche' permette di servire una pagina arbitraria da un
  * indirizzo che sembra interno.
+ *
+ * Un percorso interno non si riconosce dal primo carattere. Fino all'11/10
+ * bastava cominciare con "/" e non con "//", e "/\evil.com" passava: il
+ * browser lo apre come https://evil.com, e la pagina lo rendeva come
+ * collegamento interno. Ora il percorso si risolve davvero, su un'origine
+ * fittizia, e vale solo se ci resta; si restituisce la forma normalizzata,
+ * quella che il browser seguira', non il testo scritto.
  */
 export function safeHref(raw: string): string | null {
   const value = raw.trim();
-  if (value.startsWith("/") && !value.startsWith("//")) return value;
+  if (value.length === 0) return null;
+
+  if (value.startsWith("/")) {
+    if (UNSAFE_PATH_CHARS.test(value)) return null;
+    try {
+      const url = new URL(value, INTERNAL_ORIGIN);
+      if (url.origin !== INTERNAL_ORIGIN) return null;
+      const path = `${url.pathname}${url.search}${url.hash}`;
+      // "/a/..//evil.com" resta sull'origine ma si normalizza in "//evil.com",
+      // che scritto in un href torna a essere un indirizzo esterno.
+      return path.startsWith("//") ? null : path;
+    } catch {
+      return null;
+    }
+  }
+
   try {
     const url = new URL(value);
     return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : null;
   } catch {
     return null;
   }
+}
+
+/** Se un indirizzo gia' passato da safeHref e' un percorso del sito. */
+export function isInternalHref(href: string): boolean {
+  return href.startsWith("/") && !href.startsWith("//");
 }
 
 export function parseInline(source: string): Inline[] {
@@ -252,17 +303,59 @@ export function plainText(text: readonly Inline[]): string {
  * nella pagina. Il suffisso numerico scatta solo quando due titoli coincidono.
  */
 export function tableOfContents(blocks: readonly Block[]): Heading[] {
-  const used = new Map<string, number>();
+  // `taken` tiene tutte le ancore gia' date, non solo le basi: "## Note",
+  // "## Note" e "## Note 2" davano due volte "note-2". `next` riparte
+  // dall'ultimo suffisso usato per quella base, cosi' mille titoli uguali non
+  // ricominciano a contare da capo ogni volta.
+  const taken = new Set<string>();
+  const next = new Map<string, number>();
 
   return blocks
     .filter((block): block is Extract<Block, { kind: "heading" }> => block.kind === "heading")
     .map((block) => {
       const label = plainText(block.text);
       const base = slugify(label) || "sezione";
-      const seen = used.get(base) ?? 0;
-      used.set(base, seen + 1);
-      return { id: seen === 0 ? base : `${base}-${seen + 1}`, level: block.level, label };
+      let suffix = next.get(base) ?? 1;
+      let id = suffix === 1 ? base : `${base}-${suffix}`;
+      while (taken.has(id)) {
+        suffix += 1;
+        id = `${base}-${suffix}`;
+      }
+      next.set(base, suffix);
+      taken.add(id);
+      return { id, level: block.level, label };
     });
+}
+
+/**
+ * Prefisso delle ancore dei titoli nella pagina.
+ *
+ * L'ancora deriva dal testo dell'autore, e senza prefisso un titolo come
+ * "## Main" o "## Contenuto" darebbe a un h2 lo stesso id di un elemento della
+ * pagina: il collegamento dell'indice porterebbe altrove, e uno script che
+ * cerca quell'id troverebbe il titolo della guida.
+ */
+export const HEADING_ANCHOR_PREFIX = "g-";
+
+export interface MarkdownDocument {
+  blocks: Block[];
+  /** un elemento per ogni blocco "heading", nello stesso ordine, con l'ancora gia' prefissata */
+  headings: Heading[];
+}
+
+/**
+ * Blocchi e indice da una sola analisi.
+ *
+ * La pagina della guida analizzava il testo due volte, una per l'indice e una
+ * per il corpo: chi resta su questa funzione paga l'analisi una volta sola.
+ */
+export function parseDocument(source: string): MarkdownDocument {
+  const blocks = parseMarkdown(source);
+  const headings = tableOfContents(blocks).map((heading) => ({
+    ...heading,
+    id: `${HEADING_ANCHOR_PREFIX}${heading.id}`,
+  }));
+  return { blocks, headings };
 }
 
 export function slugify(value: string): string {

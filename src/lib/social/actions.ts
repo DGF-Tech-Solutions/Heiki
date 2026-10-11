@@ -138,7 +138,14 @@ export async function followedUserIds(userId: string): Promise<string[]> {
 type NotificationType = "POST_REPLY" | "COMMENT_REPLY" | "NEW_FOLLOWER" | "POST_VOTED";
 
 /** Anche quelle che non nascono qui: l'esito della verifica della classe (`game-account/actions.ts`). */
-type AnyNotificationType = NotificationType | "POWER_VERIFIED" | "POWER_REJECTED";
+// i tipi delle strategie (migrazione 0007) li scrive il codice delle strategie,
+// che arriva in un commit suo: qui basta che la lettura li accetti
+type AnyNotificationType =
+  | NotificationType
+  | "POWER_VERIFIED"
+  | "POWER_REJECTED"
+  | "STRATEGY_PUBLISHED"
+  | "STRATEGY_REJECTED";
 
 /**
  * Registra una notifica, salvo il caso in cui l'attore e il destinatario siano

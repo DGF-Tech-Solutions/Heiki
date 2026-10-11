@@ -54,20 +54,23 @@ export function enabledOauthProviders(): readonly { id: string; label: string }[
 export const authConfig = {
   // Sessione su JWT: obbligatorio per il provider a credenziali, e permette al
   // middleware di validare senza interrogare il database a ogni richiesta.
-  session: { strategy: "jwt" },
+  // 14 giorni, rinnovati a ogni visita: chi usa il sito non esce mai, un cookie
+  // rubato a qualcuno che non torna smette di valere. Il tetto assoluto (60
+  // giorni dall'ultimo accesso vero) sta nel callback jwt di ./index.ts.
+  session: { strategy: "jwt", maxAge: 14 * 24 * 60 * 60 },
   pages: {
     signIn: "/entra",
     error: "/entra",
   },
   providers: oauthProviders(),
   callbacks: {
-    authorized({ auth }) {
-      return auth?.user != null;
-    },
+    // Niente `authorized`: il middleware ha una funzione propria, e con quella
+    // Auth.js ignora un `false` (vedi src/middleware.ts, che fa da porta).
     session({ session, token }) {
       if (token.sub) session.user.id = token.sub;
       if (isRole(token.role)) session.user.role = token.role;
       if (typeof token.username === "string") session.user.username = token.username;
+      if (typeof token.authAt === "number") session.authAt = token.authAt;
       return session;
     },
   },

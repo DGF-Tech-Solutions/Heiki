@@ -50,6 +50,20 @@
       "when": 1791636243909,
       "tag": "0006_box_eroi",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791686350074,
+      "tag": "0007_strategie_endgame",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791688872792,
+      "tag": "0008_registro_moderazione",
+      "breakpoints": true
     }
   ]
 }

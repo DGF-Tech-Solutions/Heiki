@@ -7,12 +7,12 @@
  */
 
 import { and, desc, eq } from "drizzle-orm";
-import { databaseReachable, db } from "@/lib/db";
-import { games, guideRevisions, guides, users } from "@/lib/db/schema";
+import { databaseReachable, db, isDatabaseConfigured } from "@/lib/db";
+import { games, guideRevisions, guides, modActions, users } from "@/lib/db/schema";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { excerptFromMarkdown } from "@/lib/markdown";
 import { DEMO_GUIDES } from "./demo-seed";
-import { guideSlug } from "./types";
+import { GUIDE_STATUSES, guideSlug } from "./types";
 import type {
   CreateGuideInput,
   GuideAuthor,
@@ -26,6 +26,25 @@ export interface GuideWriter {
   username: string;
   displayName: string;
   accent: string;
+}
+
+/** Dove sta una guida e di chi e': quanto serve per decidere un passaggio. */
+export interface GuideState {
+  authorId: string;
+  status: GuideStatus;
+  game: string;
+  slug: string;
+}
+
+/**
+ * Riga del registro della moderazione da scrivere insieme alla modifica.
+ *
+ * La passa l'azione solo quando un redattore tocca la guida di un altro: e' il
+ * caso in cui serve sapere, dopo, chi ha deciso. L'autore che manda in
+ * revisione la propria bozza non modera niente.
+ */
+export interface GuideAudit {
+  moderatorId: string;
 }
 
 export interface GuideStore {
@@ -45,14 +64,89 @@ export interface GuideStore {
     writer: GuideWriter,
     note?: string,
   ): Promise<void>;
-  setStatus(id: string, status: GuideStatus): Promise<void>;
-  setVerifiedPatch(id: string, patch: string | null, writer: GuideWriter): Promise<void>;
+  /**
+   * Cambia lo stato. Con `expected` cambia solo se la guida e' ancora in quello
+   * stato: il permesso si decide sullo stato letto prima, e se nel frattempo un
+   * redattore l'ha archiviata il passaggio non deve scavalcarlo. Restituisce
+   * se la guida e' stata aggiornata.
+   */
+  setStatus(
+    id: string,
+    status: GuideStatus,
+    options?: { expected?: GuideStatus; audit?: GuideAudit },
+  ): Promise<boolean>;
+  setVerifiedPatch(
+    id: string,
+    patch: string | null,
+    writer: GuideWriter,
+    audit?: GuideAudit,
+  ): Promise<void>;
   /** id dell'autore: serve per decidere se chi modifica ne ha il diritto */
   authorOf(id: string): Promise<string | null>;
+  /** autore, stato e indirizzo di una guida, o null se non esiste */
+  stateOf(id: string): Promise<GuideState | null>;
 }
 
 export async function getGuideStore(): Promise<GuideStore> {
   return (await databaseReachable()) ? dbGuides : memoryGuides;
+}
+
+/**
+ * Se l'archivio in memoria e' la modalita' dimostrativa voluta.
+ *
+ * `volatile` da solo non basta: l'archivio in memoria arriva anche quando il
+ * database e' configurato ma per un attimo non risponde, e in quel caso chi
+ * guarda non e' il visitatore di una prova ma un utente qualunque. Fino
+ * all'11/10 riceveva il ruolo di redattore e i comandi di pubblicazione.
+ */
+export function isGuideDemo(store: GuideStore): boolean {
+  return store.volatile && !isDatabaseConfigured();
+}
+
+/* =========================================================== regole pure */
+
+/** Chi guarda o agisce, rispetto a una guida. */
+export interface GuideActor {
+  /** e' l'autore */
+  own: boolean;
+  /** ha il permesso publishGuide */
+  editor: boolean;
+}
+
+/** Una guida non pubblicata la vedono solo l'autore e chi la deve revisionare. */
+export function canViewGuide(status: GuideStatus, actor: GuideActor): boolean {
+  return status === "PUBLISHED" || actor.own || actor.editor;
+}
+
+/**
+ * Quali passaggi di stato sono ammessi.
+ *
+ * Il redattore li fa tutti: e' lui che pubblica, archivia e respinge. L'autore
+ * ne ha due, e solo fra le sue bozze: mandare in revisione quando ha finito,
+ * ritirare in bozza quello che ha mandato. Fino all'11/10 poteva portare in
+ * bozza o in revisione qualunque sua guida, anche una che un redattore aveva
+ * archiviato: l'archiviazione si annullava da sola e la guida tornava in coda.
+ *
+ * Restare nello stesso stato non e' un passaggio: l'azione lo tratta a parte.
+ */
+export function canMoveGuide(from: GuideStatus, to: GuideStatus, actor: GuideActor): boolean {
+  if (from === to) return false;
+  if (actor.editor) return true;
+  if (!actor.own) return false;
+  return (from === "DRAFT" && to === "IN_REVIEW") || (from === "IN_REVIEW" && to === "DRAFT");
+}
+
+/**
+ * Tutti i passaggi ammessi per chi guarda, stato per stato. Lo calcola la
+ * pagina sul server e lo passa ai comandi: i pulsanti nel browser seguono la
+ * stessa regola dell'azione senza importare questo file, che legge il database.
+ */
+export function guideTransitions(actor: GuideActor): Record<GuideStatus, GuideStatus[]> {
+  const table = {} as Record<GuideStatus, GuideStatus[]>;
+  for (const from of GUIDE_STATUSES) {
+    table[from] = GUIDE_STATUSES.filter((to) => canMoveGuide(from, to, actor));
+  }
+  return table;
 }
 
 /* ==================================================== archivio in memoria */
@@ -149,13 +243,16 @@ const memoryGuides: GuideStore = {
     ];
   },
 
-  async setStatus(id, status) {
+  // In memoria il registro della moderazione non esiste: `audit` si ignora.
+  async setStatus(id, status, options) {
     const guide = memory().guides.find((entry) => entry.id === id);
-    if (!guide) return;
+    if (!guide) return false;
+    if (options?.expected !== undefined && guide.status !== options.expected) return false;
     guide.status = status;
     guide.publishedAt =
       status === "PUBLISHED" ? (guide.publishedAt ?? new Date().toISOString()) : guide.publishedAt;
     guide.updatedAt = new Date().toISOString();
+    return true;
   },
 
   async setVerifiedPatch(id, patch, writer) {
@@ -180,9 +277,30 @@ const memoryGuides: GuideStore = {
     // usando la modalita' dimostrativa, quindi la proprieta' non discrimina.
     return memory().guides.some((guide) => guide.id === id) ? "demo" : null;
   },
+
+  async stateOf(id) {
+    const guide = memory().guides.find((entry) => entry.id === id);
+    return guide
+      ? { authorId: "demo", status: guide.status, game: guide.game, slug: guide.slug }
+      : null;
+  },
 };
 
 /* ======================================================== archivio su DB */
+
+/**
+ * Le colonne dell'autore che la pagina mostra, e nient'altro.
+ *
+ * Fino all'11/10 la relazione si caricava con `author: true` (e `editor: true`
+ * nella cronologia): la riga intera di `users`, email e hash della password
+ * compresi, entrava in memoria a ogni lettura di una guida. Non arrivava in
+ * pagina, ma bastava un oggetto passato per intero a un componente client per
+ * spedirla al browser.
+ */
+const AUTHOR_COLUMNS = {
+  columns: { username: true },
+  with: { profile: { columns: { displayName: true, cosmetics: true } } },
+} as const;
 
 function authorFromRow(row: {
   username: string;
@@ -217,7 +335,7 @@ const dbGuides: GuideStore = {
           : and(eq(guides.gameId, gameId), eq(guides.status, "PUBLISHED")),
       orderBy: [desc(guides.updatedAt)],
       limit: 100,
-      with: { author: { with: { profile: true } } },
+      with: { author: AUTHOR_COLUMNS },
     });
 
     return rows.map((row) => ({
@@ -239,9 +357,14 @@ const dbGuides: GuideStore = {
     const row = await db.query.guides.findFirst({
       where: eq(guides.slug, slug),
       with: {
-        author: { with: { profile: true } },
-        game: true,
-        revisions: { with: { editor: true }, orderBy: [desc(guideRevisions.createdAt)], limit: 20 },
+        author: AUTHOR_COLUMNS,
+        game: { columns: { slug: true } },
+        revisions: {
+          columns: { id: true, patch: true, note: true, createdAt: true },
+          with: { editor: { columns: { username: true } } },
+          orderBy: [desc(guideRevisions.createdAt)],
+          limit: 20,
+        },
       },
     });
     // Lo slug e' unico su tutta la tabella, ma l'indirizzo contiene anche il
@@ -326,26 +449,44 @@ const dbGuides: GuideStore = {
     });
   },
 
-  async setStatus(id, status) {
-    const current = await db.query.guides.findFirst({
-      where: eq(guides.id, id),
-      columns: { publishedAt: true },
-    });
+  async setStatus(id, status, options) {
+    return db.transaction(async (tx) => {
+      const current = await tx.query.guides.findFirst({
+        where: eq(guides.id, id),
+        columns: { publishedAt: true },
+      });
+      if (!current) return false;
 
-    await db
-      .update(guides)
-      .set({
-        status,
-        // La data di pubblicazione si scrive una volta sola: una guida
-        // ripubblicata dopo un'archiviazione non e' un contenuto nuovo.
-        publishedAt:
-          status === "PUBLISHED" ? (current?.publishedAt ?? new Date()) : (current?.publishedAt ?? null),
-        updatedAt: new Date(),
-      })
-      .where(eq(guides.id, id));
+      const updated = await tx
+        .update(guides)
+        .set({
+          status,
+          // La data di pubblicazione si scrive una volta sola: una guida
+          // ripubblicata dopo un'archiviazione non e' un contenuto nuovo.
+          publishedAt: status === "PUBLISHED" ? (current.publishedAt ?? new Date()) : current.publishedAt,
+          updatedAt: new Date(),
+        })
+        .where(
+          options?.expected === undefined
+            ? eq(guides.id, id)
+            : and(eq(guides.id, id), eq(guides.status, options.expected)),
+        )
+        .returning({ id: guides.id });
+      if (updated.length === 0) return false;
+
+      if (options?.audit) {
+        await tx.insert(modActions).values({
+          moderatorId: options.audit.moderatorId,
+          targetType: "GUIDE",
+          targetId: id,
+          action: `status_${status.toLowerCase()}`,
+        });
+      }
+      return true;
+    });
   },
 
-  async setVerifiedPatch(id, patch, writer) {
+  async setVerifiedPatch(id, patch, writer, audit) {
     await db.transaction(async (tx) => {
       const current = await tx.query.guides.findFirst({
         where: eq(guides.id, id),
@@ -365,6 +506,19 @@ const dbGuides: GuideStore = {
         patch,
         note: "patch di verifica aggiornata",
       });
+
+      // La patch nel motivo: e' la cosa dichiarata, ed e' quella che va
+      // ritrovata se un giorno la dichiarazione si rivela falsa. null quando la
+      // dichiarazione si toglie.
+      if (audit) {
+        await tx.insert(modActions).values({
+          moderatorId: audit.moderatorId,
+          targetType: "GUIDE",
+          targetId: id,
+          action: "verified_patch",
+          reason: patch,
+        });
+      }
     });
   },
 
@@ -374,6 +528,17 @@ const dbGuides: GuideStore = {
       columns: { authorId: true },
     });
     return row?.authorId ?? null;
+  },
+
+  async stateOf(id) {
+    const row = await db.query.guides.findFirst({
+      where: eq(guides.id, id),
+      columns: { authorId: true, status: true, slug: true },
+      with: { game: { columns: { slug: true } } },
+    });
+    return row
+      ? { authorId: row.authorId, status: row.status, game: row.game.slug, slug: row.slug }
+      : null;
   },
 };
 

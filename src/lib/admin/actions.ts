@@ -14,6 +14,12 @@
  * 3. Ogni promozione finisce nel registro di moderazione, come una sanzione.
  *    Dare a qualcuno il potere di pubblicare e' una decisione tracciabile
  *    quanto quella di sospenderlo.
+ * 4. Il ruolo di amministratore non si da' da qui, solo con `npm run promote`
+ *    (11/10): una sessione rubata non deve poter creare altri amministratori.
+ *
+ * Le regole sui ruoli stanno in roles.ts, fuori da questo modulo "use server":
+ * qui ogni export e' un'azione che il browser puo' chiamare con gli argomenti
+ * che vuole, e ognuna ricontrolla da sola chi la chiede e cosa riceve.
  */
 
 import { revalidatePath } from "next/cache";
@@ -25,6 +31,8 @@ import { databaseReachable, db } from "@/lib/db";
 import { modActions, sponsorPlacements, users } from "@/lib/db/schema";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { suspensionFor } from "@/lib/moderation/suspension";
+import { canAssignRole } from "./roles";
 
 const TESTI = testi({
   it: {
@@ -35,10 +43,13 @@ const TESTI = testi({
     nonCambiareIlTuoRuolo: "Non puoi cambiare il tuo ruolo da qui.",
     utenteInesistente: "Utente inesistente.",
     ruoloAmministratoreDalDatabase: "Il ruolo di un amministratore si cambia dal database.",
+    nonDareAmministratore:
+      "Il ruolo di amministratore non si assegna dal sito: si dà dal server con «npm run promote».",
     haGiaQuestoRuolo: (utente: string) => `${utente} ha già questo ruolo.`,
     oraE: (utente: string, ruolo: string) => `${utente}: ora è ${ruolo}.`,
     slotRiattivato: "Slot riattivato.",
     slotInPausa: "Slot messo in pausa.",
+    slotInesistente: "Slot inesistente.",
   },
   en: {
     nonHaiPermessi: "You don't have permission to do that.",
@@ -48,10 +59,13 @@ const TESTI = testi({
     nonCambiareIlTuoRuolo: "You can't change your own role from here.",
     utenteInesistente: "User not found.",
     ruoloAmministratoreDalDatabase: "An administrator's role can only be changed in the database.",
+    nonDareAmministratore:
+      "The administrator role can't be granted from the site: it's granted on the server with “npm run promote”.",
     haGiaQuestoRuolo: (utente: string) => `${utente} already has this role.`,
     oraE: (utente: string, ruolo: string) => `${utente} is now ${ruolo}.`,
     slotRiattivato: "Slot reactivated.",
     slotInPausa: "Slot paused.",
+    slotInesistente: "Slot not found.",
   },
 });
 
@@ -65,6 +79,8 @@ async function administrator(): Promise<{ id: string; role: Role } | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
   if (!hasRole(session.user.role, "ADMIN")) return null;
+  // come per i moderatori: un account sospeso non amministra, qualunque ruolo abbia
+  if ((await suspensionFor(session.user.id)).active) return null;
   return { id: session.user.id, role: session.user.role };
 }
 
@@ -93,6 +109,7 @@ export async function setRoleAction(
     return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
+  const role = parsed.data.role as Role;
   if (parsed.data.userId === admin.id) {
     return { error: t.nonCambiareIlTuoRuolo };
   }
@@ -103,34 +120,35 @@ export async function setRoleAction(
   });
   if (!target) return { error: t.utenteInesistente };
 
-  if (target.role === "ADMIN") {
-    return { error: t.ruoloAmministratoreDalDatabase };
+  // Le regole stanno in canAssignRole (roles.ts), dove le provano i test.
+  const verdict = canAssignRole(admin, target, role);
+  if (!verdict.ok) {
+    const refusals = {
+      nonAmministratore: t.nonHaiPermessi,
+      seStesso: t.nonCambiareIlTuoRuolo,
+      bersaglioAmministratore: t.ruoloAmministratoreDalDatabase,
+      ruoloAmministratore: t.nonDareAmministratore,
+    } as const;
+    return { error: refusals[verdict.reason] };
   }
-  if (parsed.data.role === target.role) {
+  if (role === target.role) {
     return { success: t.haGiaQuestoRuolo(target.username) };
   }
 
   await db.transaction(async (tx) => {
-    await tx
-      .update(users)
-      .set({ role: parsed.data.role as Role, updatedAt: new Date() })
-      .where(eq(users.id, target.id));
-
-    // targetType e' l'enum dei voti e non prevede "USER": si registra come
-    // POST con l'identificativo dell'utente. Non e' elegante, ma la traccia
-    // esiste - ed e' meglio di un cambio di ruolo invisibile. Da sistemare con
-    // un enum dedicato alla prossima migrazione dello schema.
+    await tx.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, target.id));
+    // il cambio e la sua traccia insieme: un ruolo dato senza riga nel registro non deve esistere
     await tx.insert(modActions).values({
       moderatorId: admin.id,
-      targetType: "POST",
+      targetType: "USER",
       targetId: target.id,
-      action: `role:${parsed.data.role}`,
-      reason: `da ${target.role} a ${parsed.data.role}`,
+      action: "set_role",
+      reason: `${target.role}->${role}`,
     });
   });
 
   revalidatePath("/admin");
-  return { success: t.oraE(target.username, roleLabel(parsed.data.role as Role, locale)) };
+  return { success: t.oraE(target.username, roleLabel(role, locale)) };
 }
 
 export interface AdminUser {
@@ -152,7 +170,9 @@ export async function findUsers(query: string): Promise<AdminUser[]> {
   const admin = await administrator();
   if (!admin) return [];
 
-  const term = query.trim();
+  // e' un'azione: il termine puo' arrivare come qualunque cosa (anche `?q=a&q=b`
+  // dalla pagina diventa un elenco), e un .trim() su un elenco era un errore 500
+  const term = typeof query === "string" ? query.trim().slice(0, 100) : "";
 
   const rows = await db.query.users.findMany({
     where: term.length > 0 ? or(ilike(users.username, `%${term}%`), ilike(users.email, `%${term}%`)) : undefined,
@@ -218,14 +238,36 @@ export async function listSponsorPlacements(): Promise<SponsorRow[]> {
   }));
 }
 
+const SPONSOR_INPUT = z.object({ id: z.string().uuid(), active: z.boolean() });
+
 export async function toggleSponsorAction(id: string, active: boolean): Promise<AdminState> {
   const t = TESTI[await getLocale()];
   const admin = await administrator();
   if (!admin) return { error: t.nonHaiPermessi };
 
-  await db.update(sponsorPlacements).set({ active }).where(eq(sponsorPlacements.id, id));
+  // un id inventato si respinge qui, non con un errore del database
+  const parsed = SPONSOR_INPUT.safeParse({ id, active });
+  if (!parsed.success) return { error: t.datiNonValidi };
+  const input = parsed.data;
+
+  const changed = await db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(sponsorPlacements)
+      .set({ active: input.active })
+      .where(eq(sponsorPlacements.id, input.id))
+      .returning({ id: sponsorPlacements.id });
+    if (!row) return false;
+    await tx.insert(modActions).values({
+      moderatorId: admin.id,
+      targetType: "SPONSOR",
+      targetId: row.id,
+      action: input.active ? "sponsor_on" : "sponsor_off",
+    });
+    return true;
+  });
+  if (!changed) return { error: t.slotInesistente };
 
   revalidatePath("/admin");
   revalidatePath("/", "layout");
-  return { success: active ? t.slotRiattivato : t.slotInPausa };
+  return { success: input.active ? t.slotRiattivato : t.slotInPausa };
 }

@@ -18,10 +18,13 @@
  */
 
 import { revalidatePath } from "next/cache";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { displayNameProblem, isReservedHandle } from "@/lib/auth/handles";
+import { can } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
+import { requireActive } from "@/lib/moderation/suspension";
 import { badgeShowcaseSlots, profiles, userBadges, users } from "@/lib/db/schema";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -45,6 +48,9 @@ const TESTI = testi({
     sessioneScaduta: "Sessione scaduta. Rientra e riprova.",
     datiNonValidi: "Dati non validi.",
     handlePreso: "Questo handle è già preso.",
+    handleRiservato: "Questo handle è riservato al sito: scegline un altro.",
+    nomeInvisibile: "Il nome contiene caratteri invisibili o di controllo: toglili.",
+    nomeStaff: "Il nome non può far pensare allo staff del sito (admin, moderatore, supporto…): scegline un altro.",
   },
   en: {
     handleCorto: "The handle must be at least 3 characters",
@@ -56,6 +62,9 @@ const TESTI = testi({
     sessioneScaduta: "Session expired. Log in again and retry.",
     datiNonValidi: "Invalid data.",
     handlePreso: "This handle is already taken.",
+    handleRiservato: "This handle is reserved for the site: choose another one.",
+    nomeInvisibile: "The name contains invisible or control characters: remove them.",
+    nomeStaff: "The name can't suggest the site's staff (admin, moderator, support…): choose another one.",
   },
 });
 
@@ -99,7 +108,8 @@ function payloadSchema(t: (typeof TESTI)["it"]) {
 }
 
 export async function saveProfileAction(payload: ProfileSavePayload): Promise<SaveResult> {
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   if (!(await databaseReachable())) {
     return { ok: false, error: t.databaseAssente };
@@ -108,6 +118,12 @@ export async function saveProfileAction(payload: ProfileSavePayload): Promise<Sa
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return { ok: false, error: t.sessioneScaduta };
+
+  // Nome, bio e handle sono testo pubblico come un post: chi e' sospeso non li
+  // cambia. Fino all'11/10 poteva, e una sospensione per un nome offensivo si
+  // aggirava con un altro nome offensivo.
+  const blocked = await requireActive(userId, locale);
+  if (blocked) return { ok: false, error: blocked };
 
   // il tipo del parametro e' una promessa del client, non una garanzia: si rilegge tutto
   const parsed = payloadSchema(t).safeParse(payload);
@@ -119,9 +135,24 @@ export async function saveProfileAction(payload: ProfileSavePayload): Promise<Sa
 
   const current = await db.query.users.findFirst({
     where: eq(users.id, userId),
-    columns: { username: true },
+    columns: { username: true, role: true },
+    with: { profile: { columns: { displayName: true } } },
   });
   if (!current) return { ok: false, error: t.sessioneScaduta };
+
+  // Handle e nome si controllano quando cambiano (regole in auth/handles.ts):
+  // chi li aveva gia' prima dell'11/10 - anche lo staff vero, che puo' chiamarsi
+  // «admin» - non resta chiuso fuori dal proprio profilo, ma non si prende un
+  // nome nuovo che imita lo staff o un account cancellato.
+  if (username !== current.username && isReservedHandle(username)) {
+    return { ok: false, error: t.handleRiservato };
+  }
+  if (displayName !== current.profile?.displayName) {
+    const problem = displayNameProblem(displayName);
+    if (problem === "invisibile") return { ok: false, error: t.nomeInvisibile };
+    // lo staff vero puo' dirsi staff: la regola ferma chi lo imita
+    if (problem === "staff" && !can(current.role, "moderate")) return { ok: false, error: t.nomeStaff };
+  }
 
   // L'handle e' l'indirizzo pubblico del profilo: deve restare unico.
   const taken = await db.query.users.findFirst({
@@ -191,21 +222,7 @@ export async function saveProfileAction(payload: ProfileSavePayload): Promise<Sa
   return { ok: true, username };
 }
 
-/** Usata dalla pagina pubblica per sapere quali badge sono in vetrina. */
-export async function showcasedBadgeIds(userId: string): Promise<readonly string[]> {
-  const slots = await db.query.badgeShowcaseSlots.findMany({
-    where: eq(badgeShowcaseSlots.userId, userId),
-    columns: { badgeId: true, position: true },
-  });
-  return slots.sort((a, b) => a.position - b.position).map((slot) => slot.badgeId);
-}
-
-/** Verifica che gli id badge indicati esistano davvero (usata dai test). */
-export async function badgesExist(ids: readonly string[]): Promise<boolean> {
-  if (ids.length === 0) return true;
-  const rows = await db.query.userBadges.findMany({
-    where: inArray(userBadges.id, [...ids]),
-    columns: { id: true },
-  });
-  return rows.length === ids.length;
-}
+// Fino all'11/10 qui c'erano anche `showcasedBadgeIds` e `badgesExist`: aiuti
+// senza chiamanti, ma in un modulo "use server" ogni export e' un'azione, e
+// chiunque poteva chiedere la vetrina di un utente qualsiasi o sondare quali id
+// di badge esistono. Tolti; la vetrina la legge profile/load.ts.

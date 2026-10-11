@@ -43,6 +43,8 @@ const TESTI = testi({
     cambiaPassword: "Cambia password",
     eliminaAccount: "Elimina l'account",
     eliminaNota: "Irreversibile. Profilo, badge, voti e notifiche vengono cancellati.",
+    senzaPassword:
+      "Il tuo account non ha una password: per sicurezza vale un accesso recente. Se sei entrato più di 10 minuti fa, esci e rientra con Discord o Google.",
     postPrima: "I tuoi post e commenti",
     restano: "restano",
     postDopo:
@@ -70,6 +72,8 @@ const TESTI = testi({
     cambiaPassword: "Change password",
     eliminaAccount: "Delete account",
     eliminaNota: "Irreversible. Your profile, badges, votes and notifications are deleted.",
+    senzaPassword:
+      "Your account has no password, so a recent sign-in counts instead. If you signed in more than 10 minutes ago, log out and back in with Discord or Google.",
     postPrima: "Your posts and comments",
     restano: "stay",
     postDopo:
@@ -169,7 +173,7 @@ export function ChangePasswordForm() {
   );
 }
 
-export function DeleteAccountForm() {
+export function DeleteAccountForm({ hasPassword }: { hasPassword: boolean }) {
   const locale = useLocale();
   const t = TESTI[locale];
   const phrase = deletePhrase(locale);
@@ -185,9 +189,13 @@ export function DeleteAccountForm() {
           {t.postDopo}
         </p>
 
-        <Field label={t.passwordAttuale}>
-          <Input type="password" name="password" autoComplete="current-password" required />
-        </Field>
+        {hasPassword ? (
+          <Field label={t.passwordAttuale}>
+            <Input type="password" name="password" autoComplete="current-password" required />
+          </Field>
+        ) : (
+          <p className="mb-4 text-[13px] text-ink-2">{t.senzaPassword}</p>
+        )}
 
         <Field label={t.conferma} hint={t.scrivi(phrase)}>
           <Input name="confirm" required placeholder={phrase} className="font-mono" />

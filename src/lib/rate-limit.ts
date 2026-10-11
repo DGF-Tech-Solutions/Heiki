@@ -15,6 +15,7 @@
  * tentativi automatici, l'assenza di limite non ne ferma nessuno.
  */
 
+import { createHash } from "node:crypto";
 import type { Locale } from "@/lib/i18n/locale";
 
 interface Window {
@@ -50,7 +51,12 @@ export interface RateLimitResult {
 
 /** Regole usate nel sito. Stare in un posto solo le rende confrontabili. */
 export const RULES = {
-  /** L'accesso e' il bersaglio piu' ovvio: pochi tentativi, finestra lunga. */
+  /**
+   * L'accesso e' il bersaglio piu' ovvio: pochi tentativi, finestra lunga.
+   * Dall'11/10 la chiave e' email + indirizzo: prima era la sola email, e
+   * chiunque poteva tenere fuori una persona sbagliando apposta la sua password
+   * otto volte ogni cinque minuti.
+   */
   login: { limit: 8, windowSeconds: 300 },
   /**
    * Lo stesso controllo dentro Auth.js, per chi chiama direttamente
@@ -58,10 +64,23 @@ export const RULES = {
    * dal modulo incontra prima quello, col messaggio che dice quanto aspettare.
    */
   credentials: { limit: 10, windowSeconds: 300 },
+  /**
+   * Un indirizzo che prova molte email diverse: una password comune provata su
+   * tanti account. Largo, perche' dietro un indirizzo ci puo' essere una scuola.
+   */
+  credentialsIp: { limit: 40, windowSeconds: 900 },
+  /**
+   * Un account provato da molti indirizzi. Largo apposta: tiene fermo chi ha
+   * una rete di macchine, e una persona che sbaglia non ci arriva mai.
+   */
+  credentialsAccount: { limit: 60, windowSeconds: 3600 },
   /** La registrazione crea righe: si limita per non farne creare a macchina. */
   register: { limit: 5, windowSeconds: 3600 },
+  /** Account creati a macchina cambiando email a ogni giro. */
+  registerIp: { limit: 10, windowSeconds: 3600 },
   /** Il recupero manda email: un limite basso protegge il destinatario. */
   passwordReset: { limit: 3, windowSeconds: 3600 },
+  passwordResetIp: { limit: 10, windowSeconds: 3600 },
   /** Pubblicare troppo in fretta e' spam, anche in buona fede. */
   post: { limit: 10, windowSeconds: 3600 },
   comment: { limit: 30, windowSeconds: 3600 },
@@ -82,6 +101,19 @@ export const RULES = {
 export type RuleName = keyof typeof RULES;
 
 /**
+ * Oltre questo numero di chiavi si buttano le piu' vecchie. Senza un tetto, chi
+ * manda tentativi con email sempre diverse riempirebbe la memoria del processo
+ * (le azioni accettano fino a 4 MB per richiesta, e la chiave era il testo
+ * intero: l'11/10 bastavano poche centinaia di richieste).
+ */
+const MAX_KEYS = 50_000;
+
+/** La chiave salvata e' un'impronta di lunghezza fissa, qualunque cosa arrivi. */
+function storedKey(rule: RuleName, key: string): string {
+  return `${rule}:${createHash("sha256").update(key).digest("base64url")}`;
+}
+
+/**
  * Registra un tentativo e dice se e' consentito.
  *
  * Finestra scorrevole invece che a intervalli fissi: con gli intervalli fissi si
@@ -92,7 +124,7 @@ export function rateLimit(rule: RuleName, key: string): RateLimitResult {
   const { limit, windowSeconds } = RULES[rule];
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
-  const compositeKey = `${rule}:${key}`;
+  const compositeKey = storedKey(rule, key);
 
   const entry = store().get(compositeKey) ?? { hits: [] };
   const recent = entry.hits.filter((at) => now - at < windowMs);
@@ -108,19 +140,34 @@ export function rateLimit(rule: RuleName, key: string): RateLimitResult {
   }
 
   recent.push(now);
+  // tolta e rimessa: la Map tiene l'ordine d'inserimento, e cosi' le chiavi in
+  // fondo sono quelle usate da poco
+  store().delete(compositeKey);
   store().set(compositeKey, { hits: recent });
 
   // Pulizia opportunistica: senza, la mappa crescerebbe per sempre in un
   // processo di lunga durata.
-  if (store().size > 5000) sweep(now);
+  if (store().size > MAX_KEYS) sweep(now);
 
   return { allowed: true, remaining: limit - recent.length, retryAfter: 0 };
 }
 
 function sweep(now: number): void {
-  const longest = Math.max(...Object.values(RULES).map((rule) => rule.windowSeconds)) * 1000;
-  for (const [key, entry] of store()) {
-    if (entry.hits.every((at) => now - at >= longest)) store().delete(key);
+  const map = store();
+  // prima le voci scadute, ognuna con la finestra della sua regola
+  for (const [key, entry] of map) {
+    const rule = RULES[key.slice(0, key.indexOf(":")) as RuleName];
+    const windowMs = (rule?.windowSeconds ?? 3600) * 1000;
+    if (entry.hits.every((at) => now - at >= windowMs)) map.delete(key);
+  }
+  // poi, se non basta, le meno recenti fino a tre quarti del tetto: la pulizia
+  // costa un giro della mappa, e cosi' non si ripete a ogni richiesta
+  if (map.size > MAX_KEYS) {
+    let excess = map.size - Math.floor(MAX_KEYS * 0.75);
+    for (const key of map.keys()) {
+      if (excess-- <= 0) break;
+      map.delete(key);
+    }
   }
 }
 

@@ -138,6 +138,54 @@ build a ogni push su `main` e a ogni pull request, su un clone pulito.
 - provarla in locale, accanto a `npm run dev`:
   `APP_PORT=3200 AUTH_URL_APP=http://localhost:3200 docker compose --profile app up --build`
 
+### La sicurezza
+
+Rivista da cima a fondo l'11/10/2026 (audit del codice e prove sul server). Cosa
+c'è, e cosa va rispettato quando il sito va online.
+
+**Da rispettare in produzione:**
+- **il proxy davanti al sito deve scrivere `X-Forwarded-For`** con l'indirizzo
+  vero di chi chiama (nginx: `proxy_set_header X-Forwarded-For $remote_addr;`).
+  I tetti per indirizzo leggono l'ultima voce di quella intestazione
+  (`src/lib/security/client-ip.ts`); senza proxy chi chiama la può scrivere come
+  vuole, e restano solo i tetti per account
+- `AUTH_URL` in `https://`: Auth.js mette `Secure` sui cookie solo se lo è, e la
+  CSP chiede al browser di non scendere a http
+- `AUTH_SECRET` nuovo e lungo (`npx auth secret`); Postgres con una password
+  vera e mai esposto in rete (in `docker-compose.yml` ascolta solo su
+  `127.0.0.1`)
+- **il recupero password non spedisce email**: in produzione non scrive il
+  collegamento da nessuna parte (prima finiva nel registro del server, e chi
+  legge i log poteva prendersi un account). Finché non c'è un fornitore di posta
+  il recupero, di fatto, non funziona; il punto da completare è segnato in
+  `src/lib/auth/password-reset.ts`. Con l'invio andrà verificato anche il cambio
+  di email (oggi il nuovo indirizzo vale subito)
+
+**Cosa c'è:**
+- **intestazioni**: Content-Security-Policy con un nonce nuovo a ogni richiesta
+  (la scrive il middleware; uno script iniettato in una pagina non parte),
+  niente cornici da altri siti, `nosniff`, `Referrer-Policy`, permessi del
+  browser spenti, HSTS in produzione (`src/lib/security/headers.ts`)
+- **accesso**: stessi tempi di risposta per email registrate e no; tetti per
+  email+indirizzo, per indirizzo e per account (una persona non si può chiudere
+  fuori sbagliando apposta la sua password); password fino a 72 byte (oltre,
+  bcrypt ignorerebbe il resto); sessioni di 14 giorni rinnovate a ogni visita,
+  60 al massimo senza rientrare, chiuse dal cambio di password; con Discord e
+  Google si entra solo con un'email che il provider ha verificato
+- **handle e nomi**: `admin`, `moderatore`, `eliminato-…` e simili sono
+  riservati; un nome visualizzato non può avere caratteri invisibili o
+  imitare lo staff (`src/lib/auth/handles.ts`)
+- **azioni del server**: ogni funzione esportata da un file `"use server"` è un
+  indirizzo che il browser può chiamare con argomenti suoi. Lì stanno solo le
+  azioni vere, ognuna controlla sessione, ruolo, sospensione e argomenti (zod,
+  UUID veri); gli aiuti interni stanno in moduli normali
+- **markdown**: niente HTML, link solo `http(s)` o percorsi che restano sul sito
+  (`/\esempio.com` non passa), analisi in tempo lineare
+- **moderazione**: vedi «Moderazione» e «Il primo amministratore»
+
+**Le prove**: `src/lib/__tests__/sicurezza-*.test.ts` (intestazioni, accesso,
+moderazione, markdown, guide).
+
 ---
 
 ## Stack
@@ -725,8 +773,18 @@ servono non c'è tempo di scriverli.
   scritto e non le impedisce di leggere: le toglie la possibilità di scrivere.
   La scadenza si valuta in lettura, quindi non serve nessun lavoro periodico per
   spegnere una sospensione a termine.
-- **Ogni azione finisce nel registro**, in fondo a `/moderazione`. Un moderatore
-  che agisce senza traccia è un problema più grande di quello che sta risolvendo.
+- **Ogni azione finisce nel registro**, in fondo a `/moderazione`, nella stessa
+  transazione dell'azione: nascondere, segnalazioni, sospensioni e revoche (con
+  chi revoca), ruoli, sponsor, decisioni sulle verifiche e sulle guide. Un
+  moderatore che agisce senza traccia è un problema più grande di quello che sta
+  risolvendo.
+- **Chi decide su chi.** Un moderatore sospende utenti, collaboratori e
+  redattori; un moderatore lo sospende solo un amministratore; un amministratore
+  non si sospende dal sito; nessuno sospende o libera se stesso. Revocare la
+  sospensione di un moderatore, o una data da un amministratore, spetta a un
+  amministratore. Chi è sospeso non modera, non scrive, non segnala e non cambia
+  il profilo. Lo staff non elimina il proprio account (il registro perderebbe il
+  nome): prima un amministratore toglie il ruolo.
 - **Le verifiche della classe dell'account** stanno in cima a `/moderazione`:
   schermata, eroe del giorno (e quelli scartati), classe dichiarata e l'ultima
   confermata. Chi modera non può decidere la propria.
@@ -741,7 +799,10 @@ perderle.
 
 `src/lib/rate-limit.ts`, finestra scorrevole, in memoria del processo. Copre
 accesso, registrazione, recupero password, pubblicazione, commenti e
-segnalazioni.
+segnalazioni. Accesso, registrazione e recupero contano sia per account sia per
+indirizzo (vedi «La sicurezza»). Le chiavi si salvano come impronte di lunghezza
+fissa e la mappa ha un tetto: chi manda tentativi con email sempre diverse non
+riempie la memoria.
 
 Il limite è dichiarato: con più istanze del server ognuna conta per conto
 proprio, quindi il tetto reale è il tetto per il numero di istanze. Ferma un
@@ -766,6 +827,11 @@ npm run promote -- tua@email.it ADMIN
 L'alternativa — promuovere automaticamente il primo iscritto — regalerebbe il
 controllo del sito a chiunque arrivi primo alla pagina di registrazione, se il
 database venisse esposto prima del lancio.
+
+Anche dopo, **un amministratore nasce solo così**: dal pannello si danno tutti i
+ruoli tranne quello (`src/lib/admin/roles.ts`). Una sessione di amministratore
+rubata non può creare altri amministratori, che resterebbero anche dopo aver
+chiuso la falla.
 
 ### I cosmetici
 

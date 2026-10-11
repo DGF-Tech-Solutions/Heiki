@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { staticSecurityHeaders } from "./src/lib/security/headers";
 
 /**
  * `next dev` e `next build` scrivono entrambi in .next: se girano insieme, la
@@ -15,6 +16,8 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // «X-Powered-By: Next.js» dice a chi cerca un bersaglio cosa provare
+  poweredByHeader: false,
   // Richiesto dall'immagine Docker: produce .next/standalone, un server
   // autosufficiente senza node_modules. In sviluppo non cambia nulla.
   output: "standalone",
@@ -39,6 +42,9 @@ const nextConfig: NextConfig = {
   images: { minimumCacheTTL: 604800 },
   async headers() {
     return [
+      // Le intestazioni di sicurezza su ogni risposta; la CSP, che cambia a
+      // ogni richiesta, la scrive il middleware (src/lib/security/headers.ts)
+      { source: "/:path*", headers: staticSecurityHeaders(process.env.NODE_ENV === "production") },
       {
         source: "/eroi/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],

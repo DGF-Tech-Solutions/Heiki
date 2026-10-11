@@ -75,7 +75,7 @@ export default async function AccountSettingsPage() {
 
       <ChangeEmailForm current={user.email} />
       <ChangePasswordForm />
-      <DeleteAccountForm />
+      <DeleteAccountForm hasPassword={user.passwordHash != null} />
     </div>
   );
 }

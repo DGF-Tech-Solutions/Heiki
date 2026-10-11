@@ -14,10 +14,13 @@
  * 3. Il gettone e' monouso e scade in un'ora: un collegamento intercettato ha
  *    una finestra minima, e usarlo lo consuma.
  *
- * L'invio dell'email non e' configurato. In sviluppo il collegamento finisce nel
- * registro del server e viene restituito, cosi' il flusso e' provabile senza un
- * fornitore di posta. In produzione questo va sostituito con un invio vero: il
- * punto e' segnato con un commento esplicito.
+ * L'invio dell'email non e' configurato. In sviluppo, e solo su un indirizzo
+ * locale, il collegamento finisce nel registro del server e viene restituito,
+ * cosi' il flusso e' provabile senza un fornitore di posta. Fino all'11/10 il
+ * collegamento si scriveva nel registro anche in produzione: chi legge i log
+ * (l'hosting, un servizio che li raccoglie) poteva chiedere il recupero per
+ * l'email di chiunque e prendersi l'account. In produzione il recupero resta
+ * senza invio finche' non c'e' un fornitore: il punto e' segnato qui sotto.
  */
 
 import { createHash, randomBytes } from "node:crypto";
@@ -30,6 +33,9 @@ import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { PASSWORD_MIN } from "./account";
+import { EMAIL_MAX_CHARS, passwordTooLong } from "./password-policy";
+import { invalidateResetTokens } from "./reset-tokens";
+import { currentIp } from "@/lib/security/client-ip";
 import { siteUrl } from "@/lib/site";
 
 const TESTI = testi({
@@ -41,6 +47,7 @@ const TESTI = testi({
       "Se quell'indirizzo è registrato, ti arriverà un collegamento per reimpostare la password. Vale un'ora.",
     passwordCorta: (min: number) => `La password deve avere almeno ${min} caratteri`,
     passwordDiverse: "Le due password non coincidono",
+    passwordLunga: "La password è troppo lunga: al massimo 72 caratteri, meno se usi lettere accentate o emoji",
     collegamentoScaduto:
       "Collegamento non valido o scaduto. Chiedine un altro: quelli vecchi smettono di funzionare dopo un'ora o dopo il primo uso.",
     passwordReimpostata: "Password reimpostata. Ora puoi entrare.",
@@ -53,6 +60,7 @@ const TESTI = testi({
       "If that address is registered, you'll receive a link to reset your password. It's valid for one hour.",
     passwordCorta: (min: number) => `The password must be at least ${min} characters`,
     passwordDiverse: "The two passwords don't match",
+    passwordLunga: "The password is too long: at most 72 characters, fewer with accented letters or emoji",
     collegamentoScaduto:
       "Invalid or expired link. Request a new one: old links stop working after one hour or after their first use.",
     passwordReimpostata: "Password reset. You can log in now.",
@@ -67,6 +75,20 @@ export interface ResetState {
 }
 
 const TOKEN_TTL_MINUTES = 60;
+
+/**
+ * Il collegamento si mostra e si registra solo in sviluppo e su un indirizzo
+ * locale: un'istanza di prova esposta in rete con `next dev` lo restituiva a
+ * chiunque conoscesse un'email.
+ */
+function devLinkAllowed(): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  try {
+    return ["localhost", "127.0.0.1", "[::1]"].includes(new URL(siteUrl()).hostname);
+  } catch {
+    return false;
+  }
+}
 
 /** L'impronta e' cio' che si conserva; il gettone vive solo nell'indirizzo. */
 function fingerprint(token: string): string {
@@ -85,7 +107,7 @@ export async function requestResetAction(
   }
 
   const requestSchema = z.object({
-    email: z.string().trim().toLowerCase().email(t.emailNonValida),
+    email: z.string().trim().toLowerCase().max(EMAIL_MAX_CHARS, t.emailNonValida).email(t.emailNonValida),
   });
 
   const parsed = requestSchema.safeParse({ email: formData.get("email") });
@@ -93,6 +115,8 @@ export async function requestResetAction(
 
   const limit = rateLimit("passwordReset", parsed.data.email);
   if (!limit.allowed) return { error: retryMessage(limit, locale) };
+  const ipLimit = rateLimit("passwordResetIp", await currentIp());
+  if (!ipLimit.allowed) return { error: retryMessage(ipLimit, locale) };
 
   // Risposta identica in ogni caso: e' il punto dell'intera funzione.
   const generic: ResetState = { success: t.rispostaGenerica };
@@ -115,9 +139,13 @@ export async function requestResetAction(
   const link = `${siteUrl()}/password/${token}`;
 
   // QUI va l'invio dell'email quando ci sara' un fornitore configurato.
+  if (!devLinkAllowed()) {
+    // nel registro solo che c'e' stata una richiesta: mai l'email, mai il gettone
+    console.info(`[recupero password] richiesta per l'utente ${user.id} (invio email non configurato)`);
+    return generic;
+  }
   console.info(`[recupero password] collegamento per ${parsed.data.email}: ${link}`);
-
-  return process.env.NODE_ENV === "production" ? generic : { ...generic, devLink: link };
+  return { ...generic, devLink: link };
 }
 
 export async function completeResetAction(
@@ -134,7 +162,10 @@ export async function completeResetAction(
   const resetSchema = z
     .object({
       token: z.string().min(10),
-      password: z.string().min(PASSWORD_MIN, t.passwordCorta(PASSWORD_MIN)).max(200),
+      password: z
+        .string()
+        .min(PASSWORD_MIN, t.passwordCorta(PASSWORD_MIN))
+        .refine((password) => !passwordTooLong(password), t.passwordLunga),
       repeat: z.string(),
     })
     .refine((data) => data.password === data.repeat, {
@@ -163,22 +194,38 @@ export async function completeResetAction(
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
 
-  await db.transaction(async (tx) => {
+  const done = await db.transaction(async (tx) => {
+    // Il gettone si consuma con una condizione, non dopo averlo letto: due
+    // invii nello stesso istante passavano tutti e due il controllo di sopra.
+    const [spent] = await tx
+      .update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(
+        and(
+          eq(passwordResetTokens.id, row.id),
+          isNull(passwordResetTokens.usedAt),
+          gt(passwordResetTokens.expiresAt, new Date()),
+        ),
+      )
+      .returning({ userId: passwordResetTokens.userId });
+    if (!spent) return false;
+
     await tx
       .update(users)
       .set({ passwordHash, updatedAt: new Date() })
-      .where(eq(users.id, row.userId));
+      .where(eq(users.id, spent.userId));
 
-    await tx
-      .update(passwordResetTokens)
-      .set({ usedAt: new Date() })
-      .where(eq(passwordResetTokens.id, row.id));
+    // gli altri collegamenti chiesti nel frattempo non valgono piu'
+    await invalidateResetTokens(tx, spent.userId);
 
     // Chi reimposta la password lo fa spesso perche' ha perso il controllo
-    // dell'account: le sessioni aperte da altri vanno chiuse.
-    await tx.delete(sessions).where(eq(sessions.userId, row.userId));
+    // dell'account: le sessioni aperte da altri vanno chiuse (quelle JWT le
+    // chiude l'impronta della password nel gettone, vedi auth/index.ts).
+    await tx.delete(sessions).where(eq(sessions.userId, spent.userId));
+    return true;
   });
 
+  if (!done) return { error: t.collegamentoScaduto };
   return { success: t.passwordReimpostata };
 }
 

@@ -2,13 +2,14 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { testi, type Locale } from "@/lib/i18n/locale";
 import {
-  parseMarkdown,
+  isInternalHref,
+  parseDocument,
   plainText,
   slugify,
-  tableOfContents,
   type Block,
   type Heading,
   type Inline,
+  type MarkdownDocument,
 } from "@/lib/markdown";
 import { cx, display } from "./ui";
 
@@ -26,16 +27,22 @@ const TESTI = testi({
  *
  * I titoli portano l'ancora calcolata dal testo, cosi' l'indice a lato e il
  * collegamento condiviso puntano allo stesso posto.
+ *
+ * Chi mostra anche l'indice passa `parsed` (da parseDocument) invece di
+ * `source`: blocchi e indice escono dalla stessa analisi, che su un testo di
+ * 60.000 caratteri e' il lavoro piu' caro della pagina.
  */
-export function Markdown({ source, className }: { source: string; className?: string }) {
-  const blocks = parseMarkdown(source);
+export function Markdown({
+  className,
+  ...input
+}: ({ source: string } | { parsed: MarkdownDocument }) & { className?: string }) {
+  const { blocks, headings } = "parsed" in input ? input.parsed : parseDocument(input.source);
   const anchors = new Map<number, string>();
 
-  const toc = tableOfContents(blocks);
   let headingIndex = 0;
   blocks.forEach((block, index) => {
     if (block.kind === "heading") {
-      const entry = toc[headingIndex++];
+      const entry = headings[headingIndex++];
       if (entry) anchors.set(index, entry.id);
     }
   });
@@ -136,8 +143,10 @@ function InlineView({ parts }: { parts: readonly Inline[] }): ReactNode {
       case "link":
         // I collegamenti interni passano da Link, gli esterni no: su un
         // indirizzo esterno la navigazione lato client non serve, e rel
-        // impedisce alla pagina di destinazione di manipolare questa.
-        return part.href.startsWith("/") ? (
+        // impedisce alla pagina di destinazione di manipolare questa. "ugc"
+        // dice ai motori di ricerca che il collegamento l'ha scritto un utente,
+        // non il sito: e' il segnale che toglie interesse allo spam nelle guide.
+        return isInternalHref(part.href) ? (
           <Link key={index} href={part.href} className="text-brand-deep underline decoration-brand/60 underline-offset-2 hover:text-ink">
             {part.value}
           </Link>
@@ -145,7 +154,7 @@ function InlineView({ parts }: { parts: readonly Inline[] }): ReactNode {
           <a
             key={index}
             href={part.href}
-            rel="nofollow noopener noreferrer"
+            rel="ugc nofollow noopener noreferrer"
             target="_blank"
             className="text-brand-deep underline decoration-brand/60 underline-offset-2 hover:text-ink"
           >
@@ -198,9 +207,11 @@ export function TableOfContents({
   );
 }
 
-/** Riesporta per le pagine, che non devono conoscere il parser. */
-export function headingsOf(source: string): Heading[] {
-  return tableOfContents(parseMarkdown(source));
-}
-
-export { plainText, slugify };
+/**
+ * Riesporta per le pagine, che non devono conoscere il parser. Per l'indice si
+ * usa parseDocument(testo).headings, e lo stesso risultato va a Markdown come
+ * `parsed`: fino all'11/10 c'era headingsOf, che analizzava il testo una
+ * seconda volta solo per i titoli.
+ */
+export { parseDocument, plainText, slugify };
+export type { MarkdownDocument };

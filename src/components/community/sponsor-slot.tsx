@@ -1,6 +1,7 @@
 import type { SponsorItem } from "@/lib/community/types";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { safeHref } from "@/lib/markdown";
 
 const TESTI = testi({
   it: { contenuto: "Contenuto sponsorizzato", etichetta: "Sponsorizzato" },
@@ -16,9 +17,20 @@ const TESTI = testi({
  * una convenzione che qualcuno un giorno dimentichera'.
  *
  * L'etichetta e' obbligatoria e sempre visibile (DSA).
+ *
+ * L'indirizzo passa da safeHref come quelli delle guide: arriva dal database,
+ * e fino all'11/10 finiva nell'href cosi' com'era. Un `javascript:` scritto
+ * nel pannello degli sponsor (o in una riga alterata) sarebbe stato codice
+ * eseguito al clic da chiunque leggesse le discussioni. Una voce con indirizzo
+ * rifiutato non compare: uno spazio a pagamento senza destinazione non serve
+ * a nessuno.
  */
 export async function SponsorSlot({ items }: { items: readonly SponsorItem[] }) {
-  if (items.length === 0) return null;
+  const safe = items.flatMap((item) => {
+    const href = safeHref(item.targetUrl);
+    return href ? [{ ...item, href }] : [];
+  });
+  if (safe.length === 0) return null;
   const t = TESTI[await getLocale()];
 
   return (
@@ -27,13 +39,13 @@ export async function SponsorSlot({ items }: { items: readonly SponsorItem[] }) 
         {t.etichetta}
       </span>
 
-      {items.map((item, index) => (
+      {safe.map((item, index) => (
         <div
           key={item.id}
           className={index > 0 ? "mt-3.5 border-t border-rule-2 pt-3.5" : undefined}
         >
           <a
-            href={item.targetUrl}
+            href={item.href}
             rel="nofollow sponsored noopener"
             className="text-sm font-medium hover:underline"
           >

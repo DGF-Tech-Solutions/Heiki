@@ -52,16 +52,18 @@ export function StatusControls({
   guideId,
   game,
   status,
-  canReview,
-  canSubmit,
+  transitions,
 }: {
   guideId: string;
   game: string;
   status: GuideStatus;
-  /** redattore: pubblica e archivia */
-  canReview: boolean;
-  /** autore: manda in revisione e ritira in bozza */
-  canSubmit: boolean;
+  /**
+   * Per ogni stato, quelli in cui chi guarda puo' portare la guida. Li calcola
+   * la pagina con la stessa regola dell'azione (canMoveGuide): fino all'11/10 i
+   * pulsanti dell'autore comparivano anche su una guida archiviata, e il server
+   * li accettava.
+   */
+  transitions: Readonly<Record<GuideStatus, readonly GuideStatus[]>>;
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
@@ -85,11 +87,12 @@ export function StatusControls({
 
   // Le transizioni offerte dipendono da dove si e' adesso: elencarle tutte
   // sempre significherebbe mostrare pulsanti che non fanno niente.
+  const allowed = transitions[current];
   const options: { status: GuideStatus; label: string; allowed: boolean }[] = [
-    { status: "IN_REVIEW", label: t.mandaRevisione, allowed: canSubmit || canReview },
-    { status: "DRAFT", label: t.riportaBozza, allowed: canSubmit || canReview },
-    { status: "PUBLISHED", label: t.pubblica, allowed: canReview },
-    { status: "ARCHIVED", label: t.archivia, allowed: canReview },
+    { status: "IN_REVIEW", label: t.mandaRevisione, allowed: allowed.includes("IN_REVIEW") },
+    { status: "DRAFT", label: t.riportaBozza, allowed: allowed.includes("DRAFT") },
+    { status: "PUBLISHED", label: t.pubblica, allowed: allowed.includes("PUBLISHED") },
+    { status: "ARCHIVED", label: t.archivia, allowed: allowed.includes("ARCHIVED") },
   ];
 
   return (

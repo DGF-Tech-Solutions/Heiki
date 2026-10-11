@@ -25,7 +25,7 @@ import { auth } from "@/lib/auth";
 import { can, type Role } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
 import { comments, modActions, posts, reports, suspensions, users } from "@/lib/db/schema";
-import { suspensionFor } from "./suspension";
+import { canLiftSuspension, canSuspend, requireActive, suspensionFor } from "./suspension";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
@@ -43,7 +43,8 @@ const TESTI = testi({
     nonHaiPermessi: "Non hai i permessi per farlo.",
     contenutoNascosto: "Contenuto nascosto.",
     contenutoRipristinato: "Contenuto ripristinato.",
-    segnalazioneInesistente: "Segnalazione inesistente.",
+    contenutoInesistente: "Contenuto inesistente.",
+    segnalazioneInesistente: "Segnalazione inesistente o già chiusa.",
     segnalazioneChiusa: "Segnalazione chiusa.",
     segnalazioneArchiviata: "Segnalazione archiviata.",
     utenteNonValido: "Identificativo utente non valido",
@@ -55,6 +56,9 @@ const TESTI = testi({
     nonSospendereTeStesso: "Non puoi sospendere te stesso.",
     nonSospendereModeratore: "Solo un amministratore può sospendere un moderatore.",
     nonRevocareTua: "Non puoi revocare una sospensione che riguarda te.",
+    revocaSoloAmministratore:
+      "Questa sospensione la revoca solo un amministratore: riguarda lo staff o l'ha data un amministratore.",
+    sospensioneInesistente: "Sospensione inesistente o già revocata.",
     utenteSospeso: "Utente sospeso.",
     sospensioneRevocata: "Sospensione revocata.",
   },
@@ -69,7 +73,8 @@ const TESTI = testi({
     nonHaiPermessi: "You don't have permission to do that.",
     contenutoNascosto: "Content hidden.",
     contenutoRipristinato: "Content restored.",
-    segnalazioneInesistente: "Report not found.",
+    contenutoInesistente: "Content not found.",
+    segnalazioneInesistente: "Report not found or already closed.",
     segnalazioneChiusa: "Report closed.",
     segnalazioneArchiviata: "Report dismissed.",
     utenteNonValido: "Invalid user ID",
@@ -81,6 +86,9 @@ const TESTI = testi({
     nonSospendereTeStesso: "You can't suspend yourself.",
     nonSospendereModeratore: "Only an administrator can suspend a moderator.",
     nonRevocareTua: "You can't lift a suspension that concerns you.",
+    revocaSoloAmministratore:
+      "Only an administrator can lift this suspension: it concerns staff or was issued by an administrator.",
+    sospensioneInesistente: "Suspension not found or already lifted.",
     utenteSospeso: "User suspended.",
     sospensioneRevocata: "Suspension lifted.",
   },
@@ -149,6 +157,11 @@ export async function reportAction(
   const current = await viewer();
   if (!current) return { ok: false, error: t.entraPerSegnalare };
 
+  // Chi e' sospeso non segnala: fino all'11/10 poteva, e la sospensione si
+  // aggirava riempiendo la coda dei moderatori.
+  const blocked = await requireActive(current.id, locale);
+  if (blocked) return { ok: false, error: blocked };
+
   const parsed = reportSchema(t).safeParse({
     targetType: formData.get("targetType"),
     targetId: formData.get("targetId"),
@@ -189,14 +202,23 @@ export async function reportAction(
 
 /* --------------------------------------------------------- moderazione -- */
 
+/** La transazione di Drizzle: il registro si scrive sempre dentro quella dell'azione. */
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Una riga del registro, nella stessa transazione dell'azione che racconta: se
+ * una delle due fallisce non succede nessuna delle due. Fino all'11/10 erano due
+ * scritture separate, e un'azione poteva riuscire senza lasciare traccia.
+ */
 async function logAction(
+  tx: Tx,
   moderatorId: string,
-  targetType: Target,
+  targetType: (typeof modActions.$inferInsert)["targetType"],
   targetId: string,
   action: string,
   reason?: string,
 ): Promise<void> {
-  await db.insert(modActions).values({
+  await tx.insert(modActions).values({
     moderatorId,
     targetType,
     targetId,
@@ -204,6 +226,18 @@ async function logAction(
     reason: reason ?? null,
   });
 }
+
+/** Un identificativo vero: un id inventato si respinge qui, non con un errore del database. */
+const UUID = z.string().uuid();
+
+// I tipi dei parametri sono una promessa del client, non una garanzia: l'azione
+// e' un indirizzo che chiunque puo' chiamare con quello che vuole. Fino all'11/10
+// un targetType inventato nascondeva un commento e poi faceva fallire il registro.
+const HIDDEN_INPUT = z.object({
+  targetType: z.enum(["POST", "COMMENT"]),
+  targetId: UUID,
+  hidden: z.boolean(),
+});
 
 export async function setHiddenAction(
   targetType: Target,
@@ -214,18 +248,41 @@ export async function setHiddenAction(
   const mod = await moderator();
   if (!mod) return { ok: false, error: t.nonHaiPermessi };
 
-  if (targetType === "POST") {
-    await db.update(posts).set({ hidden }).where(eq(posts.id, targetId));
-  } else {
-    await db.update(comments).set({ hidden }).where(eq(comments.id, targetId));
-  }
+  const parsed = HIDDEN_INPUT.safeParse({ targetType, targetId, hidden });
+  if (!parsed.success) return { ok: false, error: t.datiNonValidi };
+  const input = parsed.data;
 
-  await logAction(mod.id, targetType, targetId, hidden ? "hide" : "unhide");
+  const changed = await db.transaction(async (tx) => {
+    const [row] =
+      input.targetType === "POST"
+        ? await tx
+            .update(posts)
+            .set({ hidden: input.hidden })
+            .where(eq(posts.id, input.targetId))
+            .returning({ id: posts.id })
+        : await tx
+            .update(comments)
+            .set({ hidden: input.hidden })
+            .where(eq(comments.id, input.targetId))
+            .returning({ id: comments.id });
+    // niente riga, niente registro: un'azione su un contenuto che non c'e' non e' un'azione
+    if (!row) return false;
+    await logAction(tx, mod.id, input.targetType, input.targetId, input.hidden ? "hide" : "unhide");
+    return true;
+  });
+  if (!changed) return { ok: false, error: t.contenutoInesistente };
 
   revalidatePath("/moderazione");
   revalidatePath("/", "layout");
-  return { ok: true, message: hidden ? t.contenutoNascosto : t.contenutoRipristinato };
+  return { ok: true, message: input.hidden ? t.contenutoNascosto : t.contenutoRipristinato };
 }
+
+const RESOLVE_INPUT = z.object({
+  reportId: UUID,
+  // solo i due esiti che chiudono: fino all'11/10 passava anche "OPEN", che
+  // riapriva la segnalazione mentre il registro scriveva «dismiss»
+  outcome: z.enum(["RESOLVED", "DISMISSED"]),
+});
 
 export async function resolveReportAction(
   reportId: string,
@@ -235,24 +292,34 @@ export async function resolveReportAction(
   const mod = await moderator();
   if (!mod) return { ok: false, error: t.nonHaiPermessi };
 
-  const report = await db.query.reports.findFirst({
-    where: eq(reports.id, reportId),
-    columns: { targetType: true, targetId: true },
-  });
-  if (!report) return { ok: false, error: t.segnalazioneInesistente };
+  const parsed = RESOLVE_INPUT.safeParse({ reportId, outcome });
+  if (!parsed.success) return { ok: false, error: t.datiNonValidi };
+  const input = parsed.data;
 
-  await db.update(reports).set({ status: outcome }).where(eq(reports.id, reportId));
-  await logAction(
-    mod.id,
-    report.targetType as Target,
-    report.targetId,
-    outcome === "RESOLVED" ? "resolve" : "dismiss",
-  );
+  // Solo una segnalazione ancora aperta: con due moderatori sulla stessa riga
+  // decide il primo, e il registro non racconta due chiusure.
+  const closed = await db.transaction(async (tx) => {
+    const [report] = await tx
+      .update(reports)
+      .set({ status: input.outcome })
+      .where(and(eq(reports.id, input.reportId), eq(reports.status, "OPEN")))
+      .returning({ targetType: reports.targetType, targetId: reports.targetId });
+    if (!report) return false;
+    await logAction(
+      tx,
+      mod.id,
+      report.targetType,
+      report.targetId,
+      input.outcome === "RESOLVED" ? "resolve" : "dismiss",
+    );
+    return true;
+  });
+  if (!closed) return { ok: false, error: t.segnalazioneInesistente };
 
   revalidatePath("/moderazione");
   return {
     ok: true,
-    message: outcome === "RESOLVED" ? t.segnalazioneChiusa : t.segnalazioneArchiviata,
+    message: input.outcome === "RESOLVED" ? t.segnalazioneChiusa : t.segnalazioneArchiviata,
   };
 }
 
@@ -291,27 +358,29 @@ export async function suspendAction(
   });
   if (!target) return { ok: false, error: t.utenteInesistente };
 
-  // Un moderatore non sospende un amministratore: la gerarchia va rispettata,
-  // altrimenti chi ha il ruolo minore puo' disattivare chi lo sorveglia.
-  if (target.role === "ADMIN") {
-    return { ok: false, error: t.nonSospendereAmministratore };
-  }
-  if (target.id === mod.id) {
-    return { ok: false, error: t.nonSospendereTeStesso };
-  }
-  // fra moderatori decide un amministratore: se no due moderatori in lite
-  // possono sospendersi a vicenda
-  if (target.role === "MODERATOR" && mod.role !== "ADMIN") {
-    return { ok: false, error: t.nonSospendereModeratore };
+  // La gerarchia sta in canSuspend (suspension.ts), dove la provano i test.
+  const verdict = canSuspend(mod, target);
+  if (!verdict.ok) {
+    const refusals = {
+      nonModeratore: t.nonHaiPermessi,
+      amministratore: t.nonSospendereAmministratore,
+      seStesso: t.nonSospendereTeStesso,
+      moderatore: t.nonSospendereModeratore,
+    } as const;
+    return { ok: false, error: refusals[verdict.reason] };
   }
 
-  await db.insert(suspensions).values({
-    userId: target.id,
-    moderatorId: mod.id,
-    reason: parsed.data.reason,
-    // 0 giorni significa a tempo indeterminato: e' piu' chiaro di una data
-    // lontanissima, e la differenza si legge nella colonna.
-    until: parsed.data.days > 0 ? new Date(Date.now() + parsed.data.days * 86_400_000) : null,
+  const { reason, days } = parsed.data;
+  await db.transaction(async (tx) => {
+    await tx.insert(suspensions).values({
+      userId: target.id,
+      moderatorId: mod.id,
+      reason,
+      // 0 giorni significa a tempo indeterminato: e' piu' chiaro di una data
+      // lontanissima, e la differenza si legge nella colonna.
+      until: days > 0 ? new Date(Date.now() + days * 86_400_000) : null,
+    });
+    await logAction(tx, mod.id, "USER", target.id, "suspend", reason);
   });
 
   revalidatePath("/moderazione");
@@ -323,18 +392,46 @@ export async function liftSuspensionAction(suspensionId: string): Promise<ModRes
   const mod = await moderator();
   if (!mod) return { ok: false, error: t.nonHaiPermessi };
 
-  if (!z.string().uuid().safeParse(suspensionId).success) return { ok: false, error: t.datiNonValidi };
+  if (!UUID.safeParse(suspensionId).success) return { ok: false, error: t.datiNonValidi };
   const suspension = await db.query.suspensions.findFirst({
-    where: eq(suspensions.id, suspensionId),
-    columns: { userId: true },
+    where: and(eq(suspensions.id, suspensionId), isNull(suspensions.liftedAt)),
+    columns: { id: true },
+    with: {
+      user: { columns: { id: true, role: true } },
+      moderator: { columns: { role: true } },
+    },
   });
-  if (!suspension) return { ok: false, error: t.datiNonValidi };
-  if (suspension.userId === mod.id) return { ok: false, error: t.nonRevocareTua };
+  if (!suspension) return { ok: false, error: t.sospensioneInesistente };
 
-  await db
-    .update(suspensions)
-    .set({ liftedAt: new Date() })
-    .where(eq(suspensions.id, suspensionId));
+  // Fino all'11/10 bastava essere moderatore: ora la revoca che tocca lo staff,
+  // o che disfa la decisione di un amministratore, spetta a un amministratore.
+  const verdict = canLiftSuspension({
+    actor: mod,
+    suspended: suspension.user,
+    issuerRole: suspension.moderator.role,
+  });
+  if (!verdict.ok) {
+    const refusals = {
+      nonModeratore: t.nonHaiPermessi,
+      propria: t.nonRevocareTua,
+      serveAmministratore: t.revocaSoloAmministratore,
+    } as const;
+    return { ok: false, error: refusals[verdict.reason] };
+  }
+
+  const lifted = await db.transaction(async (tx) => {
+    // condizionata a «non ancora revocata»: con due moderatori sulla stessa riga
+    // la revoca e la sua traccia restano una sola
+    const [row] = await tx
+      .update(suspensions)
+      .set({ liftedAt: new Date(), liftedBy: mod.id })
+      .where(and(eq(suspensions.id, suspension.id), isNull(suspensions.liftedAt)))
+      .returning({ id: suspensions.id });
+    if (!row) return false;
+    await logAction(tx, mod.id, "USER", suspension.user.id, "lift_suspension");
+    return true;
+  });
+  if (!lifted) return { ok: false, error: t.sospensioneInesistente };
 
   revalidatePath("/moderazione");
   return { ok: true, message: t.sospensioneRevocata };
@@ -364,11 +461,13 @@ export async function reportQueue(): Promise<QueueItem[]> {
   const mod = await moderator();
   if (!mod) return [];
 
+  // Delle persone si leggono solo le colonne che la coda mostra: fino all'11/10
+  // si caricava la riga intera di users, email e hash della password compresi.
   const rows = await db.query.reports.findMany({
     where: eq(reports.status, "OPEN"),
     orderBy: [desc(reports.createdAt)],
     limit: 100,
-    with: { reporter: true },
+    with: { reporter: { columns: { username: true } } },
   });
 
   const items: QueueItem[] = [];
@@ -385,7 +484,10 @@ export async function reportQueue(): Promise<QueueItem[]> {
       const post = await db.query.posts.findFirst({
         where: eq(posts.id, row.targetId),
         columns: { title: true, bodyMd: true, hidden: true, id: true },
-        with: { hub: { with: { game: true } }, author: true },
+        with: {
+          hub: { columns: { id: true }, with: { game: { columns: { slug: true } } } },
+          author: { columns: { id: true, username: true } },
+        },
       });
       if (post) {
         preview = `${post.title} — ${post.bodyMd.slice(0, 160)}`;
@@ -399,7 +501,13 @@ export async function reportQueue(): Promise<QueueItem[]> {
       const comment = await db.query.comments.findFirst({
         where: eq(comments.id, row.targetId),
         columns: { bodyMd: true, hidden: true, postId: true },
-        with: { post: { with: { hub: { with: { game: true } } } }, author: true },
+        with: {
+          post: {
+            columns: { id: true },
+            with: { hub: { columns: { id: true }, with: { game: { columns: { slug: true } } } } },
+          },
+          author: { columns: { id: true, username: true } },
+        },
       });
       if (comment) {
         preview = comment.bodyMd.slice(0, 200);
@@ -434,6 +542,13 @@ export async function reportQueue(): Promise<QueueItem[]> {
 export interface ActiveSuspension {
   id: string;
   username: string;
+  /**
+   * L'utente sospeso e il suo ruolo, e il ruolo di oggi di chi l'ha sospeso:
+   * servono alla pagina per chiedere a canLiftSuspension se mostrare «Revoca».
+   */
+  userId: string;
+  userRole: Role;
+  issuerRole: Role;
   reason: string;
   until: string | null;
   createdAt: string;
@@ -447,12 +562,18 @@ export async function activeSuspensions(): Promise<ActiveSuspension[]> {
     where: isNull(suspensions.liftedAt),
     orderBy: [desc(suspensions.createdAt)],
     limit: 50,
-    with: { user: true },
+    with: {
+      user: { columns: { id: true, username: true, role: true } },
+      moderator: { columns: { role: true } },
+    },
   });
 
   return rows.map((row) => ({
     id: row.id,
     username: row.user.username,
+    userId: row.user.id,
+    userRole: row.user.role,
+    issuerRole: row.moderator.role,
     reason: row.reason,
     until: row.until?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
@@ -464,16 +585,20 @@ export async function recentModActions(limit = 30) {
   const mod = await moderator();
   if (!mod) return [];
 
+  // anche questa e' un'azione richiamabile dal browser: il numero arriva da fuori
+  const take = Number.isInteger(limit) ? Math.min(Math.max(limit, 1), 100) : 30;
   const rows = await db.query.modActions.findMany({
     orderBy: [desc(modActions.createdAt)],
-    limit,
-    with: { moderator: true },
+    limit: take,
+    with: { moderator: { columns: { username: true } } },
   });
 
   return rows.map((row) => ({
     id: row.id,
     action: row.action,
     targetType: row.targetType,
+    /** il motivo o il dettaglio dell'azione (es. «USER->MODERATOR» per set_role), null se non c'e' */
+    reason: row.reason ?? null,
     moderator: row.moderator.username,
     createdAt: row.createdAt.toISOString(),
   }));

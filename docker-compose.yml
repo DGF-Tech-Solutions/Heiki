@@ -16,8 +16,10 @@ services:
       POSTGRES_USER: gachazone
       POSTGRES_PASSWORD: gachazone
       POSTGRES_DB: gachazone
+    # Solo da questa macchina: con "5432:5432" il database con la password di
+    # serie era raggiungibile da tutta la rete locale (e da internet su un VPS)
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - gachazone-pgdata:/var/lib/postgresql/data
     healthcheck:

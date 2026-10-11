@@ -15,11 +15,13 @@ import { createHash, randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { can, type Role } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
 import {
   gameAccounts,
+  modActions,
   notifications,
   users,
   powerVerifications,
@@ -27,7 +29,7 @@ import {
 } from "@/lib/db/schema";
 import { parseSetup, type AccountSetup } from "@/lib/games/account-setup";
 import { notifyModerators } from "@/lib/discord";
-import { suspensionFor } from "@/lib/moderation/suspension";
+import { requireActive, suspensionFor } from "@/lib/moderation/suspension";
 import { boxLimitsFrom, boxToJson, parseBox, type HeroBox } from "@/lib/games/hero-box";
 import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { getGameModule } from "@/lib/games/registry";
@@ -129,11 +131,26 @@ interface Viewer {
   readonly role: Role;
 }
 
-async function context(): Promise<{ t: Testi; viewer: Viewer | null; error?: string }> {
-  const t = TESTI[await getLocale()];
+/**
+ * Chi chiede e in che lingua. Con `active` ferma anche chi e' sospeso: salvare
+ * l'account, chiedere l'eroe del giorno e mandare una schermata sono scritture,
+ * e fino all'11/10 un account sospeso le faceva tutte (la schermata finiva
+ * davanti ai moderatori). Ritirare una verifica resta permesso: toglie dati.
+ */
+async function context(options: { active?: boolean } = {}): Promise<{
+  t: Testi;
+  viewer: Viewer | null;
+  error?: string;
+}> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
   if (!(await databaseReachable())) return { t, viewer: null, error: t.databaseAssente };
   const session = await auth();
   if (!session?.user?.id) return { t, viewer: null, error: t.entra };
+  if (options.active) {
+    const blocked = await requireActive(session.user.id, locale);
+    if (blocked) return { t, viewer: null, error: blocked };
+  }
   return { t, viewer: { id: session.user.id, role: session.user.role } };
 }
 
@@ -219,7 +236,7 @@ async function upsertAccount(
  * l'ultima modifica nel browser).
  */
 export async function saveGameAccountAction(gameSlug: string, payload: unknown): Promise<SaveAccountResult> {
-  const { t, viewer, error } = await context();
+  const { t, viewer, error } = await context({ active: true });
   if (!viewer) return { ok: false, error };
 
   const limit = rateLimit("accountSave", viewer.id);
@@ -240,7 +257,7 @@ export async function saveGameAccountAction(gameSlug: string, payload: unknown):
  * verifica aperta di oggi o ne apre una nuova.
  */
 export async function requestChallengeAction(gameSlug: string, payload: unknown): Promise<VerificationResult> {
-  const { t, viewer, error } = await context();
+  const { t, viewer, error } = await context({ active: true });
   if (!viewer) return { ok: false, error };
 
   const limit = rateLimit("verification", viewer.id);
@@ -294,7 +311,7 @@ export async function requestChallengeAction(gameSlug: string, payload: unknown)
 
 /** «Non ce l'ho»: un altro eroe, al massimo MAX_REROLLS volte al giorno. */
 export async function rerollChallengeAction(gameSlug: string): Promise<VerificationResult> {
-  const { t, viewer, error } = await context();
+  const { t, viewer, error } = await context({ active: true });
   if (!viewer) return { ok: false, error };
 
   const limit = rateLimit("verification", viewer.id);
@@ -327,7 +344,7 @@ export async function rerollChallengeAction(gameSlug: string): Promise<Verificat
  * giorno dopo l'eroe e' un altro, e una schermata vecchia non prova niente.
  */
 export async function submitScreenshotAction(formData: FormData): Promise<VerificationResult> {
-  const { t, viewer, error } = await context();
+  const { t, viewer, error } = await context({ active: true });
   if (!viewer) return { ok: false, error };
 
   const limit = rateLimit("verification", viewer.id);
@@ -446,7 +463,9 @@ export async function reviewVerificationAction(formData: FormData): Promise<Revi
 
   const id = String(formData.get("id") ?? "");
   const decision = String(formData.get("decision") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(id) || (decision !== "approve" && decision !== "reject")) {
+  // un UUID vero: fino all'11/10 bastavano 36 fra cifre e trattini, e un id
+  // malformato arrivava al database come errore 500
+  if (!z.string().uuid().safeParse(id).success || (decision !== "approve" && decision !== "reject")) {
     return { ok: false, error: t.datiNonValidi };
   }
 
@@ -491,6 +510,14 @@ export async function reviewVerificationAction(formData: FormData): Promise<Revi
         type: "POWER_VERIFIED",
         verificationId: row.id,
       });
+      // la decisione e la sua traccia insieme: chi ha confermato quale classe
+      await tx.insert(modActions).values({
+        moderatorId: viewer.id,
+        targetType: "VERIFICATION",
+        targetId: row.id,
+        action: "approve",
+        reason: String(power),
+      });
       return true;
     });
     revalidatePath("/moderazione");
@@ -512,6 +539,13 @@ export async function reviewVerificationAction(formData: FormData): Promise<Revi
       actorId: viewer.id,
       type: "POWER_REJECTED",
       verificationId: row.id,
+    });
+    await tx.insert(modActions).values({
+      moderatorId: viewer.id,
+      targetType: "VERIFICATION",
+      targetId: row.id,
+      action: "reject",
+      reason: note,
     });
     return true;
   });

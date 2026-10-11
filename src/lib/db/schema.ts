@@ -95,7 +95,39 @@ export const guideStatusEnum = pgEnum("guide_status", [
   "ARCHIVED",
 ]);
 
+/**
+ * Lo stato di una strategia dell'Endgame. Un consiglio di squadra nasce
+ * PUBLISHED; una guida (con un testo) nasce IN_REVIEW e la decide un
+ * moderatore. REJECTED resta all'autore, col motivo, per correggerla.
+ */
+export const strategyStatusEnum = pgEnum("strategy_status", ["PUBLISHED", "IN_REVIEW", "REJECTED"]);
+
+/** Le quattro modalita' dell'Endgame, coi nomi di `EndgameMode`. */
+export const endgameModeEnum = pgEnum("endgame_mode", [
+  "death-match",
+  "creature-nest",
+  "demon-king",
+  "supreme-deity",
+]);
+
 export const voteTargetEnum = pgEnum("vote_target", ["POST", "COMMENT", "GUIDE", "BUILD"]);
+
+/**
+ * Su cosa agisce una riga del registro della moderazione. Fino all'11/10 il
+ * registro usava `vote_target`, e le azioni su utenti, sponsor e verifiche non
+ * avevano dove scriversi: sospensioni, revoche, ruoli e decisioni sulle
+ * verifiche non lasciavano traccia (il ruolo si registrava come «POST»).
+ */
+export const modTargetEnum = pgEnum("mod_target", [
+  "POST",
+  "COMMENT",
+  "GUIDE",
+  "BUILD",
+  "USER",
+  "SPONSOR",
+  "VERIFICATION",
+  "STRATEGY",
+]);
 
 export const reportStatusEnum = pgEnum("report_status", ["OPEN", "RESOLVED", "DISMISSED"]);
 
@@ -732,6 +764,49 @@ export const posts = pgTable(
   ],
 );
 
+/**
+ * La scheda di un post «strategia dell'Endgame»: modalita', bersaglio,
+ * difficolta', squadra, set di artefatti, una nota per fase. Uno a uno col post,
+ * che porta titolo, note generali (`body_md`), voti e commenti.
+ *
+ * `target` e' "" (non null) per Re Demone e Divinita' Suprema, che hanno un
+ * bersaglio solo: cosi' l'uguaglianza nelle ricerche e l'indice funzionano
+ * senza casi a parte. `level` e' null per le bestie, dove conta solo
+ * `transcendent`.
+ */
+export const postStrategies = pgTable(
+  "post_strategies",
+  {
+    postId: uuid("post_id")
+      .primaryKey()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    gameId: uuid("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    mode: endgameModeEnum("mode").notNull(),
+    target: text("target").default("").notNull(),
+    level: integer("level"),
+    transcendent: boolean("transcendent").default(false).notNull(),
+    /** [{ hero, associate }] x 4, gli id del gioco */
+    team: jsonb("team").$type<{ hero: string; associate: string | null }[]>().notNull(),
+    artifactSet: text("artifact_set"),
+    /** una nota per fase, nell'ordine del modello; "" = niente */
+    phases: jsonb("phases").$type<string[]>().notNull(),
+    /** il titolo l'ha scritto il sito: si rifa' nella lingua di chi legge */
+    autoTitle: boolean("auto_title").default(false).notNull(),
+    status: strategyStatusEnum("status").notNull(),
+    reviewerId: uuid("reviewer_id").references(() => users.id, { onDelete: "set null" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    reviewNote: text("review_note"),
+    /** l'ultimo invio: l'ordine della coda di revisione */
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("post_strategies_lookup_idx").on(table.gameId, table.mode, table.target, table.status),
+    index("post_strategies_status_idx").on(table.status, table.submittedAt),
+  ],
+);
+
 export const comments = pgTable(
   "comments",
   {
@@ -796,7 +871,7 @@ export const modActions = pgTable(
     moderatorId: uuid("moderator_id")
       .notNull()
       .references(() => users.id),
-    targetType: voteTargetEnum("target_type").notNull(),
+    targetType: modTargetEnum("target_type").notNull(),
     targetId: uuid("target_id").notNull(),
     action: text("action").notNull(),
     reason: text("reason"),
@@ -873,6 +948,9 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   // l'esito della verifica della classe dell'account (actorId = il moderatore)
   "POWER_VERIFIED",
   "POWER_REJECTED",
+  // l'esito della revisione di una guida dell'Endgame (postId = la guida)
+  "STRATEGY_PUBLISHED",
+  "STRATEGY_REJECTED",
 ]);
 
 /**
@@ -986,6 +1064,8 @@ export const suspensions = pgTable(
     /** null = a tempo indeterminato */
     until: timestamp("until", { withTimezone: true }),
     liftedAt: timestamp("lifted_at", { withTimezone: true }),
+    /** chi ha revocato la sospensione (dall'11/10; prima restava solo quando) */
+    liftedBy: uuid("lifted_by").references(() => users.id),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("suspensions_user_idx").on(table.userId, table.liftedAt)],
@@ -1231,6 +1311,14 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
   hub: one(hubs, { fields: [posts.hubId], references: [hubs.id] }),
   author: one(users, { fields: [posts.authorId], references: [users.id] }),
   comments: many(comments),
+  // senza `fields`: la chiave sta dall'altra parte, e cosi' drizzle la tipizza
+  // come facoltativa (un post qualunque non ha una strategia)
+  strategy: one(postStrategies),
+}));
+
+export const postStrategiesRelations = relations(postStrategies, ({ one }) => ({
+  post: one(posts, { fields: [postStrategies.postId], references: [posts.id] }),
+  game: one(games, { fields: [postStrategies.gameId], references: [games.id] }),
 }));
 
 export const commentsRelations = relations(comments, ({ one, many }) => ({

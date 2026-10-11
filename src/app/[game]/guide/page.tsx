@@ -5,7 +5,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { buttonClass, cx, display, Empty, Notice, PageHeader, Tag } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
-import { getGuideStore } from "@/lib/guides/store";
+import { getGuideStore, isGuideDemo } from "@/lib/guides/store";
 import { isStale, statusLabel } from "@/lib/guides/types";
 import { formatDate } from "@/components/freshness";
 import { can } from "@/lib/auth/permissions";
@@ -97,8 +97,9 @@ export default async function GuidesPage({ params }: Props) {
 
   // Senza database si vede tutto il percorso: scrivere, mandare in revisione,
   // pubblicare. Mostrare solo l'elenco vorrebbe dire far valutare la sezione
-  // dalla sua parte meno interessante.
-  const role = store.volatile ? "EDITOR" : viewer?.role;
+  // dalla sua parte meno interessante. Solo senza database configurato: se e'
+  // configurato ma fermo, chi guarda resta un visitatore (vedi isGuideDemo).
+  const role = isGuideDemo(store) ? "EDITOR" : viewer?.role;
   const canWrite = can(role, "submitGuide");
   const canReview = can(role, "publishGuide");
 

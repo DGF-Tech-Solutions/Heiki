@@ -216,8 +216,10 @@ async function main(): Promise<void> {
     !otherGame.some((item) => item.id === postId),
   );
 
+  // Dal 10/10 il database non ha piu' lo sponsor d'esempio (seed.mts non lo
+  // crea): si controlla che la lettura riesca, non che ci sia una riga.
   const sponsors = await store.listSponsors();
-  check("lo slot sponsorizzato viene letto", sponsors.length > 0);
+  check("gli slot sponsorizzati si leggono", Array.isArray(sponsors));
 
   /* ----------------------------------------------------- grafo sociale -- */
 

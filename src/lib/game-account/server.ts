@@ -76,6 +76,9 @@ type GameAccountRow = typeof gameAccounts.$inferSelect;
 const gameIds = new Map<string, string>();
 
 export async function gameIdBySlug(slug: string): Promise<string | null> {
+  // lo slug arriva dalle azioni, cioe' dal browser: qualunque cosa che non sia
+  // uno slug plausibile e' «gioco sconosciuto», non un errore del database
+  if (typeof slug !== "string" || !/^[a-z0-9-]{1,64}$/.test(slug)) return null;
   const known = gameIds.get(slug);
   if (known) return known;
   const row = await db.query.games.findFirst({ where: eq(games.slug, slug), columns: { id: true } });

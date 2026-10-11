@@ -20,13 +20,14 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { can, type Role } from "@/lib/auth/permissions";
-import { databaseReachable, db } from "@/lib/db";
+import { databaseReachable, db, isDatabaseConfigured } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { testi } from "@/lib/i18n/locale";
+import { getGameModule } from "@/lib/games/registry";
+import { testi, type Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { normalizeCustomization } from "@/lib/profile/customization";
 import { suspensionFor, suspensionMessage } from "@/lib/moderation/suspension";
-import { getGuideStore, type GuideWriter } from "./store";
+import { canMoveGuide, getGuideStore, type GuideStore, type GuideWriter } from "./store";
 import { GUIDE_STATUSES } from "./types";
 
 export interface GuideActionState {
@@ -57,6 +58,7 @@ const TESTI = testi({
     soloRedattore: "Solo un redattore può dichiarare la patch di verifica.",
     verificataPer: (patch: string) => `Verificata per la patch ${patch}.`,
     dichiarazioneRimossa: "Dichiarazione rimossa: la guida risulta da rivedere.",
+    databaseFermo: "Il database non risponde: riprova fra poco. Niente è stato salvato.",
   },
   en: {
     titoloCorto: "The title must be at least 10 characters long",
@@ -80,6 +82,7 @@ const TESTI = testi({
     soloRedattore: "Only an editor can declare the verification patch.",
     verificataPer: (patch: string) => `Verified for patch ${patch}.`,
     dichiarazioneRimossa: "Declaration removed: the guide is now flagged for review.",
+    databaseFermo: "The database isn't responding: try again shortly. Nothing was saved.",
   },
 });
 
@@ -92,31 +95,48 @@ const DEMO_WRITER: GuideWriter = {
   accent: "brand",
 };
 
+type Writer =
+  | { ok: true; writer: GuideWriter; role: Role; store: GuideStore }
+  | { ok: false; reason: "ospite" | "offline" };
+
 /**
- * Chi scrive.
+ * Chi scrive, e su quale archivio.
  *
  * Senza database si scrive come autore dimostrativo: e' la stessa scelta fatta
  * per la community, e serve a poter provare la sezione prima di avere un
  * account. Il ruolo, in quel caso, e' quello che consente di vedere tutto il
  * percorso - altrimenti la modalita' di prova mostrerebbe solo un modulo che
  * non porta a niente.
+ *
+ * Dimostrativa solo se il database NON e' configurato. Configurato ma per un
+ * attimo irraggiungibile, fino all'11/10 chiunque - anche senza sessione -
+ * scriveva come redattore nell'archivio in memoria, e quello che pubblicava lo
+ * vedevano tutti finche' il server restava acceso. Ora e' un errore: niente
+ * ospite, niente redattore, niente salvato.
  */
-async function writer(): Promise<{ writer: GuideWriter; role: Role } | null> {
-  if (!(await databaseReachable())) {
-    return { writer: DEMO_WRITER, role: "EDITOR" };
+async function writer(): Promise<Writer> {
+  if (!isDatabaseConfigured()) {
+    return { ok: true, writer: DEMO_WRITER, role: "EDITOR", store: await getGuideStore() };
   }
+  if (!(await databaseReachable())) return { ok: false, reason: "offline" };
 
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id) return { ok: false, reason: "ospite" };
 
   const row = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
     columns: { id: true, username: true, role: true },
-    with: { profile: true },
+    with: { profile: { columns: { displayName: true, cosmetics: true } } },
   });
-  if (!row) return null;
+  if (!row) return { ok: false, reason: "ospite" };
+
+  // Fra la sonda qui sopra e questa il database puo' essere caduto: con un
+  // database configurato, l'archivio in memoria non si usa mai per scrivere.
+  const store = await getGuideStore();
+  if (store.volatile) return { ok: false, reason: "offline" };
 
   return {
+    ok: true,
     writer: {
       id: row.id,
       username: row.username,
@@ -124,8 +144,41 @@ async function writer(): Promise<{ writer: GuideWriter; role: Role } | null> {
       accent: normalizeCustomization(row.profile?.cosmetics).accent,
     },
     role: row.role,
+    store,
   };
 }
+
+/**
+ * Il messaggio di sospensione, o null se chi scrive puo' scrivere.
+ *
+ * Vale per ogni azione che cambia una guida, comprese quelle del redattore:
+ * fino all'11/10 un redattore sospeso non poteva correggere una virgola ma
+ * poteva ancora pubblicare, archiviare e dichiarare la patch verificata.
+ * Nella modalita' dimostrativa non c'e' un account vero da sospendere.
+ */
+async function suspendedMessage(
+  current: Extract<Writer, { ok: true }>,
+  locale: Locale,
+): Promise<string | null> {
+  if (current.store.volatile) return null;
+  const suspension = await suspensionFor(current.writer.id);
+  return suspension.active ? suspensionMessage(suspension, locale) : null;
+}
+
+/**
+ * Col database gli id sono UUID; nella modalita' dimostrativa no. Un id scritto
+ * a mano che non e' un UUID farebbe fallire la query con un errore 500: si
+ * respinge prima, come guida che non esiste.
+ */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function validId(store: GuideStore, id: string): boolean {
+  return store.volatile || UUID.test(id);
+}
+
+/** Solo i giochi del sito: un nome inventato creerebbe guide che nessuna pagina mostra. */
+const gameField = (t: Testi) =>
+  z.string().refine((slug) => getGameModule(slug) !== undefined, { message: t.datiNonValidi });
 
 // Gli schemi si costruiscono con i testi della lingua di chi scrive: i
 // messaggi di validazione arrivano a video cosi' come sono.
@@ -134,12 +187,21 @@ const titleField = (t: Testi) => z.string().trim().min(10, t.titoloCorto).max(14
 const bodyField = (t: Testi) => z.string().trim().min(200, t.testoCorto).max(60000, t.testoLungo);
 
 const createSchema = (t: Testi) =>
-  z.object({
-    game: z.string().min(1),
-    title: titleField(t),
-    body: bodyField(t),
-    characterId: z.string().trim().max(80).optional(),
-  });
+  z
+    .object({
+      game: gameField(t),
+      title: titleField(t),
+      body: bodyField(t),
+      characterId: z.string().trim().max(80).optional(),
+    })
+    // il personaggio deve essere uno di quelli che l'editor offre per quel gioco
+    .refine(
+      (data) =>
+        !data.characterId ||
+        (getGameModule(data.game)?.characters.some((entry) => entry.id === data.characterId) ??
+          false),
+      { message: t.datiNonValidi },
+    );
 
 export async function createGuideAction(
   _previous: GuideActionState,
@@ -149,7 +211,9 @@ export async function createGuideAction(
   const t = TESTI[locale];
 
   const current = await writer();
-  if (!current) return { error: t.entraPerScrivere };
+  if (!current.ok) {
+    return { error: current.reason === "offline" ? t.databaseFermo : t.entraPerScrivere };
+  }
 
   if (!can(current.role, "submitGuide")) {
     return { error: t.serveRuolo };
@@ -165,12 +229,10 @@ export async function createGuideAction(
     return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
-  if (await databaseReachable()) {
-    const suspension = await suspensionFor(current.writer.id);
-    if (suspension.active) return { error: suspensionMessage(suspension, locale) };
-  }
+  const suspended = await suspendedMessage(current, locale);
+  if (suspended) return { error: suspended };
 
-  const store = await getGuideStore();
+  const store = current.store;
   const slug = await store.create(
     {
       game: parsed.data.game,
@@ -187,9 +249,9 @@ export async function createGuideAction(
 
 const updateSchema = (t: Testi) =>
   z.object({
-    id: z.string().min(1),
-    game: z.string().min(1),
-    slug: z.string().min(1),
+    id: z.string().min(1).max(64),
+    game: gameField(t),
+    slug: z.string().min(1).max(200),
     title: titleField(t),
     body: bodyField(t),
     note: z.string().trim().max(300).optional(),
@@ -203,7 +265,9 @@ export async function updateGuideAction(
   const t = TESTI[locale];
 
   const current = await writer();
-  if (!current) return { error: t.entraPerModificare };
+  if (!current.ok) {
+    return { error: current.reason === "offline" ? t.databaseFermo : t.entraPerModificare };
+  }
 
   const parsed = updateSchema(t).safeParse({
     id: formData.get("id"),
@@ -217,7 +281,8 @@ export async function updateGuideAction(
     return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
   }
 
-  const store = await getGuideStore();
+  const store = current.store;
+  if (!validId(store, parsed.data.id)) return { error: t.nonEsiste };
   const authorId = await store.authorOf(parsed.data.id);
   if (authorId === null) return { error: t.nonEsiste };
 
@@ -230,10 +295,8 @@ export async function updateGuideAction(
     return { error: t.soloTue };
   }
 
-  if (await databaseReachable()) {
-    const suspension = await suspensionFor(current.writer.id);
-    if (suspension.active) return { error: suspensionMessage(suspension, locale) };
-  }
+  const suspended = await suspendedMessage(current, locale);
+  if (suspended) return { error: suspended };
 
   // la guida dell'indirizzo deve essere quella dell'id: il modulo si ricostruisce a mano
   const before = await store.get(parsed.data.game, parsed.data.slug);
@@ -260,54 +323,72 @@ export async function updateGuideAction(
   return { success: backToReview ? t.tornaInRevisione : t.modificheSalvate };
 }
 
-const statusSchema = z.object({
-  id: z.string().min(1),
-  game: z.string().min(1),
-  status: z.enum(GUIDE_STATUSES),
-});
+const statusSchema = (t: Testi) =>
+  z.object({
+    id: z.string().min(1).max(64),
+    game: gameField(t),
+    status: z.enum(GUIDE_STATUSES),
+  });
 
 export async function setGuideStatusAction(
   id: string,
   game: string,
   status: string,
 ): Promise<GuideActionState> {
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const current = await writer();
-  if (!current) return { error: t.entraPerFarlo };
+  if (!current.ok) {
+    return { error: current.reason === "offline" ? t.databaseFermo : t.entraPerFarlo };
+  }
 
-  const parsed = statusSchema.safeParse({ id, game, status });
+  const parsed = statusSchema(t).safeParse({ id, game, status });
   if (!parsed.success) return { error: t.statoNonValido };
 
-  const store = await getGuideStore();
-  const authorId = await store.authorOf(id);
-  if (authorId === null) return { error: t.nonEsiste };
+  const store = current.store;
+  if (!validId(store, parsed.data.id)) return { error: t.nonEsiste };
+  const state = await store.stateOf(parsed.data.id);
+  // il gioco dell'indirizzo deve essere quello della guida, come in updateGuideAction
+  if (state === null || state.game !== parsed.data.game) return { error: t.nonEsiste };
 
-  const own = authorId === current.writer.id;
+  const own = state.authorId === current.writer.id;
+  const editor = can(current.role, "publishGuide");
 
-  // Mandare in revisione e' un'azione dell'autore: e' lui che dichiara di aver
-  // finito. Pubblicare e archiviare no, e questa e' la riga che tiene in piedi
-  // il significato del contrassegno di patch verificata.
-  const allowed =
-    parsed.data.status === "IN_REVIEW" || parsed.data.status === "DRAFT"
-      ? own || can(current.role, "publishGuide")
-      : can(current.role, "publishGuide");
+  // Chi lo ha gia' fatto (un altro clic, un'altra scheda) non riceve un rifiuto.
+  if (state.status === parsed.data.status) return { success: t.statoAggiornato };
 
-  if (!allowed) return { error: t.senzaPermessi };
+  // Mandare in revisione e ritirare in bozza sono azioni dell'autore, e solo
+  // fra le sue bozze. Pubblicare e archiviare no, e questa e' la regola che
+  // tiene in piedi il significato del contrassegno di patch verificata.
+  if (!canMoveGuide(state.status, parsed.data.status, { own, editor })) {
+    return { error: t.senzaPermessi };
+  }
 
-  await store.setStatus(id, parsed.data.status);
+  const suspended = await suspendedMessage(current, locale);
+  if (suspended) return { error: suspended };
 
-  revalidatePath(`/${game}/guide`);
+  // `expected`: il permesso vale per lo stato appena letto. Se nel frattempo
+  // e' cambiato, il passaggio non si fa e chi agisce lo rivede da capo.
+  const moved = await store.setStatus(parsed.data.id, parsed.data.status, {
+    expected: state.status,
+    audit: editor && !own ? { moderatorId: current.writer.id } : undefined,
+  });
+  if (!moved) return { error: t.senzaPermessi };
+
+  revalidatePath(`/${parsed.data.game}/guide`);
+  revalidatePath(`/${parsed.data.game}/guide/${state.slug}`);
   revalidatePath("/", "layout");
   return { success: t.statoAggiornato };
 }
 
-const patchSchema = z.object({
-  id: z.string().min(1),
-  game: z.string().min(1),
-  slug: z.string().min(1),
-  patch: z.string().trim().max(40),
-});
+const patchSchema = (t: Testi) =>
+  z.object({
+    id: z.string().min(1).max(64),
+    game: gameField(t),
+    slug: z.string().min(1).max(200),
+    patch: z.string().trim().max(40),
+  });
 
 /**
  * Dichiara in quale patch i numeri sono stati controllati.
@@ -320,16 +401,19 @@ export async function setVerifiedPatchAction(
   _previous: GuideActionState,
   formData: FormData,
 ): Promise<GuideActionState> {
-  const t = TESTI[await getLocale()];
+  const locale = await getLocale();
+  const t = TESTI[locale];
 
   const current = await writer();
-  if (!current) return { error: t.entraPerFarlo };
+  if (!current.ok) {
+    return { error: current.reason === "offline" ? t.databaseFermo : t.entraPerFarlo };
+  }
 
   if (!can(current.role, "publishGuide")) {
     return { error: t.soloRedattore };
   }
 
-  const parsed = patchSchema.safeParse({
+  const parsed = patchSchema(t).safeParse({
     id: formData.get("id"),
     game: formData.get("game"),
     slug: formData.get("slug"),
@@ -337,11 +421,27 @@ export async function setVerifiedPatchAction(
   });
   if (!parsed.success) return { error: t.datiNonValidi };
 
-  const store = await getGuideStore();
+  const store = current.store;
+  if (!validId(store, parsed.data.id)) return { error: t.nonEsiste };
+  // id, gioco e indirizzo devono indicare la stessa guida: il modulo si
+  // ricostruisce a mano, e fino all'11/10 un id inesistente riceveva comunque
+  // il messaggio di patch verificata
+  const state = await store.stateOf(parsed.data.id);
+  if (state === null || state.game !== parsed.data.game || state.slug !== parsed.data.slug) {
+    return { error: t.nonEsiste };
+  }
+
+  const suspended = await suspendedMessage(current, locale);
+  if (suspended) return { error: suspended };
+
+  // Nel registro anche quando il redattore certifica una guida sua: la
+  // dichiarazione la fa sempre un redattore, e quella sulla propria guida e'
+  // proprio quella che un giorno qualcuno vorra' ricontrollare.
   await store.setVerifiedPatch(
     parsed.data.id,
     parsed.data.patch.length > 0 ? parsed.data.patch : null,
     current.writer,
+    { moderatorId: current.writer.id },
   );
 
   revalidatePath(`/${parsed.data.game}/guide/${parsed.data.slug}`);

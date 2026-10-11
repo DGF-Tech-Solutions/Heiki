@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { can } from "@/lib/auth/permissions";
 import { databaseReachable, db } from "@/lib/db";
 import { powerVerifications, verificationScreenshots } from "@/lib/db/schema";
+import { suspensionFor } from "@/lib/moderation/suspension";
 
 /**
  * La schermata di una verifica della classe dell'account.
@@ -16,7 +18,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const missing = () => new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
 
-  if (!/^[0-9a-f-]{36}$/i.test(id) || !(await databaseReachable())) return missing();
+  // un UUID vero: la regex di prima accettava anche 36 trattini, che arrivavano
+  // al database come errore invece che come 404
+  if (!z.string().uuid().safeParse(id).success || !(await databaseReachable())) return missing();
   const session = await auth();
   const viewerId = session?.user?.id;
   if (!viewerId) return missing();
@@ -26,7 +30,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     columns: { userId: true },
   });
   if (!verification) return missing();
-  if (verification.userId !== viewerId && !can(session.user.role, "moderate")) return missing();
+  // Chi l'ha caricata la rivede sempre. Un moderatore solo se modera davvero:
+  // sospeso non modera, e la schermata porta il codice amico di qualcun altro (11/10).
+  if (verification.userId !== viewerId) {
+    if (!can(session.user.role, "moderate")) return missing();
+    if ((await suspensionFor(viewerId)).active) return missing();
+  }
 
   const shot = await db.query.verificationScreenshots.findFirst({
     where: eq(verificationScreenshots.verificationId, id),
@@ -39,6 +48,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
       "Content-Disposition": "inline",
+      // aperta da sola in una scheda, l'immagine non puo' eseguire niente ne'
+      // essere incorporata da un altro sito
+      "Content-Security-Policy": "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+      "Cross-Origin-Resource-Policy": "same-origin",
     },
   });
 }

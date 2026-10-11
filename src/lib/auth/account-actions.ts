@@ -37,7 +37,11 @@ import {
 import { testi, type Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
+import { AuthError } from "next-auth";
 import { DELETE_PHRASES, deletePhrase, PASSWORD_MIN } from "./account";
+import { isReservedEmail } from "./handles";
+import { EMAIL_MAX_CHARS, passwordTooLong } from "./password-policy";
+import { invalidateResetTokens } from "./reset-tokens";
 
 const TESTI = testi({
   it: {
@@ -55,6 +59,12 @@ const TESTI = testi({
     passwordDiverse: "Le due password non coincidono",
     passwordIdentica: "La nuova password è identica a quella attuale.",
     passwordAggiornata: "Password aggiornata. Le altre sessioni sono state chiuse.",
+    passwordAggiornataRientra: "Password aggiornata e altre sessioni chiuse. Rientra con la password nuova.",
+    passwordLunga: "La password è troppo lunga: al massimo 72 caratteri, meno se usi lettere accentate o emoji",
+    staffNonSiElimina:
+      "Un account dello staff non si elimina da qui: chiedi prima a un amministratore di toglierti il ruolo.",
+    rientraPerEliminare:
+      "Per sicurezza esci e rientra con Discord o Google, poi elimina l'account entro 10 minuti.",
     scriviPerConfermare: (parola: string) => `Scrivi ${parola} per confermare.`,
   },
   en: {
@@ -72,6 +82,11 @@ const TESTI = testi({
     passwordDiverse: "The two passwords don't match",
     passwordIdentica: "The new password is the same as the current one.",
     passwordAggiornata: "Password updated. Your other sessions have been closed.",
+    passwordAggiornataRientra: "Password updated and other sessions closed. Log in with your new password.",
+    passwordLunga: "The password is too long: at most 72 characters, fewer with accented letters or emoji",
+    staffNonSiElimina: "A staff account can't be deleted here: ask an administrator to remove your role first.",
+    rientraPerEliminare:
+      "For your safety, log out and back in with Discord or Google, then delete the account within 10 minutes.",
     scriviPerConfermare: (parola: string) => `Type ${parola} to confirm.`,
   },
 });
@@ -86,11 +101,15 @@ async function currentUser() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  return db.query.users.findFirst({
+  const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
-    columns: { id: true, email: true, username: true, passwordHash: true },
+    columns: { id: true, email: true, username: true, passwordHash: true, role: true },
   });
+  return user ? { ...user, authAt: session.authAt } : null;
 }
+
+/** Quanto puo' essere vecchio l'accesso di chi elimina un account senza password. */
+const RECENT_AUTH_SECONDS = 10 * 60;
 
 /**
  * Verifica la password attuale.
@@ -134,7 +153,13 @@ export async function changeEmailAction(
   if (!user) return { error: t.sessioneScaduta };
 
   const emailSchema = z.object({
-    email: z.string().trim().toLowerCase().email(t.emailNonValida),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(EMAIL_MAX_CHARS, t.emailNonValida)
+      .email(t.emailNonValida)
+      .refine((email) => !isReservedEmail(email), t.emailNonValida),
     password: z.string().min(1, t.servePasswordAttuale),
   });
 
@@ -159,10 +184,16 @@ export async function changeEmailAction(
 
   // emailVerified torna a null: il nuovo indirizzo non e' ancora provato, e
   // lasciarlo verificato sarebbe una bugia registrata nel database.
-  await db
-    .update(users)
-    .set({ email: parsed.data.email, emailVerified: null, updatedAt: new Date() })
-    .where(eq(users.id, user.id));
+  // TODO quando ci sara' l'invio delle email: il nuovo indirizzo vale solo dopo
+  // il clic su un collegamento spedito li', e il vecchio riceve un avviso
+  await db.transaction(async (tx) => {
+    await tx
+      .update(users)
+      .set({ email: parsed.data.email, emailVerified: null, updatedAt: new Date() })
+      .where(eq(users.id, user.id));
+    // un collegamento di recupero gia' spedito al vecchio indirizzo non vale piu'
+    await invalidateResetTokens(tx, user.id);
+  });
 
   revalidatePath("/impostazioni/account");
   return { success: t.indirizzoAggiornato };
@@ -183,7 +214,10 @@ export async function changePasswordAction(
   const passwordSchema = z
     .object({
       current: z.string().min(1, t.servePasswordAttuale),
-      next: z.string().min(PASSWORD_MIN, t.nuovaPasswordCorta(PASSWORD_MIN)).max(200),
+      next: z
+        .string()
+        .min(PASSWORD_MIN, t.nuovaPasswordCorta(PASSWORD_MIN))
+        .refine((password) => !passwordTooLong(password), t.passwordLunga),
       repeat: z.string(),
     })
     .refine((data) => data.next === data.repeat, {
@@ -215,11 +249,21 @@ export async function changePasswordAction(
     // sono JWT: le chiude l'impronta della password nel gettone (passwordStamp
     // in ./index.ts); le righe di `sessions` servono solo all'adapter.
     await tx.delete(sessions).where(eq(sessions.userId, user.id));
+    // e i collegamenti di recupero ancora aperti
+    await invalidateResetTokens(tx, user.id);
   });
 
   // Questa sessione si rinnova con la password nuova, se no l'impronta vecchia
-  // farebbe uscire anche chi l'ha appena cambiata
-  await signIn("credentials", { email: user.email, password: parsed.data.next, redirect: false });
+  // farebbe uscire anche chi l'ha appena cambiata. Se l'accesso non riesce
+  // (tentativi di questa email consumati da qualcun altro) la password e' gia'
+  // cambiata: si dice di rientrare, invece di un errore su un cambio riuscito.
+  try {
+    await signIn("credentials", { email: user.email, password: parsed.data.next, redirect: false });
+  } catch (error) {
+    if (!(error instanceof AuthError)) throw error;
+    revalidatePath("/impostazioni/account");
+    return { success: t.passwordAggiornataRientra };
+  }
 
   revalidatePath("/impostazioni/account");
   return { success: t.passwordAggiornata };
@@ -238,12 +282,12 @@ export async function deleteAccountAction(
   if (!user) return { error: t.sessioneScaduta };
 
   const deleteSchema = z.object({
-    password: z.string().min(1, t.servePasswordAttuale),
+    password: z.string(),
     confirm: z.string(),
   });
 
   const parsed = deleteSchema.safeParse({
-    password: formData.get("password"),
+    password: formData.get("password") ?? "",
     confirm: formData.get("confirm"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? t.datiNonValidi };
@@ -256,8 +300,25 @@ export async function deleteAccountAction(
     return { error: t.scriviPerConfermare(deletePhrase(locale)) };
   }
 
-  const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.password, locale);
-  if (!confirmed.ok) return { error: confirmed.error };
+  // Lo staff non si cancella da solo: il registro della moderazione e le
+  // sospensioni date finirebbero sotto un segnaposto, e l'ultimo amministratore
+  // lascerebbe il sito senza nessuno. Prima un amministratore toglie il ruolo.
+  if (user.role === "MODERATOR" || user.role === "ADMIN") {
+    return { error: t.staffNonSiElimina };
+  }
+
+  if (user.passwordHash) {
+    if (!parsed.data.password) return { error: t.servePasswordAttuale };
+    const confirmed = await confirmPassword(user.id, user.passwordHash, parsed.data.password, locale);
+    if (!confirmed.ok) return { error: confirmed.error };
+  } else {
+    // Chi e' entrato solo con Discord o Google non ha una password da
+    // confermare: fino all'11/10 non poteva eliminare l'account in nessun modo.
+    // Al posto della password vale un accesso fatto da pochi minuti, cosi' un
+    // cookie rubato (o un computer lasciato acceso) non basta.
+    const age = Math.floor(Date.now() / 1000) - (user.authAt ?? 0);
+    if (age > RECENT_AUTH_SECONDS) return { error: t.rientraPerEliminare };
+  }
 
   const anonymousSuffix = user.id.slice(0, 8);
 
@@ -304,6 +365,10 @@ export async function deleteAccountAction(
       .update(suspensions)
       .set({ moderatorId: placeholder.id })
       .where(eq(suspensions.moderatorId, user.id));
+    await tx
+      .update(suspensions)
+      .set({ liftedBy: placeholder.id })
+      .where(eq(suspensions.liftedBy, user.id));
 
     // Tutto il resto - profilo, badge, voti, notifiche, sessioni - se ne va in
     // cascata grazie alle chiavi esterne.

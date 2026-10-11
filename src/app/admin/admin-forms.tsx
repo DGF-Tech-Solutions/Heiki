@@ -7,7 +7,8 @@ import {
   type AdminState,
   type AdminUser,
 } from "@/lib/admin/actions";
-import { roleLabel, ROLES } from "@/lib/auth/permissions";
+import { ASSIGNABLE_ROLES } from "@/lib/admin/roles";
+import { roleLabel } from "@/lib/auth/permissions";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 import { Button, Notice, Select } from "@/components/ui";
@@ -46,14 +47,26 @@ const INITIAL: AdminState = {};
  *
  * Il ruolo non si applica al cambio della tendina ma con un pulsante: un salvataggio
  * automatico su un permesso e' il modo piu' facile per promuovere qualcuno per errore.
+ *
+ * Riceve solo id, nome e ruolo: le props di un componente del browser viaggiano
+ * nella pagina, e l'email non serve a cambiare un ruolo. Amministratore non e' fra
+ * le scelte: si da' solo con `npm run promote` (l'azione lo rifiuta comunque).
  */
-export function RoleForm({ user, self }: { user: AdminUser; self: boolean }) {
+export function RoleForm({
+  user,
+  self,
+}: {
+  user: Pick<AdminUser, "id" | "username" | "role">;
+  self: boolean;
+}) {
   const locale = useLocale();
   const t = TESTI[locale];
   const [state, action, pending] = useActionState(setRoleAction, INITIAL);
   const [role, setRole] = useState(user.role);
 
   const locked = self || user.role === "ADMIN";
+  // il ruolo attuale resta fra le scelte anche se non si assegna (la riga bloccata lo mostra)
+  const options = ASSIGNABLE_ROLES.includes(user.role) ? ASSIGNABLE_ROLES : [...ASSIGNABLE_ROLES, user.role];
 
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
@@ -66,7 +79,7 @@ export function RoleForm({ user, self }: { user: AdminUser; self: boolean }) {
         disabled={locked || pending}
         className="h-8 w-auto text-[13px]"
       >
-        {ROLES.map((option) => (
+        {options.map((option) => (
           <option key={option} value={option}>
             {roleLabel(option, locale)}
           </option>

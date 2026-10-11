@@ -7,7 +7,7 @@ import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
 import { can } from "@/lib/auth/permissions";
 import { currentViewer } from "@/lib/community/actions";
-import { getGuideStore } from "@/lib/guides/store";
+import { getGuideStore, isGuideDemo } from "@/lib/guides/store";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -60,7 +60,8 @@ export default async function NewGuidePage({ params }: Props) {
   const gameModule = requireGameModule(game);
   const viewer = await currentViewer();
   const store = await getGuideStore();
-  const role = store.volatile ? "EDITOR" : viewer?.role;
+  // redattore solo nella modalita' dimostrativa vera, non a database fermo
+  const role = isGuideDemo(store) ? "EDITOR" : viewer?.role;
 
   return (
     <main className="pt-6 pb-24">

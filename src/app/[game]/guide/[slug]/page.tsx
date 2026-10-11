@@ -4,13 +4,20 @@ import { notFound } from "next/navigation";
 import { StatusControls, VerifiedPatchForm } from "./guide-controls";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Freshness, formatDate } from "@/components/freshness";
-import { headingsOf, Markdown, TableOfContents } from "@/components/markdown";
+import { Markdown, parseDocument, TableOfContents } from "@/components/markdown";
 import { buttonClass, cx, display, Notice, Tag } from "@/components/ui";
 import { can } from "@/lib/auth/permissions";
 import { currentViewer } from "@/lib/community/actions";
 import { findGame } from "@/lib/games/catalog";
 import { requireGameModule } from "@/lib/games/registry";
-import { getGuideStore } from "@/lib/guides/store";
+import {
+  canViewGuide,
+  getGuideStore,
+  guideTransitions,
+  isGuideDemo,
+  type GuideActor,
+  type GuideStore,
+} from "@/lib/guides/store";
 import { isStale, statusLabel } from "@/lib/guides/types";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -58,12 +65,36 @@ interface Props {
   params: Promise<{ game: string; slug: string }>;
 }
 
+/**
+ * Chi guarda, rispetto a questa guida.
+ *
+ * Nella modalita' dimostrativa (nessun database configurato) si vede tutto il
+ * percorso. Con un database configurato ma fermo l'archivio e' quello in
+ * memoria, ma chi guarda resta un visitatore qualunque: fino all'11/10
+ * riceveva il ruolo di redattore e vedeva bozze e comandi.
+ */
+async function actorFor(store: GuideStore, authorUsername: string): Promise<GuideActor> {
+  const demo = isGuideDemo(store);
+  const viewer = await currentViewer();
+  const role = demo ? "EDITOR" : viewer?.role;
+  return {
+    editor: can(role, "publishGuide"),
+    own: demo || (viewer !== null && viewer.username === authorUsername),
+  };
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { game, slug } = await params;
   const store = await getGuideStore();
   const guide = await store.get(game, slug);
 
-  if (!guide) return { title: TESTI[await getLocale()].guidaTitolo };
+  // La stessa regola della pagina. Fino all'11/10 la pagina rispondeva 404 a
+  // chi non poteva vedere una bozza, ma il <title> e la descrizione portavano
+  // titolo ed estratto a chiunque indovinasse l'indirizzo. Chi non la vede
+  // riceve gli stessi metadati di una guida che non esiste.
+  if (!guide || !canViewGuide(guide.status, await actorFor(store, guide.author.username))) {
+    return { title: TESTI[await getLocale()].guidaTitolo };
+  }
 
   return {
     title: `${guide.title}`,
@@ -94,17 +125,17 @@ export default async function GuidePage({ params }: Props) {
   const guide = await store.get(game, slug);
   if (!guide) notFound();
 
-  const viewer = await currentViewer();
-  const role = store.volatile ? "EDITOR" : viewer?.role;
-  const canReview = can(role, "publishGuide");
-  const own = store.volatile || (viewer !== null && viewer.username === guide.author.username);
+  const actor = await actorFor(store, guide.author.username);
+  const canReview = actor.editor;
+  const own = actor.own;
 
   // Una guida non pubblicata la vedono solo l'autore e chi la deve revisionare.
-  if (guide.status !== "PUBLISHED" && !canReview && !own) notFound();
+  if (!canViewGuide(guide.status, actor)) notFound();
 
   const currentPatch = gameModule.dataset.patch;
   const stale = isStale(guide.verifiedPatch, currentPatch);
-  const headings = headingsOf(guide.body);
+  // Una sola analisi del testo: corpo e indice escono dagli stessi blocchi.
+  const doc = parseDocument(guide.body);
 
   return (
     <main className="pt-6 pb-24">
@@ -180,7 +211,7 @@ export default async function GuidePage({ params }: Props) {
 
       <div className="grid items-start gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(0,200px)]">
         <article className="min-w-0">
-          <Markdown source={guide.body} />
+          <Markdown parsed={doc} />
 
           {guide.revisions.length > 0 ? (
             <section className="mt-10 border-t border-rule pt-6">
@@ -202,7 +233,7 @@ export default async function GuidePage({ params }: Props) {
         </article>
 
         <aside className="lg:sticky lg:top-[110px]">
-          <TableOfContents headings={headings} locale={locale} />
+          <TableOfContents headings={doc.headings} locale={locale} />
 
           {own || canReview ? (
             <div className="p5-corner mt-6 border border-rule bg-paper-2 p-4">
@@ -210,8 +241,7 @@ export default async function GuidePage({ params }: Props) {
                 guideId={guide.id}
                 game={game}
                 status={guide.status}
-                canReview={canReview}
-                canSubmit={own}
+                transitions={guideTransitions(actor)}
               />
 
               {canReview ? (

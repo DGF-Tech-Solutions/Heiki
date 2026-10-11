@@ -8,6 +8,8 @@ declare module "next-auth" {
       username: string;
       role: Role;
     } & DefaultSession["user"];
+    /** quando si e' entrati davvero l'ultima volta (secondi), per le azioni che chiedono un accesso recente */
+    authAt?: number;
   }
 
   interface User {
@@ -24,6 +26,8 @@ declare module "next-auth/jwt" {
     pwd?: string;
     /** quando ruolo, handle e password sono stati riletti dal database, in secondi */
     checkedAt?: number;
+    /** quando si e' entrati davvero (password o OAuth), in secondi */
+    authAt?: number;
   }
 }
 
