@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { cx, numeric } from "@/components/ui";
+import { chipClass, cx, numeric } from "@/components/ui";
 import type { GearIndex } from "@/lib/games/gear-types";
 import {
   GEAR_PRESETS,
@@ -22,7 +22,7 @@ import {
 import { useLocale } from "@/lib/i18n/client";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
 import { ChoiceRow, LinkButton, Panel, RangeField, StarRow } from "./controls";
-import { ItemIcon, SetBadge, pieceSrc, slotSrc } from "./item-icon";
+import { ICON_CHIP_GROW, ItemIcon, SetBadge, pieceSrc, slotSrc } from "./item-icon";
 import { formatStat, statName } from "./stat-rows";
 
 const TESTI = testi({
@@ -118,6 +118,7 @@ export function GearPanel({
 
   return (
     <Panel title={t.titolo}>
+      {/* i set pronti sono comandi a testo: la lama dei filtri, bianca sul set che vale adesso */}
       <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t.setPronti}>
         {GEAR_PRESETS.map((p) => (
           <button
@@ -125,10 +126,7 @@ export function GearPanel({
             type="button"
             aria-pressed={preset === p.key}
             onClick={() => onChange(presetBuild(gear, p))}
-            className={cx(
-              "border px-2.5 py-1 text-[12px]",
-              preset === p.key ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-2 hover:text-ink",
-            )}
+            className={chipClass(preset === p.key, true)}
           >
             {inLingua(p.name, locale)}
           </button>
@@ -138,10 +136,7 @@ export function GearPanel({
           aria-pressed={pieces.every((piece) => piece === null)}
           title={t.nessunoTitolo}
           onClick={() => onChange(gear.parts.map(() => null))}
-          className={cx(
-            "border px-2.5 py-1 text-[12px]",
-            pieces.every((piece) => piece === null) ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3 hover:text-ink",
-          )}
+          className={chipClass(pieces.every((piece) => piece === null), true)}
         >
           {t.nessuno}
         </button>
@@ -161,8 +156,14 @@ export function GearPanel({
               aria-pressed={active}
               onClick={() => setSelected(part.part)}
               className={cx(
-                "grid w-full justify-items-center gap-1 p-1 text-center",
-                active ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3",
+                // L'icona del pezzo e' un'insegna del gioco: si alza e cresce come
+                // le stelle dei ranghi (`rank-chip`, di un decimo: ICON_CHIP_GROW). Il
+                // filo c'e' sempre, trasparente, cosi' sceglierlo non sposta niente;
+                // al passaggio sta sopra i vicini, che coprirebbero il suo alone
+                // (z-[1] e non z-10: sotto la barra delle schede, ferma in cima).
+                "rank-chip grid w-full justify-items-center gap-1 border p-1 text-center hover:z-[1]",
+                ICON_CHIP_GROW,
+                active ? "border-brand bg-brand-soft" : "border-transparent hover:border-ink-3 hover:bg-paper-3",
               )}
             >
               {piece ? (
@@ -266,9 +267,15 @@ function PieceEditor({
           title={s.obtainable ? undefined : t.nonOttenibile}
           onClick={() => pick(s.id)}
           className={cx(
-            "inline-flex items-center gap-1 border py-0.5 pr-2 pl-1 text-[12px]",
-            value === s.id ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-2 hover:text-ink",
-            !s.obtainable && "border-dashed opacity-70",
+            // il glifo del set cresce come le insegne dei ranghi; 28px di altezza
+            // e non 26: sul telefono si centrano col pollice. Un set non e' un
+            // rango: scelto ha filo e fondo rossi, senza la lama. Il nome spento in
+            // ink-2 e non ink-3 come le stelle: qui la scritta si legge, non decora
+            "rank-chip inline-flex min-h-7 cursor-pointer items-center gap-1 border py-0.5 pr-2 pl-1 text-[12px]",
+            value === s.id
+              ? "border-brand bg-brand-soft text-ink"
+              : "border-rule bg-paper-2 text-ink-2 hover:border-ink-3 hover:bg-paper-3 hover:text-ink",
+            !s.obtainable && "border-dashed opacity-70 hover:opacity-100",
           )}
         >
           <SetBadge game={game} icons={gear.icons} set={s.id} size={20} />
@@ -317,7 +324,8 @@ function PieceEditor({
             {statName(info.stat, locale)} +{formatStat(main, locale)}
           </span>
         </p>
-        <span className="flex gap-3">
+        {/* due bottoni e non due scritte: lo spazio fra loro lo fa gia' il loro margine interno */}
+        <span className="flex gap-1">
           <LinkButton onClick={() => onChange(maxPiece(gear, part, piece.set))}>{t.alMassimo}</LinkButton>
           <LinkButton onClick={() => onChange(null)}>{t.togli}</LinkButton>
         </span>
@@ -334,6 +342,7 @@ function PieceEditor({
         value={piece.rating}
         onChange={setRating}
         options={gear.rules.obtainableRatings.map((r) => ({ value: r, label: rarityName(r), title: rarityName(r) }))}
+        ranks
       />
       <label className={cx("flex items-start gap-2", canEngrave(gear, piece) ? "cursor-pointer text-ink-2" : "text-ink-3")}>
         <input
@@ -364,6 +373,7 @@ function PieceEditor({
         value={piece.plus}
         onChange={(plus) => change({ plus })}
         options={Array.from({ length: gear.rules.upgradesPerAwakening + 1 }, (_, n) => ({ value: n, label: `+${n}`, title: `+${n}` }))}
+        ranks
       />
       <RangeField
         id={`${id}-base`}

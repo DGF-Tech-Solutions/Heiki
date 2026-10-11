@@ -77,7 +77,8 @@ export function HeroCostumes({
       */}
       <h3 className={cx(boxTitle, "mb-2.5")}>{t.titolo(total)}</h3>
       <p className="m-0 max-w-[48ch] text-[13px] text-ink-2">{t.intro}</p>
-      <MoreLink href="?scheda=statistiche" className="mt-2.5">
+      {/* premuto affonda come i bottoni (p5-press): il passaggio lo fa gia' la freccia */}
+      <MoreLink href="?scheda=statistiche" className="p5-press mt-2.5">
         {t.calcolatore}
       </MoreLink>
 

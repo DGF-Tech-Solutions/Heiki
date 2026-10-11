@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
-import { cx, numeric } from "@/components/ui";
+import { buttonClass, cx, numeric, rankChipColors } from "@/components/ui";
 import type { AccountSliderData } from "@/lib/games/account-buff-types";
 import { heroCombatClass } from "@/lib/games/account-buff";
 import { setupEffect } from "@/lib/games/account-setup";
@@ -265,8 +265,9 @@ export function StatCalculator({
                       aria-hidden
                       className={cx(
                         numeric,
-                        "grid h-7 w-7 place-items-center border text-[12px] peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
-                        build.superAwaken === n ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3",
+                        // come le stelle di StarRow (controls.tsx), coi numeri al posto delle stelle
+                        "rank-chip grid h-7 w-7 place-items-center border text-[12px] peer-focus-visible:outline-2 peer-focus-visible:outline-ink peer-disabled:pointer-events-none peer-disabled:opacity-40",
+                        rankChipColors(build.superAwaken === n),
                       )}
                     >
                       {n}
@@ -387,7 +388,8 @@ export function StatCalculator({
             type="button"
             onClick={() => setAllRows((current) => !current)}
             aria-expanded={allRows}
-            className="mt-1.5 text-[12px] font-semibold text-brand-deep hover:underline"
+            // un bottone come le azioni dei riquadri (LinkButton), non una scritta sottolineata
+            className={buttonClass("ghost", "sm", "mt-1.5")}
           >
             {allRows ? t.principali : t.tutte(rows.length + extraRows)}
           </button>

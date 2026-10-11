@@ -20,6 +20,7 @@
 import type { ComponentType, SVGProps } from "react";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { ArrowUpIcon } from "@phosphor-icons/react/dist/ssr/ArrowUp";
+import { CakeIcon } from "@phosphor-icons/react/dist/ssr/Cake";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/ssr/CalendarBlank";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
@@ -27,10 +28,12 @@ import { CardsThreeIcon } from "@phosphor-icons/react/dist/ssr/CardsThree";
 import { CheckIcon } from "@phosphor-icons/react/dist/ssr/Check";
 import { DiceFiveIcon } from "@phosphor-icons/react/dist/ssr/DiceFive";
 import { FileTextIcon } from "@phosphor-icons/react/dist/ssr/FileText";
+import { GiftIcon } from "@phosphor-icons/react/dist/ssr/Gift";
 import { HeartIcon } from "@phosphor-icons/react/dist/ssr/Heart";
 import { LinkSimpleIcon } from "@phosphor-icons/react/dist/ssr/LinkSimple";
 import { ListIcon } from "@phosphor-icons/react/dist/ssr/List";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/ssr/MagnifyingGlass";
+import { PaletteIcon } from "@phosphor-icons/react/dist/ssr/Palette";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
 import { SlidersHorizontalIcon } from "@phosphor-icons/react/dist/ssr/SlidersHorizontal";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr/Star";
@@ -80,9 +83,13 @@ export const IconSearch = /*#__PURE__*/ make(MagnifyingGlassIcon);
 export const IconClose = /*#__PURE__*/ make(XIcon);
 export const IconMenu = /*#__PURE__*/ make(ListIcon);
 export const IconFilters = /*#__PURE__*/ make(SlidersHorizontalIcon);
+export const IconPalette = /*#__PURE__*/ make(PaletteIcon);
 
 export const IconHeroes = /*#__PURE__*/ make(UsersThreeIcon);
 export const IconCalendar = /*#__PURE__*/ make(CalendarBlankIcon);
+/* i compleanni: la torta e' il giorno, il pacco la festa in taverna */
+export const IconCake = /*#__PURE__*/ make(CakeIcon);
+export const IconGift = /*#__PURE__*/ make(GiftIcon);
 export const IconSword = /*#__PURE__*/ make(SwordIcon);
 export const IconCard = /*#__PURE__*/ make(CardsThreeIcon);
 export const IconPage = /*#__PURE__*/ make(FileTextIcon);

@@ -62,6 +62,7 @@ docker compose logs  # cosa dice Postgres
 | `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
 | `npm run buff:import` | Rigenera solo i buff dell'account: classe dell'account e costellazioni |
 | `npm run cambiamenti:import` | Rigenera solo i cambiamenti di patch, dall'archivio delle patch della pipeline |
+| `npm run compleanni:import` | Rigenera solo i compleanni (profilo degli eroi e festa in taverna), da `eroi/compleanni.json` della pipeline |
 | `npm run docker:app` | Tutto in container, senza Node locale |
 | `npm run db:backup` | Copia del database in `backups/` (tiene le ultime 14; serve Docker) |
 
@@ -197,7 +198,7 @@ scripts/                      setup, migrazioni, seed, verifica di fumo,
 Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
 (Eroi, Uscite, Cambiamenti, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
 (Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Strumenti**
-(Randomizer, Squadra, Indovina l'eroe) · **Il tuo account** (Il mio account) · **Guide** (Guide e
+(Randomizer, Squadra, Indovina l'eroe, Compleanni) · **Il tuo account** (Il mio account) · **Guide** (Guide e
 rotazioni) · **Community** (Discussioni).
 
 Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
@@ -221,6 +222,34 @@ anche le voci di chi è entrato (Notifiche, profilo, Personalizza, Coda, Esci)
 passano in un pannello, e chi non è entrato vede solo «Entra». Tutti e due i
 pannelli si chiudono quando si tocca una voce (`popover-panel.tsx`): il guscio
 resta montato mentre si naviga.
+
+### I temi di colore
+
+Il sito ha cinque varianti di colore, tutte scure, scelte da chi legge con il
+pulsante a tavolozza accanto a IT | EN nell'intestazione: Rosso (il predefinito,
+«Persona»), Notte (blu), Giada (verde azzurro), Viola e Ambra. Cambiano fondo,
+grigi, bordi e accento; forme, caratteri e impaginazione restano gli stessi, e i
+colori del gioco (abilità, attributi, icone) non si toccano.
+
+- I colori stanno solo in `src/app/globals.css`: il predefinito in `@theme`, ogni
+  altro tema in un blocco `:root[data-theme="…"]` che ridefinisce gli undici token
+  del ruolo (`paper`, `ink`, `rule`, `brand`…). `hot`, `gold`, `up` e `down` sono
+  significati e restano uguali in tutti i temi
+- elenco, predefinito e nome del cookie stanno in `src/lib/theme/themes.ts`;
+  `THEME_COLORS` ripete fondo e accento di ogni tema per `<meta name="theme-color">`,
+  il manifest e i campioni del selettore (`src/components/theme-switch.tsx`)
+- la scelta resta nel cookie tecnico `tema` (un anno, `setTheme` in
+  `src/lib/theme/actions.ts`). Il layout radice lo legge (`getTheme`) e mette
+  `data-theme` su `<html>`, così la pagina arriva già nei colori giusti. Senza
+  cookie il tema è Rosso
+- `src/lib/theme/__tests__/themes.test.ts` legge globals.css e controlla ogni tema:
+  fondo quasi nero, testo ≥ 7:1, grigi ≥ 4,5:1 su ogni fondo, bianco sopra
+  l'accento ≥ 4,5:1, accento sul fondo ≥ 3:1, `brand-deep` ≥ 4,5:1, e che la copia
+  in `themes.ts` coincida con il CSS
+
+Per aggiungere un tema: un blocco in globals.css con tutti i token, l'id in
+`THEMES`, fondo e accento in `THEME_COLORS`, il nome (it/en) in `theme-switch.tsx`.
+`npx vitest run src/lib/theme` dice se regge.
 
 ### Il gioco è il primo segmento dell'URL
 
@@ -524,6 +553,22 @@ Il confine passa qui, e non è formale:
   Ogni modalità ha il suo eroe del giorno. Nessun dato nuovo: le regole stanno in
   `src/lib/games/hero-guess.ts`, coi test; la partita comune alle modalità in
   `src/components/hero-guess/guess-game.tsx`
+- **Compleanni** (`/compleanni`) dice il compleanno di ogni eroe e chi festeggia
+  oggi. Nel gioco sono due cose: la data sta nel profilo di ogni versione
+  (`DB_hero_base.hero_birth`, «Sconosciuto» per 49 eroi, quasi tutti delle
+  collaborazioni), la FESTA vale per i 50 clienti della taverna (`DB_birthday`), che
+  sono personaggi e non versioni: quel giorno il loro regalo preferito
+  (`DB_guest_gift`, cinque pezzi di un oggetto) dà ×10 punti Affetto (500 → 5.000),
+  il regalo comune no. Il ×10 e le regole dei Cuori (20.000 punti Affetto l'uno,
+  uno per versione posseduta, due con l'Affinità al massimo) vengono dal codice
+  della taverna, decompilato. Chi festeggia lo decide il server del gioco al
+  ripristino giornaliero: la pagina usa il giorno del dispositivo di chi guarda
+  (il server disegna col giorno UTC, il browser corregge dopo l'idratazione), e
+  `?giorno=07-25` apre un giorno qualunque in grande, cliccando una data del
+  calendario. Pipeline `script/compleanni.py` → `eroi/compleanni.json` e le icone
+  in `compleanni/`; import `scripts/import-birthdays.mts` (in `eroi:import`, in
+  fondo); contratto `src/lib/games/birthdays-types.ts`, regole del calendario in
+  `src/lib/games/birthdays.ts`, coi test
 - **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
   `/abilita/`, anch'esse fuori dal versionamento
 

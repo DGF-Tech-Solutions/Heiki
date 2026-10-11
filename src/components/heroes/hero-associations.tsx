@@ -106,10 +106,16 @@ function HeroList({
                 if (!hero) return null;
                 const lr = fate[3] !== undefined ? fates.effects[fate[3]] : undefined;
                 return (
-                  <li key={id} className="min-w-0">
+                  // Il ritratto risponde come le card della griglia Eroi (`hero-card`,
+                  // globals.css): al passaggio si alza sulla sagoma rossa, premuto ci
+                  // torna sopra. La regola vuole la cornice (`hero-card-art`) DENTRO la
+                  // card: la card e' la voce dell'elenco, la cornice il collegamento.
+                  // Il gruppo ha un nome: uno senza nome lo vedrebbero anche i
+                  // `group-has-[]` dei ranghi delle carte.
+                  <li key={id} className="hero-card min-w-0">
                     <Link
                       href={`/${game}/eroi/${id}?scheda=associazioni`}
-                      className="group grid grid-cols-[48px_minmax(0,1fr)] items-center gap-2 p-1 hover:bg-paper-2"
+                      className="hero-card-art group/eroe grid grid-cols-[48px_minmax(0,1fr)] items-center gap-2 p-1 hover:bg-paper-2"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -121,7 +127,7 @@ function HeroList({
                         className="h-12 w-12 bg-paper-2"
                       />
                       <span className="min-w-0 text-[12px] leading-tight">
-                        <span className="block font-semibold text-ink group-hover:text-brand-deep">{heroName(hero, locale)}</span>
+                        <span className="block font-semibold text-ink group-hover/eroe:text-brand-deep">{heroName(hero, locale)}</span>
                         <span className="block truncate text-[12px] text-ink-3" title={heroEpithet(hero, locale) ?? undefined}>
                           {heroEpithet(hero, locale)}
                         </span>
@@ -186,7 +192,8 @@ export function HeroAssociations({
         <p className="m-0 font-semibold text-ink">{inLingua(fates.common.name, locale)}</p>
         <p className="m-0 mt-1 max-w-[48ch] text-[13px] text-ink-2">{t.comuneTesto(fates.common.base, fates.common.perLevel)}</p>
         <GameText text={inLingua(fates.common.basicStats, locale) ?? ""} className="mt-1 text-[12px] text-ink-3" />
-        <MoreLink href="?scheda=statistiche" className="mt-2.5">
+        {/* premuto affonda come i bottoni (p5-press): il passaggio lo fa gia' la freccia */}
+        <MoreLink href="?scheda=statistiche" className="p5-press mt-2.5">
           {t.calcolatore}
         </MoreLink>
       </section>

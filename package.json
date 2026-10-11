@@ -30,7 +30,7 @@
     "db:smoke": "tsx scripts/smoke-db.mts",
     "db:backup": "tsx scripts/backup-db.mts",
     "promote": "tsx scripts/promote.mts",
-    "eroi:import": "tsx scripts/import-heroes.mts && tsx scripts/import-hero-fates.mts && tsx scripts/import-gear.mts && tsx scripts/import-hero-terms.mts && tsx scripts/import-team.mts && tsx scripts/import-mechanics.mts && tsx scripts/import-endgame.mts && tsx scripts/import-artifacts.mts && tsx scripts/import-account-buff.mts && tsx scripts/import-changes.mts",
+    "eroi:import": "tsx scripts/import-heroes.mts && tsx scripts/import-hero-fates.mts && tsx scripts/import-gear.mts && tsx scripts/import-hero-terms.mts && tsx scripts/import-team.mts && tsx scripts/import-mechanics.mts && tsx scripts/import-endgame.mts && tsx scripts/import-artifacts.mts && tsx scripts/import-account-buff.mts && tsx scripts/import-changes.mts && tsx scripts/import-birthdays.mts",
     "legami:import": "tsx scripts/import-hero-fates.mts",
     "equipaggiamento:import": "tsx scripts/import-gear.mts",
     "parole:import": "tsx scripts/import-hero-terms.mts",
@@ -40,6 +40,7 @@
     "artefatti:import": "tsx scripts/import-artifacts.mts",
     "buff:import": "tsx scripts/import-account-buff.mts",
     "cambiamenti:import": "tsx scripts/import-changes.mts",
+    "compleanni:import": "tsx scripts/import-birthdays.mts",
     "docker:app": "docker compose --profile app up --build"
   },
   "dependencies": {

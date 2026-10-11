@@ -130,9 +130,11 @@ export function HeroTabs({
             key={`label-${tab.key}`}
             htmlFor={`${ID}-${tab.key}`}
             className={cx(
-              // la lama che spazza al passaggio e l'affondo alla pressione: p5-btn
+              // la lama che spazza al passaggio e l'affondo alla pressione: p5-btn.
+              // Il fuoco dentro il taglio di 5px come quello di tutti i comandi
+              // tagliati (globals.css): a 4 il contorno toccava gli spigoli obliqui
               "p5-cut p5-btn shrink-0 cursor-pointer px-4 py-2 whitespace-nowrap [--btn-bg:transparent] [--btn-fg:var(--color-ink)]",
-              "font-display text-[15px] font-black uppercase tracking-[0.04em] [font-variation-settings:'wdth'_75] outline-offset-[-4px] outline-ink",
+              "font-display text-[15px] font-black uppercase tracking-[0.04em] [font-variation-settings:'wdth'_75] outline-offset-[-5px] outline-ink",
               TAB_CLASSES[index]!.chip,
             )}
           >

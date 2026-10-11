@@ -16,7 +16,7 @@ import { costumeIndexOf, type CalculatorData, type HeroBuild } from "@/lib/games
 import { useLocale } from "@/lib/i18n/client";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
 import { ChoiceRow, LinkButton, Panel, RangeField } from "./controls";
-import { ItemIcon, costumeSrc } from "./item-icon";
+import { ICON_CHIP_GROW, ItemIcon, costumeSrc } from "./item-icon";
 import { formatStat, statName } from "./stat-rows";
 
 const TESTI = testi({
@@ -66,6 +66,21 @@ const TESTI = testi({
 
 type Slot = { kind: CostumeKind; index: number } | "relic";
 
+/**
+ * Un posto dei costumi (e quello della reliquia): l'icona del gioco si alza e
+ * cresce come le insegne dei ranghi nelle Abilita' (`rank-chip`, di un decimo:
+ * ICON_CHIP_GROW; prima solo `p5-press`, che si sarebbe sommato al suo affondo).
+ * Il filo c'e' sempre, trasparente, cosi' il posto scelto non sposta i vicini;
+ * al passaggio sta sopra di loro, che coprirebbero il suo alone. Scegliere un
+ * posto non e' un rango: filo e fondo rossi, senza la lama.
+ */
+const slotClass = (active: boolean) =>
+  cx(
+    "rank-chip relative border p-0.5 hover:z-[1]",
+    ICON_CHIP_GROW,
+    active ? "border-brand bg-brand-soft" : "border-transparent hover:border-ink-3 hover:bg-paper-3",
+  );
+
 export function costumeName(costume: Costume | undefined, id: string, locale: Locale): string {
   return inLingua(costume?.name, locale) ?? TESTI[locale].senzaNome(id);
 }
@@ -111,7 +126,7 @@ export function CostumePanel({
         type="button"
         aria-pressed={active}
         onClick={() => setSelected({ kind, index: i })}
-        className={cx("p5-press p-0.5", active ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
+        className={slotClass(active)}
       >
         {choice && costume ? (
           <ItemIcon
@@ -161,7 +176,7 @@ export function CostumePanel({
                 type="button"
                 aria-pressed={selected === "relic"}
                 onClick={() => setSelected("relic")}
-                className={cx("p5-press p-0.5", selected === "relic" ? "bg-brand-soft outline outline-1 outline-brand" : "hover:bg-paper-3")}
+                className={slotClass(selected === "relic")}
               >
                 <RelicThumb game={game} data={data} relic={build.relic} label={t.reliquia} empty={t.vuoto} />
               </button>
@@ -260,6 +275,7 @@ function RelicEditor({
           value={relic.upgrades}
           onChange={(upgrades) => onChange({ id: found.id, upgrades })}
           options={Array.from({ length: found.upgrades.length + 1 }, (_, n) => ({ value: n, label: `+${n}`, title: t.potenziamentiTitolo(n) }))}
+          ranks
         />
       ) : null}
     </div>
@@ -309,7 +325,8 @@ function CostumeEditor({
                 {statName(flat, locale)} +{formatStat(costumeFlat(index, costume, choice.step), locale)}
               </span>
             </p>
-            <span className="flex gap-3">
+            {/* due bottoni e non due scritte: lo spazio fra loro lo fa gia' il loro margine interno */}
+            <span className="flex gap-1">
               <LinkButton onClick={() => put({ id: choice.id, step: costumeMaxStep(index, costume) })}>{t.alMassimo}</LinkButton>
               <LinkButton onClick={() => put(null)}>{t.togli}</LinkButton>
             </span>
@@ -348,7 +365,11 @@ function CostumeEditor({
                   type="button"
                   disabled={already}
                   onClick={() => put({ id: cid, step: costumeMaxStep(index, other) })}
-                  className="flex w-full items-center gap-2 p-1 text-left hover:bg-paper-3 disabled:cursor-not-allowed disabled:opacity-45"
+                  className={cx(
+                    "flex w-full items-center gap-2 p-1 text-left disabled:cursor-not-allowed disabled:opacity-45",
+                    // gia' registrato non si sceglie: non si alza e non si accende
+                    !already && cx("rank-chip cursor-pointer hover:bg-paper-3", ICON_CHIP_GROW),
+                  )}
                 >
                   <ItemIcon
                     game={game}

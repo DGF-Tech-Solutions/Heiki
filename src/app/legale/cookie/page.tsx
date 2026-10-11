@@ -74,6 +74,15 @@ function CookieIt() {
             <td>1 anno</td>
           </tr>
           <tr>
+            <td>tema</td>
+            <td>
+              Ricordare i colori del sito che hai scelto con il selettore del tema
+              nell&apos;intestazione, accanto a IT/EN. Contiene solo il nome del tema (per esempio
+              “notte”). Non richiede consenso: ricorda soltanto una scelta che hai fatto tu.
+            </td>
+            <td>1 anno</td>
+          </tr>
+          <tr>
             <td>gachazone:cookie-consent</td>
             <td>Ricordare la scelta che fai qui sotto</td>
             <td>6 mesi</td>
@@ -148,6 +157,15 @@ function CookieEn() {
               Remember the site language you picked with the IT/EN switch in the header. It
               contains only “it” or “en”. It needs no consent: it only remembers a choice you
               made.
+            </td>
+            <td>1 year</td>
+          </tr>
+          <tr>
+            <td>tema</td>
+            <td>
+              Remember the site colors you picked with the theme selector in the header, next to
+              IT/EN. It contains only the theme&apos;s name (for example “notte”). It needs no
+              consent: it only remembers a choice you made.
             </td>
             <td>1 year</td>
           </tr>

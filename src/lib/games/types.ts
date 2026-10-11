@@ -39,6 +39,7 @@ import type { HeroFatesIndex } from "./hero-fates-types";
 import type { HeroTermsIndex } from "./hero-terms-types";
 import type { ChangesIndex } from "./changes-types";
 import type { MechanicsIndex } from "./mechanics-types";
+import type { BirthdaysIndex } from "./birthdays-types";
 import type { TeamIndex } from "./team-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
@@ -881,6 +882,13 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * mechanics-types.ts.
    */
   readonly mechanics?: MechanicsIndex;
+
+  /**
+   * I compleanni: la data nel profilo di ogni eroe e la festa dei clienti della
+   * taverna (il regalo preferito da' piu' punti Affetto). Li legge la pagina
+   * «Compleanni». Il contratto sta in birthdays-types.ts.
+   */
+  readonly birthdays?: BirthdaysIndex;
 
   /**
    * I cambiamenti da una patch all'altra, eroe per eroe, dall'archivio delle

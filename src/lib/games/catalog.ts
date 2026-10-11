@@ -120,6 +120,7 @@ export interface GameSection {
     | "artifacts"
     | "accountBuff"
     | "mechanics"
+    | "birthdays"
     | "heroFates"
     | "team"
     | "deathMatch"
@@ -284,6 +285,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
           en: "The clue game, like Loldle: attribute, race, characteristics, grade, release",
         },
         needs: "releases",
+      },
+      {
+        path: "/compleanni",
+        label: { it: "Compleanni", en: "Birthdays" },
+        hint: {
+          it: "Il compleanno di ogni eroe, chi festeggia oggi e il regalo che in taverna vale dieci volte l'Affetto",
+          en: "Every hero's birthday, who is celebrating today and the gift that's worth ten times the Affection at the tavern",
+        },
+        needs: "birthdays",
       },
     ],
   },

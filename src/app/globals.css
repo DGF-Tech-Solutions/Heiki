@@ -23,6 +23,17 @@
  * la carta. L'unico posto che lo sapeva davvero e' game-color.ts, che adatta i
  * colori del GIOCO, e ha dovuto ribaltare la propria regola insieme a questa.
  *
+ * Dall'11/10 i TEMI li sceglie chi legge (il selettore accanto a IT/EN): sono
+ * varianti di colore e nient'altro, tutte scure per la stessa ragione di
+ * sopra. Il rosso «Persona» resta il predefinito, in `@theme`; ogni altro tema
+ * e' un blocco `:root[data-theme="…"]` subito dopo, che ridefinisce gli stessi
+ * token del ruolo. Per questo un colore che deve seguire il tema si scrive col
+ * token (`var(--color-brand)`, anche dentro un color-mix), mai in esadecimale:
+ * il retino del fondo, la lama obliqua, il palco degli eroi lo fanno gia'. Le
+ * soglie di contrasto le controlla un test che legge QUESTO file
+ * (src/lib/theme/__tests__/themes.test.ts): un tema nuovo che non le regge
+ * non passa.
+ *
  * Qui dentro ci sono SOLO i token e le poche regole che le utility non possono
  * esprimere. Tutto il resto vive nei componenti, in classi Tailwind.
  */
@@ -85,6 +96,110 @@
   --container-shell: 1560px;
 }
 
+/*
+ * I temi (11/10): le varianti di colore che sceglie chi legge, una per blocco.
+ * Il layout radice mette il tema su <html> (`data-theme`, dal cookie `tema`);
+ * «persona» non ha un blocco perche' e' `@theme` qui sopra. L'elenco dei temi e
+ * i loro nomi stanno in src/lib/theme/themes.ts.
+ *
+ * Ogni blocco ridefinisce TUTTI gli undici token del ruolo, anche quelli che
+ * cambiano poco: un tema che ne dimentica uno prenderebbe il grigio caldo del
+ * rosso, e il test lo ferma. Restano fuori di proposito `hot`, `gold`, `up` e
+ * `down`: sono significati (avviso, premium, sale, scende), non l'accento, e
+ * un rosa che diventa blu col tema smetterebbe di dire «attenzione».
+ *
+ * Le regole, uguali per tutti, misurate per ognuno (rapporti WCAG):
+ *  - il fondo resta quasi nero (luminanza 0,003 come il rosso): i colori del
+ *    gioco ci stanno sopra come li stampa lui
+ *  - i grigi prendono un filo della tinta dell'accento, come i neutri caldi
+ *    accanto al rosso: il grigio caldo accanto al blu sporca allo stesso modo
+ *  - `brand` regge il BIANCO sopra ad almeno 4,5:1 (bottoni, voci attive,
+ *    etichette: in tutto il sito il testo sull'accento e' bianco, anche in
+ *    pagine che i temi non toccano), e sul fondo fa almeno 3:1 come blocco e
+ *    come filo. Per questo niente giallo: col bianco sopra non esiste
+ *  - `brand-deep` e' l'accento per il testo piccolo: almeno 4,5:1 sul fondo
+ *
+ *               ink    ink-2   ink-3        bianco/   brand/   deep/
+ *               paper  paper   paper/p2/p3  brand     paper    paper/p2
+ *   persona     17,9   13,3    7,5/7,0/6,2  4,7       4,2      6,3/5,9
+ *   notte       17,6   13,4    7,6/7,1/6,2  5,2       3,8      7,3/6,8
+ *   giada       17,9   13,8    7,9/7,4/6,5  4,7       4,2      10,8/10,1
+ *   viola       17,6   13,2    7,4/7,0/6,2  4,6       4,3      8,3/7,8
+ *   ambra       17,7   13,4    7,5/7,0/6,2  4,6       4,3      8,9/8,3
+ */
+@layer base {
+  /* Notte: il blu delle ore piccole. Accento cobalto, grigi freddi */
+  :root[data-theme="notte"] {
+    --color-paper: #080a10;
+    --color-paper-2: #10141c;
+    --color-paper-3: #1b2130;
+    --color-ink: #eef2f8;
+    --color-ink-2: #cdd5e1;
+    --color-ink-3: #97a1b2;
+    --color-rule: #2a3242;
+    --color-rule-2: #171c27;
+    --color-brand: #1c64e8;
+    --color-brand-deep: #6b9bff;
+    --color-brand-soft: #0c1f4a;
+  }
+
+  /*
+   * Giada: verde azzurro, non il verde pieno. Il verde e' gia' `up` (quanto
+   * sale un numero nel calcolatore, #5fd38a): un accento della stessa tinta
+   * avrebbe fatto leggere ogni collegamento come un aumento
+   */
+  :root[data-theme="giada"] {
+    --color-paper: #070b0a;
+    --color-paper-2: #0f1513;
+    --color-paper-3: #1a2320;
+    --color-ink: #eef5f2;
+    --color-ink-2: #cddbd5;
+    --color-ink-3: #97a8a1;
+    --color-rule: #28342f;
+    --color-rule-2: #161d1a;
+    --color-brand: #0b836b;
+    --color-brand-deep: #3fd5b9;
+    --color-brand-soft: #062d25;
+  }
+
+  /*
+   * Viola: il viola elettrico che era l'accento del sito fino al 27/09 (#8b5cff),
+   * scurito quanto basta a reggere il bianco sopra (era 4,2:1, ora 4,6)
+   */
+  :root[data-theme="viola"] {
+    --color-paper: #0a0910;
+    --color-paper-2: #13111b;
+    --color-paper-3: #201c2c;
+    --color-ink: #f3f0f8;
+    --color-ink-2: #d6d0e2;
+    --color-ink-3: #a29bb3;
+    --color-rule: #312b42;
+    --color-rule-2: #1c1826;
+    --color-brand: #8b51ef;
+    --color-brand-deep: #b994ff;
+    --color-brand-soft: #27154b;
+  }
+
+  /*
+   * Ambra: l'arancio bruciato, il piu' vicino al giallo che regga il bianco
+   * sopra. Lontano abbastanza dall'oro di `gold` (premium, rarita') da non
+   * confondersi
+   */
+  :root[data-theme="ambra"] {
+    --color-paper: #0c0a07;
+    --color-paper-2: #16130e;
+    --color-paper-3: #241f17;
+    --color-ink: #f7f2ea;
+    --color-ink-2: #ddd3c4;
+    --color-ink-3: #a99e8d;
+    --color-rule: #362f24;
+    --color-rule-2: #201b14;
+    --color-brand: #c5500d;
+    --color-brand-deep: #ff9150;
+    --color-brand-soft: #3d1907;
+  }
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -96,7 +211,9 @@
    * Il fondo non e' un nero piatto: un retino di punti rossi che sfuma dall'alto
    * e una lama obliqua dietro l'intestazione, fissi mentre la pagina scorre.
    * Tutto a bassa opacita': i testi lunghi della scheda eroe ci stanno sopra
-   * e devono restare leggibili (contrasto misurato sul nero pieno).
+   * e devono restare leggibili (contrasto misurato sul nero pieno). Punti e
+   * lama sono nel colore dell'accento, non in rosso scritto a mano: col tema
+   * cambiano anche loro.
    */
   body {
     background-color: var(--color-paper);

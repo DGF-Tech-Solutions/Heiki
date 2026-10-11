@@ -2,13 +2,27 @@
 
 import type { ReactNode } from "react";
 import { IconStar } from "@/components/icons";
-import { chipClass, cx, numeric } from "@/components/ui";
+import { buttonClass, chipClass, cx, numeric, rankChipColors } from "@/components/ui";
 
 /**
  * I comandi del calcolatore, tutti nello stile dello slider del livello e del
  * Risveglio (regola dell'utente, 26/09): radio nascosti con un riquadro o una
  * stella al posto del pallino, slider con la casella del numero accanto.
+ *
+ * Le insegne del gioco (stelle, pietre, sfere) sono pulsanti come quelli dei
+ * ranghi delle carte nella scheda Abilita' (11/10, l'utente: «come nella sezione
+ * abilita' anche nelle altre»): un riquadro col filo, che al passaggio si alza e
+ * fa crescere l'insegna (`rank-chip`, globals.css), e il valore scelto col filo
+ * rosso e la lama sotto. I colori li da' `rankChipColors` (ui.tsx), il movimento
+ * globals.css.
  */
+
+/**
+ * Il fuoco della tastiera sui pulsanti a insegna: il radio e' nascosto e sta
+ * subito prima, nella stessa etichetta. Il contorno nel colore del testo, come
+ * sui ranghi delle carte: il rosso del fuoco si confondeva col filo dello scelto.
+ */
+const RANK_FOCUS = "peer-focus-visible:outline-2 peer-focus-visible:outline-ink";
 
 /** Una fila di scelte: riquadri col testo o con un'immagine. */
 export function ChoiceRow<T extends string | number>({
@@ -19,6 +33,7 @@ export function ChoiceRow<T extends string | number>({
   onChange,
   disabled,
   note,
+  ranks = false,
 }: {
   legend: string;
   name: string;
@@ -27,6 +42,12 @@ export function ChoiceRow<T extends string | number>({
   onChange: (value: T) => void;
   disabled?: boolean;
   note?: ReactNode;
+  /**
+   * le scelte sono gradini (rarita', +N, grado): la scelta porta la lama rossa
+   * sotto, come i ranghi delle carte. Bianca e basta, al passaggio un pulsante
+   * spento diventava uguale a quello scelto.
+   */
+  ranks?: boolean;
 }) {
   return (
     <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0" disabled={disabled}>
@@ -54,7 +75,13 @@ export function ChoiceRow<T extends string | number>({
               className={chipClass(
                 value === option.value,
                 true,
-                cx(numeric, "h-8 min-w-8 justify-center px-2 peer-disabled:pointer-events-none peer-disabled:opacity-40"),
+                // l'altezza e' quella di chipClass (h-9, 40px sul telefono): un h-8
+                // scritto qui perdeva comunque contro h-9, stampato dopo nel CSS
+                cx(
+                  numeric,
+                  "min-w-8 justify-center px-2 peer-disabled:pointer-events-none peer-disabled:opacity-40",
+                  ranks && value === option.value && "shadow-[inset_0_-2px_0_var(--color-brand)]",
+                ),
               )}
             >
               {option.label}
@@ -71,6 +98,8 @@ export function ChoiceRow<T extends string | number>({
 export function Star({ src, lit, size = 18 }: { src?: string; lit: boolean; size?: number }) {
   if (src) {
     return (
+      // Niente `transition-opacity`: e' un'utility, e scavalcherebbe la
+      // transizione di `.rank-chip img` (la stella che cresce al passaggio)
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
@@ -78,7 +107,7 @@ export function Star({ src, lit, size = 18 }: { src?: string; lit: boolean; size
         width={39}
         height={41}
         style={{ width: size, height: size }}
-        className={cx("object-contain transition-opacity", !lit && "opacity-25 grayscale")}
+        className={cx("object-contain", !lit && "opacity-25 grayscale")}
       />
     );
   }
@@ -126,13 +155,12 @@ export function StarRow({
             <span
               aria-hidden
               className={cx(
-                "grid h-7 min-w-7 place-items-center px-1 peer-focus-visible:outline-2 peer-focus-visible:outline-brand peer-disabled:cursor-not-allowed peer-disabled:opacity-40",
-                n === 0 &&
-                  cx(
-                    numeric,
-                    "mr-1 w-7 border text-[12px]",
-                    value === 0 ? "border-brand bg-brand-soft text-ink" : "border-rule text-ink-3",
-                  ),
+                // ogni stella e' un pulsante come le stelle dei ranghi delle carte;
+                // spenta da Super risveglio non ancora sbloccato, non si alza
+                "rank-chip grid h-7 min-w-7 place-items-center border px-1 peer-disabled:pointer-events-none peer-disabled:opacity-40",
+                RANK_FOCUS,
+                rankChipColors(value === n),
+                n === 0 && cx(numeric, "mr-1 text-[12px]"),
               )}
             >
               {n === 0 ? "0" : <Star src={starSrc} lit={n <= value} />}
@@ -177,10 +205,7 @@ export function UltimateRow({
               <span className="sr-only">{title(rank)}</span>
               <span
                 aria-hidden
-                className={cx(
-                  "grid h-7 w-7 place-items-center border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                  value === rank ? "border-brand bg-brand-soft" : "border-transparent",
-                )}
+                className={cx("rank-chip grid h-7 w-7 place-items-center border", RANK_FOCUS, rankChipColors(value === rank))}
               >
                 {gemSrcs?.[position] ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -238,11 +263,14 @@ export function TrueAwakeningRow({
                 className={cx("peer accent-[var(--color-brand)]", srcs && "sr-only")}
               />
               {srcs ? (
+                // La sfera e il suo nome in un pulsante solo: stavano in un
+                // riquadro e una scritta accanto, e al passaggio sulla scritta il
+                // riquadro non rispondeva. Acceso e spento, non un rango: niente lama.
                 <span
-                  aria-hidden
                   className={cx(
-                    "grid h-9 w-9 place-items-center border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                    on ? "border-brand bg-brand-soft" : "border-rule",
+                    "rank-chip flex h-9 items-center gap-1.5 border pr-2.5 pl-px text-[12px]",
+                    RANK_FOCUS,
+                    rankChipColors(on, false),
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -251,11 +279,13 @@ export function TrueAwakeningRow({
                     alt=""
                     width={32}
                     height={32}
-                    className={cx("h-8 w-8 object-contain transition-opacity", !on && "opacity-30 grayscale")}
+                    className={cx("h-8 w-8 object-contain", !on && "opacity-30 grayscale")}
                   />
+                  {labels[kind]}
                 </span>
-              ) : null}
-              <span className={cx("text-[12px]", on ? "text-ink-2" : "text-ink-3")}>{labels[kind]}</span>
+              ) : (
+                <span className={cx("text-[12px]", on ? "text-ink-2" : "text-ink-3")}>{labels[kind]}</span>
+              )}
             </label>
           );
         })}
@@ -340,9 +370,15 @@ export function Panel({ title, children, action }: { title: string; children: Re
   );
 }
 
+/**
+ * Le azioni dei riquadri («Al massimo», «Togli il pezzo», «Torna a tutto al
+ * massimo»): bottoni del sito, trasparenti finche' non ci si passa sopra. Erano
+ * scritte rosse sottolineate al passaggio, senza risposta alla pressione e alte
+ * 18px, meno di quanto si centra col pollice.
+ */
 export function LinkButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className="text-[12px] font-semibold text-brand-deep hover:underline">
+    <button type="button" onClick={onClick} className={buttonClass("ghost", "sm")}>
       {children}
     </button>
   );

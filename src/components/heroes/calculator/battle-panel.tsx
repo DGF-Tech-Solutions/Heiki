@@ -8,7 +8,7 @@ import { fateEffectAt } from "@/lib/games/gear";
 import type { BuildResult, CalculatorData, HeroBuild } from "@/lib/games/hero-build";
 import { useLocale } from "@/lib/i18n/client";
 import { inLingua, testi } from "@/lib/i18n/locale";
-import { ChoiceRow, Panel } from "./controls";
+import { ChoiceRow, Panel, UltimateRow } from "./controls";
 import { formatStat, statName } from "./stat-rows";
 
 const TESTI = testi({
@@ -137,52 +137,22 @@ export function BattlePanel({
 
           {chosen && associate ? (
             <>
-              <fieldset className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-0 p-0">
-                <legend className="float-left mr-3 p-0 text-ink-2">{t.mossa}</legend>
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 6 }, (_, position) => {
-                    const rank = position + 1;
-                    return (
-                      <label key={rank} className="cursor-pointer" title={t.rango(rank)}>
-                        <input
-                          type="radio"
-                          name={`${id}-mossa`}
-                          checked={chosen.ultimateRank === rank}
-                          onChange={() => onChange({ ...chosen, ultimateRank: rank })}
-                          className="peer sr-only"
-                        />
-                        <span className="sr-only">{t.rango(rank)}</span>
-                        <span
-                          aria-hidden
-                          className={cx(
-                            "grid h-7 w-7 place-items-center border peer-focus-visible:outline-2 peer-focus-visible:outline-brand",
-                            chosen.ultimateRank === rank ? "border-brand bg-brand-soft" : "border-transparent",
-                          )}
-                        >
-                          {gemSrcs?.[position] ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={gemSrcs[position]}
-                              alt=""
-                              width={24}
-                              height={24}
-                              className={cx("h-5 w-5 object-contain", rank > chosen.ultimateRank && "opacity-30")}
-                            />
-                          ) : (
-                            <span className={cx(numeric, "text-[12px]")}>{rank}</span>
-                          )}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
+              {/* le stesse pietre del rango dell'ultimate dell'eroe: era una copia di UltimateRow */}
+              <UltimateRow
+                legend={t.mossa}
+                name={`${id}-mossa`}
+                value={chosen.ultimateRank}
+                onChange={(rank) => onChange({ ...chosen, ultimateRank: rank })}
+                gemSrcs={gemSrcs}
+                title={t.rango}
+              />
               <ChoiceRow
                 legend={t.grado}
                 name={`${id}-grado`}
                 value={chosen.grade}
                 onChange={(grade) => onChange({ ...chosen, grade })}
                 options={associate.grades.map((g) => ({ value: g, label: gradeName(g), title: gradeName(g) }))}
+                ranks
               />
               <label className="flex cursor-pointer items-start gap-2 text-ink-2">
                 <input

@@ -90,6 +90,22 @@ export function chipColors(active: boolean, quiet = false): string {
       : "font-semibold";
 }
 
+/**
+ * I colori dei pulsanti a insegna del gioco (stelle, pietre, sfere, simboli),
+ * quelli con `rank-chip` in globals.css, che ne fa il movimento: scelto ha filo
+ * e fondo rossi, e la lama sotto se e' un rango o un livello; spento ha il filo
+ * grigio e al passaggio si schiarisce. Il passaggio solo sugli spenti: lo
+ * scelto e' gia' acceso. Utility e non regole in globals.css: li' starebbero
+ * nel livello `components`, e un `bg-paper-2` scritto qui le scavalcherebbe.
+ * Le carte della scheda Abilita' scrivono gli stessi colori per esteso, coi
+ * radio nascosti (RANK_CLASSES in hero-abilities.tsx).
+ */
+export function rankChipColors(chosen: boolean, blade = true): string {
+  return chosen
+    ? cx("border-brand bg-brand-soft text-ink", blade && "shadow-[inset_0_-2px_0_var(--color-brand)]")
+    : "border-rule bg-paper-2 text-ink-3 hover:border-ink-3 hover:bg-paper-3 hover:text-ink";
+}
+
 const BUTTON_SIZE: Record<ButtonSize, string> = {
   md: "h-[38px] px-[22px] text-sm",
   sm: "h-8 px-3.5 text-[13px]",

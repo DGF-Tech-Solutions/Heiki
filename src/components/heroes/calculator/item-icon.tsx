@@ -13,6 +13,16 @@ import type { ItemIconLayers } from "@/lib/games/gear-types";
  * riquadro (`objectBox`). Senza JavaScript: la usano anche le schede del server.
  */
 
+/**
+ * Per i pulsanti con un'icona grande (pezzi, costumi, reliquia) accanto a
+ * `rank-chip`: l'icona cresce di un decimo e non di un quinto. Le stelle dei
+ * ranghi crescono dentro il loro riquadro; un'icona di 72px cresciuta di un
+ * quinto ne usciva di 7px, copriva il nome sotto e il bordo del passaggio le
+ * restava dietro (misurato l'11/10). Solo col movimento permesso: con «riduci
+ * movimento» vale la regola di globals.css, che non la fa crescere.
+ */
+export const ICON_CHIP_GROW = "motion-safe:hover:[&_img]:scale-110";
+
 export const layerSrc = (game: string, name: string) => `/eroi/${game}/equipaggiamento/strati/${name}.webp`;
 export const pieceSrc = (game: string, set: number, part: number) => `/eroi/${game}/equipaggiamento/pezzi/${set}_${part}.webp`;
 export const slotSrc = (game: string, part: number) => `/eroi/${game}/equipaggiamento/slot/${part}.webp`;
@@ -140,13 +150,29 @@ export function SetBadge({
     height: icons.size * scale,
     left: -bx * scale,
     top: -top * scale,
+    // Nei pulsanti dei set il glifo cresce al passaggio (`.rank-chip img`). Lo
+    // strato e' grande quanto l'icona intera e il glifo sta nel suo angolo:
+    // cresciuto attorno al centro dello strato, scivolava via in alto a destra.
+    // Cresce attorno al centro del glifo.
+    transformOrigin: `${(bx + side / 2) * scale}px ${(top + side / 2) * scale}px`,
   };
+  // Senza `overflow-hidden`: fuori dal glifo gli strati sono trasparenti (misurato:
+  // l'esagono occupa 92-128 x 0-41 su 128), e ritagliati il glifo cresciuto
+  // perdeva i bordi. Trasparenti ma non al tocco: `pointer-events-none`, se no la
+  // parte dello strato che sporge a sinistra prenderebbe i clic del set accanto.
   return (
-    <span aria-hidden className={cx("relative inline-block shrink-0 overflow-hidden", className)} style={{ width: size, height: size }}>
+    <span aria-hidden className={cx("relative inline-block shrink-0", className)} style={{ width: size, height: size }}>
       {["esagono", `set_${set}`].map((name) =>
         have.has(name) ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={name} src={layerSrc(game, name)} alt="" draggable={false} className="absolute max-w-none" style={style} />
+          <img
+            key={name}
+            src={layerSrc(game, name)}
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute max-w-none"
+            style={style}
+          />
         ) : null,
       )}
     </span>

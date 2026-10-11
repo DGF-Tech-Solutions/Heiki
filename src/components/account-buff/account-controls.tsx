@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { IconChevronRight } from "@/components/icons";
-import { chipClass, cx, numeric } from "@/components/ui";
+import { chipClass, cx, numeric, rankChipColors } from "@/components/ui";
 import type { AccountSliderData } from "@/lib/games/account-buff-types";
 import type { ManaMode } from "@/lib/games/account-buff";
 import { EMPTY_SETUP, setupEffect, type AccountSetup } from "@/lib/games/account-setup";
@@ -180,14 +180,13 @@ export function AccountControls({
                 <span
                   aria-hidden
                   className={cx(
-                    // la scelta e' la lama rossa sotto il simbolo, come il fuoco della ricerca Eroi
-                    "grid h-8 w-8 place-items-center border",
-                    quick && setup.completed === n
-                      ? "border-transparent bg-paper-3 shadow-[inset_0_-3px_0_var(--color-brand)]"
-                      : n === 0
-                        ? "border-rule"
-                        : "border-transparent",
-                    n === 0 && cx(numeric, "text-[12px]", quick && setup.completed === 0 ? "text-ink" : "text-ink-3"),
+                    // I simboli sono pulsanti come i ranghi delle carte nella scheda
+                    // eroe (11/10): un riquadro che al passaggio si alza e fa crescere
+                    // il simbolo (`rank-chip`), e la scelta col filo rosso e la lama
+                    // sotto. Era la sola lama, piu' spessa, su un fondo grigio.
+                    "rank-chip grid h-8 w-8 place-items-center border",
+                    rankChipColors(quick && setup.completed === n),
+                    n === 0 && cx(numeric, "text-[12px]"),
                   )}
                 >
                   {n === 0 ? (
@@ -199,7 +198,8 @@ export function AccountControls({
                       alt=""
                       width={140}
                       height={140}
-                      className={cx("h-7 w-7 object-contain transition-opacity", !lit && "opacity-25")}
+                      // niente `transition-opacity`: scavalcherebbe la crescita di `.rank-chip img`
+                      className={cx("h-7 w-7 object-contain", !lit && "opacity-25")}
                     />
                   ) : (
                     <span className={cx(numeric, "text-[12px]", lit ? "text-ink" : "text-ink-3")}>{n}</span>

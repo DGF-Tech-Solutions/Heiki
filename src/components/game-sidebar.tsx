@@ -89,7 +89,9 @@ export function GameSidebar({
                     // sulla voce attiva: le disegna .p5-menu-item in globals.css
                     className={cx(
                       "p5-menu-item block px-3 py-1.5 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82]",
-                      active ? "text-white" : "text-ink-2",
+                      // il nero del passaggio va scritto qui: l'utility di riposo scavalca
+                      // quello di .p5-menu-item, e il testo chiaro restava sulla lama bianca
+                      active ? "text-white" : "text-ink-2 hover:text-paper",
                     )}
                   >
                     {item.label}

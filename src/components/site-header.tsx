@@ -6,18 +6,23 @@ import { listGames } from "@/lib/games/catalog";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { unreadCount } from "@/lib/social/actions";
+import { getTheme } from "@/lib/theme/server";
 import { IconUser } from "./icons";
 import { LanguageSwitch } from "./language-switch";
 import { PopoverPanel } from "./popover-panel";
+import { ThemeSwitch } from "./theme-switch";
 import { buttonClass, buttonColors, cx, Tag } from "./ui";
 
 // Sul telefono i bottoni dell'intestazione si stringono: in maiuscolo e col
 // taglio obliquo «Iscriviti» finiva fuori dallo schermo, nella barra che scorre
 const PHONE = "max-sm:px-2 max-sm:text-[12px]";
 
-// una voce del pannello dell'utente: come le voci della barra laterale
+// una voce del pannello dell'utente: come le voci della barra laterale.
+// `hover:text-paper` qui e non solo in globals.css: l'utility del colore di
+// riposo scavalca .p5-menu-item, e al passaggio il testo chiaro restava sulla
+// lama bianca (visto l'11/10)
 const MENU_VOCE =
-  "p5-menu-item flex items-center px-3 py-2 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink-2 [font-variation-settings:'wdth'_82]";
+  "p5-menu-item flex items-center px-3 py-2 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink-2 hover:text-paper [font-variation-settings:'wdth'_82]";
 
 const TESTI = testi({
   it: {
@@ -62,6 +67,7 @@ export async function SiteHeader() {
   const user = session?.user;
   const unread = user ? await safeUnread() : 0;
   const locale = await getLocale();
+  const theme = await getTheme();
   const t = TESTI[locale];
 
   return (
@@ -110,7 +116,11 @@ export async function SiteHeader() {
             {t.giochi}
           </Link>
 
-          <LanguageSwitch />
+          {/* tema e lingua, vicini: sono le due scelte di chi legge, non dell'account */}
+          <span className="flex shrink-0 items-center gap-1.5">
+            <ThemeSwitch current={theme} />
+            <LanguageSwitch />
+          </span>
 
           <span className="flex items-center gap-1 sm:gap-2.5 sm:border-l sm:border-rule sm:pl-5">
             {user ? (

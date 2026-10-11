@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Archivo, Atkinson_Hyperlegible_Next, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
@@ -9,6 +9,8 @@ import { LocaleProvider } from "@/lib/i18n/client";
 import { ogLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { SITE_NAME, siteUrl } from "@/lib/site";
+import { getTheme } from "@/lib/theme/server";
+import { THEME_COLORS } from "@/lib/theme/themes";
 import "./globals.css";
 
 /**
@@ -97,15 +99,27 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/**
+ * La barra del browser sul telefono prende il fondo del tema invece del suo
+ * grigio, e sembra il seguito dell'intestazione. `colorScheme` dice al browser
+ * che il sito e' scuro prima che arrivi il CSS: niente lampo bianco.
+ */
+export async function generateViewport(): Promise<Viewport> {
+  return { themeColor: THEME_COLORS[await getTheme()].paper, colorScheme: "dark" };
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // La lingua viene dal cookie, e il layout la passa ai componenti client:
-  // la pagina arriva gia' nella lingua scelta (vedi src/lib/i18n/locale.ts)
+  // la pagina arriva gia' nella lingua scelta (vedi src/lib/i18n/locale.ts).
+  // Il tema pure: `data-theme` e' gia' nell'HTML, i colori giusti dal primo disegno
   const locale = await getLocale();
+  const theme = await getTheme();
   const t = TESTI[locale];
 
   return (
     <html
       lang={locale}
+      data-theme={theme}
       className={`${archivo.variable} ${bodyFace.variable} ${monoFace.variable}`}
     >
       <body>

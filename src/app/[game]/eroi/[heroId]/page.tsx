@@ -16,7 +16,10 @@ import { STAT_ROWS, formatStat } from "@/components/heroes/calculator/stat-rows"
 import { HeroAssociations } from "@/components/heroes/hero-associations";
 import { HeroCostumes } from "@/components/heroes/hero-costumes";
 import { HeroArrowKeys } from "@/components/heroes/hero-arrow-keys";
-import { IconArrowRight, IconChevronLeft, IconChevronRight } from "@/components/icons";
+import { IconArrowRight, IconChevronLeft, IconChevronRight, IconGift } from "@/components/icons";
+import { formatMonthDay } from "@/components/birthdays/birthday-parts";
+import { dayKey } from "@/lib/games/birthdays";
+import type { BirthdaysIndex, MonthDay } from "@/lib/games/birthdays-types";
 import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
 import { buttonClass, cx, eyebrow, MoreArrow, MoreLink, Notice, numeric, Tag } from "@/components/ui";
 import { sliderData } from "@/lib/games/account-buff";
@@ -62,6 +65,10 @@ const TESTI = testi({
     razza: "Razza",
     caratteristiche: "Caratteristiche",
     personaggio: "Personaggio",
+    compleanno: "Compleanno",
+    compleannoSconosciuto: "Sconosciuto",
+    compleannoApri: (data: string) => `Il ${data} nella pagina Compleanni`,
+    festaInTaverna: "Festeggia in taverna: il suo regalo preferito vale ×10 punti Affetto",
     versioniPersonaggio: (personaggio: string) => `Tutte le versioni di ${personaggio} nella griglia Eroi`,
     uscitaGlobale: "Uscita globale",
     giapponeCorea: "Giappone e Corea",
@@ -110,6 +117,10 @@ const TESTI = testi({
     razza: "Race",
     caratteristiche: "Characteristics",
     personaggio: "Character",
+    compleanno: "Birthday",
+    compleannoSconosciuto: "Unknown",
+    compleannoApri: (data: string) => `${data} on the Birthdays page`,
+    festaInTaverna: "Celebrates at the tavern: their favorite gift is worth ×10 Affection points",
     versioniPersonaggio: (personaggio: string) => `All versions of ${personaggio} in the Heroes grid`,
     uscitaGlobale: "Global release",
     giapponeCorea: "Japan and Korea",
@@ -257,6 +268,7 @@ function lookup(game: string, heroId: string) {
     relics: relicsOf(gameModule.heroRelics, heroId),
     relicIndex: gameModule.heroRelics,
     release: gameModule.releases?.heroes[heroId],
+    birthday: birthdayOf(gameModule.birthdays, heroId),
     endgame: gameModule.endgameHeroes?.[heroId],
     // gruppo della bestia -> la chiave della sua pagina fra le Bestie demoniache,
     // per il nome della bestia nelle Reliquie sacre
@@ -332,6 +344,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
     specialKinds,
     relics,
     relicIndex,
+    birthday,
     release,
     endgame,
     beastPages,
@@ -593,6 +606,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
             factions={factionLabels}
             canReachLr={context?.rarity.canReachLr ?? false}
             release={release}
+            birthday={birthday}
           />
         </header>
 
@@ -769,6 +783,22 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
+interface HeroBirthday {
+  dates: readonly (MonthDay | null)[];
+  /** il personaggio e' un cliente della taverna che festeggia in una di queste date */
+  guest: boolean;
+}
+
+/** Il compleanno del profilo di un eroe, e se in quel giorno c'e' la festa in taverna. */
+function birthdayOf(index: BirthdaysIndex | undefined, heroId: string): HeroBirthday | null {
+  const hero = index?.heroes[heroId];
+  if (!index || !hero) return null;
+  const guest = index.guests.some(
+    (g) => g.group === hero.group && hero.dates.some((date) => date && dayKey(date) === dayKey(g.date)),
+  );
+  return { dates: hero.dates, guest };
+}
+
 /**
  * La fascia dei dati sotto il palco: attributo, rarita', razza,
  * caratteristiche, personaggio, e sotto le uscite col calendario.
@@ -790,6 +820,7 @@ function HeroFacts({
   factions,
   canReachLr,
   release,
+  birthday,
 }: {
   game: string;
   locale: Locale;
@@ -800,6 +831,7 @@ function HeroFacts({
   factions: readonly string[];
   canReachLr: boolean;
   release: HeroRelease | undefined;
+  birthday: HeroBirthday | null;
 }) {
   const t = TESTI[locale];
 
@@ -875,12 +907,44 @@ function HeroFacts({
           <Link
             href={`/${game}/eroi?cerca=${encodeURIComponent(hero.group)}`}
             title={t.versioniPersonaggio(hero.group)}
-            className={cx(factValue, "group/more inline-flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink")}
+            className={cx(factValue, "p5-press group/more inline-flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink")}
           >
             {hero.group}
             <MoreArrow />
           </Link>
         </Fact>
+
+        {/*
+          Il compleanno del profilo, che porta a quel giorno nella pagina
+          Compleanni; il pacco se il personaggio festeggia in taverna. Gli eroi
+          doppi (King & Diane) ne hanno due, uno per riga.
+        */}
+        {birthday ? (
+          <Fact label={t.compleanno}>
+            {birthday.dates.map((date, index) =>
+              date ? (
+                <Link
+                  key={index}
+                  href={`/${game}/compleanni?giorno=${dayKey(date)}#giorno`}
+                  title={t.compleannoApri(formatMonthDay(date, locale))}
+                  className={cx(factValue, "p5-press flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink [&+&]:mt-1")}
+                >
+                  {formatMonthDay(date, locale)}
+                  {birthday.guest ? (
+                    <span title={t.festaInTaverna} className="inline-flex text-gold">
+                      <IconGift size={14} />
+                      <span className="sr-only">{t.festaInTaverna}</span>
+                    </span>
+                  ) : null}
+                </Link>
+              ) : (
+                <span key={index} className={cx(factValue, "block text-ink-3 [&+&]:mt-1")}>
+                  {t.compleannoSconosciuto}
+                </span>
+              ),
+            )}
+          </Fact>
+        ) : null}
       </dl>
 
       {release ? <ReleaseFacts game={game} release={release} locale={locale} /> : null}
@@ -946,7 +1010,9 @@ function ReleaseFacts({ game, release, locale }: { game: string; release: HeroRe
       ) : null}
       {calendar ? (
         <p className={cx("m-0 px-3.5 py-3 @xl:ml-auto", days.length > 0 && "@max-xl:border-t @max-xl:border-rule")}>
-          <MoreLink href={calendar}>{t.nelCalendario}</MoreLink>
+          <MoreLink href={calendar} className="p5-press">
+            {t.nelCalendario}
+          </MoreLink>
         </p>
       ) : release.banner ? (
         // senza riga nel calendario la data viene dal client: si dice da dove
@@ -1146,8 +1212,10 @@ function MaxTable({ max, locale }: { max: Readonly<Record<string, number>>; loca
 
 function Sibling({ game, locale, hero }: { game: string; locale: Locale; hero: HeroEntry }) {
   return (
-    <li className="min-w-0">
-      <Link href={`/${game}/eroi/${hero.id}`} className="group block">
+    // la card risponde come quelle della griglia Eroi (`hero-card`, globals.css):
+    // la regola vuole la cornice DENTRO la card, e la card qui e' la voce dell'elenco
+    <li className="hero-card min-w-0">
+      <Link href={`/${game}/eroi/${hero.id}`} className="hero-card-art block">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={heroCardSrc(game, hero.id)}
@@ -1158,7 +1226,7 @@ function Sibling({ game, locale, hero }: { game: string; locale: Locale; hero: H
           loading="lazy"
           className="block w-full bg-paper-2"
         />
-        <p className="m-0 mt-1.5 text-[12px] font-semibold leading-tight group-hover:text-brand-deep">
+        <p className="hero-card-name m-0 mt-1.5 text-[12px] font-semibold leading-tight">
           {heroName(hero, locale)}
         </p>
       </Link>
