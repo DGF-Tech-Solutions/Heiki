@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { TierListMaker } from "@/components/tier-list/tier-list-maker";
 import { PageHeader } from "@/components/ui";
+import { currentViewer } from "@/lib/community/actions";
 import { findGame } from "@/lib/games/catalog";
 import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import { requireGameModule } from "@/lib/games/registry";
+import { getTierListById, getUserTierLists } from "@/lib/tier-list/server";
 import type { TierHeroItem } from "@/lib/tier-list/types";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -33,20 +35,37 @@ const TESTI = testi({
 
 interface Props {
   params: Promise<{ game: string }>;
+  searchParams?: Promise<{ id?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { game } = await params;
+  const search = await searchParams;
   const entry = findGame(game);
   const t = TESTI[await getLocale()];
+
+  if (search?.id) {
+    const tierList = await getTierListById(search.id);
+    if (tierList) {
+      const authorName = tierList.author?.displayName ?? tierList.author?.username ?? "Community";
+      return {
+        title: `${tierList.title} · Tier List di ${authorName} · ${entry?.shortName ?? "Grand Cross"}`,
+        description:
+          tierList.description ||
+          `Guarda e personalizza la tier list "${tierList.title}" creata da ${authorName} su GachaZone.`,
+      };
+    }
+  }
+
   return {
     title: t.titoloPagina(entry?.shortName ?? "Grand Cross"),
     description: t.descrizione(entry?.name ?? "Grand Cross"),
   };
 }
 
-export default async function TierListPage({ params }: Props) {
+export default async function TierListPage({ params, searchParams }: Props) {
   const { game } = await params;
+  const search = await searchParams;
   const entry = findGame(game);
   if (!entry) notFound();
 
@@ -56,6 +75,13 @@ export default async function TierListPage({ params }: Props) {
 
   const locale = await getLocale();
   const t = TESTI[locale];
+  const viewer = await currentViewer();
+
+  // Carica eventuale tier list condivisa tramite URL (?id=...)
+  const initialTierList = search?.id ? await getTierListById(search.id, viewer?.id) : null;
+
+  // Carica le tier list salvate dell'utente per questo gioco
+  const userSavedLists = viewer ? await getUserTierLists(viewer.id, game) : [];
 
   // Prepara l'elenco completo degli eroi serializzabile
   const heroes: TierHeroItem[] = roster.heroes.map((hero) => ({
@@ -104,8 +130,10 @@ export default async function TierListPage({ params }: Props) {
         heroes={heroes}
         rarities={allRarities}
         affinities={affinities}
+        viewer={viewer ? { id: viewer.id, username: viewer.username, displayName: viewer.displayName } : null}
+        initialTierList={initialTierList}
+        initialSavedLists={userSavedLists}
       />
     </main>
   );
 }
-

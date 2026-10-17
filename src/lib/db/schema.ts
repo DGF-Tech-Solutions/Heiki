@@ -879,6 +879,34 @@ export const heroRatings = pgTable(
   ],
 );
 
+/**
+ * Tier list create dagli utenti, salvate su account e condivisibili.
+ * Ogni utente puo' averne molteplici per lo stesso gioco con nomi diversi.
+ */
+export const userTierLists = pgTable(
+  "user_tier_lists",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gameId: uuid("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    data: jsonb("data").notNull(),
+    isPublic: boolean("is_public").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("user_tier_lists_user_idx").on(table.userId),
+    index("user_tier_lists_game_idx").on(table.gameId),
+    index("user_tier_lists_updated_idx").on(table.updatedAt),
+  ],
+);
+
 export const reports = pgTable(
   "reports",
   {
@@ -1191,6 +1219,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   comments: many(comments),
   votes: many(votes),
   ratings: many(heroRatings),
+  tierLists: many(userTierLists),
   purchases: many(purchases),
   // follows punta due volte a users, quindi le due direzioni vanno nominate:
   // senza relationName Drizzle non sa quale colonna usare per quale verso.
@@ -1251,6 +1280,7 @@ export const gamesRelations = relations(games, ({ many }) => ({
   guides: many(guides),
   hubs: many(hubs),
   badges: many(badges),
+  tierLists: many(userTierLists),
   sponsors: many(sponsorPlacements),
 }));
 
@@ -1368,6 +1398,11 @@ export const votesRelations = relations(votes, ({ one }) => ({
 export const heroRatingsRelations = relations(heroRatings, ({ one }) => ({
   game: one(games, { fields: [heroRatings.gameId], references: [games.id] }),
   user: one(users, { fields: [heroRatings.userId], references: [users.id] }),
+}));
+
+export const userTierListsRelations = relations(userTierLists, ({ one }) => ({
+  user: one(users, { fields: [userTierLists.userId], references: [users.id] }),
+  game: one(games, { fields: [userTierLists.gameId], references: [games.id] }),
 }));
 
 export const sponsorPlacementsRelations = relations(sponsorPlacements, ({ one }) => ({

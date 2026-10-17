@@ -30,6 +30,7 @@ const { cachedCheck } = await import("@/lib/community/verify");
 const { getGuideStore } = await import("@/lib/guides/store");
 const { suspensionFor } = await import("@/lib/moderation/suspension");
 const { getHeroRatingSummary } = await import("@/lib/ratings/server");
+const { getUserTierLists, getTierListById, exportUserTierListsBackup } = await import("@/lib/tier-list/server");
 
 
 let failures = 0;
@@ -564,6 +565,71 @@ async function main(): Promise<void> {
       );
       const cleanedSummary = await getHeroRatingSummary("grand-cross", heroId);
       check("la rimozione della valutazione ripulisce la sintesi", cleanedSummary.totalRatings === 0);
+    }
+  }
+
+  // ------------------------------------------------ tier list salvate su account
+  {
+    const gcGame = await db.query.games.findFirst({
+      where: eq(schema.games.slug, "grand-cross"),
+    });
+
+    if (gcGame) {
+      // 1. Inserimento di due tier list con nomi diversi per lo stesso account
+      const [tl1] = await db
+        .insert(schema.userTierLists)
+        .values({
+          userId: viewer.id,
+          gameId: gcGame.id,
+          title: "Tier List Prova PvP Meta",
+          data: [
+            { id: "s-plus", label: "S+", color: "#e61421", heroIds: ["hero_1", "hero_2"] },
+            { id: "s", label: "S", color: "#ff6b00", heroIds: ["hero_3"] },
+          ],
+          isPublic: true,
+        })
+        .returning({ id: schema.userTierLists.id });
+
+      const [tl2] = await db
+        .insert(schema.userTierLists)
+        .values({
+          userId: viewer.id,
+          gameId: gcGame.id,
+          title: "Tier List Prova Bestie Demoniache",
+          data: [
+            { id: "s-plus", label: "S+", color: "#e61421", heroIds: ["hero_4"] },
+            { id: "a", label: "A", color: "#ffd21f", heroIds: ["hero_5"] },
+          ],
+          isPublic: true,
+        })
+        .returning({ id: schema.userTierLists.id });
+
+      check("inserimento prima tier list con id generato", Boolean(tl1?.id));
+      check("inserimento seconda tier list distinta per lo stesso utente", Boolean(tl2?.id && tl2.id !== tl1?.id));
+
+      // 2. Recupero liste salvate dell'utente
+      if (tl1 && tl2) {
+        const userLists = await getUserTierLists(viewer.id, "grand-cross");
+        const found1 = userLists.find((l) => l.id === tl1.id);
+        const found2 = userLists.find((l) => l.id === tl2.id);
+        check("l'utente recupera entrambe le tier list salvate", Boolean(found1 && found2));
+        check("conteggio eroi e topHeroIds calcolati correttamente", found1?.heroCount === 3 && found1.topHeroIds.length === 3);
+
+        // 3. Recupero singola tier list per link condivisibile
+        const detail = await getTierListById(tl1.id, viewer.id);
+        check("recupero tier list per id (condivisione link)", detail !== null && detail.title === "Tier List Prova PvP Meta");
+        check("riconoscimento del proprietario per modifica", detail?.isOwner === true);
+
+        // 4. Esportazione backup JSON legato al profilo
+        const backup = await exportUserTierListsBackup(viewer.id);
+        check("backup JSON contiene la versione corretta", backup?.version === 1);
+        check("backup JSON contiene le tier list create", (backup?.tierLists.length ?? 0) >= 2);
+
+        // Pulizia dati di test
+        await db.delete(schema.userTierLists).where(inArray(schema.userTierLists.id, [tl1.id, tl2.id]));
+        const afterClean = await getUserTierLists(viewer.id, "grand-cross");
+        check("pulizia tier list di prova eseguita", !afterClean.some((l) => l.id === tl1.id || l.id === tl2.id));
+      }
     }
   }
 

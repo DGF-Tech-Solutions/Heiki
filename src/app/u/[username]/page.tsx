@@ -4,9 +4,11 @@ import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
 import { ProfileView } from "@/components/profile-view";
 import { ProfileWorkspace } from "@/components/profile-workspace";
+import { ProfileTierLists } from "@/components/tier-list/profile-tier-lists";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
 import { saveProfileAction } from "@/lib/profile/actions";
 import { hasActivePremium, loadProfile, pickableGames } from "@/lib/profile/load";
+import { getUserProfileTierLists } from "@/lib/tier-list/server";
 import { isFollowing } from "@/lib/social/server";
 import { FollowButton } from "@/components/social/follow-button";
 import { PostCard } from "@/components/community/post-card";
@@ -93,6 +95,17 @@ export default async function ProfilePage({ params }: Props) {
     </section>
   );
 
+  // Tier list salvate dell'utente (backup visibile nel profilo e condivisibile)
+  const savedTierLists = await getUserProfileTierLists(handle, session?.user?.id);
+  const tierListsSection = (
+    <ProfileTierLists
+      tierLists={savedTierLists}
+      isOwner={isOwner}
+      username={data.username}
+      locale={locale}
+    />
+  );
+
   // Chi non e' il proprietario riceve la pagina statica: nessun codice
   // dell'editor nel suo bundle, nessun roster da scegliere, e nessun tasto che
   // non potrebbe usare.
@@ -113,6 +126,7 @@ export default async function ProfilePage({ params }: Props) {
             ) : null
           }
         />
+        {tierListsSection}
         {posts}
       </main>
     );
@@ -128,6 +142,7 @@ export default async function ProfilePage({ params }: Props) {
         heroes={pickableGames()}
         saveAction={saveProfileAction}
       />
+      {tierListsSection}
       {posts}
     </main>
   );

@@ -15,7 +15,7 @@
 - **Framework**: Next.js 15.5+ App Router, React 19.
 - **Stile**: Tailwind CSS v4, direzione grafica Persona (sfondo scuro `#0b0a0a`/`#151313`, tagli obliqui `.p5-cut`, bottoni `.p5-btn`, accento brand rosso `#e61421`, font Archivo / Atkinson Hyperlegible Next / Geist Mono).
 - **Database**: PostgreSQL 16 (in Docker compose, porta 5432) gestito con Drizzle ORM.
-- **Testing**: Vitest (778+ test unitari), script `scripts/smoke-db.mts` (62 verifiche database live).
+- **Testing**: Vitest (780 test unitari), script `scripts/smoke-db.mts` (71 verifiche database live).
 
 ---
 
@@ -29,13 +29,20 @@
 - **Ottimizzazioni Prestazionali & Cache**:
   - Cache TTL in-memory di 3 secondi su `databaseReachable()` in `src/lib/db/index.ts` per azzerare query `SELECT 1` ridondanti durante il rendering.
   - Disattivazione del fallback font override per `Atkinson_Hyperlegible_Next` in `src/app/layout.tsx`.
-- **Tier List Maker (`/[game]/tierlist`, `src/components/tier-list/`)**:
+- **Tier List Maker (`/[game]/tierlist`, `src/components/tier-list/`, `src/lib/tier-list/`)**:
   - Strumento accessibile dal menu *"Strumenti"* della barra laterale e del catalogo di gioco.
   - 6 livelli predefiniti (S+, S, A, B, C, D) con personalizzazione colori (palette 13 tinte), ridenominazione inline, aggiunta/rimozione/riordino righe.
   - Supporto completo a Drag & Drop HTML5 nativo e modalità Touch / Click rapido su card per smartphone.
   - Banco degli eroi con ricerca istantanea e filtri combinati per rarità e attributo.
   - Esportazione ad alta risoluzione (Retina 2x) in formato PNG tramite HTML5 Canvas con watermark GachaZone.
-  - Salvataggio automatico dello stato in `localStorage` e condivisione tramite URL hash.
+  - **Integrazione Account, Backup & Condivisione**:
+    - Tabella `user_tier_lists` con chiave esterna a `users` e `games` (migrazione `0010_salvataggio_tier_list.sql`).
+    - Supporto a tier list multiple con nomi differenti per lo stesso utente.
+    - Gestore *"Le mie Tier List"* con caricamento immediato, salvataggio con nuovo nome ed eliminazione.
+    - Sezione dedicata *"Tier List"* nel profilo utente (`/u/[username]`) con card riassuntive e anteprima eroi.
+    - Funzione *"Scarica Backup JSON"* per avere un archivio locale di sicurezza non volatile.
+    - Condivisione tramite link permanente `/[game]/tierlist?id=<uuid>` con caricamento automatico e clonazione per altri utenti.
+    - Rate limit dedicato `tierListSave` a protezione anti-abuso.
 
 ---
 

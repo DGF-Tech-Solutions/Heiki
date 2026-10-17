@@ -71,6 +71,13 @@
       "when": 1792260298809,
       "tag": "0009_valutazioni_eroi",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792275246036,
+      "tag": "0010_salvataggio_tier_list",
+      "breakpoints": true
     }
   ]
 }

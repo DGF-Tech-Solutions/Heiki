@@ -51,3 +51,48 @@ export function defaultTiers(): TierRow[] {
   ];
 }
 
+export interface TierListAuthor {
+  id: string;
+  username: string;
+  displayName: string;
+  role?: string;
+}
+
+export interface SavedTierListSummary {
+  id: string;
+  title: string;
+  description?: string | null;
+  game: string;
+  gameName?: string;
+  isPublic: boolean;
+  heroCount: number;
+  tierCount: number;
+  topHeroIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  author?: TierListAuthor;
+  isOwner?: boolean;
+}
+
+export interface SavedTierListDetail extends SavedTierListSummary {
+  tiers: TierRow[];
+}
+
+export interface TierListBackupItem {
+  id?: string;
+  title: string;
+  description?: string | null;
+  game: string;
+  tiers: TierRow[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TierListBackupFile {
+  version: 1;
+  exportedAt: string;
+  username: string;
+  tierLists: TierListBackupItem[];
+}
+
+
