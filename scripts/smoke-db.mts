@@ -29,6 +29,7 @@ const { ITERATIONS, simulateTeam } = await import("@/lib/games/preview");
 const { cachedCheck } = await import("@/lib/community/verify");
 const { getGuideStore } = await import("@/lib/guides/store");
 const { suspensionFor } = await import("@/lib/moderation/suspension");
+const { getHeroRatingSummary } = await import("@/lib/ratings/server");
 
 
 let failures = 0;
@@ -490,6 +491,80 @@ async function main(): Promise<void> {
       "una guida non e' raggiungibile dall'indirizzo di un altro gioco",
       (await guideStore.get("genshin-impact", guideSlugUsed)) === null,
     );
+  }
+
+  // --- Valutazioni eroi ---
+  {
+    const heroId = "1575001";
+    const gcGame = await db.query.games.findFirst({
+      where: eq(schema.games.slug, "grand-cross"),
+      columns: { id: true },
+    });
+    if (gcGame) {
+      await db.delete(schema.heroRatings).where(
+        and(
+          eq(schema.heroRatings.gameId, gcGame.id),
+          eq(schema.heroRatings.heroId, heroId),
+          eq(schema.heroRatings.userId, viewer.id),
+        ),
+      );
+
+      const initialSummary = await getHeroRatingSummary("grand-cross", heroId);
+      check("la sintesi iniziale dell'eroe e' pulita", initialSummary.totalRatings === 0);
+
+      await db.insert(schema.heroRatings).values({
+        gameId: gcGame.id,
+        heroId,
+        userId: viewer.id,
+        pveScore: 5,
+        pvpScore: 4,
+        bestContent: "creature-nest",
+        comment: "Eccellente nelle Bestie",
+      });
+
+      const ratedSummary = await getHeroRatingSummary("grand-cross", heroId, viewer.id);
+      check("la valutazione viene conteggiata", ratedSummary.totalRatings === 1);
+      check("il voto PvE e' corretto", ratedSummary.pveAvg === 5);
+      check("il voto PvP e' corretto", ratedSummary.pvpAvg === 4);
+      check("la distribuzione del contenuto rileva Bestie", ratedSummary.distribution[0]?.key === "creature-nest");
+      check("il voto dell'utente viene riletto", ratedSummary.userRating?.pveScore === 5);
+
+      await db
+        .insert(schema.heroRatings)
+        .values({
+          gameId: gcGame.id,
+          heroId,
+          userId: viewer.id,
+          pveScore: 4,
+          pvpScore: 5,
+          bestContent: "pvp",
+          comment: "Aggiornato: fortissima anche in PvP",
+        })
+        .onConflictDoUpdate({
+          target: [schema.heroRatings.gameId, schema.heroRatings.heroId, schema.heroRatings.userId],
+          set: {
+            pveScore: 4,
+            pvpScore: 5,
+            bestContent: "pvp",
+            comment: "Aggiornato: fortissima anche in PvP",
+          },
+        });
+
+      const updatedSummary = await getHeroRatingSummary("grand-cross", heroId, viewer.id);
+      check("l'aggiornamento non duplica la valutazione", updatedSummary.totalRatings === 1);
+      check("il nuovo voto PvE e' salvato", updatedSummary.pveAvg === 4);
+      check("il nuovo voto PvP e' salvato", updatedSummary.pvpAvg === 5);
+
+      await db.delete(schema.heroRatings).where(
+        and(
+          eq(schema.heroRatings.gameId, gcGame.id),
+          eq(schema.heroRatings.heroId, heroId),
+          eq(schema.heroRatings.userId, viewer.id),
+        ),
+      );
+      const cleanedSummary = await getHeroRatingSummary("grand-cross", heroId);
+      check("la rimozione della valutazione ripulisce la sintesi", cleanedSummary.totalRatings === 0);
+    }
   }
 
   // I post della verifica non restano nel database: finivano nella home e nelle

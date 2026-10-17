@@ -64,6 +64,13 @@
       "when": 1791688872792,
       "tag": "0008_registro_moderazione",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792260298809,
+      "tag": "0009_valutazioni_eroi",
+      "breakpoints": true
     }
   ]
 }

@@ -75,6 +75,16 @@ const TAB_CLASSES = [
     chip: "group-has-[.tab6:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab6:focus-visible]/schede:outline-2",
     show: "group-has-[.tab6:checked]/schede:block",
   },
+  {
+    hook: "tab7",
+    chip: "group-has-[.tab7:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab7:focus-visible]/schede:outline-2",
+    show: "group-has-[.tab7:checked]/schede:block",
+  },
+  {
+    hook: "tab8",
+    chip: "group-has-[.tab8:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab8:focus-visible]/schede:outline-2",
+    show: "group-has-[.tab8:checked]/schede:block",
+  },
 ] as const;
 
 /** Il nome dei radio e il parametro dell'indirizzo: uno solo per pagina. */

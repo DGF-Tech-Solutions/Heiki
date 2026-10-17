@@ -23,6 +23,8 @@ next-env.d.ts
 # Skill e hook degli agenti AI (Ponytail, Graphify, Agent Skills): installazione locale
 .claude/
 CLAUDE.md
+.agents/
+GEMINI.md
 
 # Grafo del codice di graphify: locale, si rigenera con `graphify update .`
 graphify-out/

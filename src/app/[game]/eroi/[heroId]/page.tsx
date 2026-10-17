@@ -15,9 +15,14 @@ import { StatCalculatorLazy } from "@/components/heroes/calculator/stat-calculat
 import { STAT_ROWS, formatStat } from "@/components/heroes/calculator/stat-rows";
 import { HeroAssociations } from "@/components/heroes/hero-associations";
 import { HeroCostumes } from "@/components/heroes/hero-costumes";
+import { HeroRatings } from "@/components/ratings/hero-ratings";
+import { RatingFactsBadge } from "@/components/ratings/rating-facts-badge";
 import { HeroArrowKeys } from "@/components/heroes/hero-arrow-keys";
 import { IconArrowRight, IconChevronLeft, IconChevronRight, IconGift } from "@/components/icons";
 import { formatMonthDay } from "@/components/birthdays/birthday-parts";
+import { currentViewer } from "@/lib/community/actions";
+import { getHeroRatingSummary } from "@/lib/ratings/server";
+import type { HeroRatingSummary } from "@/lib/ratings/types";
 import { dayKey } from "@/lib/games/birthdays";
 import type { BirthdaysIndex, MonthDay } from "@/lib/games/birthdays-types";
 import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
@@ -100,6 +105,8 @@ const TESTI = testi({
     schedaCostumi: "Costumi",
     schedaAssociazioni: "Associazioni",
     schedaInfo: "Info",
+    valutazione: "Valutazione",
+    schedaValutazioni: (n: number) => (n > 0 ? `Valutazioni (${n})` : "Valutazioni"),
   },
   en: {
     eroeNonTrovato: "Hero not found",
@@ -152,6 +159,8 @@ const TESTI = testi({
     schedaCostumi: "Costumes",
     schedaAssociazioni: "Associations",
     schedaInfo: "Info",
+    valutazione: "Rating",
+    schedaValutazioni: (n: number) => (n > 0 ? `Ratings (${n})` : "Ratings"),
   },
 });
 
@@ -327,6 +336,8 @@ export default async function HeroPage({ params, searchParams }: Props) {
 
   const locale = await getLocale();
   const t = TESTI[locale];
+  const viewer = await currentViewer();
+  const ratingSummary = await getHeroRatingSummary(game, heroId, viewer?.id);
 
   const {
     entry,
@@ -540,6 +551,19 @@ export default async function HeroPage({ params, searchParams }: Props) {
       />
     ),
   });
+  tabs.push({
+    key: "valutazioni",
+    label: t.schedaValutazioni(ratingSummary.totalRatings),
+    content: (
+      <HeroRatings
+        game={game}
+        heroId={hero.id}
+        locale={locale}
+        summary={ratingSummary}
+        isLoggedIn={Boolean(viewer && viewer.id !== "guest")}
+      />
+    ),
+  });
 
   return (
     <main className="pt-6 pb-20">
@@ -607,6 +631,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
             canReachLr={context?.rarity.canReachLr ?? false}
             release={release}
             birthday={birthday}
+            ratingSummary={ratingSummary}
           />
         </header>
 
@@ -821,6 +846,7 @@ function HeroFacts({
   canReachLr,
   release,
   birthday,
+  ratingSummary,
 }: {
   game: string;
   locale: Locale;
@@ -832,6 +858,7 @@ function HeroFacts({
   canReachLr: boolean;
   release: HeroRelease | undefined;
   birthday: HeroBirthday | null;
+  ratingSummary: HeroRatingSummary;
 }) {
   const t = TESTI[locale];
 
@@ -945,6 +972,15 @@ function HeroFacts({
             )}
           </Fact>
         ) : null}
+
+        <Fact label={t.valutazione}>
+          <RatingFactsBadge
+            game={game}
+            heroId={hero.id}
+            locale={locale}
+            summary={ratingSummary}
+          />
+        </Fact>
       </dl>
 
       {release ? <ReleaseFacts game={game} release={release} locale={locale} /> : null}

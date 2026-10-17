@@ -96,6 +96,8 @@ export const RULES = {
   accountSave: { limit: 60, windowSeconds: 600 },
   /** Chiedere l'eroe del giorno, cambiarlo, caricare una schermata. */
   verification: { limit: 12, windowSeconds: 3600 },
+  /** Valutare gli eroi (PvE, PvP e consigli). */
+  heroRating: { limit: 30, windowSeconds: 600 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RuleName = keyof typeof RULES;

@@ -847,6 +847,38 @@ export const votes = pgTable(
   ],
 );
 
+/**
+ * Valutazioni degli eroi lasciate dalla community.
+ *
+ * PVE e PVP da 1 a 5 stelle, con il contenuto in cui secondo l'utente l'eroe
+ * spicca di piu' e un commento facoltativo. Un utente ha al massimo una
+ * valutazione per eroe (upsert).
+ */
+export const heroRatings = pgTable(
+  "hero_ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    gameId: uuid("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    heroId: text("hero_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    pveScore: integer("pve_score").notNull(),
+    pvpScore: integer("pvp_score").notNull(),
+    bestContent: text("best_content"),
+    comment: text("comment"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("hero_ratings_user_hero_idx").on(table.gameId, table.heroId, table.userId),
+    index("hero_ratings_lookup_idx").on(table.gameId, table.heroId),
+    index("hero_ratings_user_idx").on(table.userId),
+  ],
+);
+
 export const reports = pgTable(
   "reports",
   {
@@ -1158,6 +1190,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   posts: many(posts),
   comments: many(comments),
   votes: many(votes),
+  ratings: many(heroRatings),
   purchases: many(purchases),
   // follows punta due volte a users, quindi le due direzioni vanno nominate:
   // senza relationName Drizzle non sa quale colonna usare per quale verso.
@@ -1330,6 +1363,11 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
 
 export const votesRelations = relations(votes, ({ one }) => ({
   user: one(users, { fields: [votes.userId], references: [users.id] }),
+}));
+
+export const heroRatingsRelations = relations(heroRatings, ({ one }) => ({
+  game: one(games, { fields: [heroRatings.gameId], references: [games.id] }),
+  user: one(users, { fields: [heroRatings.userId], references: [users.id] }),
 }));
 
 export const sponsorPlacementsRelations = relations(sponsorPlacements, ({ one }) => ({
