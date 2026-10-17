@@ -43,6 +43,15 @@
     - Funzione *"Scarica Backup JSON"* per avere un archivio locale di sicurezza non volatile.
     - Condivisione tramite link permanente `/[game]/tierlist?id=<uuid>` con caricamento automatico e clonazione per altri utenti.
     - Rate limit dedicato `tierListSave` a protezione anti-abuso.
+- **Gestione Rapida Box Eroi (`src/components/game-account/box-browser.tsx`)**:
+  - Pulsante di rimozione rapida totale *"Rimuovi tutti (N)"* con conferma di sicurezza per azzerare l'intero box con un click (`saveBox(EMPTY_BOX)`).
+  - Coesistenza armonica con i filtri: rimozione selettiva dei soli filtrati (*"Togli i N mostrati"*) e rimozione globale sempre accessibile.
+  - Sincronizzazione immediata con localStorage e account di gioco nel database.
+- **Rifiniture Tecniche & Stabilizzazione**:
+  - `fallback: ["system-ui", "sans-serif"]` su `Atkinson_Hyperlegible_Next` in `src/app/layout.tsx`.
+  - Lookup case-insensitive per username nelle tier list profilo in `src/lib/tier-list/server.ts`.
+  - Inclusione `tiers` nei riassunti salvataggi per caricamento zero-delay nel Maker.
+  - `suppressHydrationWarning` su date formattate e chiavi univoche React composite.
 
 ---
 

@@ -140,7 +140,7 @@ export function ProfileTierLists({
                   <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
                     {item.gameName ?? item.game}
                   </span>
-                  <span className="text-[11px] text-ink-3">
+                  <span suppressHydrationWarning className="text-[11px] text-ink-3">
                     {new Date(item.updatedAt).toLocaleDateString(locale)}
                   </span>
                 </div>

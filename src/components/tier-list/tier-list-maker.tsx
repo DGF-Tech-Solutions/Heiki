@@ -429,9 +429,8 @@ export function TierListMaker({
 
   // Carica una tier list dalla lista salvata
   const handleLoadSavedTierList = (item: SavedTierListSummary) => {
-    const detail = item as unknown as { tiers?: TierRow[] };
-    if (Array.isArray(detail.tiers)) {
-      setTiers(detail.tiers);
+    if (Array.isArray(item.tiers)) {
+      setTiers(item.tiers);
     }
     setTitle(item.title);
     setCurrentId(item.id);
@@ -857,13 +856,13 @@ export function TierListMaker({
                     {t.trascinaQui}
                   </div>
                 ) : (
-                  tier.heroIds.map((heroId) => {
+                  tier.heroIds.map((heroId, heroIdx) => {
                     const hero = heroesMap.get(heroId);
                     if (!hero) return null;
 
                     return (
                       <div
-                        key={hero.id}
+                        key={`${tier.id}-${hero.id}-${heroIdx}`}
                         draggable
                         onDragStart={() => handleDragStart(hero.id, tier.id)}
                         onClick={() =>
@@ -1076,7 +1075,7 @@ export function TierListMaker({
                       <h4 className="font-bold text-sm text-ink truncate max-w-[280px]">
                         {item.title}
                       </h4>
-                      <span className="text-[11px] text-ink-3">
+                      <span suppressHydrationWarning className="text-[11px] text-ink-3">
                         {new Date(item.updatedAt).toLocaleDateString(locale)}
                       </span>
                     </div>

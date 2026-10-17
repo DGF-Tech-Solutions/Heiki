@@ -27,6 +27,7 @@ import { Button, buttonClass, cx, display, Empty, eyebrow, heroNameClass, Input,
 import {
   boxSize,
   clampEntry,
+  EMPTY_BOX,
   maxEntry,
   newEntry,
   ownsHero,
@@ -54,7 +55,9 @@ const TESTI = testi({
     nessuno: "Nessun eroe con questi filtri.",
     segnaMostrati: (n: number) => `Aggiungi i ${n} mostrati`,
     togliMostrati: (n: number) => `Togli i ${n} mostrati`,
+    togliTutti: (n: number) => `Rimuovi tutti (${n})`,
     confermaTogli: (n: number) => `Togliere ${n} eroi dal box? I loro progressi si perdono.`,
+    confermaTogliTutti: (n: number) => `Togliere tutti i ${n} eroi dal box? I loro progressi si perdono.`,
     nelBox: "Nel tuo box",
     nonNelBox: "Non nel box",
     aggiungi: "Aggiungi al box",
@@ -95,7 +98,9 @@ const TESTI = testi({
     nessuno: "No heroes match these filters.",
     segnaMostrati: (n: number) => `Add the ${n} shown`,
     togliMostrati: (n: number) => `Remove the ${n} shown`,
+    togliTutti: (n: number) => `Remove all (${n})`,
     confermaTogli: (n: number) => `Remove ${n} heroes from your box? Their progress will be lost.`,
+    confermaTogliTutti: (n: number) => `Remove all ${n} heroes from your box? Their progress will be lost.`,
     nelBox: "In your box",
     nonNelBox: "Not in your box",
     aggiungi: "Add to box",
@@ -190,6 +195,11 @@ export function BoxBrowser({
     for (const hero of shown) next = withHero(next, hero.id, null);
     saveBox(next);
   };
+  const removeAll = () => {
+    if (owned === 0 || !window.confirm(t.confermaTogliTutti(owned))) return;
+    saveBox(EMPTY_BOX);
+  };
+  const hasFilters = Boolean(search || rarity || affinity || show !== "all");
   const shownMissing = visible.filter((hero) => !ownsHero(box, hero.id)).length;
   const shownOwned = visible.length - shownMissing;
 
@@ -269,15 +279,28 @@ export function BoxBrowser({
             <strong className={cx(numeric, "p5-cut-sm mr-1.5 inline-block bg-brand px-2 font-bold text-white")}>{owned}</strong>
             {t.hai(owned, heroes.length)}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {shownMissing > 0 ? (
               <Button size="sm" onClick={addShown}>
                 {t.segnaMostrati(shownMissing)}
               </Button>
             ) : null}
-            {shownOwned > 0 && (search || rarity || affinity || show !== "all") ? (
-              <Button size="sm" variant="ghost" onClick={removeShown}>
+            {hasFilters && shownOwned > 0 ? (
+              <Button size="sm" variant="ghost" onClick={removeShown} className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
                 {t.togliMostrati(shownOwned)}
+              </Button>
+            ) : null}
+            {owned > 0 ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={removeAll}
+                className={cx(
+                  "text-red-400 hover:text-red-300 hover:bg-red-500/10",
+                  hasFilters && shownOwned > 0 && "opacity-80 hover:opacity-100",
+                )}
+              >
+                {t.togliTutti(owned)}
               </Button>
             ) : null}
           </div>

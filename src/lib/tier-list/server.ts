@@ -2,7 +2,7 @@
  * Operazioni database server per il salvataggio e recupero delle Tier List.
  */
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { databaseReachable, db } from "@/lib/db";
 import { games, users, userTierLists } from "@/lib/db/schema";
 import type {
@@ -91,6 +91,7 @@ export async function getUserTierLists(
         role: row.user.role,
       },
       isOwner: true,
+      tiers,
     };
   });
 }
@@ -157,7 +158,7 @@ export async function getUserProfileTierLists(
   if (!(await databaseReachable())) return [];
 
   const targetUser = await db.query.users.findFirst({
-    where: eq(users.username, username.toLowerCase()),
+    where: sql`lower(${users.username}) = ${username.toLowerCase()}`,
     columns: { id: true, username: true, role: true },
     with: { profile: { columns: { displayName: true } } },
   });
@@ -196,6 +197,7 @@ export async function getUserProfileTierLists(
         role: targetUser.role,
       },
       isOwner,
+      tiers,
     };
   });
 }

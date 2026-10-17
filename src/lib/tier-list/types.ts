@@ -72,6 +72,7 @@ export interface SavedTierListSummary {
   updatedAt: string;
   author?: TierListAuthor;
   isOwner?: boolean;
+  tiers?: TierRow[];
 }
 
 export interface SavedTierListDetail extends SavedTierListSummary {
