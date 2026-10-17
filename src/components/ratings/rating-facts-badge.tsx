@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { AwakenStar } from "@/components/ratings/star-display";
 import { cx } from "@/components/ui";
 import type { HeroRatingSummary } from "@/lib/ratings/types";
@@ -35,15 +34,18 @@ interface RatingFactsBadgeProps {
   className?: string;
 }
 
-function handleTabClick() {
+function handleTabClick(e: React.MouseEvent<HTMLAnchorElement>) {
   const radio = document.getElementById("schede-valutazioni") as HTMLInputElement | null;
   if (radio) {
-    radio.checked = true;
-    radio.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-  const schedeSection = document.getElementById("schede");
-  if (schedeSection) {
-    schedeSection.scrollIntoView({ behavior: "smooth" });
+    e.preventDefault();
+    if (!radio.checked) {
+      radio.checked = true;
+      radio.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const schedeSection = document.getElementById("schede");
+    if (schedeSection) {
+      schedeSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 }
 
@@ -58,7 +60,7 @@ export function RatingFactsBadge({
 
   if (summary.totalRatings === 0) {
     return (
-      <Link
+      <a
         href={`/${game}/eroi/${heroId}?scheda=valutazioni`}
         onClick={handleTabClick}
         aria-label={t.ariaLabelEmpty}
@@ -69,12 +71,12 @@ export function RatingFactsBadge({
       >
         <AwakenStar game={game} size={15} dimmed ariaHidden />
         <span>{t.valutaOra}</span>
-      </Link>
+      </a>
     );
   }
 
   return (
-    <Link
+    <a
       href={`/${game}/eroi/${heroId}?scheda=valutazioni`}
       onClick={handleTabClick}
       aria-label={t.ariaLabelSummary(summary.pveAvg, summary.pvpAvg, summary.totalRatings)}
@@ -100,7 +102,7 @@ export function RatingFactsBadge({
       <span className="font-mono font-normal text-ink-3">
         {t.votiBreve(summary.totalRatings)}
       </span>
-    </Link>
+    </a>
   );
 }
 

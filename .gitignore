@@ -24,7 +24,6 @@ next-env.d.ts
 .claude/
 CLAUDE.md
 .agents/
-GEMINI.md
 
 # Grafo del codice di graphify: locale, si rigenera con `graphify update .`
 graphify-out/

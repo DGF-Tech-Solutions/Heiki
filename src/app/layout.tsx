@@ -39,6 +39,7 @@ const bodyFace = Atkinson_Hyperlegible_Next({
   subsets: ["latin"],
   variable: "--font-atkinson",
   display: "swap",
+  adjustFontFallback: false,
 });
 // il mono e' solo per numeri e date: niente precaricamento, non e' il testo che
 // si legge per primo, e toglie 23 KB dal primo caricamento (11/10)

@@ -52,17 +52,29 @@ if (process.env.NODE_ENV !== "production") {
 
 export const db: DrizzleDb = drizzle(client, { schema });
 
+let lastReachableCheck: { time: number; reachable: boolean } | null = null;
+const REACHABLE_TTL_MS = 3000;
+
 /**
  * Variabile presente non significa database acceso. Questa sonda distingue i
  * due casi, cosi' l'interfaccia puo' dire "avvia Docker" invece di "credenziali
  * errate" quando il vero problema e' che Postgres non risponde.
+ *
+ * Mantiene una breve cache in memoria di 3s per evitare query select 1 ridondanti
+ * ad ogni componente del medesimo render.
  */
 export async function databaseReachable(): Promise<boolean> {
   if (!isDatabaseConfigured()) return false;
+  const now = Date.now();
+  if (lastReachableCheck && now - lastReachableCheck.time < REACHABLE_TTL_MS) {
+    return lastReachableCheck.reachable;
+  }
   try {
     await db.execute(sql`select 1`);
+    lastReachableCheck = { time: now, reachable: true };
     return true;
   } catch {
+    lastReachableCheck = { time: now, reachable: false };
     return false;
   }
 }

@@ -269,6 +269,15 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         needs: "team",
       },
       {
+        path: "/tierlist",
+        label: { it: "Tier List", en: "Tier List" },
+        hint: {
+          it: "Crea, ordina e condividi la tua tier list personalizzata degli eroi",
+          en: "Create, rank and share your custom hero tier list",
+        },
+        needs: "roster",
+      },
+      {
         path: "/randomizer",
         label: { it: "Randomizer", en: "Randomizer" },
         hint: {
