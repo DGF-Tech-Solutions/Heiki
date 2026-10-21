@@ -89,18 +89,18 @@ interface MemoryState {
 }
 
 declare global {
-  var __gachazoneCommunity: MemoryState | undefined;
+  var __heikiCommunity: MemoryState | undefined;
 }
 
 function state(): MemoryState {
-  if (!globalThis.__gachazoneCommunity) {
-    globalThis.__gachazoneCommunity = {
+  if (!globalThis.__heikiCommunity) {
+    globalThis.__heikiCommunity = {
       posts: DEMO_POSTS.map(clonePost),
       ballots: new Map(),
       nextId: 1,
     };
   }
-  return globalThis.__gachazoneCommunity;
+  return globalThis.__heikiCommunity;
 }
 
 function clonePost(post: PostDetail): PostDetail {

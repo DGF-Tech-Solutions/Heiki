@@ -55,7 +55,7 @@ mkdirSync(cartella, { recursive: true });
 
 const ora = new Date();
 const due = (n: number) => String(n).padStart(2, "0");
-const nome = `gachazone-${ora.getFullYear()}-${due(ora.getMonth() + 1)}-${due(ora.getDate())}-${due(ora.getHours())}${due(ora.getMinutes())}.dump`;
+const nome = `heiki-${ora.getFullYear()}-${due(ora.getMonth() + 1)}-${due(ora.getDate())}-${due(ora.getHours())}${due(ora.getMinutes())}.dump`;
 const finale = join(cartella, nome);
 // si scrive accanto e si rinomina alla fine: una copia interrotta a meta' non deve
 // sembrare buona, ne' far cancellare una copia vecchia che lo e'
@@ -97,7 +97,7 @@ if (readFileSync(parziale).subarray(0, 5).toString("latin1") !== "PGDMP") {
 renameSync(parziale, finale);
 
 const copie = readdirSync(cartella)
-  .filter((f) => /^gachazone-\d{4}-\d{2}-\d{2}-\d{4}\.dump$/.test(f))
+  .filter((f) => /^(?:heiki|gachazone)-\d{4}-\d{2}-\d{2}-\d{4}\.dump$/.test(f))
   .sort()
   .reverse();
 for (const vecchia of copie.slice(tieni)) rmSync(join(cartella, vecchia));

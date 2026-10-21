@@ -15,7 +15,7 @@ import type { Vote } from "../types";
 beforeEach(() => {
   // L'archivio vive su globalThis per sopravvivere all'hot reload: qui si
   // azzera fra un test e l'altro per non farli dipendere dall'ordine.
-  (globalThis as { __gachazoneCommunity?: unknown }).__gachazoneCommunity = undefined;
+  (globalThis as { __heikiCommunity?: unknown }).__heikiCommunity = undefined;
 });
 
 describe("archivio in memoria", () => {

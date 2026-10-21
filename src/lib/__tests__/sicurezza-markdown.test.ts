@@ -64,7 +64,7 @@ describe("safeHref: i percorsi interni restano nel sito", () => {
    * una pagina vera del sito, resta su quel sito.
    */
   it("ogni percorso accettato, risolto da una pagina del sito, resta sul sito", () => {
-    const page = "https://gachazone.example/grand-cross/guide/una-guida";
+    const page = "https://heiki.example/grand-cross/guide/una-guida";
     const tricky = [
       "/ok",
       "/%5Cevil.com",
@@ -80,7 +80,7 @@ describe("safeHref: i percorsi interni restano nel sito", () => {
     for (const raw of tricky) {
       const href = safeHref(raw);
       if (href === null || !isInternalHref(href)) continue;
-      expect(new URL(href, page).origin).toBe("https://gachazone.example");
+      expect(new URL(href, page).origin).toBe("https://heiki.example");
     }
   });
 

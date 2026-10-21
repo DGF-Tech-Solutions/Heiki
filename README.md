@@ -1,4 +1,4 @@
-# GachaZone
+# Heiki
 
 <p align="center">
   <strong>Piattaforma analitica e community data-driven per videogiochi gacha.</strong><br>
@@ -20,9 +20,9 @@
 
 ## Panoramica del Progetto
 
-**GachaZone** è una piattaforma web full-stack ad alte prestazioni progettata per colmare il divario tra i dati grezzi dei videogiochi gacha e le esigenze analitiche della community competitiva. 
+**Heiki** è una piattaforma web full-stack ad alte prestazioni progettata per colmare il divario tra i dati grezzi dei videogiochi gacha e le esigenze analitiche della community competitiva. 
 
-A differenza dei tradizionali siti wiki basati su inserimento manuale (spesso soggetti a errori o ritardi), GachaZone integra una pipeline proprietaria di estrazione e decifrazione dei dati direttamente dai pacchetti client e dai database interni di gioco (SQLite cifrati con chiavi dinamiche, asset bundle Unity), esponendo informazioni matematicamente esatte su formule di combattimento, scalature delle abilità e attributi.
+A differenza dei tradizionali siti wiki basati su inserimento manuale (spesso soggetti a errori o ritardi), Heiki integra una pipeline proprietaria di estrazione e decifrazione dei dati direttamente dai pacchetti client e dai database interni di gioco (SQLite cifrati con chiavi dinamiche, asset bundle Unity), esponendo informazioni matematicamente esatte su formule di combattimento, scalature delle abilità e attributi.
 
 La piattaforma è architettata per scalare su molteplici titoli: il primo modulo di riferimento pienamente operativo è **The Seven Deadly Sins: Grand Cross (7DSGC)**, con supporto modulare predisposto per i titoli HoYoverse (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*) e *Wuthering Waves*.
 
@@ -128,7 +128,7 @@ La stabilità e l'accuratezza dei calcoli matematici sono validate continuamente
 ## Struttura del Repository
 
 ```text
-GachaZone/
+Heiki/
 ├── src/
 │   ├── app/                      # Next.js App Router (Layout, Pagine, API Routes)
 │   │   ├── [game]/               # Pagine contestuali di gioco (eroi, tierlist, guide, ecc.)
@@ -163,8 +163,8 @@ Il comando `npm run setup` predispone automaticamente l'intero ambiente di lavor
 
 ```bash
 # 1. Clona il repository
-git clone https://github.com/DGF-Tech-Solutions/GachaZone.git
-cd GachaZone
+git clone https://github.com/DGF-Tech-Solutions/Heiki.git
+cd Heiki
 
 # 2. Configura dipendenze, database locale e schema
 npm run setup

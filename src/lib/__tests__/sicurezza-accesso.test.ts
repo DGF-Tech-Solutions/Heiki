@@ -31,7 +31,7 @@ describe("indirizzo di chi chiama", () => {
 
 describe("handle e nomi", () => {
   it("riserva i nomi dello staff e il segnaposto degli account cancellati", () => {
-    for (const handle of ["admin", "Moderatore", "staff", "gachazone", "eliminato-1a2b3c4d", "mod-team"]) {
+    for (const handle of ["admin", "Moderatore", "staff", "heiki", "gachazone", "eliminato-1a2b3c4d", "mod-team"]) {
       expect(isReservedHandle(handle)).toBe(true);
     }
     for (const handle of ["mario", "derieri_fan", "giocatore-1a2b3c", "modesto"]) {
@@ -45,12 +45,14 @@ describe("handle e nomi", () => {
     expect(displayNameProblem("Mario\u202eissoR")).toBe("invisibile");
     expect(displayNameProblem("Ma\u200brio")).toBe("invisibile");
     expect(displayNameProblem("Amministratore")).toBe("staff");
+    expect(displayNameProblem("Team Heiki")).toBe("staff");
     expect(displayNameProblem("Team GachaZone")).toBe("staff");
     // lettere a larghezza piena che si leggono come quelle normali
     expect(displayNameProblem("\uff21\uff44\uff4d\uff49\uff4e")).toBe("staff");
   });
 
   it("le email dei segnaposto non si registrano", () => {
+    expect(isReservedEmail("eliminato+1a2b3c4d@heiki.invalid")).toBe(true);
     expect(isReservedEmail("eliminato+1a2b3c4d@gachazone.invalid")).toBe(true);
     expect(isReservedEmail("mario@example.com")).toBe(false);
   });
@@ -71,14 +73,14 @@ describe("limitatore", () => {
   it("una chiave enorme non resta in memoria intera", () => {
     const huge = "x".repeat(1_000_000);
     rateLimit("login", huge);
-    const stored = [...(globalThis.__gachazoneRateLimit?.keys() ?? [])];
+    const stored = [...(globalThis.__heikiRateLimit?.keys() ?? [])];
     expect(stored).toHaveLength(1);
     expect(stored[0]!.length).toBeLessThan(100);
   });
 
   it("molte chiavi diverse non fanno crescere la memoria all'infinito", () => {
     for (let i = 0; i < 60_000; i++) rateLimit("credentialsIp", `ip-${i}`);
-    expect(globalThis.__gachazoneRateLimit?.size ?? 0).toBeLessThanOrEqual(50_000);
+    expect(globalThis.__heikiRateLimit?.size ?? 0).toBeLessThanOrEqual(50_000);
     // chi e' appena passato e' ancora contato
     expect(rateLimit("credentialsIp", "ip-59999").remaining).toBe(RULES.credentialsIp.limit - 2);
   });

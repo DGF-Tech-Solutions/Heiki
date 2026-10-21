@@ -14,13 +14,13 @@ const RESERVED = new Set([
   "admin", "administrator", "amministratore", "amministrazione", "root", "sistema", "system",
   "moderatore", "moderatori", "moderator", "moderators", "mod", "mods", "staff", "team",
   "supporto", "support", "aiuto", "help", "assistenza", "sicurezza", "security",
-  "gachazone", "gacha-zone", "gacha_zone", "ufficiale", "official", "netmarble",
+  "heiki", "heiki-app", "heiki_app", "gachazone", "gacha-zone", "gacha_zone", "ufficiale", "official", "netmarble",
   "eliminato", "deleted", "anonimo", "anonymous", "utente", "user", "ospite", "guest",
   "null", "undefined", "api", "www", "redazione", "editor", "noreply", "no-reply",
 ]);
 
 /** Prefissi riservati: `eliminato-` e' il segnaposto degli account cancellati. */
-const RESERVED_PREFIXES = ["eliminato-", "deleted-", "admin-", "mod-", "staff-", "gachazone-"];
+const RESERVED_PREFIXES = ["eliminato-", "deleted-", "admin-", "mod-", "staff-", "heiki-", "gachazone-"];
 
 export function isReservedHandle(handle: string): boolean {
   const value = handle.trim().toLowerCase();
@@ -34,7 +34,7 @@ export function isReservedHandle(handle: string): boolean {
 const INVISIBLE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 
 /** Parole che fanno sembrare un nome quello dello staff. */
-const STAFF_WORDS = /\b(admin|administrator|amministrat\w*|moderat\w*|staff|gachazone|supporto|support)\b/i;
+const STAFF_WORDS = /\b(admin|administrator|amministrat\w*|moderat\w*|staff|heiki|gachazone|supporto|support)\b/i;
 
 export type DisplayNameProblem = "invisibile" | "staff";
 

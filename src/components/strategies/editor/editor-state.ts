@@ -385,7 +385,7 @@ export function toDraft(template: StrategyTemplate, state: EditorState): Strateg
 /* ------------------------------------------------- la bozza nel browser -- */
 
 export function draftStorageKey(game: string): string {
-  return `gachazone:${game}:strategia-bozza`;
+  return `heiki:${game}:strategia-bozza`;
 }
 
 const STORED_VERSION = 1;

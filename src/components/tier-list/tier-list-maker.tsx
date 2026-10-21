@@ -472,7 +472,7 @@ export function TierListMaker({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `gachazone-tierlists-backup-${backup.username}.json`;
+      a.download = `heiki-tierlists-backup-${backup.username}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -488,7 +488,7 @@ export function TierListMaker({
       setIsExporting(true);
       await exportTierListToImage({
         title: title || `Tier List · ${gameName}`,
-        subtitle: authorInfo ? `di @${authorInfo.username} · GachaZone` : "GachaZone",
+        subtitle: authorInfo ? `di @${authorInfo.username} · Heiki` : "Heiki",
         tiers,
         heroesMap,
         filename: `tierlist-${game}.png`,

@@ -70,7 +70,7 @@ const MAX_HEROES = 2000;
 const HERO_ID = /^\d{1,12}$/;
 
 export function boxStorageKey(gameSlug: string): string {
-  return `gachazone:${gameSlug}:box`;
+  return `heiki:${gameSlug}:box`;
 }
 
 const whole = (value: unknown, min: number, max: number, fallback: number) => {

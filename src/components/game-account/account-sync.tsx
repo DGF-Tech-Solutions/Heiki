@@ -45,7 +45,7 @@ const PAUSE_MS = 1500;
 const RETRY_MS = 60_000;
 
 function ownerKey(gameSlug: string): string {
-  return `gachazone:${gameSlug}:account-owner`;
+  return `heiki:${gameSlug}:account-owner`;
 }
 
 /** true se il database ha la copia del browser */

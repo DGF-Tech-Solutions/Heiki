@@ -23,8 +23,8 @@ import {
  * ricevuto.
  */
 
-export const PROFILE_EVENT = "gachazone:account-profile";
-export const CHANGE_EVENT = "gachazone:account-changed";
+export const PROFILE_EVENT = "heiki:account-profile";
+export const CHANGE_EVENT = "heiki:account-changed";
 
 // se il browser rifiuta di salvare (navigazione privata, dati bloccati) il valore resta qui
 const memory = new Map<string, string>();
@@ -33,7 +33,9 @@ const parsed = new Map<string, { raw: string | null; value: GameAccountProfile }
 export function readLocal(key: string): string | null {
   if (memory.has(key)) return memory.get(key)!;
   try {
-    return window.localStorage.getItem(key);
+    const val = window.localStorage.getItem(key);
+    if (val !== null) return val;
+    return window.localStorage.getItem(key.replace(/^heiki:/, "gachazone:"));
   } catch {
     return null;
   }

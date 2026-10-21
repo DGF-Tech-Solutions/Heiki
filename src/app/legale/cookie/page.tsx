@@ -8,12 +8,12 @@ import { getLocale } from "@/lib/i18n/server";
 const TESTI = testi({
   it: {
     titoloPagina: "Cookie",
-    descrizione: "Quali cookie usa GachaZone e come cambiare le tue scelte.",
+    descrizione: "Quali cookie usa Heiki e come cambiare le tue scelte.",
     Documento: CookieIt,
   },
   en: {
     titoloPagina: "Cookies",
-    descrizione: "Which cookies GachaZone uses and how to change your choices.",
+    descrizione: "Which cookies Heiki uses and how to change your choices.",
     Documento: CookieEn,
   },
 });
@@ -83,7 +83,7 @@ function CookieIt() {
             <td>1 anno</td>
           </tr>
           <tr>
-            <td>gachazone:cookie-consent</td>
+            <td>heiki:cookie-consent</td>
             <td>Ricordare la scelta che fai qui sotto</td>
             <td>6 mesi</td>
           </tr>
@@ -170,7 +170,7 @@ function CookieEn() {
             <td>1 year</td>
           </tr>
           <tr>
-            <td>gachazone:cookie-consent</td>
+            <td>heiki:cookie-consent</td>
             <td>Remember the choice you make below</td>
             <td>6 months</td>
           </tr>

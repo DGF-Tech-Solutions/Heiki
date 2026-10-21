@@ -48,7 +48,7 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
         </Notice>
       ) : null}
 
-      <Field label={t.handle} hint="gachazone.it/u/…" error={errors.username}>
+      <Field label={t.handle} hint="heiki.it/u/…" error={errors.username}>
         <Input
           className="font-mono"
           name="username"

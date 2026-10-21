@@ -157,17 +157,17 @@ interface GuideMemory {
 }
 
 declare global {
-  var __gachazoneGuides: GuideMemory | undefined;
+  var __heikiGuides: GuideMemory | undefined;
 }
 
 function memory(): GuideMemory {
-  if (!globalThis.__gachazoneGuides) {
-    globalThis.__gachazoneGuides = {
+  if (!globalThis.__heikiGuides) {
+    globalThis.__heikiGuides = {
       guides: DEMO_GUIDES.map((guide) => JSON.parse(JSON.stringify(guide)) as GuideDetail),
       next: 1,
     };
   }
-  return globalThis.__gachazoneGuides;
+  return globalThis.__heikiGuides;
 }
 
 function toAuthor(writer: GuideWriter): GuideAuthor {

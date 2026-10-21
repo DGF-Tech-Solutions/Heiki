@@ -13,8 +13,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const locale = await getLocale();
   const colori = THEME_COLORS[await getTheme()];
   return {
-    name: "GachaZone",
-    short_name: "GachaZone",
+    name: "Heiki",
+    short_name: "Heiki",
     description: DESCRIZIONE[locale],
     start_url: "/",
     display: "standalone",

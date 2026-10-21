@@ -76,7 +76,7 @@ export function ProfileTierLists({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `gachazone-backup-tierlists-${username}.json`;
+      a.download = `heiki-backup-tierlists-${username}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

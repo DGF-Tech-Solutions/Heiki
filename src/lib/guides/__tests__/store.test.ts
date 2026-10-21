@@ -33,7 +33,7 @@ describe("archivio guide in memoria", () => {
     // Lo stato vive su globalThis per sopravvivere ai ricaricamenti in
     // sviluppo: qui va azzerato fra i test, altrimenti si portano dietro le
     // guide create da quello precedente.
-    globalThis.__gachazoneGuides = undefined;
+    globalThis.__heikiGuides = undefined;
   });
 
   it("senza database usa l'archivio volatile, e lo dichiara", async () => {

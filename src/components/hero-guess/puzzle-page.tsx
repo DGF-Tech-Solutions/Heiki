@@ -78,7 +78,7 @@ export async function puzzleMetadata({ params }: Props, kind: PuzzleKind): Promi
   const entry = findGame(game);
   const locale = await getLocale();
   return {
-    // «· GachaZone» lo aggiunge il layout: qui darebbe il nome due volte
+    // «· Heiki» lo aggiunge il layout: qui darebbe il nome due volte
     title: `${guessTitle(locale)} (${VARIANT_LABELS[kind][locale]}) · ${entry?.shortName ?? "Grand Cross"}`,
     description: TESTI[locale].descrizione[kind],
   };

@@ -28,7 +28,7 @@ type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
 const UNCONFIGURED_URL = "postgresql://unset:unset@127.0.0.1:1/unset";
 
 declare global {
-  var __gachazoneSql: Client | undefined;
+  var __heikiSql: Client | undefined;
 }
 
 export function isDatabaseConfigured(): boolean {
@@ -36,7 +36,7 @@ export function isDatabaseConfigured(): boolean {
 }
 
 const client =
-  globalThis.__gachazoneSql ??
+  globalThis.__heikiSql ??
   postgres(process.env.DATABASE_URL || UNCONFIGURED_URL, {
     max: 10,
     // Senza questo un database spento tiene appesa la richiesta finche' non
@@ -47,7 +47,7 @@ const client =
   });
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.__gachazoneSql = client;
+  globalThis.__heikiSql = client;
 }
 
 export const db: DrizzleDb = drizzle(client, { schema });

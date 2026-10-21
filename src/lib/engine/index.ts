@@ -1,5 +1,5 @@
 /**
- * Motore di calcolo GachaZone.
+ * Motore di calcolo Heiki.
  *
  * API pubblica: tutto cio' che un modulo di gioco o la UI possono importare.
  * Il motore e' fatto di funzioni pure - nessuno stato, nessun database, nessuna

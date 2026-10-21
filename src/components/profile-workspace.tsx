@@ -62,7 +62,7 @@ const TESTI = testi({
   },
 });
 
-const DRAFT_KEY = "gachazone:profile-draft";
+const DRAFT_KEY = "heiki:profile-draft";
 
 export type { SaveResult };
 

@@ -83,7 +83,7 @@ export function isEmptyProfile(profile: GameAccountProfile): boolean {
 }
 
 export function profileStorageKey(gameSlug: string): string {
-  return `gachazone:${gameSlug}:account`;
+  return `heiki:${gameSlug}:account`;
 }
 
 /**
@@ -91,7 +91,7 @@ export function profileStorageKey(gameSlug: string): string {
  * millisecondi: si confronta con l'ultimo salvataggio del database.
  */
 export function stampStorageKey(gameSlug: string): string {
-  return `gachazone:${gameSlug}:account-stamp`;
+  return `heiki:${gameSlug}:account-stamp`;
 }
 
 export function parseStamp(raw: string | null): number {

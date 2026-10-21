@@ -82,7 +82,7 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
 
   // L'indirizzo e il browser. Al primo disegno, se l'indirizzo non porta una
   // squadra, si riprende l'ultima salvata; poi ogni cambio si scrive in tutti e due.
-  const storageKey = `gachazone:${data.game}:squadra`;
+  const storageKey = `heiki:${data.game}:squadra`;
   const restored = useRef(false);
   useEffect(() => {
     if (restored.current) return;

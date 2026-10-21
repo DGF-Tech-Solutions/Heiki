@@ -78,14 +78,14 @@ export async function SiteHeader() {
           e' nella barra in basso (mobile-bar.tsx), dove arriva il pollice.
         */}
 
-        {/* il marchio: GACHA in bianco, ZONE su una lama rossa tagliata */}
+        {/* il marchio: HEI in bianco/ink, KI su una lama rossa tagliata */}
         <Link
           href="/"
           className="group flex shrink-0 items-center whitespace-nowrap font-display text-[17px] font-black sm:text-[22px] uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_70]"
         >
-          <span className="text-ink">Gacha</span>
-          <span className="p5-cut ml-1 bg-brand px-1.5 text-white sm:px-2 transition-colors group-hover:bg-ink group-hover:text-paper">
-            Zone
+          <span className="text-ink">Hei</span>
+          <span className="p5-cut ml-0.5 bg-brand px-1.5 text-white sm:px-2 transition-colors group-hover:bg-ink group-hover:text-paper">
+            ki
           </span>
         </Link>
 

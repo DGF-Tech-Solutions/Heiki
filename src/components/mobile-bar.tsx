@@ -18,7 +18,7 @@ import { cx } from "@/components/ui";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 
-export const OPEN_SEARCH_EVENT = "gachazone:apri-ricerca";
+export const OPEN_SEARCH_EVENT = "heiki:apri-ricerca";
 
 const TESTI = testi({
   it: { eroi: "Eroi", uscite: "Uscite", cerca: "Cerca", menu: "Menu", barra: "Navigazione del gioco" },

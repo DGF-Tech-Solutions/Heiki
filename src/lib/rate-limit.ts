@@ -24,14 +24,14 @@ interface Window {
 }
 
 declare global {
-  var __gachazoneRateLimit: Map<string, Window> | undefined;
+  var __heikiRateLimit: Map<string, Window> | undefined;
 }
 
 function store(): Map<string, Window> {
-  if (!globalThis.__gachazoneRateLimit) {
-    globalThis.__gachazoneRateLimit = new Map();
+  if (!globalThis.__heikiRateLimit) {
+    globalThis.__heikiRateLimit = new Map();
   }
-  return globalThis.__gachazoneRateLimit;
+  return globalThis.__heikiRateLimit;
 }
 
 export interface RateLimitRule {
@@ -190,5 +190,5 @@ export function retryMessage(result: RateLimitResult, locale: Locale = "it"): st
 
 /** Azzera i contatori. Solo per i test. */
 export function resetRateLimits(): void {
-  globalThis.__gachazoneRateLimit = new Map();
+  globalThis.__heikiRateLimit = new Map();
 }

@@ -1,5 +1,5 @@
 /**
- * GachaZone - schema del Core (Drizzle / PostgreSQL).
+ * Heiki - schema del Core (Drizzle / PostgreSQL).
  *
  * Principio: il Core non conosce elementi, reazioni o resina. I dati statici di
  * gioco (personaggi, abilita', nemici) NON stanno qui: vivono in file versionati

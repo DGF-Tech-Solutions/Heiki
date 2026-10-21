@@ -21,7 +21,7 @@ import { getLocale } from "@/lib/i18n/server";
 
 const TESTI = testi({
   it: {
-    titoloPagina: "GachaZone — schede, dati e community per i giochi gacha",
+    titoloPagina: "Heiki — schede, dati e community per i giochi gacha",
     descrizione:
       "Schede degli eroi, dati e meccaniche lette dal gioco, e community per Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero e Wuthering Waves.",
     giochi: "Giochi",
@@ -36,7 +36,7 @@ const TESTI = testi({
     scrivi: "Apri le Discussioni",
   },
   en: {
-    titoloPagina: "GachaZone — pages, data and community for gacha games",
+    titoloPagina: "Heiki — pages, data and community for gacha games",
     descrizione:
       "Hero pages, data and mechanics read from the game, and community for Grand Cross, Genshin Impact, Honkai Star Rail, Zenless Zone Zero and Wuthering Waves.",
     giochi: "Games",

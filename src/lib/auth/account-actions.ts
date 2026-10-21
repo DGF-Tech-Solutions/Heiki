@@ -329,7 +329,7 @@ export async function deleteAccountAction(
     const [placeholder] = await tx
       .insert(users)
       .values({
-        email: `eliminato+${anonymousSuffix}@gachazone.invalid`,
+        email: `eliminato+${anonymousSuffix}@heiki.invalid`,
         username: `eliminato-${anonymousSuffix}`,
         name: "Account eliminato",
         role: "USER",

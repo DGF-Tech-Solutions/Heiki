@@ -12,12 +12,12 @@ import { getLocale } from "@/lib/i18n/server";
 const TESTI = testi({
   it: {
     titoloPagina: "Informativa privacy",
-    descrizione: "Quali dati raccoglie GachaZone, perché, per quanto tempo e cosa puoi chiedere.",
+    descrizione: "Quali dati raccoglie Heiki, perché, per quanto tempo e cosa puoi chiedere.",
     Documento: PrivacyIt,
   },
   en: {
     titoloPagina: "Privacy policy",
-    descrizione: "What data GachaZone collects, why, for how long, and what you can request.",
+    descrizione: "What data Heiki collects, why, for how long, and what you can request.",
     Documento: PrivacyEn,
   },
 });
@@ -47,7 +47,7 @@ function PrivacyIt() {
 
       <h2>Chi tratta i dati</h2>
       <p>
-        Il titolare del trattamento è il gestore di GachaZone. I dati di contatto vanno inseriti
+        Il titolare del trattamento è il gestore di Heiki. I dati di contatto vanno inseriti
         qui prima della pubblicazione: senza un riferimento raggiungibile, l&apos;informativa non è
         conforme.
       </p>
@@ -176,7 +176,7 @@ function PrivacyEn() {
 
       <h2>Who processes the data</h2>
       <p>
-        The data controller is the operator of GachaZone. Contact details must be added here
+        The data controller is the operator of Heiki. Contact details must be added here
         before publication: without a reachable contact, the notice is not compliant.
       </p>
 

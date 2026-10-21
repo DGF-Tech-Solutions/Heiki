@@ -103,7 +103,7 @@ beforeEach(() => {
   env.guide = null;
   env.suspended = false;
   env.writes = [];
-  globalThis.__gachazoneGuides = undefined;
+  globalThis.__heikiGuides = undefined;
 });
 
 /* --------------------------------------------------------- regole pure -- */

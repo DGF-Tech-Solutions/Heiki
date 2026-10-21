@@ -38,7 +38,7 @@ export async function notifyModerators(message: {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        username: "GachaZone",
+        username: "Heiki",
         // niente @everyone o menzioni che arrivino dai dati di un utente
         allowed_mentions: { parse: [] },
         embeds: [

@@ -170,15 +170,15 @@ export async function exportTierListToImage({
     currentY += rowHeight + 8;
   }
 
-  // 4. Footer con firma GachaZone
+  // 4. Footer con firma Heiki
   ctx.fillStyle = "#e61421";
   ctx.font = "bold 14px system-ui, sans-serif";
   ctx.textAlign = "right";
-  ctx.fillText("GachaZone", totalWidth - PADDING, totalHeight - PADDING);
+  ctx.fillText("Heiki", totalWidth - PADDING, totalHeight - PADDING);
 
   ctx.fillStyle = "#777169";
   ctx.font = "12px system-ui, sans-serif";
-  ctx.fillText("· gachazone.it", totalWidth - PADDING - 80, totalHeight - PADDING);
+  ctx.fillText("· heiki.it", totalWidth - PADDING - 45, totalHeight - PADDING);
 
   // 5. Download dell'immagine
   return new Promise<void>((resolve) => {

@@ -61,7 +61,7 @@ const TESTI = testi({
     condividi: "Copia il risultato",
     copiato: "Copiato!",
     condividiTesto: (modalita: string, giorno: string, n: number) =>
-      `GachaZone · Indovina l'eroe (${modalita}) · ${giorno}\nIndovinato in ${n === 1 ? "1 tentativo" : `${n} tentativi`}`,
+      `Heiki · Indovina l'eroe (${modalita}) · ${giorno}\nIndovinato in ${n === 1 ? "1 tentativo" : `${n} tentativi`}`,
     ieri: "L'eroe di ieri era",
     giusto: "giusto",
     sbagliato: "sbagliato",
@@ -88,7 +88,7 @@ const TESTI = testi({
     condividi: "Copy the result",
     copiato: "Copied!",
     condividiTesto: (modalita: string, giorno: string, n: number) =>
-      `GachaZone · Guess the Hero (${modalita}) · ${giorno}\nFound in ${n === 1 ? "1 guess" : `${n} guesses`}`,
+      `Heiki · Guess the Hero (${modalita}) · ${giorno}\nFound in ${n === 1 ? "1 guess" : `${n} guesses`}`,
     ieri: "Yesterday's hero was",
     giusto: "right",
     sbagliato: "wrong",
@@ -107,7 +107,8 @@ function useToday(): string | null {
   return useSyncExternalStore(subscribeClock, () => dayKey(new Date()), () => null);
 }
 
-const EVENT = "gachazone:indovina";
+const EVENT = "heiki:indovina";
+const OLD_EVENT = "gachazone:indovina";
 const memory = new Map<string, string>();
 const parsed = new Map<string, { raw: string | null; value: readonly string[] }>();
 const NONE: readonly string[] = [];
@@ -117,7 +118,7 @@ function readGuesses(key: string): readonly string[] {
   if (memory.has(key)) raw = memory.get(key)!;
   else {
     try {
-      raw = window.localStorage.getItem(key);
+      raw = window.localStorage.getItem(key) ?? window.localStorage.getItem(key.replace(/^heiki:/, "gachazone:"));
     } catch {
       raw = null;
     }
@@ -139,9 +140,11 @@ function readGuesses(key: string): readonly string[] {
 function subscribeStorage(notify: () => void): () => void {
   window.addEventListener("storage", notify);
   window.addEventListener(EVENT, notify);
+  window.addEventListener(OLD_EVENT, notify);
   return () => {
     window.removeEventListener("storage", notify);
     window.removeEventListener(EVENT, notify);
+    window.removeEventListener(OLD_EVENT, notify);
   };
 }
 
@@ -174,7 +177,7 @@ function useDailyGuesses(key: string | null): readonly [readonly string[], (next
  * delle altre modalita', per non perdere la partita di chi l'aveva cominciata.
  */
 function storageKey(game: string, variant: GuessVariant, day: string): string {
-  return variant === "classico" ? `gachazone:${game}:indovina:${day}` : `gachazone:${game}:indovina-${variant}:${day}`;
+  return variant === "classico" ? `heiki:${game}:indovina:${day}` : `heiki:${game}:indovina-${variant}:${day}`;
 }
 
 /* --------------------------------------------------------------- partita -- */

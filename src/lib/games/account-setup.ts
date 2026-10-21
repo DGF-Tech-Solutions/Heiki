@@ -37,7 +37,7 @@ export interface CustomConstellations {
 export const EMPTY_SETUP: AccountSetup = { power: 0, completed: 0, mana: "avg", custom: null };
 
 export function setupStorageKey(gameSlug: string): string {
-  return `gachazone:${gameSlug}:buff-account`;
+  return `heiki:${gameSlug}:buff-account`;
 }
 
 const MANA_MODES: readonly ManaMode[] = ["min", "avg", "max"];

@@ -13,7 +13,7 @@ const TESTI = testi({
   it: {
     titoloPagina: "Premium",
     descrizionePagina:
-      "Cosa si compra su GachaZone e cosa no: si vende presentazione del profilo, mai posizione nel feed né badge.",
+      "Cosa si compra su Heiki e cosa no: si vende presentazione del profilo, mai posizione nel feed né badge.",
     statoAbbonamento: {
       ACTIVE: "attivo",
       TRIALING: "in prova",
@@ -90,7 +90,7 @@ const TESTI = testi({
   en: {
     titoloPagina: "Premium",
     descrizionePagina:
-      "What you can buy on GachaZone and what you can't: we sell profile presentation, never feed position or badges.",
+      "What you can buy on Heiki and what you can't: we sell profile presentation, never feed position or badges.",
     statoAbbonamento: {
       ACTIVE: "active",
       TRIALING: "in its trial period",

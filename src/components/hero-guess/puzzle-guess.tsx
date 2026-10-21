@@ -225,8 +225,8 @@ export function PuzzleGuess({
  * La scelta del mosaico, ricordata nel browser per tutte le partite: acceso se
  * non e' mai stato spento (o se il browser non salva niente).
  */
-const MOSAIC_KEY = "gachazone:indovina:mosaico";
-const MOSAIC_EVENT = "gachazone:indovina-mosaico";
+const MOSAIC_KEY = "heiki:indovina:mosaico";
+const MOSAIC_EVENT = "heiki:indovina-mosaico";
 let mosaicMemory: boolean | null = null;
 
 function readMosaic(): boolean {

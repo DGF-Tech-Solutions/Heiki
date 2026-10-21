@@ -71,7 +71,7 @@ function loadIndex(game: string): Promise<QuickIndex> {
   return promise;
 }
 
-const recentKey = (game: string) => `gachazone:${game}:recenti`;
+const recentKey = (game: string) => `heiki:${game}:recenti`;
 
 /** La scheda di un eroe lo segna fra i recenti (hero-arrow-keys.tsx lo chiama). */
 export function rememberHero(game: string, heroId: string): void {

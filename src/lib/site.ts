@@ -16,4 +16,4 @@ export function siteUrl(): string {
   return "http://localhost:3000";
 }
 
-export const SITE_NAME = "GachaZone";
+export const SITE_NAME = "Heiki";

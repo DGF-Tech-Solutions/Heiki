@@ -11,7 +11,8 @@
  * comportamento che la gente odia.
  */
 
-export const CONSENT_KEY = "gachazone:cookie-consent";
+export const CONSENT_KEY = "heiki:cookie-consent";
+const OLD_CONSENT_KEY = "gachazone:cookie-consent";
 
 export type ConsentState = "unset" | "granted" | "denied";
 
@@ -30,7 +31,7 @@ export function readConsent(): ConsentState {
   if (typeof window === "undefined") return "unset";
 
   try {
-    const raw = window.localStorage.getItem(CONSENT_KEY);
+    const raw = window.localStorage.getItem(CONSENT_KEY) ?? window.localStorage.getItem(OLD_CONSENT_KEY);
     if (!raw) return "unset";
 
     const parsed = JSON.parse(raw) as Partial<ConsentRecord>;

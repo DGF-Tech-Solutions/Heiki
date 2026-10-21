@@ -1,4 +1,4 @@
-# GachaZone — Istruzioni Operative e Contesto Progetto
+# Heiki — Istruzioni Operative e Contesto Progetto
 
 ## 1. Regole Operative e Autonomia
 - **Autonomia Completa su File e Progetto**: Non chiedere conferma o permesso all'utente per leggere, analizzare, creare, modificare o testare file all'interno del progetto. Procedi direttamente con le modifiche e l'implementazione del codice, verificando sempre la qualità tecnica (typecheck, lint, test).
@@ -34,7 +34,7 @@
   - 6 livelli predefiniti (S+, S, A, B, C, D) con personalizzazione colori (palette 13 tinte), ridenominazione inline, aggiunta/rimozione/riordino righe.
   - Supporto completo a Drag & Drop HTML5 nativo e modalità Touch / Click rapido su card per smartphone.
   - Banco degli eroi con ricerca istantanea e filtri combinati per rarità e attributo.
-  - Esportazione ad alta risoluzione (Retina 2x) in formato PNG tramite HTML5 Canvas con watermark GachaZone.
+  - Esportazione ad alta risoluzione (Retina 2x) in formato PNG tramite HTML5 Canvas con watermark Heiki.
   - **Integrazione Account, Backup & Condivisione**:
     - Tabella `user_tier_lists` con chiave esterna a `users` e `games` (migrazione `0010_salvataggio_tier_list.sql`).
     - Supporto a tier list multiple con nomi differenti per lo stesso utente.

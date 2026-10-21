@@ -1,7 +1,7 @@
 /**
  * Le intestazioni di sicurezza del sito.
  *
- * Fino all'11/10 il sito non ne mandava nessuna: una pagina di GachaZone si
+ * Fino all'11/10 il sito non ne mandava nessuna: una pagina di Heiki si
  * poteva incorniciare in un altro sito (clickjacking sui pulsanti di voto, di
  * moderazione, «Elimina account»), e un testo che fosse riuscito a diventare
  * script sarebbe partito senza ostacoli. Le intestazioni non sostituiscono il

@@ -15,14 +15,14 @@ import { defaultBuild, parseBuild, type CalculatorData, type HeroBuild } from "@
  * che una patch ha reso impossibile.
  */
 
-const EVENT = "gachazone:calcolatore";
+const EVENT = "heiki:calcolatore";
 const VERSION = 1;
 const memory = new Map<string, string | null>();
 const fallbacks = new WeakMap<CalculatorData, HeroBuild>();
 const parsed = new Map<string, { raw: string | null; data: CalculatorData; value: HeroBuild }>();
 
 export function buildStorageKey(gameSlug: string, heroId: string): string {
-  return `gachazone:${gameSlug}:calcolatore:${heroId}`;
+  return `heiki:${gameSlug}:calcolatore:${heroId}`;
 }
 
 function fallbackOf(data: CalculatorData): HeroBuild {

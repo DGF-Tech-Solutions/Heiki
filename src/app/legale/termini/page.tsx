@@ -7,12 +7,12 @@ import { getLocale } from "@/lib/i18n/server";
 const TESTI = testi({
   it: {
     titoloPagina: "Termini di servizio",
-    descrizione: "Regole d'uso di GachaZone, contenuti degli utenti, acquisti e diritto di recesso.",
+    descrizione: "Regole d'uso di Heiki, contenuti degli utenti, acquisti e diritto di recesso.",
     Documento: TerminiIt,
   },
   en: {
     titoloPagina: "Terms of service",
-    descrizione: "GachaZone's rules of use, user content, purchases and right of withdrawal.",
+    descrizione: "Heiki's rules of use, user content, purchases and right of withdrawal.",
     Documento: TerminiEn,
   },
 });
@@ -39,7 +39,7 @@ function TerminiIt() {
         </span>
       </Notice>
 
-      <h2>Cos&apos;è GachaZone</h2>
+      <h2>Cos&apos;è Heiki</h2>
       <p>
         Uno strumento di calcolo e una community per giochi gacha. Le simulazioni sono stime
         prodotte da un motore nostro su dati di gioco raccolti dalla community:{" "}
@@ -48,7 +48,7 @@ function TerminiIt() {
 
       <h2>Nessun rapporto con i publisher</h2>
       <p>
-        GachaZone <strong>non è affiliato, sponsorizzato né approvato</strong> da Netmarble,
+        Heiki <strong>non è affiliato, sponsorizzato né approvato</strong> da Netmarble,
         HoYoverse, Kuro Games o altri editori. Marchi, nomi e contenuti di gioco appartengono ai
         rispettivi proprietari e vengono citati per identificare ciò di cui si parla.
       </p>
@@ -126,7 +126,7 @@ function TerminiEn() {
         </span>
       </Notice>
 
-      <h2>What GachaZone is</h2>
+      <h2>What Heiki is</h2>
       <p>
         A calculation tool and a community for gacha games. Simulations are estimates produced by
         our own engine from game data collected by the community:{" "}
@@ -135,7 +135,7 @@ function TerminiEn() {
 
       <h2>No relationship with publishers</h2>
       <p>
-        GachaZone <strong>is not affiliated with, sponsored by or endorsed by</strong> Netmarble,
+        Heiki <strong>is not affiliated with, sponsored by or endorsed by</strong> Netmarble,
         HoYoverse, Kuro Games or other publishers. Trademarks, names and game content belong to
         their respective owners and are mentioned to identify what is being discussed.
       </p>

@@ -52,7 +52,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         title: `${tierList.title} · Tier List di ${authorName} · ${entry?.shortName ?? "Grand Cross"}`,
         description:
           tierList.description ||
-          `Guarda e personalizza la tier list "${tierList.title}" creata da ${authorName} su GachaZone.`,
+          `Guarda e personalizza la tier list "${tierList.title}" creata da ${authorName} su Heiki.`,
       };
     }
   }

@@ -39,8 +39,8 @@ RUN mkdir -p public && npm run build
 # ------------------------------------------------------------- migrazioni
 # Un'immagine a parte, da lanciare una volta prima di ogni versione nuova:
 #
-#     docker build --target migrate -t gachazone-migrate .
-#     docker run --rm -e DATABASE_URL=... gachazone-migrate
+#     docker build --target migrate -t heiki-migrate .
+#     docker run --rm -e DATABASE_URL=... heiki-migrate
 #
 # Sta fuori dall'immagine del sito perche' quella contiene solo l'output
 # standalone di Next, senza drizzle-orm/migrator ne' tsx. E tenerla separata
