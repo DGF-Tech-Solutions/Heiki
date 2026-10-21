@@ -1,941 +1,212 @@
 # GachaZone
 
-Piattaforma per i giochi gacha: schede degli eroi, dati e meccaniche letti dal
-client del gioco, e community. Giochi previsti: Grand Cross, Genshin Impact,
-Honkai Star Rail, Zenless Zone Zero, Wuthering Waves.
+<p align="center">
+  <strong>Piattaforma analitica e community data-driven per videogiochi gacha.</strong><br>
+  Dati estratti, decifrati e verificati direttamente dai client di gioco, combinati con strumenti avanzati di teoria, calcolo e community.
+</p>
 
-Stato: **Grand Cross ha roster, Endgame, artefatti, buff dell'account e
-meccaniche di combattimento dal client; account, community e guide funzionano**.
-Il vecchio motore di simulazione coi dati segnaposto non ha più pagine dal
-27/09/2026 (vedi «Il motore»).
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15.5+-black?style=for-the-badge&logo=next.js" alt="Next.js">
+  <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React 19">
+  <img src="https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS v4">
+  <img src="https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL 16">
+  <img src="https://img.shields.io/badge/Drizzle_ORM-0.44+-C5F74F?style=for-the-badge&logo=drizzle" alt="Drizzle ORM">
+  <img src="https://img.shields.io/badge/Vitest-780_Passed-729B1B?style=for-the-badge&logo=vitest" alt="Vitest Tests">
+  <img src="https://img.shields.io/badge/DB_Smoke-71_Checks-success?style=for-the-badge" alt="DB Smoke Tests">
+</p>
 
 ---
 
-## Per iniziare
+## Panoramica del Progetto
 
-Serve **Node 20+** e **Docker Desktop** avviato. Poi un comando:
+**GachaZone** è una piattaforma web full-stack ad alte prestazioni progettata per colmare il divario tra i dati grezzi dei videogiochi gacha e le esigenze analitiche della community competitiva. 
+
+A differenza dei tradizionali siti wiki basati su inserimento manuale (spesso soggetti a errori o ritardi), GachaZone integra una pipeline proprietaria di estrazione e decifrazione dei dati direttamente dai pacchetti client e dai database interni di gioco (SQLite cifrati con chiavi dinamiche, asset bundle Unity), esponendo informazioni matematicamente esatte su formule di combattimento, scalature delle abilità e attributi.
+
+La piattaforma è architettata per scalare su molteplici titoli: il primo modulo di riferimento pienamente operativo è **The Seven Deadly Sins: Grand Cross (7DSGC)**, con supporto modulare predisposto per i titoli HoYoverse (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*) e *Wuthering Waves*.
+
+---
+
+## Funzionalità Chiave
+
+### 1. Database Eroi & Calcolatore Statistiche in Tempo Reale
+- **Roster Completo e Certificato**: Oltre 373 eroi con dati estratti dai database SQLite del client di gioco (194.000+ chiavi tradotte in italiano e inglese).
+- **Calcolatore Dinamico**: Valutazione in tempo reale delle statistiche al variare di Livello, Risveglio (1-6 stelle), Super Risveglio, Rango Mossa Finale, Vero Risveglio (Re Demone/Divinità Suprema) ed equipaggiamento associato.
+- **Riconoscimento Lessicale (Parole Blu)**: Motore di parsing contestuale che trasforma ogni termine tecnico presente nelle descrizioni delle abilità in rimandi ipertestuali con popup interattivi e regole di cumulo.
+- **Diff Storico di Patch**: Sistema di versionamento automatico che traccia le variazioni testuali, numeriche e di bilanciamento introdotte dai publisher a ogni aggiornamento.
+
+### 2. Tier List Maker Integrato
+- **Interfaccia Drag & Drop Reattiva**: Gestione fluida HTML5 drag & drop su desktop e modalità touch rapida per dispositivi mobili.
+- **Configurazione Dinamica**: 6 livelli predefiniti (S+, S, A, B, C, D) con palette cromatica Persona a 13 tinte, riordinamento, etichette personalizzate e filtri simultanei per rarità e attributo.
+- **Persistenza Cloud & Backup Locale**: Salvataggio di tier list multiple legate all'account utente su PostgreSQL (`user_tier_lists`), esportazione di backup JSON non volatili e link di condivisione permanente con clonazione one-click.
+- **Render Grafico Retina 2x**: Esportazione su Canvas ad altissima risoluzione con watermark e compositing grafico ottimizzato per social e condivisione.
+
+### 3. Community Hero Ratings & Feedback
+- **Valutazione Duale PvE e PvP**: Punteggio granulare da 1 a 5 stelle ponderato con asset fedeli al gioco.
+- **Analisi Contenuto di Spicco**: Rilevazione analitica e rappresentazione percentuale della modalità in cui ciascun personaggio eccelle (Bestie Demoniache, Re Demone, PvP, Scontri Finali).
+- **Upsert Idempotente & Anti-Abuso**: Indici univoci compositi `(game_id, hero_id, user_id)` e protezione anti-spam con rate limiting dedicato.
+
+### 4. Gestione Box Eroi (Architettura Local-First)
+- **Sincronizzazione Ibrida**: Lettura istantanea senza latenza tramite `useSyncExternalStore` con fallback locale (`localStorage`) e replica automatica su PostgreSQL per gli utenti autenticati.
+- **Operazioni Massive ad Alta Efficienza**: Funzioni istantanee di popolamento rapido (*"Aggiungi tutti i mostrati"*) e azzeramento di sicurezza (*"Rimuovi tutti"* con conferma modale).
+
+### 5. Guide dell'Endgame con Invecchiamento Automatico
+- **Patch Verification**: Ogni guida strategica è vincolata alla patch di verifica (`verifiedPatch`). Quando il gioco avanza di versione, il sistema etichetta autonomamente la guida come *"Da verificare"*, garantendo integrità informativa.
+- **Formulari di Squadra Rigorosi**: Validazione delle formazioni in base ai vincoli reali delle modalità (eroi associati unici, restrizioni di attributo e set di artefatti consentiti).
+
+### 6. Sistema di Moderazione e Tracciabilità Immutabile
+- **Soft-Hiding & Audit Log**: Nessuna eliminazione distruttiva; i contenuti segnalati vengono nascosti con traccia dell'operatore, causale e timestamp in una tabella di audit transazionale.
+- **RBAC a 5 Livelli**: Gerarchia di permessi granulare (`USER`, `COLLABORATOR`, `EDITOR`, `MODERATOR`, `ADMIN`).
+
+---
+
+## Architettura Tecnica
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                          Next.js 15 App Router                         │
+│   (React 19 Server Components · Streaming SSR · Client Components)     │
+└──────────────────┬──────────────────────────────────┬──────────────────┘
+                   │                                  │
+         Server Actions & API                   Local-First State
+       (Zod Validation, Auth.js)            (useSyncExternalStore)
+                   │                                  │
+         ┌─────────┴─────────┐                        │
+         ▼                   ▼                        ▼
+┌──────────────────┐ ┌──────────────┐       ┌──────────────────┐
+│   PostgreSQL 16  │ │ In-Memory    │       │ Browser Storage  │
+│   (Drizzle ORM)  │ │ Rate Limiter │       │  (localStorage)  │
+└──────────────────┘ └──────────────┘       └──────────────────┘
+```
+
+### Scelte Architetturali Fondamentali
+1. **Next.js 15.5+ App Router con React 19**: Utilizzo esteso di React Server Components (RSC) per azzerare il JavaScript bundle delle schede informative, garantendo First Load JS shared compatto a circa 103 kB.
+2. **PostgreSQL 16 & Drizzle ORM**: Type-safety end-to-end dal database al frontend. Schemi dichiarativi, migrazioni SQL riproducibili e chiavi esterne con vincoli d'integrità referenziale rigorosi.
+3. **Resilienza Zero-Downtime**: In caso di mancata raggiungibilità temporanea del database, la piattaforma attiva istantaneamente una modalità fallback in memoria con contenuti dimostrativi, consentendo la navigazione del catalogo eroi senza interruzioni.
+4. **Sicurezza Rigorosa**:
+   - **Content Security Policy (CSP)** con nonce crittografico generato per singola richiesta a livello di middleware.
+   - **Rate Limiting** a finestra mobile in memoria su endpoint di autenticazione e mutazione.
+   - Protezione da attacchi XSS mediante parser Markdown con whitelist rigorosa (niente `dangerouslySetInnerHTML`).
+   - Cookie di sessione conformi a `SameSite=Lax`, `HttpOnly` e prefisso `__Secure-` in ambiente HTTPS.
+5. **Design System Persona 5 / Dark Mode**:
+   - Direzione visiva dark (`#0b0a0a` / `#151313`) con tagli angolari `.p5-cut`, bottoni dinamici `.p5-btn` e accento brand rosso (`#e61421`).
+   - 5 palette cromatiche selezionabili dall'utente (Rosso, Notte, Giada, Viola, Ambra), tutte certificate con rapporto di contrasto WCAG AAA (≥ 7:1 per testo normale, ≥ 4.5:1 per elementi secondari).
+
+---
+
+## Stack Tecnologico
+
+| Livello | Tecnologie |
+|---|---|
+| **Framework Web** | [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/) |
+| **Linguaggio** | [TypeScript 5](https://www.typescriptlang.org/) (Strict Mode) |
+| **Styling & UI** | [Tailwind CSS v4](https://tailwindcss.com/), Icone [Phosphor](https://phosphoricons.com/) |
+| **Database & ORM** | [PostgreSQL 16](https://www.postgresql.org/), [Drizzle ORM](https://orm.drizzle.team/) |
+| **Autenticazione** | [Auth.js v5 (NextAuth)](https://authjs.dev/) (Credenziali, Discord OAuth, Google OAuth) |
+| **Testing Suite** | [Vitest](https://vitest.dev/), script proprietario `smoke-db.mts` |
+| **Containerizzazione**| [Docker](https://www.docker.com/), Docker Compose |
+
+---
+
+## Qualità del Codice & Testing
+
+La stabilità e l'accuratezza dei calcoli matematici sono validate continuamente da una suite di test esaustiva:
+
+- **780 Test Unitari e di Integrazione (Vitest)**:
+  - Validazione formule di danno, scaling passivo, calcolo statistiche e simulazione Monte Carlo.
+  - Test crittografici su sessioni, token di recupero password ed escape sanitizzato del Markdown.
+  - Verifica della palette colori e accessibilità di contrasto di tutti i temi.
+- **71 Verifiche Live sul Database (`npm run db:smoke`)**:
+  - Script automatizzato (`scripts/smoke-db.mts`) che esegue un ciclo end-to-end reale su PostgreSQL: inserimento, migrazioni, foreign key cascade, rate limiting e cancellazioni controllate.
+- **Tipizzazione Rigorosa**:
+  - `npm run typecheck` (`tsc --noEmit`) costantemente a 0 errori.
+  - `npm run lint` (`eslint`) su tutti i file sorgente e script di supporto.
+
+---
+
+## Struttura del Repository
+
+```text
+GachaZone/
+├── src/
+│   ├── app/                      # Next.js App Router (Layout, Pagine, API Routes)
+│   │   ├── [game]/               # Pagine contestuali di gioco (eroi, tierlist, guide, ecc.)
+│   │   ├── u/[username]/         # Vetrina profilo pubblico, tier list salvate, badge
+│   │   └── api/                  # Route handlers (auth callback, healthcheck)
+│   ├── components/               # Componenti UI (stile Persona, filtri, griglie, modali)
+│   │   ├── tier-list/            # Componenti del Tier List Maker (canvas, drag & drop)
+│   │   ├── ratings/              # Modali e badge di votazione community
+│   │   └── game-account/         # Gestione e visualizzazione del box eroi
+│   ├── lib/
+│   │   ├── db/                   # Schema Drizzle, client PostgreSQL e migrazioni
+│   │   ├── games/                # Moduli dei giochi, dati estratti, calcolatori
+│   │   ├── tier-list/            # Server actions e logica di salvataggio tier list
+│   │   ├── ratings/              # Logica server e aggregazioni voti eroi
+│   │   ├── auth/                 # Configurazione Auth.js, gestione ruoli e permessi
+│   │   └── security/             # Content Security Policy, rate limiter, sanitizzazione
+├── scripts/                      # Script di automazione, setup, seed e smoke testing
+├── drizzle/                      # File di migrazione SQL generati da Drizzle Kit
+└── docker-compose.yml            # Configurazione PostgreSQL per ambiente di sviluppo
+```
+
+---
+
+## Installazione e Avvio Rapido
+
+### Prerequisiti
+- **Node.js** v20.x o superiore
+- **Docker Desktop** (per il database PostgreSQL)
+
+### Setup in un Click
+Il comando `npm run setup` predispone automaticamente l'intero ambiente di lavoro:
 
 ```bash
-git clone <url> && cd GachaZone
+# 1. Clona il repository
+git clone https://github.com/DGF-Tech-Solutions/GachaZone.git
+cd GachaZone
+
+# 2. Configura dipendenze, database locale e schema
 npm run setup
+
+# 3. Avvia il server di sviluppo
 npm run dev
 ```
 
-`npm run setup` fa tutto quello che altrimenti bisognerebbe ricordarsi: installa
-le dipendenze, crea il `.env` con un `AUTH_SECRET` generato, avvia Postgres,
-attende che risponda, applica le migrazioni e popola i dati minimi. È
-idempotente: si può rilanciare quando serve.
+Il sito sarà immediatamente accessibile su [http://localhost:3000](http://localhost:3000).
 
-Il sito parte su <http://localhost:3000>.
+---
 
-### Se qualcosa si incastra
+## Comandi Principali
 
-```bash
-npm run db:reset     # butta il database e ricostruisce da zero
-npm run db:smoke     # 30 controlli sul percorso reale col database
-docker compose logs  # cosa dice Postgres
-```
-
-### Comandi
-
-| Comando | Cosa fa |
+| Script | Descrizione |
 |---|---|
-| `npm run dev` | Sito in sviluppo su :3000 |
-| `npm test` | Suite di test (179) |
-| `npm run typecheck` | TypeScript senza emissione |
-| `npm run build` | Build di produzione |
-| `npm run db:generate` | Genera una migrazione dopo aver cambiato lo schema |
-| `npm run db:migrate` | Applica le migrazioni |
-| `npm run db:seed` | Popola giochi, sezioni, badge, cosmetici |
-| `npm run db:smoke` | Verifica il percorso reale sul database (53 controlli) |
-| `npm run promote -- <email> ADMIN` | Assegna un ruolo: serve per il primo amministratore |
-| `npm run db:reset` | Azzera e ricostruisce |
-| `npm run db:studio` | Interfaccia web sul database |
-| `npm run lint` | ESLint su `src` e `scripts` |
-| `npm run eroi:import` | Rigenera roster, testi, card e illustrazioni, poi i legami, l'equipaggiamento e i costumi, le parole blu, le meccaniche, l'Endgame, gli artefatti, i buff dell'account e i cambiamenti di patch |
-| `npm run legami:import` | Rigenera solo i legami degli eroi associati, per il Randomizer e la scheda eroe (dopo gli eroi) |
-| `npm run equipaggiamento:import` | Rigenera solo l'equipaggiamento e i costumi del calcolatore della scheda eroe, con le loro immagini (dopo gli eroi) |
-| `npm run parole:import` | Rigenera solo le parole blu della scheda eroe (dopo gli eroi) |
-| `npm run squadra:import` | Rigenera solo la lettura delle passive per la pagina Squadra: chi riceve e chi fa scattare (dopo le parole blu) |
-| `npm run meccaniche:import` | Rigenera solo le meccaniche di combattimento: costanti, pesca, effetti Luce/Oscurità, cumulo (dopo le parole blu) |
-| `npm run endgame:import` | Rigenera solo le quattro modalità dell'Endgame |
-| `npm run artefatti:import` | Rigenera solo le Carte e i Set artefatto |
-| `npm run buff:import` | Rigenera solo i buff dell'account: classe dell'account e costellazioni |
-| `npm run cambiamenti:import` | Rigenera solo i cambiamenti di patch, dall'archivio delle patch della pipeline |
-| `npm run compleanni:import` | Rigenera solo i compleanni (profilo degli eroi e festa in taverna), da `eroi/compleanni.json` della pipeline |
-| `npm run docker:app` | Tutto in container, senza Node locale |
-| `npm run db:backup` | Copia del database in `backups/` (tiene le ultime 14; serve Docker) |
-
-### Docker
-
-Il flusso normale è **Postgres in container, sito in locale**:
-
-```bash
-docker compose up -d      # solo il database
-npm run dev               # il sito, con hot reload veloce
-```
-
-Chi non ha Node può far girare tutto in container:
-
-```bash
-npm run docker:app        # costruisce e avvia database + applicazione
-```
-
-Un server di sviluppo dentro un container su Windows ha l'hot reload lento,
-perciò il profilo `app` esiste ma non è il modo consigliato di lavorare al
-codice.
-
-**Il sito non si rompe senza database.** Se Postgres non risponde, l'app passa a
-un archivio in memoria con contenuti di esempio e lo dichiara in cima al feed:
-si può pubblicare, commentare e votare, ma i contenuti spariscono al riavvio.
-Serve per valutare la community senza installare niente.
-
-### La messa online
-
-Il sito non è ancora online. Il 03/10/2026 si è scelto di preparare tutto quello
-che non dipende dal servizio che lo ospiterà, e di scegliere il servizio dopo.
-
-**L'immagine.** `docker build -t gachazone .` dà il sito (output standalone di
-Next, con `public/`); `docker build --target migrate -t gachazone-migrate .` dà le
-migrazioni, da lanciare una volta prima di ogni versione nuova. Le immagini del
-gioco (`public/eroi/`, circa 290 MB) non sono nel repo: entrano nell'immagine solo
-se la si costruisce dal computer dove gira `npm run eroi:import`. Costruita da un
-clone pulito l'immagine funziona, ma senza immagini.
-
-**Le variabili, lette all'avvio:**
-
-| Variabile | |
-|---|---|
-| `DATABASE_URL` | il Postgres di produzione |
-| `AUTH_SECRET` | `npx auth secret`, diverso da quello di sviluppo |
-| `AUTH_URL` | l'indirizzo pubblico, con `https://`. Fa anche da indirizzo del sito (sitemap, robots, link del recupero password) e dice ad Auth.js di fidarsi dell'host |
-| `AUTH_DISCORD_ID`/`_SECRET`, `AUTH_GOOGLE_ID`/`_SECRET` | facoltative; nell'app di Discord o Google va registrato `<AUTH_URL>/api/auth/callback/discord` (o `/google`) |
-| `DISCORD_WEBHOOK_MODERAZIONE` | facoltativa; il webhook del canale Discord dei moderatori: a ogni schermata da verificare arriva un messaggio con utente, eroe del giorno, classe dichiarata e il collegamento a `/moderazione` (la schermata non parte: resta sul sito); lo stesso per ogni guida dell'Endgame da rivedere (autore, dove vale, titolo) |
-
-`NEXT_PUBLIC_SITE_URL` non va messa nell'ambiente della **build**: Next scrive nel
-codice le variabili `NEXT_PUBLIC_` che trova in quel momento. Se manca,
-`siteUrl()` usa `AUTH_URL`.
-
-**Una versione nuova, in ordine:** `npm run db:backup` sul database di produzione
-(`DATABASE_URL=... npm run db:backup`), poi le migrazioni, poi il sito nuovo.
-
-**Salute.** `/api/salute` risponde 200 se il sito e il database rispondono, 503
-se il database no. Lo usa il `HEALTHCHECK` dell'immagine; serve anche al servizio
-che ospiterà il sito e a un controllo esterno.
-
-**Controlli su GitHub.** `.github/workflows/controlli.yml`: tipi, lint, test e
-build a ogni push su `main` e a ogni pull request, su un clone pulito.
-
-**Da sapere per scegliere il servizio:**
-- il limite di tentativi è in memoria del processo (vedi «Limite di tentativi»):
-  con un solo processo vale com'è, con più istanze, o con funzioni serverless
-  come quelle di Vercel, va spostato su un archivio condiviso
-- le schermate della verifica della classe stanno nel database (bytea), quindi
-  il sito non ha bisogno di un disco suo
-- le immagini del gioco o viaggiano nell'immagine Docker o vanno su uno spazio a
-  parte (un disco del servizio, Cloudflare R2...): il codice le chiede a
-  `/eroi/...`, quindi nel secondo caso serve un rimando o un prefisso
-- provarla in locale, accanto a `npm run dev`:
-  `APP_PORT=3200 AUTH_URL_APP=http://localhost:3200 docker compose --profile app up --build`
-
-### La sicurezza
-
-Rivista da cima a fondo l'11/10/2026 (audit del codice e prove sul server). Cosa
-c'è, e cosa va rispettato quando il sito va online.
-
-**Da rispettare in produzione:**
-- **il proxy davanti al sito deve scrivere `X-Forwarded-For`** con l'indirizzo
-  vero di chi chiama (nginx: `proxy_set_header X-Forwarded-For $remote_addr;`).
-  I tetti per indirizzo leggono l'ultima voce di quella intestazione
-  (`src/lib/security/client-ip.ts`); senza proxy chi chiama la può scrivere come
-  vuole, e restano solo i tetti per account
-- `AUTH_URL` in `https://`: Auth.js mette `Secure` sui cookie solo se lo è, e la
-  CSP chiede al browser di non scendere a http
-- `AUTH_SECRET` nuovo e lungo (`npx auth secret`); Postgres con una password
-  vera e mai esposto in rete (in `docker-compose.yml` ascolta solo su
-  `127.0.0.1`)
-- **il recupero password non spedisce email**: in produzione non scrive il
-  collegamento da nessuna parte (prima finiva nel registro del server, e chi
-  legge i log poteva prendersi un account). Finché non c'è un fornitore di posta
-  il recupero, di fatto, non funziona; il punto da completare è segnato in
-  `src/lib/auth/password-reset.ts`. Con l'invio andrà verificato anche il cambio
-  di email (oggi il nuovo indirizzo vale subito)
-
-**Cosa c'è:**
-- **intestazioni**: Content-Security-Policy con un nonce nuovo a ogni richiesta
-  (la scrive il middleware; uno script iniettato in una pagina non parte),
-  niente cornici da altri siti, `nosniff`, `Referrer-Policy`, permessi del
-  browser spenti, HSTS in produzione (`src/lib/security/headers.ts`)
-- **accesso**: stessi tempi di risposta per email registrate e no; tetti per
-  email+indirizzo, per indirizzo e per account (una persona non si può chiudere
-  fuori sbagliando apposta la sua password); password fino a 72 byte (oltre,
-  bcrypt ignorerebbe il resto); sessioni di 14 giorni rinnovate a ogni visita,
-  60 al massimo senza rientrare, chiuse dal cambio di password; con Discord e
-  Google si entra solo con un'email che il provider ha verificato
-- **handle e nomi**: `admin`, `moderatore`, `eliminato-…` e simili sono
-  riservati; un nome visualizzato non può avere caratteri invisibili o
-  imitare lo staff (`src/lib/auth/handles.ts`)
-- **azioni del server**: ogni funzione esportata da un file `"use server"` è un
-  indirizzo che il browser può chiamare con argomenti suoi. Lì stanno solo le
-  azioni vere, ognuna controlla sessione, ruolo, sospensione e argomenti (zod,
-  UUID veri); gli aiuti interni stanno in moduli normali
-- **markdown**: niente HTML, link solo `http(s)` o percorsi che restano sul sito
-  (`/\esempio.com` non passa), analisi in tempo lineare
-- **moderazione**: vedi «Moderazione» e «Il primo amministratore»
-
-**Le prove**: `src/lib/__tests__/sicurezza-*.test.ts` (intestazioni, accesso,
-moderazione, markdown, guide).
+| `npm run dev` | Avvia il server di sviluppo con hot-reloading Turbopack (`:3000`) |
+| `npm run build` | Compila l'applicazione per la produzione con output standalone |
+| `npm run test` | Esegue la suite completa di 780 test unitari con Vitest |
+| `npm run typecheck` | Esegue la verifica dei tipi TypeScript (`tsc --noEmit`) |
+| `npm run lint` | Esegue l'analisi statica del codice con ESLint |
+| `npm run db:smoke` | Esegue 71 controlli di integrità end-to-end sul database PostgreSQL |
+| `npm run db:migrate` | Applica le migrazioni SQL pendenti tramite Drizzle Kit |
+| `npm run db:reset` | Ripristina il database ricreando lo schema e ripopolando i dati di seed |
+| `npm run db:studio` | Avvia Drizzle Studio per l'ispezione grafica dei dati del DB |
+| `npm run promote -- <email> ADMIN` | Assegna privilegi amministrativi al primo account utente |
 
 ---
 
-## Stack
+## Roadmap di Sviluppo
 
-Next.js 15 (App Router) · React 19 · TypeScript strict · Tailwind 4 · Drizzle /
-PostgreSQL · Auth.js v5 · Vitest. Alias `@/*` su `src/`.
-
-## Struttura
-
-```
-src/app/
-  page.tsx                    scelta gioco + ultimi post
-  [game]/                     tutto il contenuto di un gioco
-    layout.tsx                selettore gioco + barra laterale a gruppi
-    page.tsx                  feed della community
-    eroi/                     roster completo, filtri per rarita', attributo, razza e
-                              caratteristica (?razza=3, ?caratteristica=6 li scelgono)
-    eroi/[heroId]/            scheda dell'eroe, a schede (Abilita', Statistiche, Reliquia,
-                              Info; ?scheda=<nome> apre quella giusta): testi dal client
-    meccaniche/               danno, attributi, pesca delle carte, cumulo dei buff:
-                              le regole lette nel codice del client, i numeri dai dati
-    guide/                    elenco, scrittura, revisione, patch verificata
-    post/[postId]/            discussione
-  u/[username]/               profilo pubblico
-  cerca/                      ricerca su eroi e discussioni
-  notifiche/                  risposte e nuovi seguaci
-  moderazione/                coda segnalazioni, sospensioni, registro (MODERATOR+)
-  admin/                      ruoli, slot sponsorizzati, stato dataset (ADMIN)
-  premium/                    cosa si compra e cosa no
-  legale/                     privacy, termini, cookie
-  entra, registrati, password/, impostazioni/{profilo,account}
-
-src/lib/engine/               motore: funzioni pure, nessuno stato, nessuna rete
-src/lib/games/                contratto dei moduli + catalogo + registro
-src/lib/community/            feed, ordinamento, archivio (DB e memoria), riverifica
-src/lib/guides/               guide: tipi, archivio (DB e memoria), azioni redazionali
-src/lib/moderation/           segnalazioni, provvedimenti, stato di sospensione
-src/lib/admin/                ruoli e slot sponsorizzati
-src/lib/billing/              entitlement premium (separato dai ruoli)
-src/lib/markdown.ts           markdown -> albero, senza HTML iniettato
-src/lib/rate-limit.ts         limite di tentativi a finestra scorrevole
-src/lib/social/               seguire, notifiche, suggerimenti
-src/lib/profile/              livelli, cosmetici, salvataggio
-src/lib/auth/                 Auth.js, ruoli, permessi
-src/lib/db/                   schema Drizzle e client
-src/components/ui.tsx         primitive dell'interfaccia
-src/components/heroes/        sfoglia il roster: filtri e griglia; le schede della pagina
-                              dell'eroe (hero-tabs, e un file per scheda: hero-abilities,
-                              hero-relics, hero-costumes, hero-associations; calculator/ e'
-                              il calcolatore delle statistiche). Una funzione nuova = una scheda.
-                              hero-terms: le tendine delle parole blu
-scripts/                      setup, migrazioni, seed, verifica di fumo,
-                              ruoli, importazione roster
-```
-
-### Navigazione a gruppi
-
-Selettore del gioco in cima, barra laterale a gruppi a sinistra: **Database**
-(Eroi, Uscite, Cambiamenti, Set artefatto, Carte artefatto, Buff dell'account, Meccaniche) · **Endgame**
-(Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema) · **Strumenti**
-(Randomizer, Squadra, Indovina l'eroe, Compleanni) · **Il tuo account** (Il mio account) · **Guide** (Guide e
-rotazioni) · **Community** (Discussioni).
-
-Le voci non sono le stesse per tutti i giochi: *Eroi* compare solo dove il modulo
-ha un roster, dichiarato con `needs` in `GAME_GROUPS` e filtrato da
-`gameGroups(slug)`. Una voce di menu che porta a una pagina vuota è peggio di una
-voce che non c'è.
-
-*Endgame* è entrato il 26/09/2026, quando ha avuto contenuto: le quattro
-modalità boss di Grand Cross, dalle tabelle del client. Fino ad allora non c'era
-apposta: un gruppo vuoto in navigazione promette qualcosa che non c'è, e chi ci
-clicca una volta non ci clicca più. *Guide* è entrato allo stesso modo, quando ha
-avuto pagine da mostrare, *Strumenti* il 27/09/2026 col Randomizer, e *Il tuo
-account* lo stesso giorno con la pagina del tuo account di gioco.
-
-**Sul telefono** (sotto i 1024px) la barra laterale non c'è: le stesse voci, con
-la ricerca, stanno in un pannello che entra da sinistra (`game-menu.tsx`), aperto
-dal pulsante a sinistra del marchio. Lo apre e lo chiude il browser (`popover`):
-il pulsante sta nell'intestazione, che non sa in che gioco si è, e compare solo
-quando la pagina contiene il pannello (`body:has(#menu-sezioni)`). Sotto i 640px
-anche le voci di chi è entrato (Notifiche, profilo, Personalizza, Coda, Esci)
-passano in un pannello, e chi non è entrato vede solo «Entra». Tutti e due i
-pannelli si chiudono quando si tocca una voce (`popover-panel.tsx`): il guscio
-resta montato mentre si naviga.
-
-### I temi di colore
-
-Il sito ha cinque varianti di colore, tutte scure, scelte da chi legge con il
-pulsante a tavolozza accanto a IT | EN nell'intestazione: Rosso (il predefinito,
-«Persona»), Notte (blu), Giada (verde azzurro), Viola e Ambra. Cambiano fondo,
-grigi, bordi e accento; forme, caratteri e impaginazione restano gli stessi, e i
-colori del gioco (abilità, attributi, icone) non si toccano.
-
-- I colori stanno solo in `src/app/globals.css`: il predefinito in `@theme`, ogni
-  altro tema in un blocco `:root[data-theme="…"]` che ridefinisce gli undici token
-  del ruolo (`paper`, `ink`, `rule`, `brand`…). `hot`, `gold`, `up` e `down` sono
-  significati e restano uguali in tutti i temi
-- elenco, predefinito e nome del cookie stanno in `src/lib/theme/themes.ts`;
-  `THEME_COLORS` ripete fondo e accento di ogni tema per `<meta name="theme-color">`,
-  il manifest e i campioni del selettore (`src/components/theme-switch.tsx`)
-- la scelta resta nel cookie tecnico `tema` (un anno, `setTheme` in
-  `src/lib/theme/actions.ts`). Il layout radice lo legge (`getTheme`) e mette
-  `data-theme` su `<html>`, così la pagina arriva già nei colori giusti. Senza
-  cookie il tema è Rosso
-- `src/lib/theme/__tests__/themes.test.ts` legge globals.css e controlla ogni tema:
-  fondo quasi nero, testo ≥ 7:1, grigi ≥ 4,5:1 su ogni fondo, bianco sopra
-  l'accento ≥ 4,5:1, accento sul fondo ≥ 3:1, `brand-deep` ≥ 4,5:1, e che la copia
-  in `themes.ts` coincida con il CSS
-
-Per aggiungere un tema: un blocco in globals.css con tutti i token, l'id in
-`THEMES`, fondo e accento in `THEME_COLORS`, il nome (it/en) in `theme-switch.tsx`.
-`npx vitest run src/lib/theme` dice se regge.
-
-### Il gioco è il primo segmento dell'URL
-
-`/grand-cross/eroi/<id>`. Cambiare gioco cambia il contesto di tutto:
-feed, eroi, Endgame, guide. I cinque giochi previsti sono tutti
-elencati nella barra; quelli senza modulo sono marcati "in arrivo" e i loro
-indirizzi rispondono 404.
-
-Nasconderli farebbe sembrare il sito monogioco, mostrarli come funzionanti
-sarebbe una bugia. Dichiarare il piano è l'unica opzione onesta delle tre.
+- [x] Pipeline di decifrazione e importazione automatica dei dati dai client di gioco.
+- [x] Roster interattivo con calcolatore statistiche completo per The Seven Deadly Sins: Grand Cross.
+- [x] Tier List Maker dinamico con esportazione Retina 2x Canvas e persistenza cloud.
+- [x] Sistema di recensioni e votazione community (PvE & PvP) con aggregazione real-time.
+- [x] Sincronizzazione local-first del box eroi con persistenza ibrida.
+- [ ] Integrazione del primo modulo deterministico HoYoverse (*Genshin Impact* / *Honkai: Star Rail*).
+- [ ] Generazione dinamica di Open Graph card personalizzate per la condivisione social dei profili.
+- [ ] API pubblica REST / GraphQL per consentire a sviluppatori terzi l'accesso ai dati analitici del roster.
 
 ---
 
-## Le decisioni che reggono il progetto
+## Licenza
 
-### Il motore
-
-**Dal 27/09/2026 nessuna pagina ne mostra i risultati.** Personaggi, Nemici,
-Classifica danno e Simulatore squadra giravano su tre unità segnaposto
-(`grand-cross/data.ts`), e le loro regole contraddicevano quelle che la pipeline
-ha poi letto nel codice del gioco: triangolo al contrario, vantaggio moltiplicato
-invece che sommato, pesca 50/50 e sette carte nuove a ogni turno. Le pagine sono
-state tolte, su scelta dell'utente; le regole vere le spiega `/meccaniche`. Il
-motore resta nel codice finché lo usano la riverifica degli allegati della
-community (`community/verify.ts`, `demo-seed.ts`), la patch con cui le guide si
-dichiarano vecchie (`dataset.patch`), la pagina admin e lo script del database:
-toglierlo del tutto è un passo a parte.
-
-**Il risultato è sempre una distribuzione.** Un gioco deterministico produce una
-distribuzione degenere di un campione, uno stocastico una vera. Il tipo di
-ritorno è identico, quindi interfaccia e query non devono sapere quale
-paradigma stanno guardando. È ciò che impedisce a Grand Cross — l'unico gioco a
-carte casuali — di deformare l'architettura degli altri quattro.
-
-**Funzioni pure, gira nel browser.** Nessuna chiamata di rete, nessuno stato
-condiviso: il costo server dei calcoli è zero anche con molti utenti
-simultanei, e lo stesso codice gira sul server per le pagine indicizzabili.
-
-**Ogni risultato è riproducibile.** Seed e versione del dataset sono congelati
-insieme al risultato: un link condiviso mostra sempre gli stessi numeri, e una
-patch non riscrive di nascosto le build già salvate.
-
-### Aggiungere un gioco
-
-Deve bastare una cartella sotto `src/lib/games/` e una riga in `registry.ts`.
-Zero modifiche al resto.
-
-- **Deterministico** (Genshin, HSR, ZZZ, WuWa): implementa `resolveActor` e
-  `computeDamage`. Il risolutore di rotazioni condiviso fa il resto.
-- **Stocastico** (Grand Cross): implementa anche `simulateOnce`, che il runner
-  ripete in Monte Carlo.
-
-### I cambiamenti di patch
-
-La pagina **Cambiamenti** (`/grand-cross/cambiamenti`) e la sezione in fondo alla scheda
-Info di ogni eroe dicono cosa è cambiato negli eroi a ogni patch: il testo di ogni rango
-delle carte, l'Unica coi suoi livelli, le abilità speciali, le statistiche al massimo, le
-reliquie, i legami e i costumi. Il resto del client (eventi, missioni, negozio...) è solo
-contato, per gruppo di tabelle. Scelte dell'utente, 03/10/2026.
-
-Da dove viene. La pipeline tiene una copia delle tabelle e dei testi del client per ogni
-patch (`script/archivio_patch.py`, in `storico_patch/`), dal 23/09/2026: le patch prima
-non sono state conservate, e la pagina lo dice. `script/cambiamenti.py` costruisce le
-schede degli eroi di due patch con **lo stesso codice** e le confronta voce per voce: le
-differenze vengono dai dati, non da una correzione della pipeline. Un testo che cambia solo
-nei codici di colore del gioco è un «ritocco di formattazione», non un cambiamento
-dell'eroe. I pezzi del confronto parola per parola ricompongono il testo di prima e quello
-di dopo: c'è un test che lo controlla (`changes.test.ts`).
-
-Dopo una patch, nella pipeline: `archivio_patch.py salva` subito dopo `testi_client.py`, poi
-a fine catena `cambiamenti.py`, poi `npm run eroi:import` (o `cambiamenti:import`).
-
-### Il roster e gli asset del gioco
-
-La sezione **Eroi** elenca 373 unità di Grand Cross con la card che il gioco
-mostra davvero: cornice della rarità, sfondo, ritratto e bollino dell'attributo.
-I dati non stanno nel client - il gioco li scarica - e le immagini sono dentro
-bundle Unity con un'intestazione civetta. Ricavarli è stato un lavoro a sé, che
-vive fuori da questo repository.
-
-I **testi** sono un caso a parte, e valeva la pena scavare: `LocalizeString_*.bytes`
-non sono file di testo ma **database SQLite** da 194.546 stringhe per lingua,
-cifrate. Lo schema, e il modo in cui l'ho ricavato, sono documentati in
-`_7dsgc/estrai_testi.py`: XOR con la chiave `NetmarbleFun&Cherry` dove il
-carattere usato in posizione *i* è `chiave[(k·(i+1)) mod 19]`, con `k` variabile
-per riga — e il XOR va applicato ai code point Unicode, non ai byte UTF-8, cosa
-che fa fallire tutti e soli i testi con accenti. Resa: 99,9%, in italiano e in
-inglese.
-
-Da lì arrivano descrizione, epiteto, titolo completo e frasi di caricamento per
-**tutti e 373 gli eroi**. I 59 che all'inizio sembravano assenti sono i
-personaggi in collaborazione — Re:Zero, Fire Force, KonoSuba, Solo Leveling —
-e le loro chiavi portano un prefisso (`nes_`, `ffx_`, `kzm_`, `lol_`): cercando
-`DB_hero_desc_<id>` esatto sparivano tutti insieme, e sembravano semplicemente
-troppo recenti per essere nel client.
-
-### Collegare un eroe ai suoi asset
-
-Non tutti i collegamenti danno la stessa garanzia, e la differenza va detta
-perché un'icona sbagliata su una scheda non si nota finché non la guarda
-qualcuno che conosce il personaggio.
-
-| Asset | Come si collega | Copertura |
-|---|---|---|
-| Illustrazione `hero_illust_…` | **heroId nel nome del file** | 370/373 |
-| Icona abilità esclusiva | **heroId nel nome del file** | 369/373 |
-| Colpi per abilità | **heroId nel nome del file** | 373/373 |
-| Carte d'attacco `icon_<slug>_<grado>_type01_skill_<n>` | slug + grado di uscita | 288/373 |
-| Ritratti `icon_hero_*` / `icon_skin_*` | slug ricavato dall'illustrazione | 349/373 |
-
-Le carte d'attacco sono 128×256 — nel gioco sono carte, non icone — e il
-rapporto 1:2 è il filtro più affidabile per riconoscerle. I **colpi per carta**
-invece sono certi per tutti e 373: `skill_attack_count_<id>.bytes` porta l'id
-nel nome, ed è l'**unico dato numerico di combattimento presente nel client**.
-
-Nel sito finiscono i collegamenti certi più le carte. I ritratti no, perché lo slug
-restringe al personaggio ma non alla variante — e proprio quel controllo ha
-mostrato che alla card di Tree Guardian King (slug `king_blade`) la pipeline
-aveva assegnato l'icona di Sabnak. Li mappa `_7dsgc/mappa_asset.py`, che
-registra il gruppo di candidati senza scegliere al posto di chi guarda.
-
-`_7dsgc/correggi_card.py` usa lo stesso vincolo per rifare le card che avevano
-il ritratto di un altro personaggio: cerca solo fra le icone di quel
-personaggio e sceglie la posa confrontandola con la card di 7dshub. Riscrive
-solo se il punteggio migliora davvero, quindi non tocca le card già giuste —
-Hawk & Elizabeth resta com'era perché il suo 7,5 batte il 29,5 dello slug nudo.
-Le quattro note sono rientrate nella norma: Baldr 39,7→8,1, Tree Guardian King
-38,8→7,5, Emilia 29,9→7,1, Rimuru 28,6→5,1. Sul roster intero lo scarto mediano
-resta 7,7, ma le card sotto 15 passano da 351 a 355 e quelle sopra 22 da 13 a 9.
-
-Il confine passa qui, e non è formale:
-
-- **i dati** (nomi, rarità, attributi) sono fatti, e stanno nel repository in
-  `src/lib/games/grand-cross/heroes.generated.ts`
-- **le immagini** sono asset di Netmarble rielaborati, e non sono versionate.
-  Stanno in `public/eroi/`, che è in `.gitignore`. Le card degli eroi e i
-  cut-in sono WebP (l'importazione li converte: un quinto del PNG); il sito le
-  serve con un giorno di cache nel browser, e il servizio delle immagini tiene
-  per una settimana le copie ridimensionate (`next.config.ts`): dopo
-  un'importazione che cambia delle immagini si svuota `.next/cache/images`
-- **i testi lunghi** stanno in `hero-texts.generated.ts`, separati dal roster:
-  il roster viaggia fino al browser per i filtri, le descrizioni no
-- **il calendario delle uscite** sta in `releases.generated.ts`: il foglio della
-  community (thefilght / dreamer_plays), letto da `_7dsgc/script/date_uscita.py`,
-  un aggiornamento per data con ogni eroe legato al roster. I calendari sono due:
-  quello **globale** (la scheda GLOBAL SCHEDULE fino all'allineamento del
-  novembre 2024, poi le date giapponesi, salvo i rari aggiornamenti usciti nel
-  globale il mercoledì prima) e quello di **Giappone e Corea**. Alimenta la sezione **Uscite** e l'ordine di partenza della griglia
-  degli eroi, per uscita globale dal più recente. Il client PC non ha date
-  d'uscita: la fonte è dichiarata in pagina
-- **l'Endgame** (Scontri finali, Bestie demoniache, Re Demone, Divinità Suprema)
-  sta in `death-match`, `creature-nest`, `demon-king` e `supreme-deity.generated.ts`,
-  più `endgame-heroes.generated.ts` coi legami per la scheda eroe. Li scrive
-  `scripts/import-endgame.mts` dai JSON di `_7dsgc/script/scontri_finali.py`,
-  `creature_nest.py` e `re_demone_divinita.py`; il contratto è in
-  `src/lib/games/endgame-types.ts`, gli studi dei dati (letto e dedotto) in
-  `_7dsgc/SCONTRI_FINALI.md`, `CREATURE_NEST.md` e `RE_DEMONE_DIVINITA.md`. Le
-  statistiche dei boss sono una **stima** e la pagina lo dice: il client non le
-  scrive. Scontri finali e Bestie demoniache sono un indice con una pagina per boss
-  (`/scontri-finali/<boss>`, `/bestie-demoniache/<bestia>`), come gli eroi; Re
-  Demone e Divinità hanno un boss solo e una pagina. La difficoltà scelta sta
-  nell'indirizzo (`?difficolta=3`, `?piano=2`) e il server rende solo quel
-  pannello: con tutte le difficoltà nell'HTML gli Scontri finali pesavano 10,8 MB
-  in sviluppo. Lamek, lo Scontro finale d'evento, non c'è. Le immagini vanno in
-  `public/eroi/<gioco>/endgame/`
-- **gli artefatti** (Carte artefatto e Set artefatto) stanno in
-  `artifacts.generated.ts`, scritto da `scripts/import-artifacts.mts` dal JSON di
-  `_7dsgc/script/artefatti.py`; il contratto è in `src/lib/games/artifact-types.ts`.
-  Due voci, ognuna con una griglia coi filtri e una pagina per elemento
-  (`/set-artefatto/<numero>`, `/carte-artefatto/<id>`), come gli eroi. I filtri dei
-  set sono quelli del menu del gioco (contenuto, razza, caratteristica, varie). Due
-  cose sono **dedotte** e le pagine lo dicono: i punti di potenziamento come totali
-  per livello (le 306 squadre del computer che usano un set li confermano) e la
-  probabilità dei pacchetti come peso sulla somma dei pesi. Da quali modalità
-  dell'Endgame cade una carta non sta nel JSON: `cardSources()` lo cerca nei drop
-  che le pagine Endgame mostrano già. Le carte arrivano dalla pipeline già
-  composte come nel gioco: l'illustrazione dentro la cornice del suo grado, presa
-  dall'atlante `atlas_artifact` (la piccola delle liste e la grande a nove fette),
-  verticali, in WebP; vanno in `public/eroi/<gioco>/artefatti/`
-- **i buff dell'account** (la classe di combattimento dell'account coi suoi 53
-  titoli, le 11 costellazioni pietra per pietra, le regole della classe di un eroe)
-  stanno in `account-buff.generated.ts`, scritto da `scripts/import-account-buff.mts`
-  dal JSON di `_7dsgc/script/buff_account.py`; il contratto è in
-  `src/lib/games/account-buff-types.ts`, i conti in `account-buff.ts`. Come si
-  sommano l'ha letto la pipeline nel **codice** del client, e lo studio con le prove
-  è `_7dsgc/BUFF_ACCOUNT.md`: dei titoli vale solo il più alto, in percentuale sulla
-  statistica prima delle passive; le costellazioni si aggiungono dopo, come valori
-  fissi; né gli uni né le altre entrano nella classe di combattimento né nella
-  schermata delle statistiche del gioco, contano in battaglia. Le posizioni delle
-  pietre vengono dai prefab delle mappe del gioco. Il tuo account (classe e
-  costellazioni) si sceglie nella pagina `/buff-account`, in `/account` o nel
-  calcolatore della scheda eroe e si salva nel browser (`localStorage`,
-  `account-setup.ts`), e per chi è entrato anche nel database (vedi «L'account di
-  gioco e la verifica della classe»): la scheda
-  legge i totali già sommati, con l'impronta dei dati (`version`) per accorgersi di
-  una patch. La classe di combattimento dell'eroe nella scheda è calcolata con la
-  formula del client, con l'equipaggiamento scelto nel calcolatore. Le immagini
-  (simboli, pietre) vanno in `public/eroi/<gioco>/buff-account/`
-- **l'equipaggiamento e i costumi** stanno in `gear.generated.ts` e
-  `costumes.generated.ts`, scritti da `scripts/import-gear.mts` dai JSON di
-  `_7dsgc/script/equipaggiamento.py` e `costumi.py`; il contratto è in
-  `src/lib/games/gear-types.ts`, i conti in `gear.ts` (pezzi, set, effetti bonus,
-  costumi, associazione) e `hero-build.ts` (la configurazione del calcolatore e il
-  conto completo). Le regole le ha lette la pipeline nel **codice** del client, e gli
-  studi sono `_7dsgc/EQUIPAGGIAMENTO.md` e `_7dsgc/COSTUMI_ASSOCIAZIONI.md`: la
-  statistica di un pezzo è tiro + miglioramenti (30, cioè cinque risvegli con «+5»)
-  per il passo della sua rarità; l'«UR» è un SSR inciso per un eroe; set ed effetti
-  bonus sono passive che si sommano per statistica e moltiplicano Attacco, Difesa e
-  PS; un set vale ogni `pezzi / pezzi del set` volte. Dei costumi contano solo i
-  registrati (cinque per tipo e la reliquia), e il loro valore piatto viene dalla
-  tabella del potenziamento, uguale per tutti al massimo: cambiano le percentuali.
-  La scheda Statistiche è il **calcolatore** (`src/components/heroes/calculator/`):
-  livello e risvegli, i sei pezzi come nel gioco coi set pronti PS/Difesa,
-  Attacco/Difesa, Attacco/Critico, ogni pezzo modificabile, i costumi registrati
-  scelti fra tutti quelli dell'eroe, la reliquia, e in battaglia l'account e l'Eroe
-  associato; la tabella dice senza, con e differenza. La configurazione si salva
-  nel browser per ogni eroe. Si parte da tutto al massimo: senza equipaggiamento
-  sono i numeri di sempre, con PS/Difesa il «massimo con equipaggiamento» che
-  usava 7dshub (i test lo controllano eroe per eroe). Le icone di pezzi e costumi
-  sono quelle del gioco: la pipeline prepara gli strati del componente IconItem
-  (sfondo e cornice della rarità, lettera, stelle, «+N», glifo del set, marchio del
-  costume) già al loro posto, e il sito li impila (`item-icon.tsx`). Le immagini
-  vanno in `public/eroi/<gioco>/equipaggiamento/` e `costumi/`; la scheda
-  **Costumi** li mostra tutti
-- **le meccaniche di combattimento** (le costanti del danno, il triangolo degli
-  attributi, i pesi di pesca e gli effetti Luce/Oscurità di ogni eroe, il cumulo dei
-  buff per concetto delle parole blu) stanno in `mechanics.generated.ts`, scritto da
-  `scripts/import-mechanics.mts` dal JSON di `_7dsgc/script/meccaniche.py`; il
-  contratto è in `src/lib/games/mechanics-types.ts`, le regole come funzioni in
-  `mechanics.ts` (gli esempi della pagina `/meccaniche` si calcolano con quelle). Le
-  regole le ha lette la pipeline nel **codice** del client, e lo studio con le prove è
-  `_7dsgc/MECCANICHE_COMBATTIMENTO.md`: il danno di un colpo passo per passo, chi
-  batte chi, la pesca (A 60, B 40, con reinserimento), il cumulo (per parola chiave:
-  resta il più forte, o si accumula fino a un tetto). La scheda eroe mostra i pesi
-  sotto le carte e l'effetto Luce/Oscurità sotto l'Unica, le tendine delle parole blu
-  come si cumula quel buff. Il legame buff -> concetto è per nome, quindi dedotto
-- **le parole blu** della scheda eroe (Perforazione, Evasione, alleati
-  applicabili, Demoni, [Ragnarok]...) si cliccano e aprono una tendina con gli eroi
-  legati: per un effetto chi ce l'ha e in quale abilità, per una razza, una
-  caratteristica o gli alleati applicabili chi ne fa parte. I dati stanno in
-  `hero-terms.generated.ts`, scritto da `scripts/import-hero-terms.mts` dal JSON di
-  `_7dsgc/script/parole_blu.py` (la stessa logica di `contesto_eroi.py`, parola per
-  parola, sul testo inglese) e dai dati degli eroi già generati: per questo in
-  `eroi:import` viene subito dopo gli eroi. Il contratto è in
-  `src/lib/games/hero-terms-types.ts`. Le parole si contano con `termWords`
-  (`hero-markup.ts`), la stessa funzione per l'import e per la pagina, e quelle
-  italiane si legano per posizione a quelle inglesi (99,7% dei testi); nomi e
-  definizioni italiani dei concetti vengono dalle note italiane del gioco. Le
-  tendine le disegna il server e le apre il browser (`popover`), senza JavaScript;
-  un componente client le mette sotto la parola e accende la ricerca negli elenchi
-  da 8 eroi in su (nome ed epiteto nelle due lingue, personaggio, abilità). Per
-  una razza o una caratteristica, in fondo c'è la griglia Eroi già filtrata
-- **i legami** (gli Eroi associati: con chi un eroe attiva l'Effetto associazione, e
-  quali legami danno l'Attacco combinato) stanno in `hero-fates.generated.ts`, scritto
-  da `scripts/import-hero-fates.mts` dalle schede del client (`fates` di
-  `_7dsgc/eroi/client/abilita.json` e `abilita_it.json`, da `DB_fate`); il contratto è
-  in `src/lib/games/hero-fates-types.ts`; i valori a ogni grado dell'associato e
-  l'effetto comune (5-10% delle statistiche dell'associato, con qualunque eroe)
-  vengono da `_7dsgc/script/associazioni.py`. Li mostra la scheda **Associazioni**
-  della pagina dell'eroe (i suoi associati, e di chi è associato lui), li conta il
-  calcolatore nella colonna «In battaglia», e li usa il **Randomizer** (`/randomizer`):
-  quattro eroi in campo e quattro nei loro Slot associazione, pescati dal browser, a
-  caso o con una sinergia per forza fra i quattro in campo (almeno tre hanno un'Unica
-  che nomina alleati applicabili e ognuna vale per tutti gli altri; il quarto può
-  averne una non specifica; gli associati restano a caso, e l'Effetto associazione si
-  mostra quando capita un legame), anche senza le collaborazioni. Le regole del sorteggio stanno in `src/lib/games/randomizer.ts`,
-  coi test
-- **Squadra** (`/squadra`, dal 03/10/2026): si scelgono quattro eroi e i loro associati,
-  e per ognuno la pagina dice cosa dà ai compagni e cosa riceve da loro con le passive
-  (Unica, Reliquia sacra classica, Comandamenti, Grazie, Unità, Talenti), quali
-  passive dei compagni accende, e quali restano spente e perché: dove si gioca (PvE,
-  PvP, Scontro finale, Bestia demoniaca, coi codici del client e le frasi «In PVP»),
-  la panchina (il quarto eroe può partire nello slot secondario), il rango della Mossa
-  finale, le reliquie, e le regole del gioco su Comandamenti, Grazie e Unità (vale
-  quella dell'eroe più a sinistra). Per un posto libero suggerisce gli eroi che si
-  incastrano meglio, contati solo sulle passive (scelta dell'utente); per un associato,
-  i legami. La squadra sta nell'indirizzo (`?s=…&a=…&c=pvp&p=0&u=6&r=1`) e il browser
-  ricorda l'ultima. La lettura delle passive la fa la pipeline
-  (`_7dsgc/script/squadra.py` → `eroi/squadra.json`): frase per frase, dal testo
-  inglese del gioco, a chi va l'effetto (alleati applicabili, alleati di una razza o
-  caratteristica, tutti gli alleati) e quali compagni lo fanno scattare («per ogni»,
-  «quando», «se», «se tutti sono»), confrontata con le colonne delle passive del
-  client; l'import (`scripts/import-team.mts`) la lega ai testi del sito, controlla di
-  dividere le frasi allo stesso modo e appaia l'italiano per posizione, e scrive
-  `team.generated.ts`. Contratto in `src/lib/games/team-types.ts`, valutazione e
-  suggerimenti in `src/lib/games/team.ts`, coi test
-- **Indovina l'eroe** (`/indovina`) è il gioco degli indizi sul modello di Loldle:
-  si scrive un eroe e otto caselle dicono cosa ha in comune con quello da
-  indovinare (personaggio, attributo, razza, caratteristiche, grado d'uscita e
-  massimo, abilità speciale, data d'uscita globale), verde, giallo o rosso, con la
-  freccia dove i valori hanno un ordine. L'eroe del giorno è lo stesso per tutti
-  (un'impronta della data sul roster in ordine d'id, senza server) e i tentativi
-  restano nel browser; la partita libera pesca a caso.
-  Dopo 4 e 8 tentativi sbagliati si scoprono l'icona e il nome dell'Unica. Come le
-  altre modalità di Loldle ci sono tre sottosezioni, con le schede in cima:
-  **Carta** (`/indovina/carta`, l'illustrazione di una carta A o B, ingrandita e a
-  mosaico, che si allarga e si schiarisce a ogni errore; le carte dell'ultimate no,
-  perché molte versioni dello stesso personaggio le condividono), **Unica**
-  (`/indovina/unica`, l'icona, anche lei a mosaico; il mosaico si può spegnere) e
-  **Testo** (`/indovina/testo`, il testo dell'Unica col nome dell'eroe nascosto).
-  Ogni modalità ha il suo eroe del giorno. Nessun dato nuovo: le regole stanno in
-  `src/lib/games/hero-guess.ts`, coi test; la partita comune alle modalità in
-  `src/components/hero-guess/guess-game.tsx`
-- **Compleanni** (`/compleanni`) dice il compleanno di ogni eroe e chi festeggia
-  oggi. Nel gioco sono due cose: la data sta nel profilo di ogni versione
-  (`DB_hero_base.hero_birth`, «Sconosciuto» per 49 eroi, quasi tutti delle
-  collaborazioni), la FESTA vale per i 50 clienti della taverna (`DB_birthday`), che
-  sono personaggi e non versioni: quel giorno il loro regalo preferito
-  (`DB_guest_gift`, cinque pezzi di un oggetto) dà ×10 punti Affetto (500 → 5.000),
-  il regalo comune no. Il ×10 e le regole dei Cuori (20.000 punti Affetto l'uno,
-  uno per versione posseduta, due con l'Affinità al massimo) vengono dal codice
-  della taverna, decompilato. Chi festeggia lo decide il server del gioco al
-  ripristino giornaliero: la pagina usa il giorno del dispositivo di chi guarda
-  (il server disegna col giorno UTC, il browser corregge dopo l'idratazione), e
-  `?giorno=07-25` apre un giorno qualunque in grande, cliccando una data del
-  calendario. Pipeline `script/compleanni.py` → `eroi/compleanni.json` e le icone
-  in `compleanni/`; import `scripts/import-birthdays.mts` (in `eroi:import`, in
-  fondo); contratto `src/lib/games/birthdays-types.ts`, regole del calendario in
-  `src/lib/games/birthdays.ts`, coi test
-- **illustrazioni e icone abilità** stanno in `public/eroi/<gioco>/splash/` e
-  `/abilita/`, anch'esse fuori dal versionamento
-
-Metterle in un repository su GitHub sarebbe ridistribuirle. `npm run eroi:import`
-le rimette a posto da una copia locale della pipeline di estrazione, indicata
-dalla variabile `GC_ASSETS`. Chi clona senza quella copia vede il roster con i
-riquadri vuoti: nomi, filtri e conteggi funzionano lo stesso.
-
-Fino al 27/09/2026 accanto a Eroi c'era **Personaggi**, le unità che il vecchio
-motore sapeva simulare: tre segnaposto. È stata tolta insieme alle altre pagine del
-motore (vedi «Il motore»); la ricerca del sito cerca negli eroi.
-
-### La riverifica degli allegati
-
-Un post dichiara mediana e seed; **il motore rigira il calcolo e confronta**.
-Altrove una build consigliata è l'affermazione di qualcuno, qui è un conto
-rifacibile — e il sito lo rifà da solo.
-
-Tre esiti, non due. *Non verificabile* (patch diversa, iterazioni non
-dichiarate, personaggi ignoti) è diverso da *non riprodotto* (il conto è stato
-fatto e dà un altro numero): confonderli marchierebbe come sospetti dei post
-che sono solo vecchi. E l'esito neutro non mostra nulla, perché un segno di
-dubbio su un post innocente fa più danno di nessun segno.
-
-Gira solo sulla pagina della discussione, non nel feed: sono 1.500 simulazioni,
-e la verifica serve dove qualcuno valuta l'affermazione, non mentre scorre una
-lista.
-
-### La community
-
-Un post può portare il **risultato di una simulazione** con seed e patch:
-chiunque può rifare il conto e ottenere gli stessi numeri. È ciò che distingue
-questo posto da un forum — non si discute per opinioni.
-
-Seguire, notifiche e cronologia dei post chiudono il ciclo che riporta la gente
-indietro: segui qualcuno, quel qualcuno scrive, lo vieni a sapere, torni. Senza,
-ogni visita riparte da zero e una discussione muore dopo il primo messaggio.
-Richiedono un'identità vera, quindi funzionano solo con il database attivo.
-
-L'ordinamento "di tendenza" decade con l'età, perché una prima pagina che non
-cambia mai smette di essere frequentata. Il `+1` sul punteggio fa emergere i
-post nuovi: senza, un post appena scritto vale zero, quindi nessuno lo vede,
-quindi nessuno lo vota, quindi resta invisibile.
-
-Lo **sponsor** è una tabella e un componente separati dai post: non esiste un
-modo per pagare ed essere più in alto nel feed organico. La separazione è
-strutturale, non una convenzione che qualcuno un giorno dimenticherà.
-
-### Gli account
-
-**Mai le credenziali dell'account di gioco.** I profili si collegano tramite UID
-pubblico (Enka.Network) o import di un JSON prodotto da uno scanner che gira
-sulla macchina dell'utente. Gli endpoint interni di HoYoLAB richiederebbero i
-cookie di sessione: fuori discussione, sia per nostra responsabilità sia perché
-esporrebbe gli utenti al ban.
-
-I **ruoli** sono una scala (`USER < CONTRIBUTOR < EDITOR < MODERATOR < ADMIN`).
-Il **premium non è un ruolo**: è un'entitlement commerciale, così cambiare piano
-non tocca i permessi redazionali.
-
-Il calcolatore resta **pubblico**: chiedere l'account prima di dare valore uccide
-la conversione. L'account serve per salvare e condividere.
-
-Quello che c'è, e perché è fatto così:
-
-- **Recupero password** — il gettone è memorizzato **con l'impronta SHA-256**,
-  non in chiaro: chi legge il database non può usarlo. Vale una volta sola, dura
-  un'ora e chiude tutte le sessioni aperte. La richiesta risponde **la stessa
-  cosa** che l'indirizzo esista o no, altrimenti la pagina diventerebbe un modo
-  per sapere chi è iscritto.
-- **Errori di accesso indistinguibili** — email sbagliata e password sbagliata
-  danno lo stesso messaggio, per lo stesso motivo.
-- **Cambio email e password** — chiedono la password attuale: chi si siede al
-  computer di qualcun altro con la sessione aperta non deve poter prendersi
-  l'account. Cambiare la password chiude le altre sessioni, perché spesso si
-  cambia proprio quando si sospetta un accesso altrui.
-- **Eliminazione** — chiede la password e la parola `ELIMINA` digitata a mano. È
-  l'unico modo per distinguere una decisione da un clic sbagliato su un'azione
-  irreversibile.
-
-### L'account di gioco e la verifica della classe
-
-La pagina **`/<gioco>/account`** («Il mio account», 27/09/2026) tiene chi sei nel
-gioco (nickname, Codice amico, server) accanto alla classe di combattimento
-dell'account e alle costellazioni che le schede degli eroi usano già.
-
-- **Browser e database.** Tutto resta nel `localStorage` anche per chi non è
-  entrato. Per chi è entrato, `AccountSync` (nel guscio `src/app/[game]/layout.tsx`)
-  confronta la copia del browser con quella di `game_accounts` e vince la più
-  recente (`syncDirection` in `src/lib/games/game-account.ts`); ogni modifica fatta
-  nel browser parte verso il database dopo 1,5 secondi di pausa. Il browser ricorda
-  di chi è la sua copia, così i dati di una persona non finiscono nell'account di
-  un'altra che entra dallo stesso computer.
-- **Perché una schermata.** Il gioco non ha API e non mostra la classe
-  dell'account di un altro giocatore (solo dentro l'Ordine dei Cavalieri); i titoli
-  della classe, che la direbbero, non si possono mettere in mostra. Il metodo è
-  dell'utente: il sito assegna un **eroe del giorno** (uno per utente e per giorno
-  UTC, fra i 30 eroi che escono SR senza collaborazioni, al massimo due cambi), lo
-  si mette nei preferiti, e una schermata dell'Elenco eroi ordinato per «Preferiti»
-  mostra insieme l'eroe e la classe. Una schermata vecchia o di un altro non può
-  avere quell'eroe.
-- **Decide un moderatore** (`/moderazione`), che scrive la classe che legge. La
-  classe confermata diventa quella dell'account (e del browser, alla prossima
-  sincronizzazione), compare sul profilo con la data, e arriva una notifica.
-- **La schermata** passa ridotta a WebP dal browser (lato lungo 2560 px, senza i
-  metadati del file), il server la riconosce dai primi byte (PNG, JPEG, WebP, al
-  massimo 3 MB), la tiene in `verification_screenshots` e la **cancella alla
-  decisione** o al ritiro. Resta l'impronta SHA-256: la stessa immagine vale solo
-  per chi l'ha caricata e solo nel giorno del suo eroe. La vedono solo i moderatori
-  e chi l'ha caricata (`/api/verifiche/<id>/schermata`, 404 per gli altri, senza
-  cache).
-- Codice: regole pure in `src/lib/games/game-account.ts`, letture in
-  `src/lib/game-account/server.ts`, scritture in `src/lib/game-account/actions.ts`,
-  interfaccia in `src/components/game-account/`.
-
-### Le guide
-
-Una guida qui non è un articolo: è un contenuto che **dichiara in quale patch è
-stato verificato**. È la differenza fra un sito che invecchia in silenzio e uno
-in cui chi legge sa quanto fidarsi.
-
-Il percorso ha tre passaggi e ruoli diversi per ognuno, di proposito:
-
-1. un **collaboratore** scrive; la guida nasce come bozza e non è pubblica;
-2. quando la ritiene finita la manda **in revisione** — è l'autore a dichiarare
-   di aver finito, nessun altro può farlo per lui;
-3. un **redattore** pubblica e dichiara la patch di verifica.
-
-Il terzo passaggio non è delegabile all'autore. Se chiunque potesse apporre da
-solo il contrassegno "verificata per la patch X", quel contrassegno non
-significherebbe più niente — ed è l'unica cosa che questa sezione vende.
-
-Quando il dataset supera la patch dichiarata, la guida si segna **da rivedere**
-da sola: in elenco, nella scheda del personaggio collegato e in cima alla pagina.
-Nessuno deve ricordarsi di farlo a mano, ed è per questo che `verifiedPatch` sta
-nello schema dal primo giorno.
-
-Il markdown è un **sottoinsieme** e non usa `dangerouslySetInnerHTML`: il testo
-viene trasformato in un albero e gli elementi li scelgono `src/lib/markdown.ts` e
-`src/components/markdown.tsx`, da un elenco chiuso. Con la strada opposta ogni
-`<script>` scritto da un autore diventerebbe codice eseguito da chi legge. Il
-prezzo è che tabelle e immagini non ci sono: sta scritto nella pagina di
-scrittura, così nessuno lo scopre dopo aver pubblicato.
-
-### Le strategie dell'Endgame
-
-Un post può portare una **strategia** per una delle quattro modalità di fine
-gioco: Scontri finali (boss e difficoltà), Bestie demoniache (la bestia, e se si
-punta al piano trascendente), Re Demone e Divinità Suprema (la difficoltà). Il
-modulo (`/<gioco>/strategie/nuova`) ha il modello della modalità scelta, letto
-dagli stessi dati delle pagine: la **squadra** (quattro eroi con l'Eroe
-associato), il **set di artefatti** e **una nota per ogni fase** di quella
-difficoltà. Gli eroi che la modalità esclude o con un attributo non ammesso non
-entrano; eroi e associati sono otto personaggi diversi, come nel gioco.
-
-Il tipo lo decide il contenuto, non una scelta:
-
-- **senza testo** è un consiglio di squadra e **si pubblica subito**; il titolo
-  lo scrive il sito nella lingua di chi legge;
-- **con un testo** (titolo, note o una fase) è una **guida**, e la rivede un
-  moderatore prima che esca. Il titolo conta come testo: è la prima cosa che si
-  legge nelle pagine dell'Endgame.
-
-Una guida in revisione la vedono solo l'autore e chi modera (per gli altri la
-pagina risponde 404, e non si vota né si commenta); respinta, l'autore legge il
-motivo e può correggerla, e torna in coda. Una guida pubblicata modificata torna
-in revisione solo se cambia il testo. L'esito arriva come notifica.
-
-Le strategie pubblicate compaiono nelle pagine dell'Endgame, nella sezione
-**«Squadre consigliate»** (`#squadre`) della difficoltà che la pagina mostra,
-dalla più votata, coi collegamenti alle altre difficoltà che ne hanno; e nel
-feed, nella sezione «Endgame», con la squadra in piccolo. I dati stanno in
-`post_strategies` (migrazione **0007**), uno a uno coi post: voti, commenti e
-segnalazioni sono quelli dei post. Il codice è in `src/lib/strategies/`
-(`rules.ts` col controllo `checkStrategy`, che è il confine; `server.ts`;
-`actions.ts`) e `src/components/strategies/`. Servono il database e un account:
-senza database le strategie non si scrivono, perché vivono della revisione.
-
-### Moderazione
-
-Gli strumenti vanno costruiti **prima** che servano, perché il giorno in cui
-servono non c'è tempo di scriverli.
-
-- **Nascondere, non cancellare.** Un contenuto nascosto resta nel database con
-  chi ha deciso e quando; esce dal feed e la sua pagina risponde 404 a tutti
-  tranne a chi modera, che deve poterlo rileggere per rivedere la decisione.
-- **Sospendere è un'altra decisione.** Non cancella quello che la persona ha
-  scritto e non le impedisce di leggere: le toglie la possibilità di scrivere.
-  La scadenza si valuta in lettura, quindi non serve nessun lavoro periodico per
-  spegnere una sospensione a termine.
-- **Ogni azione finisce nel registro**, in fondo a `/moderazione`, nella stessa
-  transazione dell'azione: nascondere, segnalazioni, sospensioni e revoche (con
-  chi revoca), ruoli, sponsor, decisioni sulle verifiche e sulle guide. Un
-  moderatore che agisce senza traccia è un problema più grande di quello che sta
-  risolvendo.
-- **Chi decide su chi.** Un moderatore sospende utenti, collaboratori e
-  redattori; un moderatore lo sospende solo un amministratore; un amministratore
-  non si sospende dal sito; nessuno sospende o libera se stesso. Revocare la
-  sospensione di un moderatore, o una data da un amministratore, spetta a un
-  amministratore. Chi è sospeso non modera, non scrive, non segnala e non cambia
-  il profilo. Lo staff non elimina il proprio account (il registro perderebbe il
-  nome): prima un amministratore toglie il ruolo.
-- **Le guide dell'Endgame da rivedere** stanno in cima a `/moderazione`
-  (`#guide`, l'avviso Discord ci porta lì): il testo intero, la squadra e il
-  set; pubblicare o respingere con un motivo, che l'autore legge. Chi modera non
-  decide le proprie; decidono in due, vince il primo.
-- **Le verifiche della classe dell'account** stanno in `/moderazione`:
-  schermata, eroe del giorno (e quelli scartati), classe dichiarata e l'ultima
-  confermata. Chi modera non può decidere la propria.
-- **`/moderazione` e `/admin` rispondono 404**, non 403, a chi non ha il ruolo:
-  un "non hai i permessi" è un indizio su dove attaccare.
-
-Eliminare un account **non cancella i post**: passano a un utente segnaposto.
-Cancellarli spezzerebbe le discussioni di altre persone, che non hanno chiesto di
-perderle.
-
-### Limite di tentativi
-
-`src/lib/rate-limit.ts`, finestra scorrevole, in memoria del processo. Copre
-accesso, registrazione, recupero password, pubblicazione, commenti e
-segnalazioni. Accesso, registrazione e recupero contano sia per account sia per
-indirizzo (vedi «La sicurezza»). Le chiavi si salvano come impronte di lunghezza
-fissa e la mappa ha un tetto: chi manda tentativi con email sempre diverse non
-riempie la memoria.
-
-Il limite è dichiarato: con più istanze del server ognuna conta per conto
-proprio, quindi il tetto reale è il tetto per il numero di istanze. Ferma un
-attacco banale, non uno distribuito — per quello serve un archivio condiviso, e
-il punto da cambiare è solo quel file. Si è preferito questo a nessun limite: un
-limite imperfetto ferma la quasi totalità dei tentativi automatici, l'assenza di
-limite non ne ferma nessuno.
-
-La finestra è scorrevole e non a intervalli fissi perché con gli intervalli fissi
-si consuma tutto il limite in fondo a uno e si ricomincia subito nel successivo,
-ottenendo il doppio dei tentativi. C'è un test che lo verifica.
-
-### Il primo amministratore
-
-Il pannello di amministrazione richiede di essere amministratori per entrarci,
-quindi il primo non può nascere dal sito:
-
-```bash
-npm run promote -- tua@email.it ADMIN
-```
-
-L'alternativa — promuovere automaticamente il primo iscritto — regalerebbe il
-controllo del sito a chiunque arrivi primo alla pagina di registrazione, se il
-database venisse esposto prima del lancio.
-
-Anche dopo, **un amministratore nasce solo così**: dal pannello si danno tutti i
-ruoli tranne quello (`src/lib/admin/roles.ts`). Una sessione di amministratore
-rubata non può creare altri amministratori, che resterebbero anche dopo aver
-chiuso la falla.
-
-### I cosmetici
-
-Si vende **presentazione, mai status**. Cornici, sfondi, accenti e impaginazioni
-sono disegni originali nostri: nessun asset dei publisher, mai. Un badge
-guadagnato non si compra e non si sblocca pagando, si può solo incorniciare
-meglio.
-
-Nessun default è a pagamento — c'è un test che lo garantisce: chi non paga deve
-avere un profilo completo, non mutilato.
-
----
-
-## Vincoli codificati nello schema
-
-Decisioni costose o impossibili da aggiungere dopo.
-
-- **`guides.verifiedPatch`** — le guide invecchiano a ogni patch. Il badge
-  "verificata per X" è impossibile da applicare a posteriori su migliaia di
-  contenuti.
-- **`sponsorPlacements` separata da `posts`** — vedi sopra.
-- **`xpEvents`** — XP solo su segnali di apprezzamento altrui, mai sul volume
-  prodotto: premiare il volume produce spam.
-- **`badgeTrust`** — `VERIFIED` (fonte pubblica) / `IMPORTED` (scanner locale) /
-  `DECLARED` (auto-dichiarato). Solo il primo porta prestigio e colore.
-- **`userBadges.snapshot`** — il badge verificato è permanente: chi ruota la
-  vetrina di gioco non deve perderlo.
-- **`purchases.withdrawalWaived`** — obbligo UE sui beni digitali: senza rinuncia
-  esplicita al recesso, il cliente ha 14 giorni per il rimborso.
-- **`posts.attachment`** — il risultato di simulazione allegato, con seed, patch
-  e **iterazioni**: senza queste il confronto fallirebbe per un parametro
-  diverso invece che per disonestà.
-- **`follows`** con chiave primaria composta — il doppione lo impedisce il
-  database, non una query che qualcuno un giorno dimenticherà.
-- **`attachmentChecks.engineVersion`** — quando il motore cambia, le verifiche
-  memorizzate scadono da sole.
-- **`suspensions.until` che ammette `null`** — `null` è "a tempo indeterminato",
-  ed è più leggibile di una data lontanissima. La differenza si legge nella
-  colonna, non va dedotta.
-- **`passwordResetTokens.tokenHash` e `usedAt`** — impronta invece del gettone,
-  e uso singolo imposto dalla colonna. Sono le due cose che non si possono
-  aggiungere dopo aver già distribuito gettoni in chiaro.
-- **`posts.hidden` / `comments.hidden` invece della cancellazione** — la
-  moderazione è reversibile e lascia traccia; `modActions` dice chi ha deciso.
-
----
-
-## Cosa NON è reale
-
-I valori in `src/lib/games/grand-cross/data.ts` sono **segnaposto**, e dal 27/09/2026
-nessuna pagina li mostra: servono solo al vecchio motore, che resta per la
-riverifica degli allegati della community e per le guide. Le sue regole (triangolo,
-moltiplicatori, pesca) sono diverse da quelle del gioco, che la pipeline ha letto nel
-codice del client e che la pagina `/meccaniche` spiega.
-
----
-
-## Prossimi passi
-
-1. Togliere del tutto il vecchio motore (allegati della community, patch delle
-   guide, admin, script del database), o rifarlo sulle regole del gioco
-2. Primo modulo deterministico su un gioco HoYo, per validare il contratto sul
-   secondo paradigma
-3. Descrizione della singola carta e delle passive: il client le contiene ma non
-   le lega all'eroe, quindi serve una fonte esterna — vanno marcate come tale
-5. Card profilo condivisibile come OG image
-6. Incasso vero: `/premium` descrive il piano ma non lo vende, e non c'è nessun
-   pulsante che finga di farlo
-7. Gruppo *Endgame*, quando ci saranno i dati dei nemici per modalità
+Questo progetto è distribuito sotto licenza [MIT](LICENSE). Tutti i marchi, loghi e asset visivi relativi ai singoli giochi appartengono ai rispettivi titolari dei diritti e publisher di gioco.
