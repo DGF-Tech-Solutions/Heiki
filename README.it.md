@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <strong>Piattaforma analitica open-source ad alte prestazioni e strumenti per sviluppatori per videogiochi gacha.</strong><br>
-  Dati estratti e decifrati dai client di gioco, formule di combattimento deterministiche, calcolatori di statistiche in tempo reale, tier list maker interattivo e pipeline di manutenzione automatizzata.
+  <strong>Piattaforma analitica data-driven, hub per la community e strumenti per giocatori e sviluppatori di videogiochi gacha.</strong><br>
+  Dati estratti e decifrati dai client di gioco, formule di combattimento deterministiche, condivisione di formazioni, calcolatori di statistiche in tempo reale e tier list interattive.
 </p>
 
 <p align="center">
@@ -31,7 +31,42 @@ Nei videogiochi gacha moderni, le formule di calcolo del danno, le scalature del
 
 Heiki colma questo divario integrando una **pipeline proprietaria e riproducibile di decifrazione ed estrazione dati** direttamente dai pacchetti client e dai database interni dei videogiochi (database SQLite cifrati con chiavi dinamiche, asset bundle Unity compressi). Il sistema trasforma oltre 194.000 stringhe localizzate e centinaia di tabelle di entità in formule matematiche verificate e strumenti interattivi in tempo reale.
 
-Il modulo di riferimento principale operativo è **The Seven Deadly Sins: Grand Cross (7DSGC)**, con un'architettura modulare predisposta per accogliere i titoli HoYoverse (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*) e *Wuthering Waves*.
+---
+
+## La Visione: Un Hub Centrale per i Giocatori di Gacha
+
+Oltre ai dati estratti e alle formule matematiche, **Heiki nasce per essere il punto di ritrovo centrale e il quartier generale collaborativo per tutti gli appassionati di videogiochi gacha**.
+
+Le community dei giochi gacha sono storicamente frammentate su decine di canali diversi: server Discord con messaggi fissati difficili da cercare, thread Reddit dispersivi, wiki statiche non aggiornate e fogli di calcolo sparsi. Heiki riunisce i giocatori sotto un unico tetto moderno e integrato, dove è possibile:
+
+- **Comunicare & Confrontarsi**: Partecipare a discussioni costruttive sull'evoluzione del meta, sulle potenzialità dei personaggi e sulle novità di gioco con moderazione trasparente e profili verificati.
+- **Condividere & Scoprire Composizioni di Squadra**: Pubblicare, analizzare e votare formazioni ottimali per boss endgame, scontri di gilda e arene PvP competitive, complete di combinazioni di equipaggiamento, eroi associati e posizionamento tattico.
+- **Valutazioni Eroi della Community**: Votazioni multidimensionali (PvE vs PvP, Bestie Demoniache, Boss Raid) in cui veterani e nuovi arrivati possono votare ed evidenziare i contenuti in cui ogni eroe esprime il massimo potenziale.
+- **Aiuto Reciproco & Crescita del Box**: Mostrare la propria collezione di eroi, condividere tier list personalizzate tramite link diretti al profilo pubblico (`/u/[username]`) e ricevere consigli mirati da altri utenti su chi potenziare.
+- **Identità Unificata Cross-Game**: Un unico profilo che segue il giocatore attraverso tutti i titoli supportati, preservando reputazione, guide scritte, tier list salvate e formazioni preferite.
+
+---
+
+## Stato Attuale & Espansione Multi-Gioco
+
+### Modulo di Riferimento: The Seven Deadly Sins: Grand Cross (7DSGC)
+Attualmente stiamo ultimando e rifinendo i lavori sul modulo principale dedicato a **The Seven Deadly Sins: Grand Cross**:
+- **Oltre 373 Eroi Indicizzati**: Copertura completa dei dati estratti direttamente dalle tabelle SQLite del client di gioco con più di 194.000 record testuali localizzati.
+- **Motore Statistiche Dinamico**: Modello matematico completo che calcola con esattezza statistiche base, Risveglio (1-6 stelle), Super Risveglio, Vero Risveglio, costumi e reliquie sacre.
+- **Strumenti per la Community**: Tier List Maker ad alta risoluzione (con esportazione canvas e sincronizzazione cloud/JSON), sistema di valutazioni duale (PvE e PvP) e gestione del Box con architettura local-first.
+
+### Architettura Multi-Gioco & Prossime Espansioni
+L'architettura di Heiki è progettata fin dalle fondamenta per essere **modulare e indipendente dal singolo titolo**. Ogni videogioco è incapsulato in un modulo di dominio dedicato all'interno di `src/lib/games/`, condividendo l'infrastruttura di database, autenticazione, design system e gestione dello stato.
+
+Con il completamento e la stabilizzazione finale del modulo 7DSGC, la tabella di marcia prevede l'estensione della piattaforma ai principali titoli del settore:
+1. **Ecosistema HoYoverse**:
+   - *Genshin Impact* (scalature del danno, reazioni elementali, ottimizzatore di manufatti)
+   - *Honkai: Star Rail* (simulazione dell'ordine dei turni, calcolo della velocità, set di reliquie)
+   - *Zenless Zone Zero* (meccaniche di accumulo anomalia, dischi motrice)
+2. **Kuro Games**:
+   - *Wuthering Waves* (meccaniche di energia concerto, ottimizzazione echi, curve di attributi)
+3. **Adattatori di Gioco Guidati dalla Community**:
+   - Interfacce standardizzate per consentire a sviluppatori e contributori di integrare nuovi titoli gacha attraverso modelli e parser condivisi.
 
 ---
 
@@ -43,14 +78,14 @@ La gestione continua di dati ad alta fedeltà per giochi "live service" comporta
 2. **Descrizioni Lessicali Ambigue**: Le descrizioni testuali delle abilità (spesso tradotte tra coreano, giapponese, inglese e italiano) presentano spesso discrepanze rispetto alla logica reale del codice o omettono limiti critici di cumulo.
 3. **Collo di Bottiglia per Piccoli Team di Sviluppo**: I maintainer devono analizzare diff grezzi, redigere migrazioni di schema SQL, retro-ingegnerizzare regole di danno ambigue e aggiornare centinaia di casi di test matematici.
 
-### Pipeline di Manutenzione Assistita da AI & Integrazione Codex (Roadmap)
+### Pipeline di Ingestion & Manutenzione Automatizzata (Roadmap)
 
-Per garantire la sostenibilità a lungo termine del progetto senza saturare le risorse dei maintainer, Heiki sta progettando una **pipeline di manutenzione assistita da intelligenza artificiale** basata su OpenAI Codex:
+Per garantire la sostenibilità a lungo termine del progetto senza saturare le risorse dei maintainer, Heiki sviluppa una **pipeline automatizzata di ingestion e manutenzione**:
 
-- **Parsing da Linguaggio Naturale ad AST Deterministico**: Utilizzo del reasoning di Codex per trasformare le descrizioni testuali complesse delle abilità in nodi AST TypeScript tipizzati, estraendo categorie di buff esatte, condizioni di attivazione e formule di danno verificate.
-- **Triage Automatico delle Patch di Gioco**: Pipeline di analisi automatica dei diff sui database SQLite decifrati a ogni nuova versione del client. Codex genera riepiloghi tecnici delle novità, individua modifiche non annunciate ("stealth nerfs/buffs") e genera bozze per le migrazioni schema Drizzle ORM.
+- **Parsing da Linguaggio Naturale ad AST Deterministico**: Trasformazione delle descrizioni complesse delle abilità in nodi AST TypeScript tipizzati, estraendo categorie di buff esatte, condizioni di attivazione e formule di danno verificate.
+- **Triage Automatico delle Patch di Gioco**: Pipeline di analisi automatica dei diff sui database SQLite decifrati a ogni nuova versione del client per generare changelog tecnici, individuare modifiche non annunciate e predisporre le migrazioni di schema.
 - **Generazione Automatica di Test Unitari**: Creazione automatizzata di fixture di test Vitest per i nuovi eroi e le nuove abilità, confrontando i risultati delle formule con i dati di benchmark empirici prima dell'approvazione delle modifiche.
-- **Query Semantiche in Linguaggio Naturale**: Interfaccia di ricerca avanzata con embedding e modelli linguistici su oltre 194.000 punti dati, consentendo a giocatori e sviluppatori di interrogare complesse interazioni tra abilità (es. *"Trova tutti i personaggi con rimozione malus ad area la cui difesa scala sulla resistenza critica"*).
+- **Query Semantiche per Theorycrafting**: Interfaccia di ricerca avanzata su oltre 194.000 punti dati per consentire a giocatori e sviluppatori di interrogare complesse interazioni tra abilità e sinergie tra personaggi.
 
 ---
 
@@ -77,8 +112,8 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
 - **Sincronizzazione Ibrida**: Letture client a latenza zero gestite da `useSyncExternalStore` con fallback trasparente in `localStorage` e sincronizzazione asincrona su PostgreSQL per gli utenti autenticati.
 - **Azioni Massive sul Box**: Aggiunta rapida in 1-click di tutti gli eroi filtrati e rimozione totale in sicurezza con modal di conferma.
 
-### 5. Guide Strategiche con Validazione di Patch
-- **Verifica della Validità di Patch**: Le guide sono vincolate alla versione di patch verificata (`verifiedPatch`). Con l'avanzamento della versione di gioco, il sistema segnala automaticamente le guide non aggiornate come *"Da Revisionare"*, evitando la diffusione di strategie obsolete.
+### 5. Guide Strategiche & Condivisione Formazioni
+- **Verifica della Validità di Patch**: Le guide e le formazioni di squadra sono vincolate alla versione di patch verificata (`verifiedPatch`). Con l'avanzamento della versione di gioco, il sistema segnala automaticamente le strategie non aggiornate come *"Da Revisionare"*, evitando informazioni obsolete.
 - **Integrità delle Formazioni**: Validazione automatica delle regole di composizione squadra (eroi associati unici, attributi consentiti e set di manufatti).
 
 ### 6. Moderazione Trasparente e Audit Log Immutabile
@@ -227,8 +262,11 @@ L'applicazione sarà accessibile all'indirizzo [http://localhost:3000](http://lo
 - [x] Tier List Maker Canvas ad alta risoluzione con sincronizzazione cloud e backup JSON.
 - [x] Sistema di valutazioni della community per PvE e PvP in tempo reale.
 - [x] Gestione del box eroi con architettura local-first e funzionamento offline trasparente.
-- [ ] Integrazione di OpenAI Codex per il triage automatico delle patch e l'estrazione di AST meccanici.
-- [ ] Integrazione del primo modulo deterministico HoYoverse (*Genshin Impact* / *Honkai: Star Rail*).
+- [ ] Rifinitura finale e traguardo v1.0 per il modulo The Seven Deadly Sins: Grand Cross.
+- [ ] Team builder interattivo con card di condivisione formazioni e votazione della community.
+- [ ] Pipeline di ingestion automatizzata per il triage delle patch e l'estrazione di AST meccanici.
+- [ ] Espansione ai titoli HoYoverse (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*).
+- [ ] Espansione ai titoli Kuro Games (*Wuthering Waves*).
 - [ ] Generazione dinamica di immagini Open Graph per card di condivisione social.
 - [ ] API pubblica REST / GraphQL per integrazioni da parte di sviluppatori terzi.
 

@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <strong>High-performance open-source analytical platform and developer tooling for gacha games.</strong><br>
-  Decrypted game-client data, deterministic combat mechanics, real-time stat calculators, interactive tier list maker, and automated maintainer pipelines.
+  <strong>Data-driven analytical platform, competitive community hub, and developer tooling for gacha games.</strong><br>
+  Decrypted game-client data, exact combat mechanics, team composition sharing, real-time stat calculators, and interactive tier lists.
 </p>
 
 <p align="center">
@@ -31,11 +31,46 @@ In contemporary gacha games, mechanics, formulas, and balance patches are freque
 
 Heiki bridges this gap by integrating a **reproducible client decryption and extraction pipeline** directly from game packages and client databases (dynamically-keyed encrypted SQLite databases, obfuscated Unity asset bundles). It transforms over 194,000 localized strings and hundreds of raw entity tables into certified, deterministic mathematical formulas and real-time interactive tools.
 
-The reference implementation targets **The Seven Deadly Sins: Grand Cross (7DSGC)**, with a modular domain architecture designed to expand to HoYoverse titles (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*) and *Wuthering Waves*.
+---
+
+## The Vision: A Unified Hub for Gacha Players
+
+Beyond raw data and datamined formulas, **Heiki is designed to be the ultimate central gathering point and collaborative hub for gacha players**. 
+
+Gacha communities are traditionally fragmented across disparate channels: Discord servers with unsearchable pins, Reddit threads buried by algorithms, outdated static wikis, and scattered spreadsheets. Heiki reunites players under a modern, unified platform where they can:
+
+- **Connect & Communicate**: Engage in constructive discussions on meta shifts, character potential, and game mechanics with transparent moderation and verified profiles.
+- **Share & Discover Team Compositions**: Publish, analyze, and rate optimal team formations for endgame boss battles, guild raids, and competitive PvP arenas, complete with gear presets, associate linkages, and tactical positioning.
+- **Crowdsource Hero Ratings & Mode Insights**: Community-driven, multi-dimensional ratings (PvE vs. PvP, Demonic Beasts, Boss Raids) where casuals and top-tier players alike vote and highlight where each character truly shines.
+- **Mutual Account Help & Mentorship**: Showcase hero box collections, share custom tier lists via public profile permalinks (`/u/[username]`), and receive targeted roster-building advice from veteran players.
+- **Cross-Game Player Identity**: A single unified profile that travels with the player across all supported gacha titles, preserving their reputation, published guides, saved tier lists, and favorite team builds.
 
 ---
 
-## Open Source Mission & The Maintainer Bottleneck
+## Current Status & Multi-Game Expansion
+
+### Flagship Module: The Seven Deadly Sins: Grand Cross (7DSGC)
+We are currently finalizing the core feature set and polishing the **The Seven Deadly Sins: Grand Cross** module:
+- **373+ Indexed Heroes**: Full data coverage extracted directly from client database tables with 194,000+ localized text records.
+- **Dynamic Stat Engine**: Complete mathematical calculation covering base stats, Awakenings (1-6 stars), Super Awakening, True Awakening, costume bonuses, and relic bonuses.
+- **Interactive Tooling**: Production-ready Tier List Maker (canvas export, cloud/JSON sync), community dual-mode ratings (PvE/PvP), and local-first Box tracking.
+
+### Multi-Game Architecture & Upcoming Expansions
+Heiki is built from the ground up as a **multi-tenant, game-agnostic analytical platform**. Each title is encapsulated in its own domain module under `src/lib/games/` while sharing the core UI system, database infrastructure, authentication, and state management.
+
+Once the 7DSGC module reaches final release stability, planned expansions include:
+1. **HoYoverse Ecosystem**:
+   - *Genshin Impact* (damage scalings, elemental reactions, artifact optimizer)
+   - *Honkai: Star Rail* (turn-order simulation, speed tuning, relic evaluators)
+   - *Zenless Zone Zero* (anomaly buildup formulas, disc drive sets)
+2. **Kuro Games**:
+   - *Wuthering Waves* (concerto energy mechanics, echo optimization, stat curves)
+3. **Community-Driven Game Adapters**:
+   - Standardized adapter interfaces enabling developers to add new gacha titles using shared parsing and schema abstractions.
+
+---
+
+## Open Source Mission & The Maintainer Challenge
 
 Maintaining high-fidelity game data across live-service titles poses a massive operational workload:
 
@@ -43,14 +78,14 @@ Maintaining high-fidelity game data across live-service titles poses a massive o
 2. **Ambiguous Natural Language Descriptions**: In-game skill tooltips (often translated across Korean, Japanese, and English) frequently contradict raw underlying client logic or hide critical stacking limits.
 3. **High Maintenance Overhead for Small Teams**: Core maintainers must parse raw diffs, draft schema migrations, reverse-engineer ambiguous damage rules, and verify hundreds of mathematical test cases.
 
-### AI-Assisted Maintainer Pipeline & Codex Integration (Roadmap)
+### Automated Ingestion & Maintainer Pipeline (Roadmap)
 
-To sustain and scale this infrastructure without burning out maintainers, Heiki is architecting an **AI-assisted maintainer pipeline** leveraging OpenAI Codex:
+To sustain and scale this infrastructure without manual bottlenecks, Heiki is developing an **automated ingestion and maintenance pipeline**:
 
-- **Natural Language to Deterministic AST**: Using Codex reasoning to parse ambiguous multi-paragraph skill texts into formal, typed TypeScript AST definitions, extracting exact buff categories, trigger conditions, and damage scaling formulas.
-- **Automated Client Patch Triage**: Running automated diff analysis on decrypted SQLite databases between patch releases. Codex generates human-readable patch notes, flags stealth balance adjustments, and drafts initial Drizzle ORM schema migrations.
-- **Automated Unit Test Generation**: Automatically producing Vitest test fixtures whenever new characters or skills are staged, comparing damage formula outputs against empirical boundary conditions.
-- **Semantic Theorycrafting Query Layer**: Providing developers and players with an embedding-powered natural language query interface over 194,000+ data points (e.g., *"Find characters with AOE debuff removal that scale defense on critical resistance"*).
+- **Natural Language to Deterministic AST**: Parsing multi-paragraph skill texts into formal, typed TypeScript AST definitions, extracting exact buff categories, trigger conditions, and damage scaling formulas.
+- **Automated Client Patch Triage**: Running automated diff analysis on decrypted SQLite databases between patch releases to draft technical changelogs, flag stealth adjustments, and scaffold initial Drizzle ORM schema migrations.
+- **Automated Unit Test Fixtures**: Automatically producing Vitest test fixtures whenever new characters or skills are staged, comparing damage formula outputs against empirical boundary conditions.
+- **Semantic Theorycrafting Query Layer**: Providing developers and players with an advanced query interface over 194,000+ data points to search complex cross-character mechanics and synergies.
 
 ---
 
@@ -77,8 +112,8 @@ To sustain and scale this infrastructure without burning out maintainers, Heiki 
 - **Hybrid Synchronization**: Zero-latency client reads powered by `useSyncExternalStore` with transparent `localStorage` fallback and asynchronous background synchronization with PostgreSQL for authenticated users.
 - **Bulk Box Actions**: Instant 1-click batch additions (*"Add all shown"*) and safe total wipe (*"Remove all"* with confirmation dialog).
 
-### 5. Verified Endgame Guides with Automatic Expiration
-- **Patch Validity Verification**: Strategy guides are tied to the verified patch version (`verifiedPatch`). When the game version advances, the system automatically flags guides as *"Needs Review"*, preventing stale meta information.
+### 5. Strategy Guides & Team Formation Sharing
+- **Patch Validity Verification**: Strategy guides and team formations are tied to the verified patch version (`verifiedPatch`). When the game version advances, the system automatically flags guides as *"Needs Review"*, preventing stale meta information.
 - **Formation Integrity**: Automatic validation enforcing game-specific roster restrictions (unique associate heroes, allowed attributes, and artifact set compatibility).
 
 ### 6. Transparent Moderation & Immutable Audit Logging
@@ -227,8 +262,11 @@ The application will be accessible at [http://localhost:3000](http://localhost:3
 - [x] High-DPI Canvas Tier List Maker with cloud sync and JSON backup.
 - [x] Real-time community PvE & PvP hero rating system.
 - [x] Local-first hero box management with transparent offline support.
-- [ ] Integration of OpenAI Codex for automated upstream patch triage and mechanics AST extraction.
-- [ ] Integration of the first deterministic HoYoverse module (*Genshin Impact* / *Honkai: Star Rail*).
+- [ ] Final release polish and v1.0 milestone for The Seven Deadly Sins: Grand Cross module.
+- [ ] Interactive team builder with shareable squad link cards and community upvoting.
+- [ ] Automated ingestion pipeline for upstream client patch triage and mechanics AST extraction.
+- [ ] Expansion to HoYoverse titles (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*).
+- [ ] Expansion to Kuro Games (*Wuthering Waves*).
 - [ ] Dynamic Open Graph image generation for social profile cards.
 - [ ] Public REST / GraphQL API for third-party developer integrations.
 
