@@ -1,11 +1,16 @@
 # Heiki
 
 <p align="center">
-  <strong>Piattaforma analitica e community data-driven per videogiochi gacha.</strong><br>
-  Dati estratti, decifrati e verificati direttamente dai client di gioco, combinati con strumenti avanzati di teoria, calcolo e community.
+  <strong>English</strong> · <a href="README.it.md">Italiano</a>
 </p>
 
 <p align="center">
+  <strong>High-performance open-source analytical platform and developer tooling for gacha games.</strong><br>
+  Decrypted game-client data, deterministic combat mechanics, real-time stat calculators, interactive tier list maker, and automated maintainer pipelines.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License">
   <img src="https://img.shields.io/badge/Next.js-15.5+-black?style=for-the-badge&logo=next.js" alt="Next.js">
   <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React 19">
   <img src="https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript">
@@ -18,50 +23,71 @@
 
 ---
 
-## Panoramica del Progetto
+## Project Overview
 
-**Heiki** è una piattaforma web full-stack ad alte prestazioni progettata per colmare il divario tra i dati grezzi dei videogiochi gacha e le esigenze analitiche della community competitiva. 
+**Heiki** is an open-source, full-stack analytical platform and data engineering framework built to solve the systemic reliability and freshness problems found in competitive gaming wikis and theorycrafting tools.
 
-A differenza dei tradizionali siti wiki basati su inserimento manuale (spesso soggetti a errori o ritardi), Heiki integra una pipeline proprietaria di estrazione e decifrazione dei dati direttamente dai pacchetti client e dai database interni di gioco (SQLite cifrati con chiavi dinamiche, asset bundle Unity), esponendo informazioni matematicamente esatte su formule di combattimento, scalature delle abilità e attributi.
+In contemporary gacha games, mechanics, formulas, and balance patches are frequently undocumented or obfuscated. Most community resources depend on manual wiki entry, leading to delayed updates, transcription errors, and missing damage ceilings.
 
-La piattaforma è architettata per scalare su molteplici titoli: il primo modulo di riferimento pienamente operativo è **The Seven Deadly Sins: Grand Cross (7DSGC)**, con supporto modulare predisposto per i titoli HoYoverse (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*) e *Wuthering Waves*.
+Heiki bridges this gap by integrating a **reproducible client decryption and extraction pipeline** directly from game packages and client databases (dynamically-keyed encrypted SQLite databases, obfuscated Unity asset bundles). It transforms over 194,000 localized strings and hundreds of raw entity tables into certified, deterministic mathematical formulas and real-time interactive tools.
 
----
-
-## Funzionalità Chiave
-
-### 1. Database Eroi & Calcolatore Statistiche in Tempo Reale
-- **Roster Completo e Certificato**: Oltre 373 eroi con dati estratti dai database SQLite del client di gioco (194.000+ chiavi tradotte in italiano e inglese).
-- **Calcolatore Dinamico**: Valutazione in tempo reale delle statistiche al variare di Livello, Risveglio (1-6 stelle), Super Risveglio, Rango Mossa Finale, Vero Risveglio (Re Demone/Divinità Suprema) ed equipaggiamento associato.
-- **Riconoscimento Lessicale (Parole Blu)**: Motore di parsing contestuale che trasforma ogni termine tecnico presente nelle descrizioni delle abilità in rimandi ipertestuali con popup interattivi e regole di cumulo.
-- **Diff Storico di Patch**: Sistema di versionamento automatico che traccia le variazioni testuali, numeriche e di bilanciamento introdotte dai publisher a ogni aggiornamento.
-
-### 2. Tier List Maker Integrato
-- **Interfaccia Drag & Drop Reattiva**: Gestione fluida HTML5 drag & drop su desktop e modalità touch rapida per dispositivi mobili.
-- **Configurazione Dinamica**: 6 livelli predefiniti (S+, S, A, B, C, D) con palette cromatica Persona a 13 tinte, riordinamento, etichette personalizzate e filtri simultanei per rarità e attributo.
-- **Persistenza Cloud & Backup Locale**: Salvataggio di tier list multiple legate all'account utente su PostgreSQL (`user_tier_lists`), esportazione di backup JSON non volatili e link di condivisione permanente con clonazione one-click.
-- **Render Grafico Retina 2x**: Esportazione su Canvas ad altissima risoluzione con watermark e compositing grafico ottimizzato per social e condivisione.
-
-### 3. Community Hero Ratings & Feedback
-- **Valutazione Duale PvE e PvP**: Punteggio granulare da 1 a 5 stelle ponderato con asset fedeli al gioco.
-- **Analisi Contenuto di Spicco**: Rilevazione analitica e rappresentazione percentuale della modalità in cui ciascun personaggio eccelle (Bestie Demoniache, Re Demone, PvP, Scontri Finali).
-- **Upsert Idempotente & Anti-Abuso**: Indici univoci compositi `(game_id, hero_id, user_id)` e protezione anti-spam con rate limiting dedicato.
-
-### 4. Gestione Box Eroi (Architettura Local-First)
-- **Sincronizzazione Ibrida**: Lettura istantanea senza latenza tramite `useSyncExternalStore` con fallback locale (`localStorage`) e replica automatica su PostgreSQL per gli utenti autenticati.
-- **Operazioni Massive ad Alta Efficienza**: Funzioni istantanee di popolamento rapido (*"Aggiungi tutti i mostrati"*) e azzeramento di sicurezza (*"Rimuovi tutti"* con conferma modale).
-
-### 5. Guide dell'Endgame con Invecchiamento Automatico
-- **Patch Verification**: Ogni guida strategica è vincolata alla patch di verifica (`verifiedPatch`). Quando il gioco avanza di versione, il sistema etichetta autonomamente la guida come *"Da verificare"*, garantendo integrità informativa.
-- **Formulari di Squadra Rigorosi**: Validazione delle formazioni in base ai vincoli reali delle modalità (eroi associati unici, restrizioni di attributo e set di artefatti consentiti).
-
-### 6. Sistema di Moderazione e Tracciabilità Immutabile
-- **Soft-Hiding & Audit Log**: Nessuna eliminazione distruttiva; i contenuti segnalati vengono nascosti con traccia dell'operatore, causale e timestamp in una tabella di audit transazionale.
-- **RBAC a 5 Livelli**: Gerarchia di permessi granulare (`USER`, `COLLABORATOR`, `EDITOR`, `MODERATOR`, `ADMIN`).
+The reference implementation targets **The Seven Deadly Sins: Grand Cross (7DSGC)**, with a modular domain architecture designed to expand to HoYoverse titles (*Genshin Impact*, *Honkai: Star Rail*, *Zenless Zone Zero*) and *Wuthering Waves*.
 
 ---
 
-## Architettura Tecnica
+## Open Source Mission & The Maintainer Bottleneck
+
+Maintaining high-fidelity game data across live-service titles poses a massive operational workload:
+
+1. **Weekly Patch Velocity**: Live gacha games receive weekly or bi-weekly game client updates. Each release alters dozens of internal SQLite tables, adjusts undocumented skill coefficients, and introduces new characters with novel mechanical interactions.
+2. **Ambiguous Natural Language Descriptions**: In-game skill tooltips (often translated across Korean, Japanese, and English) frequently contradict raw underlying client logic or hide critical stacking limits.
+3. **High Maintenance Overhead for Small Teams**: Core maintainers must parse raw diffs, draft schema migrations, reverse-engineer ambiguous damage rules, and verify hundreds of mathematical test cases.
+
+### AI-Assisted Maintainer Pipeline & Codex Integration (Roadmap)
+
+To sustain and scale this infrastructure without burning out maintainers, Heiki is architecting an **AI-assisted maintainer pipeline** leveraging OpenAI Codex:
+
+- **Natural Language to Deterministic AST**: Using Codex reasoning to parse ambiguous multi-paragraph skill texts into formal, typed TypeScript AST definitions, extracting exact buff categories, trigger conditions, and damage scaling formulas.
+- **Automated Client Patch Triage**: Running automated diff analysis on decrypted SQLite databases between patch releases. Codex generates human-readable patch notes, flags stealth balance adjustments, and drafts initial Drizzle ORM schema migrations.
+- **Automated Unit Test Generation**: Automatically producing Vitest test fixtures whenever new characters or skills are staged, comparing damage formula outputs against empirical boundary conditions.
+- **Semantic Theorycrafting Query Layer**: Providing developers and players with an embedding-powered natural language query interface over 194,000+ data points (e.g., *"Find characters with AOE debuff removal that scale defense on critical resistance"*).
+
+---
+
+## Key Features
+
+### 1. Certified Hero Database & Real-Time Stat Calculator
+- **Comprehensive Roster**: Over 373 heroes with client-decrypted data (194,000+ localized text entries).
+- **Dynamic Calculator**: Real-time evaluation of hero stats across Level, Awakening (1-6 stars), Super Awakening, Ultimate Move rank, True Awakening (Demon King / Supreme Deity), and gear/costume combinations.
+- **Contextual Term Parser ("Blue Words")**: Automated lexical parser linking skill mechanics directly to verified rule explanations, tooltips, and stacking limits.
+- **Automated Patch Diffs**: Versioning engine tracking textual and mechanical balance changes introduced by game updates.
+
+### 2. Interactive Tier List Maker
+- **Responsive HTML5 Drag & Drop**: Native desktop drag & drop combined with quick-tap mobile assignment.
+- **Customizable Structure**: 6 default tiers (S+, S, A, B, C, D) with Persona-inspired 13-color palettes, inline label editing, row reordering, and combined attribute/rarity filtering.
+- **Cloud Persistence & Local Backups**: Multi-list user storage via PostgreSQL (`user_tier_lists`), non-volatile JSON export/import, and shareable permalinks with one-click cloning.
+- **High-DPI Retina (2x) Canvas Rendering**: Instant high-resolution PNG export with composite watermark and dark theme layout.
+
+### 3. Community Hero Ratings & Mode Insights
+- **Dual PvE & PvP Scoring**: 1-to-5 star rating system utilizing original in-game awaken star assets.
+- **Content Excellence Analysis**: Aggregated percentage metrics identifying where each unit excels (Demonic Beasts, Demon King, PvP, Death Match, etc.).
+- **Idempotent Upsert & Abuse Prevention**: Composite unique keys `(game_id, hero_id, user_id)` protected by sliding-window rate limiting.
+
+### 4. Local-First Hero Box Tracking
+- **Hybrid Synchronization**: Zero-latency client reads powered by `useSyncExternalStore` with transparent `localStorage` fallback and asynchronous background synchronization with PostgreSQL for authenticated users.
+- **Bulk Box Actions**: Instant 1-click batch additions (*"Add all shown"*) and safe total wipe (*"Remove all"* with confirmation dialog).
+
+### 5. Verified Endgame Guides with Automatic Expiration
+- **Patch Validity Verification**: Strategy guides are tied to the verified patch version (`verifiedPatch`). When the game version advances, the system automatically flags guides as *"Needs Review"*, preventing stale meta information.
+- **Formation Integrity**: Automatic validation enforcing game-specific roster restrictions (unique associate heroes, allowed attributes, and artifact set compatibility).
+
+### 6. Transparent Moderation & Immutable Audit Logging
+- **Soft-Hiding Policy**: Content is never destroyed; flagged posts are hidden with author and operator metadata preserved in a transactional audit log.
+- **5-Tier Role-Based Access Control (RBAC)**: Fine-grained permissions (`USER`, `COLLABORATOR`, `EDITOR`, `MODERATOR`, `ADMIN`).
+
+---
+
+## Technical Architecture
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -80,133 +106,144 @@ La piattaforma è architettata per scalare su molteplici titoli: il primo modulo
 └──────────────────┘ └──────────────┘       └──────────────────┘
 ```
 
-### Scelte Architetturali Fondamentali
-1. **Next.js 15.5+ App Router con React 19**: Utilizzo esteso di React Server Components (RSC) per azzerare il JavaScript bundle delle schede informative, garantendo First Load JS shared compatto a circa 103 kB.
-2. **PostgreSQL 16 & Drizzle ORM**: Type-safety end-to-end dal database al frontend. Schemi dichiarativi, migrazioni SQL riproducibili e chiavi esterne con vincoli d'integrità referenziale rigorosi.
-3. **Resilienza Zero-Downtime**: In caso di mancata raggiungibilità temporanea del database, la piattaforma attiva istantaneamente una modalità fallback in memoria con contenuti dimostrativi, consentendo la navigazione del catalogo eroi senza interruzioni.
-4. **Sicurezza Rigorosa**:
-   - **Content Security Policy (CSP)** con nonce crittografico generato per singola richiesta a livello di middleware.
-   - **Rate Limiting** a finestra mobile in memoria su endpoint di autenticazione e mutazione.
-   - Protezione da attacchi XSS mediante parser Markdown con whitelist rigorosa (niente `dangerouslySetInnerHTML`).
-   - Cookie di sessione conformi a `SameSite=Lax`, `HttpOnly` e prefisso `__Secure-` in ambiente HTTPS.
-5. **Design System Persona 5 / Dark Mode**:
-   - Direzione visiva dark (`#0b0a0a` / `#151313`) con tagli angolari `.p5-cut`, bottoni dinamici `.p5-btn` e accento brand rosso (`#e61421`).
-   - 5 palette cromatiche selezionabili dall'utente (Rosso, Notte, Giada, Viola, Ambra), tutte certificate con rapporto di contrasto WCAG AAA (≥ 7:1 per testo normale, ≥ 4.5:1 per elementi secondari).
+### Architectural Highlights
+1. **Next.js 15.5+ App Router with React 19**: Extensive usage of React Server Components (RSC) to minimize client-side JavaScript, maintaining a compact shared First Load JS bundle (~103 kB).
+2. **PostgreSQL 16 & Drizzle ORM**: End-to-end type safety from schema to UI. Declarative schemas, reproducible SQL migrations, and strict referential integrity.
+3. **Zero-Downtime Resilience**: Seamless in-memory fallback activated if the database becomes temporarily unreachable, allowing full read-only catalog browsing without errors.
+4. **Enterprise-Grade Security**:
+   - Dynamic **Content Security Policy (CSP)** with per-request cryptographic nonces enforced at middleware level.
+   - Sliding-window in-memory **Rate Limiting** protecting mutation and authentication routes.
+   - XSS prevention via an abstract syntax tree Markdown parser without `dangerouslySetInnerHTML`.
+   - Secure cookies with `SameSite=Lax`, `HttpOnly`, and `__Secure-` prefixes in production.
+5. **Persona 5 Visual Identity**:
+   - Editorial dark UI (`#0b0a0a` / `#151313`) featuring `.p5-cut` angular borders, `.p5-btn` dynamic buttons, and brand crimson `#e61421`.
+   - 5 user-selectable dark color schemes certified for WCAG AAA contrast ratios (≥ 7:1 for body text, ≥ 4.5:1 for UI elements).
 
 ---
 
-## Stack Tecnologico
+## Tech Stack
 
-| Livello | Tecnologie |
+| Layer | Technology |
 |---|---|
-| **Framework Web** | [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/) |
-| **Linguaggio** | [TypeScript 5](https://www.typescriptlang.org/) (Strict Mode) |
-| **Styling & UI** | [Tailwind CSS v4](https://tailwindcss.com/), Icone [Phosphor](https://phosphoricons.com/) |
+| **Web Framework** | [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/) |
+| **Language** | [TypeScript 5](https://www.typescriptlang.org/) (Strict Mode) |
+| **Styling & Design** | [Tailwind CSS v4](https://tailwindcss.com/), [Phosphor Icons](https://phosphoricons.com/) |
 | **Database & ORM** | [PostgreSQL 16](https://www.postgresql.org/), [Drizzle ORM](https://orm.drizzle.team/) |
-| **Autenticazione** | [Auth.js v5 (NextAuth)](https://authjs.dev/) (Credenziali, Discord OAuth, Google OAuth) |
-| **Testing Suite** | [Vitest](https://vitest.dev/), script proprietario `smoke-db.mts` |
-| **Containerizzazione**| [Docker](https://www.docker.com/), Docker Compose |
+| **Authentication** | [Auth.js v5 (NextAuth)](https://authjs.dev/) (Credentials, Discord OAuth, Google OAuth) |
+| **Testing Suite** | [Vitest](https://vitest.dev/), custom `smoke-db.mts` database verifier |
+| **Containerization** | [Docker](https://www.docker.com/), Docker Compose |
 
 ---
 
-## Qualità del Codice & Testing
+## Engineering Rigor & Verification
 
-La stabilità e l'accuratezza dei calcoli matematici sono validate continuamente da una suite di test esaustiva:
+Every build and modification is verified through an extensive automated testing suite:
 
-- **780 Test Unitari e di Integrazione (Vitest)**:
-  - Validazione formule di danno, scaling passivo, calcolo statistiche e simulazione Monte Carlo.
-  - Test crittografici su sessioni, token di recupero password ed escape sanitizzato del Markdown.
-  - Verifica della palette colori e accessibilità di contrasto di tutti i temi.
-- **71 Verifiche Live sul Database (`npm run db:smoke`)**:
-  - Script automatizzato (`scripts/smoke-db.mts`) che esegue un ciclo end-to-end reale su PostgreSQL: inserimento, migrazioni, foreign key cascade, rate limiting e cancellazioni controllate.
-- **Tipizzazione Rigorosa**:
-  - `npm run typecheck` (`tsc --noEmit`) costantemente a 0 errori.
-  - `npm run lint` (`eslint`) su tutti i file sorgente e script di supporto.
+- **780 Unit & Integration Tests (Vitest)**:
+  - Combat damage formula accuracy, stat scaling, Monte Carlo simulations, and RNG entropy tests.
+  - Cryptographic session verification, password reset tokens, and sanitized Markdown AST parsing.
+  - Theme color tokens and WCAG contrast validation.
+- **71 Live Database Smoke Verifications (`npm run db:smoke`)**:
+  - Live PostgreSQL verification testing real database operations: schema migrations, cascade deletions, user suspension lifecycles, and rate limiter bounds.
+- **Strict Static Typing & Linting**:
+  - `npm run typecheck` (`tsc --noEmit`): **0 errors**.
+  - `npm run lint` (`eslint`): **0 errors** across all source files and automation scripts.
 
 ---
 
-## Struttura del Repository
+## Repository Structure
 
 ```text
 Heiki/
 ├── src/
-│   ├── app/                      # Next.js App Router (Layout, Pagine, API Routes)
-│   │   ├── [game]/               # Pagine contestuali di gioco (eroi, tierlist, guide, ecc.)
-│   │   ├── u/[username]/         # Vetrina profilo pubblico, tier list salvate, badge
-│   │   └── api/                  # Route handlers (auth callback, healthcheck)
-│   ├── components/               # Componenti UI (stile Persona, filtri, griglie, modali)
-│   │   ├── tier-list/            # Componenti del Tier List Maker (canvas, drag & drop)
-│   │   ├── ratings/              # Modali e badge di votazione community
-│   │   └── game-account/         # Gestione e visualizzazione del box eroi
+│   ├── app/                      # Next.js App Router (Layouts, Pages, API Routes)
+│   │   ├── [game]/               # Contextual game routes (heroes, tierlist, guides, etc.)
+│   │   ├── u/[username]/         # Public user profiles, saved tier lists, badges
+│   │   └── api/                  # Route handlers (auth callbacks, healthcheck)
+│   ├── components/               # Persona-styled UI components (filters, grids, modals)
+│   │   ├── tier-list/            # Tier List Maker (canvas renderer, drag & drop)
+│   │   ├── ratings/              # Community rating modals and facts badges
+│   │   └── game-account/         # Hero box management and synchronization
 │   ├── lib/
-│   │   ├── db/                   # Schema Drizzle, client PostgreSQL e migrazioni
-│   │   ├── games/                # Moduli dei giochi, dati estratti, calcolatori
-│   │   ├── tier-list/            # Server actions e logica di salvataggio tier list
-│   │   ├── ratings/              # Logica server e aggregazioni voti eroi
-│   │   ├── auth/                 # Configurazione Auth.js, gestione ruoli e permessi
-│   │   └── security/             # Content Security Policy, rate limiter, sanitizzazione
-├── scripts/                      # Script di automazione, setup, seed e smoke testing
-├── drizzle/                      # File di migrazione SQL generati da Drizzle Kit
-└── docker-compose.yml            # Configurazione PostgreSQL per ambiente di sviluppo
+│   │   ├── db/                   # Drizzle schema, PostgreSQL client, migrations
+│   │   ├── games/                # Game modules, client-extracted data, calculators
+│   │   ├── tier-list/            # Server actions and persistence logic for tier lists
+│   │   ├── ratings/              # Server actions and aggregated scoring calculations
+│   │   ├── auth/                 # Auth.js setup, permissions, role hierarchy
+│   │   └── security/             # Content Security Policy, rate limiter, sanitizers
+├── scripts/                      # Setup scripts, database seeders, smoke tests
+├── drizzle/                      # SQL migration files generated by Drizzle Kit
+└── docker-compose.yml            # PostgreSQL container configuration
 ```
 
 ---
 
-## Installazione e Avvio Rapido
+## Getting Started
 
-### Prerequisiti
-- **Node.js** v20.x o superiore
-- **Docker Desktop** (per il database PostgreSQL)
+### Prerequisites
+- **Node.js** v20.x or higher
+- **Docker Desktop** (for local PostgreSQL database)
 
-### Setup in un Click
-Il comando `npm run setup` predispone automaticamente l'intero ambiente di lavoro:
+### One-Command Setup
+The setup script automatically initializes dependencies, launches PostgreSQL, applies all database migrations, and seeds essential initial data:
 
 ```bash
-# 1. Clona il repository
+# 1. Clone the repository
 git clone https://github.com/DGF-Tech-Solutions/Heiki.git
 cd Heiki
 
-# 2. Configura dipendenze, database locale e schema
+# 2. Run automated setup
 npm run setup
 
-# 3. Avvia il server di sviluppo
+# 3. Start development server
 npm run dev
 ```
 
-Il sito sarà immediatamente accessibile su [http://localhost:3000](http://localhost:3000).
+The application will be accessible at [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Comandi Principali
+## CLI Commands
 
-| Script | Descrizione |
+| Command | Description |
 |---|---|
-| `npm run dev` | Avvia il server di sviluppo con hot-reloading Turbopack (`:3000`) |
-| `npm run build` | Compila l'applicazione per la produzione con output standalone |
-| `npm run test` | Esegue la suite completa di 780 test unitari con Vitest |
-| `npm run typecheck` | Esegue la verifica dei tipi TypeScript (`tsc --noEmit`) |
-| `npm run lint` | Esegue l'analisi statica del codice con ESLint |
-| `npm run db:smoke` | Esegue 71 controlli di integrità end-to-end sul database PostgreSQL |
-| `npm run db:migrate` | Applica le migrazioni SQL pendenti tramite Drizzle Kit |
-| `npm run db:reset` | Ripristina il database ricreando lo schema e ripopolando i dati di seed |
-| `npm run db:studio` | Avvia Drizzle Studio per l'ispezione grafica dei dati del DB |
-| `npm run promote -- <email> ADMIN` | Assegna privilegi amministrativi al primo account utente |
+| `npm run dev` | Starts local Next.js Turbopack dev server on `:3000` |
+| `npm run build` | Produces an optimized standalone production build |
+| `npm run test` | Runs the full Vitest test suite (780 tests) |
+| `npm run typecheck` | Validates TypeScript types across the entire codebase |
+| `npm run lint` | Runs ESLint on `src/` and `scripts/` |
+| `npm run db:smoke` | Runs 71 live end-to-end integration checks against PostgreSQL |
+| `npm run db:migrate` | Applies pending database migrations via Drizzle Kit |
+| `npm run db:reset` | Wipes and rebuilds the local database from scratch |
+| `npm run db:studio` | Launches Drizzle Studio GUI for database inspection |
+| `npm run promote -- <email> ADMIN` | Promotes a user account to system administrator |
 
 ---
 
-## Roadmap di Sviluppo
+## Roadmap
 
-- [x] Pipeline di decifrazione e importazione automatica dei dati dai client di gioco.
-- [x] Roster interattivo con calcolatore statistiche completo per The Seven Deadly Sins: Grand Cross.
-- [x] Tier List Maker dinamico con esportazione Retina 2x Canvas e persistenza cloud.
-- [x] Sistema di recensioni e votazione community (PvE & PvP) con aggregazione real-time.
-- [x] Sincronizzazione local-first del box eroi con persistenza ibrida.
-- [ ] Integrazione del primo modulo deterministico HoYoverse (*Genshin Impact* / *Honkai: Star Rail*).
-- [ ] Generazione dinamica di Open Graph card personalizzate per la condivisione social dei profili.
-- [ ] API pubblica REST / GraphQL per consentire a sviluppatori terzi l'accesso ai dati analitici del roster.
+- [x] Client data decryption and extraction pipeline.
+- [x] Complete interactive hero roster and stat calculator for The Seven Deadly Sins: Grand Cross.
+- [x] High-DPI Canvas Tier List Maker with cloud sync and JSON backup.
+- [x] Real-time community PvE & PvP hero rating system.
+- [x] Local-first hero box management with transparent offline support.
+- [ ] Integration of OpenAI Codex for automated upstream patch triage and mechanics AST extraction.
+- [ ] Integration of the first deterministic HoYoverse module (*Genshin Impact* / *Honkai: Star Rail*).
+- [ ] Dynamic Open Graph image generation for social profile cards.
+- [ ] Public REST / GraphQL API for third-party developer integrations.
 
 ---
 
-## Licenza
+## Contributing
 
-Questo progetto è distribuito sotto licenza [MIT](LICENSE). Tutti i marchi, loghi e asset visivi relativi ai singoli giochi appartengono ai rispettivi titolari dei diritti e publisher di gioco.
+We welcome community contributions! Please adhere to our code quality standards:
+1. Ensure all TypeScript types are strictly verified: `npm run typecheck`.
+2. Ensure linting passes: `npm run lint`.
+3. Add or update tests for new formulas and features: `npm run test`.
+4. Run live database smoke verifications: `npm run db:smoke`.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE). All game assets, trademarks, and logos belong to their respective publishers and copyright holders.
