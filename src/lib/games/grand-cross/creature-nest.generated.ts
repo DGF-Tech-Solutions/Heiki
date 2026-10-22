@@ -3805,7 +3805,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
      },
      "heroes": [
       "1929501",
-      "1929502"
+      "1929502",
+      "1929503"
      ]
     },
     {
@@ -3926,6 +3927,14 @@ export const CREATURE_NEST: CreatureNestIndex = {
     },
     {
      "heroId": "1929502",
+     "source": "relic",
+     "passive": {
+      "it": "Immagine residua di Hati",
+      "en": "Hati's Afterimage"
+     }
+    },
+    {
+     "heroId": "1929503",
      "source": "relic",
      "passive": {
       "it": "Immagine residua di Hati",
@@ -6609,7 +6618,8 @@ export const CREATURE_NEST: CreatureNestIndex = {
      },
      "heroes": [
       "1929501",
-      "1929502"
+      "1929502",
+      "1929503"
      ]
     }
    ],

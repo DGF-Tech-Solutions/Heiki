@@ -11,8 +11,20 @@
 import type { ChangesIndex } from "../changes-types";
 
 export const CHANGES: ChangesIndex = {
-  patches: ["2026-09-23","2026-09-30","2026-10-08"],
+  patches: ["2026-09-23","2026-09-30","2026-10-08","2026-10-22"],
   comparisons: [
+  {
+    from: "2026-10-08",
+    to: "2026-10-22",
+    newHeroes: [],
+    heroes: {
+      "1929501": [{"part":"costume","which":3314706,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Era della prosperità","en":"Age of Prosperity"}},{"part":"costume","which":3314705,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Abbondanza dorata","en":"Golden Abundance"}},{"part":"costume","which":4002210,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Splendore della prosperità","en":"Radiance of Prosperity"}}],
+      "1929502": [{"part":"costume","which":3314706,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Era della prosperità","en":"Age of Prosperity"}},{"part":"costume","which":3314705,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Abbondanza dorata","en":"Golden Abundance"}},{"part":"costume","which":4002210,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Splendore della prosperità","en":"Radiance of Prosperity"}}],
+    },
+    touchups: {},
+    other: [{"group":"altro","name":{"it":"Altro","en":"Other"},"added":84,"removed":50,"changed":14},{"group":"eventi","name":{"it":"Eventi","en":"Events"},"added":38,"removed":38,"changed":0},{"group":"eroi","name":{"it":"Eroi","en":"Heroes"},"added":41,"removed":0,"changed":0},{"group":"costumi","name":{"it":"Costumi","en":"Costumes"},"added":3,"removed":0,"changed":36},{"group":"abilita","name":{"it":"Abilità","en":"Skills"},"added":12,"removed":0,"changed":6},{"group":"contenuti","name":{"it":"Contenuti e battaglie","en":"Content and battles"},"added":1,"removed":1,"changed":1},{"group":"negozio","name":{"it":"Negozio ed evocazioni","en":"Shop and summons"},"added":1,"removed":0,"changed":0},{"group":"missioni","name":{"it":"Missioni e titoli","en":"Missions and titles"},"added":0,"removed":0,"changed":1},{"group":"pvp","name":{"it":"PvP","en":"PvP"},"added":0,"removed":0,"changed":1}],
+    texts: {"added":63,"changed":2,"removed":2},
+  },
   {
     from: "2026-09-30",
     to: "2026-10-08",

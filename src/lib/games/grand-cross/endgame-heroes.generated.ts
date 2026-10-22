@@ -107,6 +107,7 @@ export const ENDGAME_HEROES: Readonly<Record<string, readonly EndgameHeroLink[]>
   "1926501": [{"mode":"creature-nest","kind":"excluded","passive":{"it":"Abilità nascosta","en":"Hidden Ability"}}],
   "1929501": [{"mode":"creature-nest","kind":"only","target":{"key":"nidhoggr","name":{"it":"Nidhoggr","en":"Nidhoggr"}},"passive":{"it":"Immagine residua di Hati","en":"Hati's Afterimage"}}],
   "1929502": [{"mode":"creature-nest","kind":"only","target":{"key":"nidhoggr","name":{"it":"Nidhoggr","en":"Nidhoggr"}},"passive":{"it":"Immagine residua di Hati","en":"Hati's Afterimage"}}],
+  "1929503": [{"mode":"creature-nest","kind":"only","target":{"key":"nidhoggr","name":{"it":"Nidhoggr","en":"Nidhoggr"}},"passive":{"it":"Immagine residua di Hati","en":"Hati's Afterimage"}}],
   "1930501": [{"mode":"supreme-deity","kind":"banned"}],
   "1931501": [{"mode":"death-match","kind":"ai-team","target":{"key":"red-demon","name":{"it":"Demone rosso","en":"Red Demon"}}}],
   "1935502": [{"mode":"creature-nest","kind":"only","passive":{"it":"Seguitemi","en":"Follow My Lead"}}],

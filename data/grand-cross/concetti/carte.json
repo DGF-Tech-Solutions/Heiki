@@ -26,7 +26,7 @@
       ],
       "ranghi_nel_client": 3,
       "chiave_7dshub": "skillsA",
-      "ranghi_nei_dati": 1128,
+      "ranghi_nei_dati": 1131,
       "certezza": "dichiarato",
       "prove": [],
       "campi_collegati": [
@@ -48,7 +48,7 @@
       ],
       "ranghi_nel_client": 3,
       "chiave_7dshub": "skillsB",
-      "ranghi_nei_dati": 1128,
+      "ranghi_nei_dati": 1131,
       "certezza": "dichiarato",
       "prove": [],
       "campi_collegati": [
@@ -73,7 +73,7 @@
       ],
       "ranghi_nel_client": 6,
       "chiave_7dshub": "skillsSpecial",
-      "ranghi_nei_dati": 2256,
+      "ranghi_nei_dati": 2262,
       "certezza": "dichiarato",
       "prove": []
     },
@@ -105,7 +105,7 @@
       ],
       "ranghi_nel_client": null,
       "chiave_7dshub": "passive",
-      "ranghi_nei_dati": 513,
+      "ranghi_nei_dati": 514,
       "certezza": "dichiarato",
       "prove": []
     },
@@ -154,8 +154,8 @@
       },
       "enum": "atk",
       "uso": {
-        "A": 870,
-        "ultimate": 1752,
+        "A": 871,
+        "ultimate": 1758,
         "B": 493,
         "coop": 216
       },
@@ -176,7 +176,7 @@
       },
       "enum": "buff",
       "uso": {
-        "B": 153,
+        "B": 156,
         "ultimate": 90,
         "coop": 12
       },
@@ -220,7 +220,7 @@
       "uso": {
         "ultimate": 354,
         "coop": 90,
-        "A": 253,
+        "A": 255,
         "B": 257
       },
       "certezza": "dedotto",
@@ -448,13 +448,13 @@
       "etichetta_da": null,
       "enum": "range",
       "uso": {
-        "A": 522,
-        "B": 879,
-        "ultimate": 1397
+        "A": 525,
+        "B": 882,
+        "ultimate": 1403
       },
       "certezza": "dichiarato",
       "prove": [
-        "ranghi con il bersaglio letto nel testo: global_enemy 1.350 (48%), single_enemy 985 (35%), global_ally 256 (9%), nessuno 190 (7%), single_ally 17 (1%)"
+        "ranghi con il bersaglio letto nel testo: global_enemy 1.356 (48%), single_enemy 988 (35%), global_ally 259 (9%), nessuno 190 (7%), single_ally 17 (1%)"
       ]
     }
   },
@@ -498,7 +498,7 @@
         "one enemy"
       ],
       "uso": {
-        "A": 927,
+        "A": 930,
         "ultimate": 1032,
         "coop": 210,
         "B": 284
@@ -517,7 +517,7 @@
         "all allies"
       ],
       "uso": {
-        "B": 166,
+        "B": 169,
         "ultimate": 90,
         "coop": 18
       },
@@ -537,7 +537,7 @@
       "uso": {
         "B": 537,
         "A": 192,
-        "ultimate": 1014,
+        "ultimate": 1020,
         "coop": 96
       },
       "certezza": "dichiarato",

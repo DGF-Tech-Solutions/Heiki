@@ -450,6 +450,7 @@ async function main(): Promise<void> {
     // Rilanciabile: se la guida c'era gia' pubblicata, la si riporta a bozza
     // per esercitare comunque tutto il percorso.
     if (guide.status !== "DRAFT") await guideStore.setStatus(guide.id, "DRAFT");
+    await db.delete(schema.guideRevisions).where(eq(schema.guideRevisions.guideId, guide.id));
 
     const draft = await guideStore.get("grand-cross", guideSlugUsed);
     check("la guida parte come bozza", draft?.status === "DRAFT", draft?.status);

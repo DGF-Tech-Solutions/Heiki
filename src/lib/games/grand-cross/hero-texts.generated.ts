@@ -6,10 +6,10 @@
  * Sta in un file separato dal roster perche' ha un destinatario diverso: il
  * roster viaggia fino al browser per far funzionare i filtri, questi testi no.
  * Li legge solo la scheda del singolo eroe, che e' renderizzata sul server, e
- * tenerli qui evita di spedire 376 descrizioni a chi sta solo sfogliando
+ * tenerli qui evita di spedire 377 descrizioni a chi sta solo sfogliando
  * la griglia.
  *
- * Sono 376 eroi su 376: agli altri il gioco assegna i testi dal
+ * Sono 377 eroi su 377: agli altri il gioco assegna i testi dal
  * server, e nel client non ci sono.
  */
 
@@ -2017,6 +2017,13 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     epithet: "[Miraggio estivo]",
     description: "Freyja si rilassa prendendo il sole in un'epoca in cui Vanaheimr era ancora nel suo splendore. Tuttavia, prova uno strano senso d'inquietudine.",
     i18n: {"name":{"it":"Freyja Dea della Bellezza","en":"Goddess of Beauty Freyja"},"title":{"it":"[Miraggio estivo] Freyja Dea della Bellezza","en":"[Summer Mirage] Goddess of Beauty Freyja"},"epithet":{"it":"[Miraggio estivo]","en":"[Summer Mirage]"},"description":{"it":"Freyja si rilassa prendendo il sole in un'epoca in cui Vanaheimr era ancora nel suo splendore. Tuttavia, prova uno strano senso d'inquietudine.","en":"Freyja soaks up the sun in a time when Vanaheim was still beautiful. However, she soon feels a strange sense of unease."}},
+  },
+  "1929503": {
+    name: "Freyja Dea della Bellezza",
+    title: "[Regina dell'abbondanza] Freyja Dea della Bellezza",
+    epithet: "[Regina dell'abbondanza]",
+    description: "La regina che un tempo governava Alfheim e la Dea della Bellezza. Attualmente vive in isolamento a Vanaheimr insieme al fratello Freyr, il Dio del Sole.",
+    i18n: {"name":{"it":"Freyja Dea della Bellezza","en":"Goddess of Beauty Freyja"},"title":{"it":"[Regina dell'abbondanza] Freyja Dea della Bellezza","en":"[Queen of Abundance] Goddess of Beauty Freyja"},"epithet":{"it":"[Regina dell'abbondanza]","en":"[Queen of Abundance]"},"description":{"it":"La regina che un tempo governava Alfheim e la Dea della Bellezza. Attualmente vive in isolamento a Vanaheimr insieme al fratello Freyr, il Dio del Sole.","en":"The queen who once ruled Alfheim, and goddess of beauty. She currently lives in seclusion in Vanaheim with her brother Freyr, the Sun God."}},
   },
   "1930501": {
     name: "Mael della [b]Luce del Sole[/b]",

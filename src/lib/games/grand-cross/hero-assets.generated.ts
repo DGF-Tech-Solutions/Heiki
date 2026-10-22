@@ -5,7 +5,7 @@
  *
  * Sono bandierine e non percorsi: il percorso lo costruisce heroSplashSrc, e
  * averlo in un posto solo evita che una cartella rinominata vada corretta in
- * 376 righe. Servono perche' le immagini non sono versionate: senza,
+ * 377 righe. Servono perche' le immagini non sono versionate: senza,
  * la scheda mostrerebbe un riquadro rotto a chi non ha lanciato l'importazione.
  */
 
@@ -298,6 +298,7 @@ export const HERO_ASSETS: Readonly<Record<string, HeroAssets>> = {
   "1928501": { splash: true, face: [48,17], top: 10, skill: true, cutIn: true, cards: 2, ultimate: true },
   "1929501": { splash: true, face: [53,17], top: 8, skill: true, cutIn: true, cards: 2, ultimate: true },
   "1929502": { splash: true, face: [49,20], top: 9, skill: true, cutIn: true, cards: 2, ultimate: true },
+  "1929503": { splash: true, face: [51,20], top: 10, skill: true, cutIn: true, cards: 2, ultimate: true },
   "1930501": { splash: true, face: [47,23], top: 0, skill: true, cutIn: true, cards: 2, ultimate: true },
   "1931501": { splash: true, face: [46,21], top: 14, skill: true, cutIn: true, cards: 2, ultimate: true },
   "1931502": { splash: true, face: [47,31], top: 19, skill: true, cutIn: true, cards: 2, ultimate: true },

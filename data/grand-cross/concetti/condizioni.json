@@ -50,7 +50,7 @@
       "ruolo": "slot secondario",
       "contenuto": null,
       "uso": {
-        "eroi": 95,
+        "eroi": 96,
         "abilita_speciali": 0
       },
       "certezza": "dichiarato",
@@ -170,7 +170,7 @@
       "ruolo": "tutti i contenuti",
       "contenuto": null,
       "uso": {
-        "eroi": 296,
+        "eroi": 297,
         "abilita_speciali": 11
       },
       "certezza": "dichiarato",

@@ -562,6 +562,7 @@ export const BIRTHDAYS: BirthdaysIndex = {
   "1928501": {"group":"120","dates":[null]},
   "1929501": {"group":"115","dates":[[3,13]]},
   "1929502": {"group":"115","dates":[[3,13]]},
+  "1929503": {"group":"115","dates":[[3,13]]},
   "1930501": {"group":"113","dates":[[1,14]]},
   "1931501": {"group":"65","dates":[[1,20]]},
   "1931502": {"group":"65","dates":[[1,20]]},
