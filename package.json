@@ -66,6 +66,7 @@
     "drizzle-kit": "^0.31.6",
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.25",
+    "postcss-pxtorem": "^6.1.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { IconStar } from "@/components/icons";
 import { buttonClass, chipClass, cx, numeric, rankChipColors } from "@/components/ui";
+import { rem } from "@/lib/rem";
 
 /**
  * I comandi del calcolatore, tutti nello stile dello slider del livello e del
@@ -106,7 +107,7 @@ export function Star({ src, lit, size = 18 }: { src?: string; lit: boolean; size
         alt=""
         width={39}
         height={41}
-        style={{ width: size, height: size }}
+        style={{ width: rem(size), height: rem(size) }}
         className={cx("object-contain", !lit && "opacity-25 grayscale")}
       />
     );
@@ -212,7 +213,7 @@ export function UltimateRow({
                   <img
                     src={gemSrcs[position]}
                     alt=""
-                    width={24}
+                    width={24} style={{ width: rem(24) }}
                     height={24}
                     className={cx("h-5 w-5 object-contain", rank > value && "opacity-30")}
                   />

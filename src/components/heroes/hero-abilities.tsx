@@ -128,6 +128,8 @@ function versionTerms(
  * barra delle schede (55) e lo stesso spazio che la barra lascia sopra la
  * scheda (20). Lo stesso numero sta scritto in `top-[135px]` qui sotto:
  * Tailwind legge il sorgente, e una classe composta non finirebbe nel CSS.
+ * Sono px del disegno: sullo schermo largo crescono con la base
+ * dell'interfaccia, e HeroStickyColumns li moltiplica allo stesso modo.
  */
 const STICKY_TOP = 135;
 

@@ -14,6 +14,7 @@ import { plainHeroText } from "@/lib/games/hero-markup";
 import { getGameModule, requireGameModule } from "@/lib/games/registry";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { rem } from "@/lib/rem";
 
 /**
  * Un Set artefatto: le sue carte, l'effetto livello per livello, il
@@ -287,7 +288,7 @@ export default async function ArtifactSetPage({ params }: Props) {
                             <img
                               src={artifactImageSrc(game, `placcate/${grade}.png`)}
                               alt=""
-                              width={20}
+                              width={20} style={{ width: rem(20) }}
                               height={20}
                               className="block"
                             />

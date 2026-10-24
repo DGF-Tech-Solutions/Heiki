@@ -17,6 +17,7 @@ import type { EndgameHeroLink, EndgameMode } from "@/lib/games/endgame-types";
 import { plainHeroText } from "@/lib/games/hero-markup";
 import { gameIconSrc } from "@/lib/games/heroes";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
@@ -133,7 +134,7 @@ export function HeroEndgameLine({
                 width={16}
                 height={16}
                 className="inline-block shrink-0"
-                style={{ width: 16, height: "auto" }}
+                style={{ width: rem(16), height: "auto" }}
               />
             ) : null}
             <Link href={row.href} className="text-ink hover:text-brand-deep">

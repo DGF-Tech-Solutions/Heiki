@@ -18,6 +18,7 @@
  */
 
 import type { ComponentType, SVGProps } from "react";
+import { rem } from "@/lib/rem";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { ArrowUpIcon } from "@phosphor-icons/react/dist/ssr/ArrowUp";
 import { CakeIcon } from "@phosphor-icons/react/dist/ssr/Cake";
@@ -61,7 +62,7 @@ export type IconProps = Omit<SVGProps<SVGSVGElement>, "children" | "ref"> & {
   weight?: Weight;
 };
 
-type PhosphorIcon = ComponentType<Omit<SVGProps<SVGSVGElement>, "ref"> & { size?: number; weight?: Weight }>;
+type PhosphorIcon = ComponentType<Omit<SVGProps<SVGSVGElement>, "ref"> & { size?: number | string; weight?: Weight }>;
 
 // `/*#__PURE__*/` davanti a ogni make(): senza, il bundler non puo' sapere che
 // una chiamata non usata non ha effetti, e tutte le icone finivano in ogni pagina
@@ -71,7 +72,7 @@ function make(Base: PhosphorIcon, defaults: { size?: number; weight?: Weight } =
     void _ignored;
     return (
       <Base
-        size={size ?? defaults.size ?? 18}
+        size={rem(size ?? defaults.size ?? 18)}
         weight={weight ?? defaults.weight ?? "bold"}
         aria-hidden
         focusable="false"

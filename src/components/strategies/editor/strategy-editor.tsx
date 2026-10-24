@@ -596,7 +596,9 @@ function selectionLabel(template: StrategyTemplate, state: EditorState, t: Texts
  * pulsante. Ferma in fondo allo schermo finche' il modulo scorre, poi si posa
  * alla sua fine. Sul telefono sta sopra la barra del gioco (58px) e lascia a
  * destra il posto al pulsante «Su» (back-to-top.tsx), che compare dopo due
- * schermi; sopra i 1720px il «Su» cade fuori dalla colonna e il posto non serve.
+ * schermi; sopra i 1880px il «Su» cade fuori dalla colonna e il posto non serve
+ * (era 1720 finche' l'interfaccia non cresceva con lo schermo: dal 24/10 colonna
+ * e pulsante crescono, e il margine ai lati arriva a 76px del disegno piu' tardi).
  */
 function SubmitBar({
   t,
@@ -638,8 +640,8 @@ function SubmitBar({
     <div className="sticky bottom-[calc(58px+env(safe-area-inset-bottom))] z-20 mt-10 max-lg:-mx-6 lg:bottom-0">
       <div
         className={cx(
-          "border-t-2 border-brand bg-paper/95 py-3 backdrop-blur max-lg:pl-6 max-[1719px]:pr-[76px]",
-          "lg:border-x lg:border-x-rule lg:bg-paper-2/95 lg:pl-4 min-[1720px]:pr-4",
+          "border-t-2 border-brand bg-paper/95 py-3 backdrop-blur max-lg:pl-6 max-[1879px]:pr-[76px]",
+          "lg:border-x lg:border-x-rule lg:bg-paper-2/95 lg:pl-4 min-[1880px]:pr-4",
         )}
       >
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">

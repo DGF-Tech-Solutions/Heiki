@@ -38,6 +38,7 @@ import { plainHeroText } from "@/lib/games/hero-markup";
 import { gameIconSrc, heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import type { GameModule, HeroAffinity, HeroEntry, HeroLabel } from "@/lib/games/types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
@@ -266,7 +267,7 @@ export function AttributeIcon({ code, scope, size = 18 }: { code: number | null;
       width={size}
       height={size}
       className="inline-block shrink-0"
-      style={{ width: size, height: "auto" }}
+      style={{ width: rem(size), height: "auto" }}
     />
   );
 }
@@ -285,7 +286,7 @@ export function RaceLabel({ code, scope }: { code: number | null; scope: Endgame
           width={16}
           height={16}
           className="inline-block shrink-0"
-          style={{ width: 16, height: "auto" }}
+          style={{ width: rem(16), height: "auto" }}
         />
       ) : null}
       {name}
@@ -307,7 +308,7 @@ export function AttributeLabel({ code, scope }: { code: number | null; scope: En
           width={18}
           height={18}
           className="inline-block shrink-0"
-          style={{ width: 18, height: "auto" }}
+          style={{ width: rem(18), height: "auto" }}
         />
       ) : null}
       {name}
@@ -326,7 +327,7 @@ export function ConditionIcon({ condition, scope, size = 18 }: { condition: stri
       width={size}
       height={size}
       className="inline-block shrink-0"
-      style={{ width: size, height: "auto" }}
+      style={{ width: rem(size), height: "auto" }}
     />
   );
 }
@@ -390,7 +391,7 @@ export function ItemLabel({
           height={size}
           loading="lazy"
           className="shrink-0 bg-paper-2"
-          style={{ width: size, height: size }}
+          style={{ width: rem(size), height: rem(size) }}
         />
       ) : null}
       {scope.artifactCards.has(id) ? (

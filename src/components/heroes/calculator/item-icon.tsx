@@ -1,5 +1,6 @@
 import { cx } from "@/components/ui";
 import type { ItemIconLayers } from "@/lib/games/gear-types";
+import { rem } from "@/lib/rem";
 
 /**
  * L'icona quadrata di un oggetto come la disegna il gioco (IconItem): sfondo e
@@ -90,7 +91,7 @@ export function ItemIcon({
       aria-label={label}
       title={label}
       className={cx("relative inline-block shrink-0 select-none", className)}
-      style={{ width: size, height: size }}
+      style={{ width: rem(size), height: rem(size) }}
     >
       {layers.map(({ name, src }) =>
         src ? (
@@ -146,22 +147,22 @@ export function SetBadge({
   const side = Math.max(right - bx, bh - (top - by));
   const scale = size / side;
   const style = {
-    width: icons.size * scale,
-    height: icons.size * scale,
-    left: -bx * scale,
-    top: -top * scale,
+    width: rem(icons.size * scale),
+    height: rem(icons.size * scale),
+    left: rem(-bx * scale),
+    top: rem(-top * scale),
     // Nei pulsanti dei set il glifo cresce al passaggio (`.rank-chip img`). Lo
     // strato e' grande quanto l'icona intera e il glifo sta nel suo angolo:
     // cresciuto attorno al centro dello strato, scivolava via in alto a destra.
     // Cresce attorno al centro del glifo.
-    transformOrigin: `${(bx + side / 2) * scale}px ${(top + side / 2) * scale}px`,
+    transformOrigin: `${rem((bx + side / 2) * scale)} ${rem((top + side / 2) * scale)}`,
   };
   // Senza `overflow-hidden`: fuori dal glifo gli strati sono trasparenti (misurato:
   // l'esagono occupa 92-128 x 0-41 su 128), e ritagliati il glifo cresciuto
   // perdeva i bordi. Trasparenti ma non al tocco: `pointer-events-none`, se no la
   // parte dello strato che sporge a sinistra prenderebbe i clic del set accanto.
   return (
-    <span aria-hidden className={cx("relative inline-block shrink-0", className)} style={{ width: size, height: size }}>
+    <span aria-hidden className={cx("relative inline-block shrink-0", className)} style={{ width: rem(size), height: rem(size) }}>
       {["esagono", `set_${set}`].map((name) =>
         have.has(name) ? (
           // eslint-disable-next-line @next/next/no-img-element

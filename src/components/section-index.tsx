@@ -20,6 +20,7 @@
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { chipClass, cx, eyebrow, numeric } from "@/components/ui";
+import { remPx } from "@/lib/rem";
 
 export interface IndexEntry {
   readonly id: string;
@@ -59,10 +60,12 @@ export function SectionIndex({
       if (Date.now() < until.current) return;
       const root = document.documentElement;
       const atEnd = window.scrollY + window.innerHeight >= root.scrollHeight - 4;
+      // LINE e' in px del disegno, che sullo schermo largo crescono col resto
+      const scale = remPx() / 16;
       let current = list[0] ?? "";
       for (const id of list) {
         const element = document.getElementById(id);
-        if (element && element.getBoundingClientRect().top <= LINE) current = id;
+        if (element && element.getBoundingClientRect().top <= LINE * scale) current = id;
       }
       setActive(atEnd ? (list.at(-1) ?? current) : current);
     };

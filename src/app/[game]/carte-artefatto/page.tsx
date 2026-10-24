@@ -20,6 +20,7 @@ import { plainHeroText } from "@/lib/games/hero-markup";
 import { requireGameModule } from "@/lib/games/registry";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { rem } from "@/lib/rem";
 
 /**
  * Carte artefatto: l'indice.
@@ -155,7 +156,7 @@ export default async function ArtifactCardsPage({ params }: Props) {
                     <img
                       src={artifactImageSrc(game, `pacchetti/${pack.icon}`)}
                       alt=""
-                      width={48}
+                      width={48} style={{ width: rem(48) }}
                       height={48}
                       loading="lazy"
                       className="block shrink-0"

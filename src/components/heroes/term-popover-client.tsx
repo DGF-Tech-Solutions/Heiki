@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { searchText } from "@/lib/games/hero-terms";
+import { remPx } from "@/lib/rem";
 
 /**
  * Quello che il JavaScript aggiunge alle tendine delle parole blu: il posto e
@@ -74,13 +75,15 @@ export function TermPopoverClient() {
       if (!invoker || !invoker.isConnected || popover.contains(invoker)) return;
       const rect = invoker.getBoundingClientRect();
       const viewport = document.documentElement;
-      const margin = 16;
-      const gap = 6;
-      const width = Math.min(416, viewport.clientWidth - 2 * margin);
+      // misure del disegno in px: sullo schermo largo crescono col resto (src/lib/rem.ts)
+      const scale = remPx() / 16;
+      const margin = 16 * scale;
+      const gap = 6 * scale;
+      const width = Math.min(416 * scale, viewport.clientWidth - 2 * margin);
       const left = Math.min(Math.max(margin, rect.left), viewport.clientWidth - width - margin);
       const below = viewport.clientHeight - rect.bottom - gap - margin;
       const above = rect.top - gap - margin;
-      const up = below < 240 && above > below;
+      const up = below < 240 * scale && above > below;
 
       const style = popover.style;
       style.position = "absolute";
@@ -88,7 +91,7 @@ export function TermPopoverClient() {
       style.margin = "0";
       style.width = `${width}px`;
       style.left = `${left + window.scrollX}px`;
-      style.maxHeight = `${Math.max(160, Math.min(480, up ? above : below))}px`;
+      style.maxHeight = `${Math.max(160 * scale, Math.min(480 * scale, up ? above : below))}px`;
       if (up) {
         // il fondo della tendina sopra la parola: `bottom` si misura dal fondo del
         // blocco iniziale, alto quanto lo schermo e fermo in cima al documento

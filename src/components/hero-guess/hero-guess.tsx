@@ -36,6 +36,7 @@ import { gameIconSrc, heroCardSrc, heroName, heroSkillIconSrc } from "@/lib/game
 import type { HeroEntry } from "@/lib/games/types";
 import { useLocale } from "@/lib/i18n/client";
 import { intlLocale, testi, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 /** Un eroe del gioco: la voce del roster (per nome, epiteto e ricerca nelle due lingue) e gli indizi. */
 export type GuessEntry = HeroEntry &
@@ -136,7 +137,7 @@ export function HeroGuess({
               `«${answer?.unique ?? "?"}»`
             ) : answer?.uniqueIcon ? (
               // eslint-disable-next-line @next/next/no-img-element -- icona gia' pronta, come nella scheda eroe
-              <img src={heroSkillIconSrc(game, answer.id)} alt="" width={48} height={48} className="mt-1" />
+              <img src={heroSkillIconSrc(game, answer.id)} alt="" width={48} style={{ width: rem(48) }} height={48} className="mt-1" />
             ) : (
               "?"
             ),

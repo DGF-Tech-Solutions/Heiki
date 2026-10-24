@@ -201,6 +201,24 @@
 }
 
 @layer base {
+  /*
+   * La misura dell'interfaccia (24/10). Fino a 1440px di schermo la base e' 16px,
+   * come il sito e' stato disegnato e provato; da li' cresce senza scatti fino a
+   * 20px a 2560 (+25%), e poi si ferma. Prima era fissa: su un 2560x1440 al 100%
+   * di scala il sito restava una colonna da 1560px con testi da 12-16px e mezzo
+   * schermo vuoto. Tutto il CSS e' in rem (postcss.config.mjs converte i px), e
+   * quindi testi, spazi, colonne, palchi e il guscio crescono insieme: e' lo
+   * zoom del browser, deciso dallo schermo.
+   *
+   * In rem e percentuali, non in px: chi ha alzato la dimensione del testo nel
+   * browser parte dalla sua base, e lo zoom continua a funzionare (zoomando lo
+   * schermo in px CSS si stringe, la parte in vw cala, ma il minimo resta la base).
+   * Le soglie delle media query non cambiano: dicono quanto e' largo lo schermo.
+   */
+  html {
+    font-size: clamp(100%, 0.6786rem + 0.3571vw, 125%);
+  }
+
   :root {
     color-scheme: dark;
     /* Accento del profilo: sovrascritto per utente dai cosmetici scelti. */
@@ -224,7 +242,7 @@
         color-mix(in srgb, var(--color-brand) 9%, transparent) 58% 62%,
         transparent 62%
       ),
-      radial-gradient(color-mix(in srgb, var(--color-brand) 16%, transparent) 1px, transparent 1.6px);
+      radial-gradient(color-mix(in srgb, var(--color-brand) 16%, transparent) 0.0625rem, transparent 0.1rem);
     background-size:
       100% 100%,
       9px 9px;
@@ -570,7 +588,7 @@
   }
 
   .stage-dots {
-    background-image: radial-gradient(color-mix(in srgb, var(--color-brand) 38%, transparent) 1.1px, transparent 1.8px);
+    background-image: radial-gradient(color-mix(in srgb, var(--color-brand) 38%, transparent) 0.06875rem, transparent 0.1125rem);
     background-size: 8px 8px;
     -webkit-mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
     mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
@@ -596,7 +614,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(#000 1.05px, transparent 1.6px);
+    background-image: radial-gradient(#000 0.065625rem, transparent 0.1rem);
     background-size: 6px 6px;
     opacity: 0.32;
     mix-blend-mode: multiply;
@@ -893,7 +911,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(#000 1.05px, transparent 1.6px);
+    background-image: radial-gradient(#000 0.065625rem, transparent 0.1rem);
     background-size: 6px 6px;
     opacity: 0.32;
     mix-blend-mode: multiply;
@@ -1396,7 +1414,7 @@
 
 .profile-canvas[data-background="dots"]::before,
 .profile-canvas[data-background="dots"] .stage-dots {
-  background-image: radial-gradient(color-mix(in srgb, var(--accent) 38%, transparent) 1.1px, transparent 1.8px);
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 38%, transparent) 0.06875rem, transparent 0.1125rem);
   background-size: 8px 8px;
 }
 

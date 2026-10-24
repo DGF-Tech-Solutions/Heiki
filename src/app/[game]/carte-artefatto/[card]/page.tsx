@@ -15,6 +15,7 @@ import { plainHeroText } from "@/lib/games/hero-markup";
 import { getGameModule, requireGameModule } from "@/lib/games/registry";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { rem } from "@/lib/rem";
 
 /**
  * Una Carta artefatto: l'immagine, il grado, le statistiche, il set di cui fa
@@ -183,7 +184,7 @@ export default async function ArtifactCardPage({ params }: Props) {
                     <img
                       src={artifactImageSrc(game, `placcate/${card.grade}.png`)}
                       alt=""
-                      width={28}
+                      width={28} style={{ width: rem(28) }}
                       height={28}
                       className="block shrink-0"
                     />

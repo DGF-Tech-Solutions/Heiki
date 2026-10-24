@@ -37,6 +37,7 @@ import { gameIconSrc, heroCardArtSrc, heroSkillIconSrc } from "@/lib/games/heroe
 import { useLocale } from "@/lib/i18n/client";
 import { intlLocale, testi } from "@/lib/i18n/locale";
 import { moveLegacyStorage } from "@/lib/legacy-storage";
+import { rem, remPx } from "@/lib/rem";
 
 export type PuzzleKind = "carta" | "unica" | "testo";
 
@@ -120,7 +121,7 @@ export function PuzzleGuess({
     if (key === "icona")
       return answer.uniqueIcon ? (
         // eslint-disable-next-line @next/next/no-img-element -- icona gia' pronta, come nella scheda eroe
-        <img src={heroSkillIconSrc(game, answer.id)} alt="" width={48} height={48} className="mt-1" />
+        <img src={heroSkillIconSrc(game, answer.id)} alt="" width={48} style={{ width: rem(48) }} height={48} className="mt-1" />
       ) : (
         "?"
       );
@@ -130,7 +131,7 @@ export function PuzzleGuess({
         {codes.map((code) =>
           icons?.attributo?.includes(String(code)) ? (
             // eslint-disable-next-line @next/next/no-img-element -- icone del gioco gia' pronte
-            <img key={code} src={gameIconSrc(game, "attributo", code)} alt="" width={22} height={22} />
+            <img key={code} src={gameIconSrc(game, "attributo", code)} alt="" width={22} style={{ width: rem(22) }} height={22} />
           ) : null,
         )}
         {answer.attribute !== null ? attributes[String(answer.attribute)] : "?"}
@@ -307,7 +308,8 @@ function MosaicImage({
     const element = canvas.current;
     const context = element?.getContext("2d");
     if (!element || !context) return;
-    const ratio = window.devicePixelRatio || 1;
+    // la tela e' in rem come il resto: i pixel veri sono quelli dello schermo per la base attuale
+    const ratio = (window.devicePixelRatio || 1) * (remPx() / 16);
     element.width = Math.round(width * ratio);
     element.height = Math.round(height * ratio);
     context.clearRect(0, 0, element.width, element.height);
@@ -334,5 +336,5 @@ function MosaicImage({
     }
   }, [loaded, src, width, height, zoom, x, y, blocks]);
 
-  return <canvas ref={canvas} role="img" aria-label={label} className="block" style={{ width, height }} />;
+  return <canvas ref={canvas} role="img" aria-label={label} className="block" style={{ width: rem(width), height: rem(height) }} />;
 }

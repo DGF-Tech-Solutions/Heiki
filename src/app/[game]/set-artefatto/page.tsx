@@ -14,6 +14,7 @@ import { gameIconSrc } from "@/lib/games/heroes";
 import { requireGameModule } from "@/lib/games/registry";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { rem } from "@/lib/rem";
 
 /**
  * Set artefatto: l'indice.
@@ -205,7 +206,7 @@ export default async function ArtifactSetsPage({ params }: Props) {
                           <img
                             src={artifactImageSrc(game, `placcate/${code}.png`)}
                             alt=""
-                            width={28}
+                            width={28} style={{ width: rem(28) }}
                             height={28}
                             loading="lazy"
                             className="block shrink-0"

@@ -12,6 +12,7 @@ import { cx, display } from "@/components/ui";
 import { gameIconSrc, type IconFamily } from "@/lib/games/heroes";
 import type { HeroLabel } from "@/lib/games/types";
 import { inLingua, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 /**
  * Un testo del dataset nella lingua della pagina.
@@ -136,7 +137,7 @@ export function GameIcon({
       width={size}
       height={size}
       className={cx("inline-block", className)}
-      style={{ width: size, height: "auto" }}
+      style={{ width: rem(size), height: "auto" }}
     />
   );
 }

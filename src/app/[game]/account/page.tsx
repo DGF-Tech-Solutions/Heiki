@@ -20,6 +20,7 @@ import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import { requireGameModule } from "@/lib/games/registry";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { rem } from "@/lib/rem";
 
 /**
  * Il mio account: chi sei nel gioco (nickname, Codice amico, server), la classe
@@ -154,7 +155,7 @@ export default async function GameAccountPage({ params }: Props) {
                 src={heroCardSrc(game, hero.id)}
                 srcSet={`${heroCardSrc(game, hero.id)} 1x, ${heroCardSrc(game, hero.id, 2)} 2x`}
                 alt=""
-                width={76}
+                width={76} style={{ width: rem(76) }}
                 height={76}
                 className={cx("block h-[76px] w-[76px] bg-paper-2 shadow-[4px_4px_0_var(--color-paper)] transition-transform group-hover:-translate-y-0.5", i > 0 && "-ml-5")}
               />

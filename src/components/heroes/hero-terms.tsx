@@ -40,6 +40,7 @@ import type {
   HeroSpecialsIndex,
 } from "@/lib/games/types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
@@ -448,7 +449,7 @@ export function HeroTermPopovers({
                           >
                             <Link href={`/${game}/eroi/${hero.id}`} className={current ? "bg-brand-soft" : undefined}>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={heroCardSrc(game, hero.id)} alt="" width={128} height={128} loading="lazy" />
+                              <img src={heroCardSrc(game, hero.id)} alt="" width={128} style={{ width: rem(128) }} height={128} loading="lazy" />
                               <span className="min-w-0 text-[13px] leading-tight">
                                 <span className="font-semibold">{heroName(hero, locale)}</span>
                                 <span className="text-ink-3">

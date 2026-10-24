@@ -3,6 +3,7 @@ import { IconGift } from "@/components/icons";
 import { cx, numeric } from "@/components/ui";
 import { heroCardSrc } from "@/lib/games/heroes";
 import { intlLocale, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 /**
  * I pezzi della pagina Compleanni che servono sia al server (calendario, tabella
@@ -67,7 +68,7 @@ export function GiftLine({
   const icon = size === "md" ? 48 : 36;
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span className="relative shrink-0 border border-rule bg-paper-3" style={{ width: icon, height: icon }}>
+      <span className="relative shrink-0 border border-rule bg-paper-3" style={{ width: rem(icon), height: rem(icon) }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- icona del gioco, gia' a 128px */}
         <img src={birthdayItemSrc(game, gift.item)} alt="" width={icon} height={icon} loading="lazy" className="block h-full w-full object-contain" />
         <span className={cx(numeric, "absolute -right-1.5 -bottom-1.5 bg-ink px-1 text-[11px] leading-[16px] font-bold text-paper")}>
@@ -153,7 +154,7 @@ export function CharacterChip({
               height={card}
               loading="lazy"
               className="block bg-paper-3"
-              style={{ width: card, height: card }}
+              style={{ width: rem(card), height: rem(card) }}
             />
           </Link>
         ))}

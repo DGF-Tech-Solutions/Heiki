@@ -33,6 +33,7 @@ import type { HeroEntry } from "@/lib/games/types";
 import { useLocale } from "@/lib/i18n/client";
 import { intlLocale, testi } from "@/lib/i18n/locale";
 import { moveLegacyStorage } from "@/lib/legacy-storage";
+import { rem } from "@/lib/rem";
 
 /** Quello che serve di un eroe per giocarlo: la voce del roster (nome, epiteto, ricerca nelle due lingue). */
 export type Playable = HeroEntry;
@@ -409,7 +410,7 @@ export function GuessSearch<T extends Playable>({ game, g }: { game: string; g: 
                 className={cx("flex cursor-pointer items-center gap-2.5 px-2 py-1.5", i === active && "bg-brand text-white")}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-                <img src={heroCardSrc(game, hero.id)} alt="" width={36} height={36} />
+                <img src={heroCardSrc(game, hero.id)} alt="" width={36} style={{ width: rem(36) }} height={36} />
                 <span className="min-w-0">
                   <span className={cx("block truncate text-[12px]", i === active ? "text-white/85" : "text-ink-3")}>{heroEpithet(hero, locale)}</span>
                   <span className="block truncate font-display text-[13px] font-black uppercase [font-variation-settings:'wdth'_80]">
@@ -460,7 +461,7 @@ export function GuessEnd<T extends Playable>({
   return (
     <section className="p5-corner mt-5 flex max-w-[640px] flex-wrap items-center gap-4 border border-rule border-t-[3px] border-t-brand bg-paper-2 p-4">
       {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} height={96} className="shadow-[4px_4px_0_var(--color-brand)]" />
+      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} style={{ width: rem(96) }} height={96} className="shadow-[4px_4px_0_var(--color-brand)]" />
       <div className="min-w-0 flex-1 text-sm">
         <p className={cx(display, "m-0 text-[clamp(18px,2.4vw,22px)]")}>
           {g.solved ? t.vinto(heroName(answer, locale), g.guesses.length) : t.arreso(heroName(answer, locale))}
@@ -546,7 +547,7 @@ export function GuessList<T extends Playable>({ game, g }: { game: string; g: Gu
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-              <img src={heroCardSrc(game, hero.id)} alt="" width={40} height={40} className="shrink-0" />
+              <img src={heroCardSrc(game, hero.id)} alt="" width={40} style={{ width: rem(40) }} height={40} className="shrink-0" />
               <Link href={`/${game}/eroi/${hero.id}`} className="min-w-0 flex-1 hover:underline">
                 <span className="block truncate text-[12px] opacity-80">{heroEpithet(hero, locale)}</span>
                 <span className="block truncate text-[13px] font-semibold">{heroName(hero, locale)}</span>

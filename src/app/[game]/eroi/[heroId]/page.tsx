@@ -733,7 +733,8 @@ function HeroInfo({
             alt={t.altIllustrazione(name)}
             width={1024}
             height={1024}
-            sizes="340px"
+            // 340px del disegno, fino a 425 sugli schermi larghi (globals.css)
+            sizes="(min-width: 1441px) 425px, 340px"
             className="h-auto w-full max-w-[340px] rounded-card border border-rule bg-paper-2"
           />
         ) : null}

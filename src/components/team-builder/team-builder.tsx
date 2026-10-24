@@ -52,6 +52,7 @@ import { inLingua } from "@/lib/i18n/locale";
 import { TeamReport } from "./team-report";
 import { slotLabel, TESTI, type BuilderData, type BuilderHero, type Texts } from "./team-labels";
 import { moveLegacyStorage } from "@/lib/legacy-storage";
+import { rem } from "@/lib/rem";
 
 type Picking = { readonly kind: "main" | "associate"; readonly slot: number };
 /** l'ultimo eroe messo in un posto: solo lui entra col taglio del palco */
@@ -336,7 +337,7 @@ function Controls({
                   <img
                     src={gameIconSrc(data.game, "carta", `pietra_${n}`)}
                     alt=""
-                    width={18}
+                    width={18} style={{ width: rem(18) }}
                     height={18}
                     className={cx("h-[18px] w-[18px] object-contain transition-opacity", n > setup.ultimate && "opacity-25 grayscale")}
                   />
@@ -557,7 +558,7 @@ function Picker({
                       className="group flex w-full cursor-pointer items-center gap-2.5 border border-rule bg-paper p-1.5 text-left text-ink transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte */}
-                      <img src={heroCardSrc(data.game, hero.id)} alt="" width={44} height={44} className="shrink-0" />
+                      <img src={heroCardSrc(data.game, hero.id)} alt="" width={44} style={{ width: rem(44) }} height={44} className="shrink-0" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[12px] text-ink-3" style={hero.color ? { color: hero.color } : undefined}>
                           {hero.epithet}
@@ -593,7 +594,7 @@ function Picker({
                       className="group flex w-full cursor-pointer items-center gap-2.5 border border-rule bg-paper p-1.5 text-left text-ink transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte */}
-                      <img src={heroCardSrc(data.game, id)} alt="" width={44} height={44} className="shrink-0" />
+                      <img src={heroCardSrc(data.game, id)} alt="" width={44} style={{ width: rem(44) }} height={44} className="shrink-0" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-display text-[13px] font-black uppercase [font-variation-settings:'wdth'_80] group-hover:text-brand-deep">{hero.name}</span>
                         <span className="block truncate text-[12px] text-up">

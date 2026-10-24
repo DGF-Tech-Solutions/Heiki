@@ -20,6 +20,7 @@ import { buttonClass, cx, Empty, eyebrow, Input, numeric } from "@/components/ui
 import { cardImageSrc, countBy, filterSets, type ArtifactSetSummary } from "@/lib/games/artifacts";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
@@ -221,14 +222,14 @@ function SetCard({
               loading="lazy"
               decoding="async"
               className="block"
-              style={{ width, height }}
+              style={{ width: rem(width), height: rem(height) }}
             />
           ) : (
             <span
               key={card.id}
               aria-hidden
               className="block border-2 bg-paper"
-              style={{ width, height, borderColor: GRADE_COLORS[card.grade] }}
+              style={{ width: rem(width), height: rem(height), borderColor: GRADE_COLORS[card.grade] }}
             />
           ),
         )}
@@ -243,7 +244,7 @@ function SetCard({
             <span key={entry.code} className="inline-flex items-center gap-1">
               {entry.icon ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={entry.icon} alt="" width={16} height={16} className="block" style={{ width: 16, height: "auto" }} />
+                <img src={entry.icon} alt="" width={16} height={16} className="block" style={{ width: rem(16), height: "auto" }} />
               ) : null}
               {entry.name}
             </span>

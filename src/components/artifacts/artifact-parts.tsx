@@ -16,6 +16,7 @@ import { formatNumber } from "@/lib/games/endgame";
 import { gameIconSrc } from "@/lib/games/heroes";
 import type { HeroLabel } from "@/lib/games/types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
@@ -272,7 +273,7 @@ export function SetTags({
         <li key={tag.key} className="p5-cut-sm inline-flex h-7 items-center gap-1.5 bg-paper-3 px-2.5 text-[12px] text-ink-2">
           {tag.icon ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={tag.icon} alt="" width={16} height={16} className="block shrink-0" style={{ width: 16, height: "auto" }} />
+            <img src={tag.icon} alt="" width={16} height={16} className="block shrink-0" style={{ width: rem(16), height: "auto" }} />
           ) : null}
           {tag.label}
         </li>

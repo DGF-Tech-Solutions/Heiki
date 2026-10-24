@@ -7,6 +7,7 @@ import { setTheme } from "@/lib/theme/actions";
 import { THEME_COLORS, THEMES, type Theme } from "@/lib/theme/themes";
 import { IconCheck, IconPalette } from "./icons";
 import { cx, eyebrow } from "./ui";
+import { rem, remPx } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
@@ -65,7 +66,11 @@ export function ThemeSwitch({ current }: { current: Theme }) {
     const b = pulsante.current?.getBoundingClientRect();
     const p = pannello.current;
     if (!b || !p) return;
-    const left = Math.max(MARGINE, Math.min(b.right - LARGHEZZA, document.documentElement.clientWidth - LARGHEZZA - MARGINE));
+    // misure del disegno in px, che sullo schermo largo crescono col resto
+    const scala = remPx() / 16;
+    const larghezza = LARGHEZZA * scala;
+    const margine = MARGINE * scala;
+    const left = Math.max(margine, Math.min(b.right - larghezza, document.documentElement.clientWidth - larghezza - margine));
     p.style.top = `${Math.round(b.bottom + 10)}px`;
     p.style.left = `${Math.round(left)}px`;
   }
@@ -91,7 +96,7 @@ export function ThemeSwitch({ current }: { current: Theme }) {
         onBeforeToggle={(event) => {
           if (event.newState === "open") posiziona();
         }}
-        style={{ width: LARGHEZZA }}
+        style={{ width: rem(LARGHEZZA) }}
         className="inset-auto m-0 border-2 border-ink bg-paper p-0 whitespace-normal text-ink shadow-[6px_6px_0_0_var(--color-brand)]"
       >
         <p className={cx(eyebrow, "m-0 border-b border-rule px-4 py-2.5")}>{t.titolo}</p>

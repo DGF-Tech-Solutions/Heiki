@@ -41,6 +41,7 @@ import {
   type BuilderHero,
   type Texts,
 } from "./team-labels";
+import { rem } from "@/lib/rem";
 
 export function TeamReport({
   t,
@@ -105,7 +106,7 @@ function MemberCard({
       <header className="flex items-center gap-3 border-b border-rule-2 pb-3">
         <Link href={`/${data.game}/eroi/${hero.id}`} className="shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte */}
-          <img src={heroCardSrc(data.game, hero.id)} alt="" width={56} height={56} className="shadow-[3px_3px_0_var(--color-brand)]" />
+          <img src={heroCardSrc(data.game, hero.id)} alt="" width={56} style={{ width: rem(56) }} height={56} className="shadow-[3px_3px_0_var(--color-brand)]" />
         </Link>
         <div className="min-w-0">
           <p className={cx(eyebrow, "m-0", member.bench && "text-gold")}>

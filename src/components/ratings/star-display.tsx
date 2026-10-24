@@ -1,6 +1,7 @@
 import { gameIconSrc } from "@/lib/games/heroes";
 import { cx } from "@/components/ui";
 import { testi, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: { nessunaValutazione: "Nessuna valutazione" },
@@ -42,7 +43,7 @@ export function AwakenStar({
           : "opacity-100 drop-shadow-[0_0_5px_rgba(255,210,31,0.6)] brightness-105",
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{ width: rem(size), height: rem(size) }}
     />
   );
 }

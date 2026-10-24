@@ -16,6 +16,7 @@ import { formatNumber, formatPercent } from "@/lib/games/endgame";
 import type { EndgameMode } from "@/lib/games/endgame-types";
 import type { GameModule } from "@/lib/games/types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
+import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
@@ -125,7 +126,7 @@ export function CardSources({
                     <img
                       src={artifactImageSrc(game, `pacchetti/${pack.icon}`)}
                       alt=""
-                      width={24}
+                      width={24} style={{ width: rem(24) }}
                       height={24}
                       loading="lazy"
                       className="block shrink-0"

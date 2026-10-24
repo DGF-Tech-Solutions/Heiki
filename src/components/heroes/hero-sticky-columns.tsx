@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { remPx } from "@/lib/rem";
 
 /**
  * Nella scheda «Abilita'», la colonna corta che resta ferma mentre scorre la
@@ -42,14 +43,17 @@ export function HeroStickyColumns({ gridId, top }: { gridId: string; top: number
       // affiancate, e non una sotto l'altra (scheda stretta, o nascosta): lo
       // dice il bordo sinistro, che fermarsi non sposta (l'altezza si')
       const side = a.getBoundingClientRect().left + 1 < b.getBoundingClientRect().left;
+      // `top` e i margini sono px del disegno: sullo schermo largo crescono con
+      // la base dell'interfaccia (src/lib/rem.ts), come la classe `top-[135px]`
+      const scale = remPx() / 16;
       // lo spazio sotto la barra delle schede, con un margine in fondo
-      const room = window.innerHeight - top - 16;
+      const room = window.innerHeight - (top + 16) * scale;
       for (const [column, other] of [
         [a, b],
         [b, a],
       ] as const) {
         // 40px di differenza almeno: sotto, il vuoto non si nota e fermarla non serve
-        if (side && column.offsetHeight + 40 < other.offsetHeight) {
+        if (side && column.offsetHeight + 40 * scale < other.offsetHeight) {
           column.setAttribute("data-ferma", column.offsetHeight <= room ? "alto" : "basso");
         } else {
           column.removeAttribute("data-ferma");

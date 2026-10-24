@@ -138,6 +138,13 @@ regole.
   - le classi si scrivono per intero (mai `` `bg-${x}` ``);
   - una classe aggiunta a una primitiva, per esempio `cx(eyebrow, "text-xs")`, non vince con certezza su quella
     della primitiva.
+- **Misure** (dal 24/10 l'interfaccia cresce con lo schermo: base 16 px fino a 1440, 20 px a 2560):
+  - nel CSS e nelle classi scrivi in px (`text-[12px]`, `top-[135px]`): la build li converte in rem
+    (`postcss.config.mjs`) e crescono da soli;
+  - nel JavaScript no: una misura in `style={{ ... }}`, la `size` di un'icona o una larghezza usata nei conti va
+    scritta con `rem(px)` di `src/lib/rem.ts`, e un conto che deve combaciare col CSS si moltiplica per
+    `remPx() / 16` (esempi: `term-popover-client.tsx`, `hero-sticky-columns.tsx`, `theme-switch.tsx`);
+  - un `<img width={48}>` senza una classe di larghezza resta 48 px: aggiungi `style={{ width: rem(48) }}`.
 - **TypeScript** ha `noUncheckedIndexedAccess`: `arr[0]` è `T | undefined`.
 - **Telefono**: a 390 px niente sforamento orizzontale. Nelle griglie servono `grid-cols-1` e `min-w-0`.
 
@@ -182,7 +189,7 @@ regole.
 
    Cosa provare:
    - le pagine toccate, a 1400 e a 390 px, in italiano e in inglese: 0 errori di console, 0 sforamenti, 0 immagini
-     rotte;
+     rotte; e a 2560 px, lo schermo dell'utente (2560x1440 al 100%), dove tutto è più grande del 25%;
    - ogni azione nuova o cambiata, per la strada vera:
      1. iscrivi un utente di prova da `/registrati` (es. `prova2410`, email `@example.test`);
      2. fai l'azione dall'interfaccia;
