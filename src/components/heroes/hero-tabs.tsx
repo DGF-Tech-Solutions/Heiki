@@ -17,7 +17,7 @@
  *
  * La barra resta sotto l'intestazione del sito scorrendo (60px: 58 di altezza
  * piu' il bordo di 2), cosi' da in fondo alle carte si passa alle statistiche
- * senza risalire.
+ * senza risalire. Sul telefono no, dal 24/10: vedi la barra qui sotto.
  */
 
 import type { ReactNode } from "react";
@@ -38,6 +38,10 @@ export interface HeroTab {
  * nel CSS (la stessa ragione di RANK_CLASSES nelle abilita'). Sei posizioni,
  * due libere oggi; una settima scheda e' una riga in piu' qui.
  *
+ * La scheda scelta ha il testo bianco sul rosso, come i bottoni (4,7:1): fino
+ * al 24/10 era il bianco caldo dell'inchiostro, 4,2:1, sotto il 4,5 che serve
+ * a un testo di 15px.
+ *
  * Il gruppo ha un nome, `group/schede`, e DEVE averlo. Le carte usano
  * `group-has-[.rk1:checked]` senza nome, che in Tailwind 4 diventa
  * `:where(.group):has(...)`: guarda QUALUNQUE antenato con la classe `group`.
@@ -47,42 +51,42 @@ export interface HeroTab {
 const TAB_CLASSES = [
   {
     hook: "tab1",
-    chip: "group-has-[.tab1:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab1:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab1:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-fg:#fff] group-has-[.tab1:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab1:focus-visible]/schede:outline-2",
     show: "group-has-[.tab1:checked]/schede:block",
   },
   {
     hook: "tab2",
-    chip: "group-has-[.tab2:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab2:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab2:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-fg:#fff] group-has-[.tab2:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab2:focus-visible]/schede:outline-2",
     show: "group-has-[.tab2:checked]/schede:block",
   },
   {
     hook: "tab3",
-    chip: "group-has-[.tab3:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab3:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab3:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-fg:#fff] group-has-[.tab3:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab3:focus-visible]/schede:outline-2",
     show: "group-has-[.tab3:checked]/schede:block",
   },
   {
     hook: "tab4",
-    chip: "group-has-[.tab4:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab4:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab4:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-fg:#fff] group-has-[.tab4:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab4:focus-visible]/schede:outline-2",
     show: "group-has-[.tab4:checked]/schede:block",
   },
   {
     hook: "tab5",
-    chip: "group-has-[.tab5:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab5:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab5:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-fg:#fff] group-has-[.tab5:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab5:focus-visible]/schede:outline-2",
     show: "group-has-[.tab5:checked]/schede:block",
   },
   {
     hook: "tab6",
-    chip: "group-has-[.tab6:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab6:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab6:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-fg:#fff] group-has-[.tab6:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab6:focus-visible]/schede:outline-2",
     show: "group-has-[.tab6:checked]/schede:block",
   },
   {
     hook: "tab7",
-    chip: "group-has-[.tab7:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab7:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab7:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-fg:#fff] group-has-[.tab7:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab7:focus-visible]/schede:outline-2",
     show: "group-has-[.tab7:checked]/schede:block",
   },
   {
     hook: "tab8",
-    chip: "group-has-[.tab8:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-hi-fg:var(--color-ink)] group-has-[.tab8:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab8:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-fg:#fff] group-has-[.tab8:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab8:focus-visible]/schede:outline-2",
     show: "group-has-[.tab8:checked]/schede:block",
   },
 ] as const;
@@ -117,12 +121,20 @@ export function HeroTabs({
         Tab e le frecce cambiano scheda, e il browser, portando il fuoco sul
         radio, non scorre via dalla barra che resta in vista.
       */}
+      {/*
+        Le schede vanno a capo invece di scorrere di lato. Dal 10/10 la fila
+        scorreva, con una sfumatura a destra: a 390px tre schede su sei
+        (Associazioni, Info, Valutazioni) restavano fuori e la sfumatura non
+        bastava a dirlo (critica del 24/10). A capo si vedono tutte.
+        Sul telefono sono due righe da 44px (a 13px ci stanno anche le sette
+        schede degli eroi con la Reliquia), comode da toccare; ferme sotto
+        l'intestazione avrebbero preso piu' di 100px dello schermo mentre si
+        legge, quindi li' la barra scorre con la pagina. Dal tablet resta ferma.
+      */}
       <div
         role="radiogroup"
         aria-label={label}
-        // la sfumatura a destra dice che la fila continua: sul telefono le schede
-        // non ci stanno tutte, e la sesta tagliata a meta' non lo diceva (10/10)
-        className="sticky top-[60px] z-10 mb-5 flex gap-1 overflow-x-auto border-b-2 border-brand bg-paper py-1.5 [scrollbar-width:none] max-sm:[mask-image:linear-gradient(to_right,#000_82%,transparent)] max-sm:pr-10"
+        className="z-10 mb-5 flex flex-wrap gap-1 border-b-2 border-brand bg-paper py-1.5 sm:sticky sm:top-[60px]"
       >
         {tabs.map((tab, index) => (
           <input
@@ -143,8 +155,8 @@ export function HeroTabs({
               // la lama che spazza al passaggio e l'affondo alla pressione: p5-btn.
               // Il fuoco dentro il taglio di 5px come quello di tutti i comandi
               // tagliati (globals.css): a 4 il contorno toccava gli spigoli obliqui
-              "p5-cut p5-btn shrink-0 cursor-pointer px-4 py-2 whitespace-nowrap [--btn-bg:transparent] [--btn-fg:var(--color-ink)]",
-              "font-display text-[15px] font-black uppercase tracking-[0.04em] [font-variation-settings:'wdth'_75] outline-offset-[-5px] outline-ink",
+              "p5-cut p5-btn flex shrink-0 cursor-pointer items-center px-4 py-2 whitespace-nowrap [--btn-bg:transparent] [--btn-fg:var(--color-ink)] max-sm:min-h-11 max-sm:px-2.5 max-sm:py-0",
+              "font-display text-[15px] font-black uppercase tracking-[0.04em] [font-variation-settings:'wdth'_75] outline-offset-[-5px] outline-ink max-sm:text-[13px]",
               TAB_CLASSES[index]!.chip,
             )}
           >

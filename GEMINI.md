@@ -119,6 +119,21 @@ regole.
   - il fuoco deve vedersi: nelle forme tagliate `.p5-*` il contorno va dentro.
 - **Stile Persona**: usa le primitive di `src/components/ui.tsx` (`buttonClass`, `chipClass`, `Card`, `PageHeader`,
   `Notice`, `cx`) e i colori di `globals.css`, senza ricrearle.
+- **Regole di design** (revisione del 24/10, approvate dall'utente):
+  - il **rosso pieno** solo per dove sei (voce attiva, scheda scelta) e per **una** azione principale per vista; le
+    altre azioni `outline` o `ghost`; i filtri scelti sono il chip chiaro di `chipClass`, uguale ovunque;
+  - **un solo menu**: le sezioni stanno in `GROUPS` di `src/lib/games/catalog.ts`, e barra laterale, menu del gioco,
+    menu del telefono e piè di pagina le leggono da lì, nello stesso ordine. Una pagina nuova si aggiunge lì, col
+    nome che avrà ovunque (titolo, briciole, collegamenti);
+  - il percorso in cima (`Breadcrumb`) si vede solo dal terzo livello; il gioco lo dice l'intestazione;
+  - nel testo visibile niente trattini lunghi (— e –: si riscrive con due punti, virgola o due frasi; il «—» resta solo
+    come cella vuota di una tabella), niente frecce di testo come icone (→: `IconArrowRight`), niente etichette
+    piccole sopra i titoli, al massimo un «·» per riga, niente tono da pubblicità;
+  - testo almeno 4,5:1 sul suo sfondo. I colori degli attributi su fondo scuro si schiariscono:
+    `color-mix(in oklab, <colore> 60%, var(--color-ink))`;
+  - sul telefono le cose da toccare sono alte almeno 44 px (`tapArea` in `ui.tsx` allarga l'area senza ingrandire);
+  - le illustrazioni degli eroi si inquadrano sul riquadro della sagoma (`HeroAssets.box`), intere: mai ingrandite fino
+    a tagliarle.
 - **Tailwind 4**:
   - le classi si scrivono per intero (mai `` `bg-${x}` ``);
   - una classe aggiunta a una primitiva, per esempio `cx(eyebrow, "text-xs")`, non vince con certezza su quella

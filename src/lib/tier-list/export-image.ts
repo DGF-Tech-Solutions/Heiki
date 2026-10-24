@@ -1,4 +1,5 @@
 import { SITE_NAME } from "@/lib/site";
+import { labelInk } from "./colors";
 import type { TierHeroItem, TierRow } from "./types";
 
 /*
@@ -149,19 +150,16 @@ export async function exportTierListToImage({
       fontSize -= 2;
       ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
     }
-    ctx.fillStyle = "#ffffff";
+    // L'inchiostro dal colore della riga, come nella pagina (24/10): prima era
+    // bianco con un'ombra, e sull'oro non si leggeva
+    ctx.fillStyle = labelInk(tier.color);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
-    // Aggiungi ombra al testo per leggibilità
-    ctx.shadowColor = "rgba(0,0,0,0.6)";
-    ctx.shadowBlur = 4;
     ctx.fillText(
       fitText(ctx, tier.label, labelWidth),
       PADDING + TIER_LABEL_WIDTH / 2,
       currentY + rowHeight / 2,
     );
-    ctx.shadowBlur = 0;
 
     // Sfondo dell'area carte del Tier
     ctx.fillStyle = "#151313";

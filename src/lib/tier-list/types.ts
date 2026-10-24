@@ -27,34 +27,82 @@ export interface TierColorOption {
   hex: string;
 }
 
+/*
+ * Le righe predefinite, dal fuoco alla cenere (24/10). Prima erano un
+ * arcobaleno di colori di serie di Tailwind (ambra, smeraldo, ciano, viola...),
+ * il segno piu' chiaro di una pagina montata e non disegnata, e le lettere
+ * bianche sopra non si leggevano. Ora la scala nasce dal mondo del sito: in cima
+ * il rosso di Grand Cross (lo stesso di `--color-brand`), poi il fuoco, la
+ * brace, l'osso, la cenere e il carbone. Si legge in ordine senza leggere le
+ * lettere: piu' caldo vuol dire piu' forte. Le scritte prendono l'inchiostro dal
+ * fondo (colors.ts), e ognuno di questi regge almeno 4,5:1.
+ */
+export const TIER_LADDER = [
+  "#e61421", // cremisi, S+
+  "#f0641c", // fuoco, S
+  "#f2b01e", // brace, A
+  "#e8dcc2", // osso, B
+  "#8c837a", // cenere, C
+  "#57504b", // carbone, D
+] as const;
+
 /**
- * I colori delle righe. Sono anche gli unici che il salvataggio accetta
- * (validation.ts): un colore qualsiasi finirebbe tale e quale nel PNG.
+ * I colori che si possono scegliere: la scala predefinita, poi gli altri colori
+ * del sito (l'oro e il rosa dei suoi segnali, il verde dei bonus, gli accenti
+ * dei temi Giada, Notte e Viola). Insieme a LEGACY_TIER_COLORS sono gli unici
+ * che il salvataggio accetta (validation.ts): un colore qualsiasi finirebbe tale
+ * e quale nel PNG.
  */
 export const TIER_COLORS: readonly TierColorOption[] = [
-  { label: { it: "Rosso", en: "Red" }, hex: "#e61421" },
-  { label: { it: "Arancione", en: "Orange" }, hex: "#ff6b00" },
-  { label: { it: "Ambra", en: "Amber" }, hex: "#f59e0b" },
+  { label: { it: "Cremisi", en: "Crimson" }, hex: TIER_LADDER[0] },
+  { label: { it: "Fuoco", en: "Fire" }, hex: TIER_LADDER[1] },
+  { label: { it: "Brace", en: "Ember" }, hex: TIER_LADDER[2] },
+  { label: { it: "Osso", en: "Bone" }, hex: TIER_LADDER[3] },
+  { label: { it: "Cenere", en: "Ash" }, hex: TIER_LADDER[4] },
+  { label: { it: "Carbone", en: "Charcoal" }, hex: TIER_LADDER[5] },
   { label: { it: "Oro", en: "Gold" }, hex: "#ffd21f" },
-  { label: { it: "Verde smeraldo", en: "Emerald" }, hex: "#10b981" },
-  { label: { it: "Verde chiaro", en: "Light green" }, hex: "#5fd38a" },
-  { label: { it: "Ciano", en: "Cyan" }, hex: "#06b6d4" },
-  { label: { it: "Azzurro", en: "Sky blue" }, hex: "#38bdf8" },
-  { label: { it: "Blu", en: "Blue" }, hex: "#3b82f6" },
-  { label: { it: "Viola", en: "Purple" }, hex: "#a855f7" },
-  { label: { it: "Magenta", en: "Magenta" }, hex: "#ec4899" },
-  { label: { it: "Rosa acceso", en: "Hot pink" }, hex: "#ff4f9a" },
-  { label: { it: "Grigio ardesia", en: "Slate gray" }, hex: "#64748b" },
+  { label: { it: "Rosa", en: "Pink" }, hex: "#ff4f9a" },
+  { label: { it: "Verde", en: "Green" }, hex: "#5fd38a" },
+  { label: { it: "Giada", en: "Jade" }, hex: "#0b836b" },
+  { label: { it: "Cobalto", en: "Cobalt" }, hex: "#1c64e8" },
+  { label: { it: "Viola", en: "Violet" }, hex: "#8b51ef" },
 ];
+
+/**
+ * I colori della tavolozza di prima del 24/10. Non si offrono piu', ma le liste
+ * salvate, i backup, i link `#data=` e le bozze nel browser li hanno ancora:
+ * il controllo li accetta, altrimenti una lista vecchia non si potrebbe piu'
+ * salvare e la bozza si perderebbe all'apertura.
+ */
+export const LEGACY_TIER_COLORS: readonly string[] = [
+  "#e61421",
+  "#ff6b00",
+  "#f59e0b",
+  "#ffd21f",
+  "#10b981",
+  "#5fd38a",
+  "#06b6d4",
+  "#38bdf8",
+  "#3b82f6",
+  "#a855f7",
+  "#ec4899",
+  "#ff4f9a",
+  "#64748b",
+];
+
+/** Il colore di una riga aggiunta in fondo: il gradino della scala al suo posto, poi il carbone. */
+export function nextTierColor(rowCount: number): string {
+  return TIER_LADDER[Math.min(rowCount, TIER_LADDER.length - 1)]!;
+}
 
 export function defaultTiers(): TierRow[] {
   return [
-    { id: "tier-s-plus", label: "S+", color: "#e61421", heroIds: [] },
-    { id: "tier-s", label: "S", color: "#ff6b00", heroIds: [] },
-    { id: "tier-a", label: "A", color: "#ffd21f", heroIds: [] },
-    { id: "tier-b", label: "B", color: "#5fd38a", heroIds: [] },
-    { id: "tier-c", label: "C", color: "#38bdf8", heroIds: [] },
-    { id: "tier-d", label: "D", color: "#a855f7", heroIds: [] },
+    { id: "tier-s-plus", label: "S+", color: TIER_LADDER[0], heroIds: [] },
+    { id: "tier-s", label: "S", color: TIER_LADDER[1], heroIds: [] },
+    { id: "tier-a", label: "A", color: TIER_LADDER[2], heroIds: [] },
+    { id: "tier-b", label: "B", color: TIER_LADDER[3], heroIds: [] },
+    { id: "tier-c", label: "C", color: TIER_LADDER[4], heroIds: [] },
+    { id: "tier-d", label: "D", color: TIER_LADDER[5], heroIds: [] },
   ];
 }
 

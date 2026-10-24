@@ -181,6 +181,7 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
                   number={slot + 1}
                   label={slotLabel(slot, setup.bench, t)}
                   bench={bench}
+                  benchNote={t.panchinaNota}
                   hero={main}
                   state={mainActive ? "active" : slot === next ? "next" : undefined}
                   enter={isPlaced("main", slot, main?.id)}
@@ -562,7 +563,7 @@ function Picker({
                           {hero.epithet}
                         </span>
                         <span className="block truncate font-display text-[13px] font-black uppercase [font-variation-settings:'wdth'_80] group-hover:text-brand-deep">{hero.name}</span>
-                        <span className="block text-[12px] leading-snug text-ink-3">{reasons.join(" · ")}</span>
+                        <span className="block text-[12px] leading-snug text-ink-3">{reasons.join(", ")}</span>
                       </span>
                       <span title={t.guadagnoTitolo(s.gain)} className={cx(numeric, "p5-cut-sm shrink-0 bg-brand px-2 py-0.5 text-[12px] font-bold text-white")}>
                         {t.guadagno(s.gain)}

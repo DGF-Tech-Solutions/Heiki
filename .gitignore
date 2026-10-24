@@ -24,6 +24,9 @@ next-env.d.ts
 .claude/
 CLAUDE.md
 .agents/
+# Impeccable: i controlli automatici per Codex e l'archivio delle critiche di design (24/10)
+.codex/
+.impeccable/
 
 # Grafo del codice di graphify: locale, si rigenera con `graphify update .`
 graphify-out/

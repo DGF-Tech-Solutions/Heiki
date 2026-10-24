@@ -187,7 +187,8 @@ export function QuickSearch({ games }: { games: readonly string[] }) {
         aria-label={t.etichetta}
         aria-keyshortcuts="/ Control+K"
         title={t.scorciatoia}
-        className="p5-cut ml-auto flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-ink px-3 text-[13px] font-semibold text-paper/70 hover:bg-white hover:text-paper md:w-56 max-md:w-9 max-md:justify-center max-md:px-0"
+        // alto 36 e largo 40 sul telefono (era 36x32): col taglio obliquo l'area non si puo' allargare oltre il bordo
+        className="p5-cut ml-auto flex h-9 shrink-0 cursor-pointer items-center gap-2 bg-ink px-3 text-[13px] font-semibold text-paper/70 hover:bg-white hover:text-paper md:w-56 max-md:w-10 max-md:justify-center max-md:px-0"
       >
         <IconSearch size={16} className="shrink-0 text-paper" />
         <span className="hidden flex-1 text-left md:inline">{t.apri}</span>

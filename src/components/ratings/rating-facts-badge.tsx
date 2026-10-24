@@ -2,7 +2,7 @@
 
 import { AwakenStar } from "@/components/ratings/star-display";
 import { openRatingsTab } from "@/components/ratings/open-ratings-tab";
-import { cx } from "@/components/ui";
+import { cx, tapArea } from "@/components/ui";
 import { testi, type Locale } from "@/lib/i18n/locale";
 
 const TESTI = testi({
@@ -41,6 +41,15 @@ interface RatingFactsBadgeProps {
   className?: string;
 }
 
+/**
+ * Il voto nella fascia dei dati della scheda eroe.
+ *
+ * «Valuta l'eroe» era 12px nel rosso pieno (`text-brand`): 4,0:1 sul fondo
+ * della fascia, sotto il 4,5 che serve al testo piccolo, e alto 16px da
+ * toccare. Dal 24/10 ha la forma degli altri collegamenti della fascia (il
+ * personaggio, il compleanno): stretto e maiuscolo a 15px nel rosso per il
+ * testo (`brand-deep`, 6,3:1), e la zona di tocco da 44px (`tapArea`).
+ */
 export function RatingFactsBadge({
   game,
   heroId,
@@ -59,11 +68,12 @@ export function RatingFactsBadge({
         onClick={(event) => openRatingsTab(event)}
         aria-label={t.ariaLabelEmpty}
         className={cx(
-          "p5-press inline-flex items-center gap-1.5 text-xs text-brand hover:underline",
+          tapArea,
+          "p5-press inline-flex items-center gap-1.5 font-display text-[15px] font-extrabold uppercase leading-tight tracking-[0.02em] text-brand-deep no-underline [font-variation-settings:'wdth'_85] hover:text-ink",
           className,
         )}
       >
-        <AwakenStar game={game} size={15} dimmed ariaHidden />
+        <AwakenStar game={game} size={16} dimmed ariaHidden />
         <span>{t.valutaOra}</span>
       </a>
     );
@@ -75,7 +85,8 @@ export function RatingFactsBadge({
       onClick={(event) => openRatingsTab(event)}
       aria-label={t.ariaLabelSummary(pveAvg, pvpAvg, totalRatings)}
       className={cx(
-        "p5-press inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-ink hover:text-brand",
+        tapArea,
+        "p5-press inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-ink no-underline hover:text-brand-deep",
         className,
       )}
     >
@@ -85,7 +96,7 @@ export function RatingFactsBadge({
         <span className="font-mono">{pveAvg.toFixed(1)}</span>
       </span>
 
-      <span className="text-ink-4">·</span>
+      <span className="text-ink-3">·</span>
 
       <span className="inline-flex items-center gap-1">
         <span className="text-ink-3">{t.pvpAbbr}</span>

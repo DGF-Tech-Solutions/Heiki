@@ -216,7 +216,7 @@ export default async function AdminPage({ searchParams }: Props) {
                 <span className="font-medium">{sponsor.advertiser}</span>
                 <span className="text-ink-2">{sponsor.title}</span>
                 <span className="ml-auto font-mono text-[11px] text-ink-3">
-                  {formatDate(sponsor.startsAt, locale)} → {formatDate(sponsor.endsAt, locale)}
+                  {formatDate(sponsor.startsAt, locale)} - {formatDate(sponsor.endsAt, locale)}
                 </span>
                 <SponsorToggle id={sponsor.id} active={sponsor.active} />
               </li>

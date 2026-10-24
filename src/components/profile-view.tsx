@@ -182,7 +182,7 @@ function AccountPower({ account, locale }: { account: ProfileGameAccount; locale
         <span className="text-ink-3">
           {" "}
           · {t.dichiarata}
-          {account.verifiedPower && when ? ` · ${t.verificataPrima(account.verifiedPower.toLocaleString(numberLocale), when)}` : ""}
+          {account.verifiedPower && when ? ` (${t.verificataPrima(account.verifiedPower.toLocaleString(numberLocale), when)})` : ""}
         </span>
       )}
     </p>

@@ -354,7 +354,7 @@ export function HeroTermPopovers({
           <span className="font-semibold text-ink">{t.cumulo}:</span>{" "}
           {section.stacking.length === 1
             ? t.regola(section.stacking[0]!)
-            : section.stacking.map((s) => `${t.regola(s)} (${t.carte(s.cards)})`).join(" · ")}{" "}
+            : section.stacking.map((s) => `${t.regola(s)} (${t.carte(s.cards)})`).join(", ")}{" "}
           {/* nella frase e non sotto: la freccia disegnata di MoreLink, il corpo del testo */}
           <Link href={`/${game}/meccaniche#cumulo`} className="group/more inline-flex items-center gap-1 text-brand-deep hover:underline">
             {t.comeSiCumula}
@@ -454,7 +454,7 @@ export function HeroTermPopovers({
                                 <span className="text-ink-3">
                                   {" · "}
                                   {heroEpithet(hero, locale)}
-                                  {current ? ` · ${t.questoEroe}` : ""}
+                                  {current ? ` (${t.questoEroe})` : ""}
                                 </span>
                                 {places.map((place) => (
                                   <span key={place} className="block text-[12px] text-ink-2">

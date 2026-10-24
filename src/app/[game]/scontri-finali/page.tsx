@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { CardStamp, EndgameCard } from "@/components/endgame/endgame-card";
+import { EndgameCard } from "@/components/endgame/endgame-card";
 import {
   AttributeLabel,
   ConditionIcon,
@@ -41,13 +41,12 @@ const TESTI = testi({
       `Gli Scontri finali di ${gioco}: i boss, le fasi, le abilità, le restrizioni della squadra e le ricompense con le probabilità.`,
     titolo: "Scontri finali",
     introduzione: (boss: number, difficolta: number) =>
-      `I ${boss} boss che invadono i villaggi dei capitoli 1-6 dopo le Battaglie boss, ${difficolta} difficoltà in tutto. Scegli un boss per vedere le fasi coi nemici, le carte e le passive, le restrizioni della squadra e le ricompense con le loro probabilità.`,
+      `I ${boss} boss che invadono i villaggi dei capitoli 1-6 dopo le Battaglie boss (le stelle accanto a ogni boss sono quelle delle Battaglie boss che lo fanno comparire), ${difficolta} difficoltà in tutto. Scegli un boss per vedere le fasi coi nemici, le carte e le passive, le restrizioni della squadra e le ricompense con le loro probabilità.`,
     fonte:
       "Fonte: le tabelle e i testi del client del gioco. Le statistiche dei boss sono stimate, e lo dice accanto al numero: il client non le scrive.",
     datiDa: "Da dove vengono i dati",
     indice: "Boss",
-    stelle: "Battaglie boss",
-    stelleN: (n: number) => (n === 1 ? "1 stella" : `${n} stelle`),
+    compare: (n: number) => `Compare dopo le Battaglie boss a ${n} ${n === 1 ? "stella" : "stelle"}`,
     difficolta: (n: number, da: number, a: number) => `${n} difficoltà · livello ${da}-${a}`,
     comeFunziona: "Come funziona",
     regole: (n: number) => `Le regole del gioco (${n})`,
@@ -71,13 +70,12 @@ const TESTI = testi({
       `${gioco} Death Match: the bosses, phases, skills, team restrictions and rewards with their chances.`,
     titolo: "Death Match",
     introduzione: (boss: number, difficolta: number) =>
-      `The ${boss} bosses that invade the villages of chapters 1-6 after Boss Battles, ${difficolta} difficulties in all. Pick a boss to see the phases with their enemies, the cards and passives, the team restrictions and the rewards with their chances.`,
+      `The ${boss} bosses that invade the villages of chapters 1-6 after Boss Battles (the stars next to each boss are those of the Boss Battles that make it appear), ${difficolta} difficulties in all. Pick a boss to see the phases with their enemies, the cards and passives, the team restrictions and the rewards with their chances.`,
     fonte:
       "Source: the game client's tables and texts. The bosses' stats are estimated, and it says so next to the number: the client does not store them.",
     datiDa: "Where the data comes from",
     indice: "Bosses",
-    stelle: "Boss Battles",
-    stelleN: (n: number) => (n === 1 ? "1 star" : `${n} stars`),
+    compare: (n: number) => `Appears after ${n}-star Boss Battles`,
     difficolta: (n: number, da: number, a: number) => `${n} difficulties · level ${da}-${a}`,
     comeFunziona: "How it works",
     regole: (n: number) => `The game's rules (${n})`,
@@ -159,12 +157,6 @@ export default async function DeathMatchPage({ params }: Props) {
                         ? endgameImageSrc(game, `scontri/${boss.key}.png`)
                         : null
                   }
-                  stamp={
-                    <CardStamp>
-                      {t.stelle}
-                      <RankStars rank={boss.stars} scope={scope} label={t.stelleN(boss.stars)} />
-                    </CardStamp>
-                  }
                   title={sayPlain(boss.name, scope)}
                 >
                   {/* l'attributo col suo nome, e quello che lo batte: le due cose che decidono la squadra */}
@@ -178,7 +170,17 @@ export default async function DeathMatchPage({ params }: Props) {
                       </span>
                     ) : null}
                   </span>
-                  <span className="mt-1.5 block">
+                  {/*
+                    Le stelle delle Battaglie boss da cui compare, accanto alle
+                    difficolta'. Fino al 24/10 stavano in una targhetta
+                    «BATTAGLIE BOSS ★» sull'immagine, uguale su ogni card tranne
+                    le stelle: ora resta solo quello che cambia, e l'introduzione
+                    dice una volta cosa sono.
+                  */}
+                  <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span title={t.compare(boss.stars)} className="inline-flex">
+                      <RankStars rank={boss.stars} scope={scope} label={t.compare(boss.stars)} />
+                    </span>
                     {t.difficolta(boss.difficulties.length, Math.min(...bossLevels), Math.max(...bossLevels))}
                   </span>
                 </EndgameCard>

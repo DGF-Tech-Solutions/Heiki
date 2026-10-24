@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AccountSync } from "@/components/game-account/account-sync";
 import { GameMenu } from "@/components/game-menu";
-import { GameSwitcher } from "@/components/game-nav";
 import { GameSidebar } from "@/components/game-sidebar";
 import { MobileBar } from "@/components/mobile-bar";
 import { auth } from "@/lib/auth";
@@ -13,9 +12,14 @@ import { getLocale } from "@/lib/i18n/server";
 /**
  * Guscio di tutte le pagine di un gioco.
  *
- * Selettore del gioco in cima, barra laterale con i gruppi a sinistra,
- * contenuto a destra. Sta nel layout e non nelle pagine perche' e' identico per
- * tutte: se ogni pagina se lo disegnasse da sola, prima o poi una divergerebbe.
+ * Barra laterale con i gruppi a sinistra, contenuto a destra. Sta nel layout e
+ * non nelle pagine perche' e' identico per tutte: se ogni pagina se lo
+ * disegnasse da sola, prima o poi una divergerebbe.
+ *
+ * Fino al 24/10 c'era anche una striscia col selettore del gioco, sotto
+ * l'intestazione: una riga intera su ogni pagina per un gioco solo e un «+4 in
+ * arrivo» che portava a del testo. Il gioco in cui sei ora lo dice
+ * l'intestazione, accanto al marchio (header-game.tsx).
  *
  * Se lo slug non e' un gioco conosciuto, o e' conosciuto ma senza modulo, non
  * esiste una pagina da mostrare: meglio un 404 di una schermata a meta'.
@@ -46,7 +50,6 @@ export default async function GameLayout({
   return (
     <>
       {userId ? <AccountSync gameSlug={game} userId={userId} server={server} /> : null}
-      <GameSwitcher game={game} />
       {/* sul telefono la barra laterale non c'e': le stesse voci in un pannello */}
       <GameMenu game={game} title={entry.shortName} groups={groups} />
 

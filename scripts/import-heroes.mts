@@ -1925,12 +1925,42 @@ function morph(mask: Uint8Array, n: number, r: number, grow: boolean): Uint8Arra
  * ingrandisce la figura attorno al volto, e la cima e' il limite che tiene la
  * testa (con ali, cappelli, corna) dentro il palco. La punta di una lancia puo'
  * uscire, la testa no.
+ *
+ * E il riquadro di tutta la sagoma, parti sottili comprese: l'anteprima della
+ * griglia Eroi (hero-peek.tsx, 24/10) inquadra quello, e non il file, perche'
+ * nei 1024x1024 del gioco la sagoma ha margini diversissimi (larga dal 28 al 99%
+ * del lato, alta dal 40 al 100%). Arrotondato verso l'esterno: non taglia mai.
  */
-async function figureOf(file: string): Promise<{ face: readonly [number, number]; top: number }> {
+async function figureOf(
+  file: string,
+): Promise<{ face: readonly [number, number]; top: number; box: readonly [number, number, number, number] }> {
   const n = FACE_SIDE;
   const data = await sharp(file).ensureAlpha().resize(n, n, { fit: "fill" }).raw().toBuffer();
   const opaque = new Uint8Array(n * n);
   for (let i = 0; i < n * n; i++) opaque[i] = data[i * 4 + 3]! > 127 ? 1 : 0;
+
+  let bx0 = n;
+  let by0 = n;
+  let bx1 = -1;
+  let by1 = -1;
+  for (let i = 0; i < n * n; i++) {
+    if (!opaque[i]) continue;
+    const x = i % n;
+    const y = Math.floor(i / n);
+    if (x < bx0) bx0 = x;
+    if (x > bx1) bx1 = x;
+    if (y < by0) by0 = y;
+    if (y > by1) by1 = y;
+  }
+  const box: readonly [number, number, number, number] =
+    bx1 < 0
+      ? [0, 0, 100, 100]
+      : [
+          Math.floor((bx0 / n) * 100),
+          Math.floor((by0 / n) * 100),
+          Math.ceil(((bx1 + 1) / n) * 100),
+          Math.ceil(((by1 + 1) / n) * 100),
+        ];
 
   let core = morph(morph(opaque, n, 4, false), n, 4, true);
   if (core.reduce((sum, v) => sum + v, 0) < 200) core = opaque;
@@ -1983,10 +2013,10 @@ async function figureOf(file: string): Promise<{ face: readonly [number, number]
     // 12% della figura: il volto, senza il collo e le spalle
     const start = skinRows[Math.floor(skinRows.length * 0.03)]!;
     const end = Math.floor(start + 0.12 * h);
-    return { face: centroid((x, y) => y >= start && y < end && skin[y * n + x] === 1), top };
+    return { face: centroid((x, y) => y >= start && y < end && skin[y * n + x] === 1), top, box };
   }
   const end = Math.floor(y0 + 0.14 * h);
-  return { face: centroid((x, y) => y < end && core[y * n + x] === 1), top };
+  return { face: centroid((x, y) => y < end && core[y * n + x] === 1), top, box };
 }
 
 const assetsJson = resolve(SOURCE, "eroi/asset_eroi.json");
@@ -2045,7 +2075,11 @@ if (!existsSync(assetsJson)) {
       if (kind.key === "splash") {
         if ((await sharp(to).stats()).isOpaque) opaque.push(hid);
         const figure = await figureOf(to);
-        flags.push(`face: ${JSON.stringify(VOLTI_A_MANO[hid] ?? figure.face)}`, `top: ${figure.top}`);
+        flags.push(
+          `face: ${JSON.stringify(VOLTI_A_MANO[hid] ?? figure.face)}`,
+          `top: ${figure.top}`,
+          `box: ${JSON.stringify(figure.box)}`,
+        );
       }
     }
 

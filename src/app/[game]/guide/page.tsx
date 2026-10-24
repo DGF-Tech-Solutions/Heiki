@@ -146,7 +146,10 @@ export default async function GuidesPage({ params }: Props) {
                   {guide.verifiedPatch === null ? (
                     <Tag>{t.patchNonDichiarata}</Tag>
                   ) : (
-                    <Tag tone={stale ? "neutral" : "brand"}>
+                    // nera anche quando e' aggiornata (24/10): il rosso pieno e'
+                    // per «sei qui» e per l'azione della pagina; la guida da
+                    // rivedere la dice la scritta accanto
+                    <Tag>
                       {stale ? t.verificataSu(guide.verifiedPatch) : `patch ${currentPatch}`}
                     </Tag>
                   )}

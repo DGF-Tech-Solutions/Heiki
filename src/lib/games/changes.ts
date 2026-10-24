@@ -60,14 +60,14 @@ export function groupChanges(changes: readonly HeroChange[]): ChangeGroup[] {
     .sort((a, b) => PART_ORDER.indexOf(a.part) - PART_ORDER.indexOf(b.part) || (a.id ?? 0) - (b.id ?? 0));
 }
 
-/** [2, 3, 4, 5, 6, 8] -> "2–6, 8": i ranghi toccati, scritti corti. */
+/** [2, 3, 4, 5, 6, 8] -> "2-6, 8": i ranghi toccati, scritti corti (col trattino semplice dal 24/10). */
 export function compressRanges(values: readonly number[]): string {
   const sorted = [...new Set(values)].sort((a, b) => a - b);
   const runs: string[] = [];
   for (let i = 0; i < sorted.length; ) {
     let j = i;
     while (j + 1 < sorted.length && sorted[j + 1] === sorted[j]! + 1) j++;
-    runs.push(j > i ? `${sorted[i]}–${sorted[j]}` : String(sorted[i]));
+    runs.push(j > i ? `${sorted[i]}-${sorted[j]}` : String(sorted[i]));
     i = j + 1;
   }
   return runs.join(", ");

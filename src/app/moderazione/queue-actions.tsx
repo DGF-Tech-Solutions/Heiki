@@ -108,10 +108,12 @@ export function QueueRowActions({
         {isHidden ? t.ripristina : t.nascondi}
       </Button>
 
+      {/* chiara e non rossa (24/10): ogni segnalazione ha la sua, e una pila di
+          comandi rossi pieni non dice quale sia l'azione della pagina */}
       <Button
         type="button"
         size="sm"
-        variant="primary"
+        variant="outline"
         disabled={pending}
         onClick={() => run(() => resolveReportAction(reportId, "RESOLVED"))}
       >

@@ -10,10 +10,12 @@
  *
  * Dal 10/10 (richiesta dell'utente: «grande enfasi sulla selezione dei
  * personaggi», scelta: griglia + eroe in grande a lato, come un picchiaduro):
- *   - sul computer, accanto alla griglia, il palco (hero-stage.tsx) mostra in
- *     grande l'eroe sotto il mouse o col fuoco della tastiera; il clic apre la
- *     scheda. Sul telefono il palco non c'e': il tocco apre la scheda, che ha il
- *     palco in testa (un tocco in piu' per vedere un eroe sarebbe un freno)
+ *   - sul computer, accanto alla griglia, l'anteprima mostra in grande l'eroe
+ *     sotto il mouse o col fuoco della tastiera; il clic apre la scheda. Era il
+ *     palco (hero-stage.tsx); dal 24/10 e' hero-peek.tsx, sul modello di Duet
+ *     Night Abyss: figura intera, sempre allo stesso posto, e la descrizione del
+ *     gioco. Sul telefono l'anteprima non c'e': il tocco apre la scheda, che ha
+ *     il palco in testa (un tocco in piu' per vedere un eroe sarebbe un freno)
  *   - i filtri stanno su una striscia: ricerca, ordine, e le icone del gioco per
  *     rarita', attributo e razza; «Esce come» e «Caratteristica» sotto «Altri
  *     filtri». Niente pulsanti «Tutte»: un filtro si toglie ripremendolo, e nello
@@ -43,8 +45,9 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { readableColor } from "@/components/heroes/game-color";
-import { DEFAULT_STAGE_ART, HeroStage, type StageArt, type StageBadge } from "@/components/heroes/hero-stage";
-import { IconCheck, IconChevronRight, IconClose, IconFilters } from "@/components/icons";
+import { HeroPeek, type FigureBox } from "@/components/heroes/hero-peek";
+import { DEFAULT_STAGE_ART, type StageArt, type StageBadge } from "@/components/heroes/hero-stage";
+import { IconArrowRight, IconCheck, IconChevronRight, IconClose, IconFilters } from "@/components/icons";
 import {
   buttonClass,
   chipClass,
@@ -97,7 +100,8 @@ const TESTI = testi({
     nessunaRicerca: (testo: string) => `Nessun eroe trovato per «${testo}».`,
     togliUltimo: (label: string) => `Togli «${label}»`,
     apri: "Apri la scheda",
-    percorso: (da: string, a: string) => (da === a ? da : `${da} → ${a}`),
+    // si trova come «da» e si risveglia fino ad «a»: in parole, non con una freccia di testo (24/10)
+    percorso: (da: string, a: string) => (da === a ? da : `da ${da} a ${a}`),
   },
   en: {
     ordini: { roster: "Release", name: "Name", group: "Character" },
@@ -122,7 +126,7 @@ const TESTI = testi({
     nessunaRicerca: (text: string) => `No heroes found for “${text}”.`,
     togliUltimo: (label: string) => `Remove “${label}”`,
     apri: "Open the page",
-    percorso: (from: string, to: string) => (from === to ? from : `${from} → ${to}`),
+    percorso: (from: string, to: string) => (from === to ? from : `${from} to ${to}`),
   },
 });
 
@@ -212,7 +216,9 @@ export function RosterBrowser({
   intro,
   art = {},
   figures = {},
+  boxes = {},
   withoutCutIn = [],
+  descriptions = {},
 }: {
   game: string;
   roster: HeroRoster;
@@ -240,8 +246,12 @@ export function RosterBrowser({
    * ingrandisce attorno al volto, il primo piano della fascia va dall'altra parte
    */
   figures?: Readonly<Record<string, StageArt["figure"]>>;
-  /** gli eroi senza il cut-in della Mossa finale: la loro fascia resta vuota */
+  /** il riquadro della sagoma di ogni eroe: l'anteprima inquadra quello (hero-peek.tsx) */
+  boxes?: Readonly<Record<string, FigureBox>>;
+  /** gli eroi senza il cut-in della Mossa finale: la loro lama resta vuota */
   withoutCutIn?: readonly string[];
+  /** la descrizione del gioco di ogni eroe, nella lingua della pagina e senza markup */
+  descriptions?: Readonly<Record<string, string>>;
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
@@ -357,8 +367,10 @@ export function RosterBrowser({
           />
 
           {/*
-            Rosso se c'e' almeno un filtro, come i pulsanti dei filtri (il rosso
-            dice «hai ristretto l'elenco»); bianco quieto se e' solo aperto.
+            Acceso (il chip chiaro) se c'e' almeno un filtro o il pannello e'
+            aperto, e il numero dice quanti filtri ci sono. Fino al 24/10 era
+            rosso: dalla revisione del design il rosso pieno resta alla posizione
+            e all'azione principale, e i filtri scelti sono chiari ovunque (ui.tsx).
           */}
           <button
             type="button"
@@ -433,7 +445,10 @@ export function RosterBrowser({
                       onClick={() => change({ race: race === item.code ? null : item.code })}
                       label={item.label}
                       iconSrc={iconFor("razza", item.iconKey)}
-                      withLabel={race === item.code}
+                      // il nome sempre, non solo da scelta: le icone delle razze non le
+                      // riconosce nessuno, e il nome nel title sul telefono non compare
+                      // (revisione del 24/10). Gli attributi hanno il colore del gioco
+                      withLabel
                       count={raceCounts.get(item.code) ?? 0}
                     />
                   ))}
@@ -567,26 +582,28 @@ export function RosterBrowser({
         )}
       </div>
 
-      {/* il palco: solo dove c'e' spazio accanto alla griglia */}
+      {/* l'anteprima: solo dove c'e' spazio accanto alla griglia */}
       {active ? (
         <aside className="sticky top-[76px] mt-6 hidden h-[calc(100dvh-100px)] max-h-[780px] min-h-[540px] lg:block" aria-label={heroName(active, locale)}>
-          <HeroStage
+          <HeroPeek
             game={game}
             hero={active}
             locale={locale}
-            affinity={byAffinity.get(active.affinity)}
             badges={badgesFor(active)}
+            tint={byAffinity.get(active.affinity)?.color}
             art={{
               art: art[active.id] ?? DEFAULT_STAGE_ART.art,
               figure: figures[active.id] ?? DEFAULT_STAGE_ART.figure,
               cutIn: !withoutCutIn.includes(active.id),
             }}
-            className="p5-corner h-full"
+            box={boxes[active.id]}
+            description={descriptions[active.id]}
           >
             <Link href={`/${game}/eroi/${active.id}`} className={buttonClass("primary", "md")}>
               {t.apri}
+              <IconArrowRight size={16} />
             </Link>
-          </HeroStage>
+          </HeroPeek>
         </aside>
       ) : null}
     </div>

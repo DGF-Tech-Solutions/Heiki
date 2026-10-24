@@ -533,9 +533,10 @@ function HeroLink({
         className="h-[52px] w-[52px] shrink-0 bg-paper-2"
       />
       <span className="min-w-0">
+        {/* il colore dell'attributo schiarito col testo: puro, a 12px, Oscurita' stava sotto 4,5:1 (24/10) */}
         <span
           className="block truncate text-[12px] leading-tight text-ink-3"
-          style={affinity ? { color: affinity.color } : undefined}
+          style={affinity ? { color: `color-mix(in oklab, ${affinity.color} 60%, var(--color-ink))` } : undefined}
         >
           {epithet}
         </span>

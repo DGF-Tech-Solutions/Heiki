@@ -78,7 +78,7 @@ const TESTI = testi({
     accento: "Accento",
     accentoNota: "colora copertina, etichette e dettagli",
     premium: " (premium)",
-    richiedePremium: (nome: string) => `${nome} — richiede il premium`,
+    richiedePremium: (nome: string) => `${nome}: richiede il premium`,
     vetrina: "Vetrina dei badge",
     vetrinaNota: (esposti: number, posti: number) =>
       `${esposti} esposti su ${posti} posti. I badge si guadagnano: scegli quali mostrare e in che ordine, non come si chiamano.`,
@@ -120,7 +120,7 @@ const TESTI = testi({
     accento: "Accent",
     accentoNota: "colors your cover, tags and details",
     premium: " (premium)",
-    richiedePremium: (nome: string) => `${nome} — requires Premium`,
+    richiedePremium: (nome: string) => `${nome}: requires Premium`,
     vetrina: "Badge showcase",
     vetrinaNota: (esposti: number, posti: number) =>
       `${esposti} shown out of ${posti} slots. Badges are earned: choose which to show and in what order, not what they're called.`,

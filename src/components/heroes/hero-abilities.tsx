@@ -53,7 +53,7 @@ const TESTI = testi({
       "Quali carte ha l’eroe e cosa fanno a ogni rango vengono dalle tabelle del client del gioco.",
     // Solo in italiano: in inglese i testi dei ranghi sono semplicemente nella
     // lingua della pagina, e non c'e' niente da avvertire.
-    testiInInglese: " I testi restano in inglese — il client ne ha solo i modelli, senza i valori." as
+    testiInInglese: " I testi restano in inglese: il client ne ha solo i modelli, senza i valori." as
       | string
       | null,
     ultimate: "Ultimate",
@@ -67,7 +67,7 @@ const TESTI = testi({
     ultimateAlRango: (rango: number) => `Ultimate al rango ${rango}`,
     segueRango: (soggetto: string) => `· ${soggetto} segue il rango scelto sulla carta dell’ultimate`,
     valoriArancione: ": i valori in arancione sono quelli legati al rango",
-    unicaRanghi: (da: number, a: number) => (da === a ? `Ultimate al rango ${da}` : `Ultimate ai ranghi ${da}–${a}`),
+    unicaRanghi: (da: number, a: number) => (da === a ? `Ultimate al rango ${da}` : `Ultimate ai ranghi ${da}-${a}`),
     unicaCambia:
       "L’Unica cambia solo ai ranghi dell’ultimate dei pulsanti, e segue anche quello scelto sulla carta dell’ultimate",
     versioniUnica: "Versione dell’Unica secondo il rango dell’ultimate",
@@ -90,7 +90,7 @@ const TESTI = testi({
     segueRango: (soggetto: string) => `· ${soggetto} follows the rank chosen on the Ultimate Move card`,
     valoriArancione: ": values in orange are the ones tied to the rank",
     unicaRanghi: (from: number, to: number) =>
-      from === to ? `Ultimate Move at rank ${from}` : `Ultimate Move at ranks ${from}–${to}`,
+      from === to ? `Ultimate Move at rank ${from}` : `Ultimate Move at ranks ${from}-${to}`,
     unicaCambia:
       "The Unique only changes at the Ultimate Move ranks of these buttons, and also follows the rank chosen on the Ultimate Move card",
     versioniUnica: "Version of the Unique by Ultimate Move rank",

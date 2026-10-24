@@ -136,7 +136,9 @@ export function ChangeEmailForm({ current }: { current: string }) {
           <Input type="password" name="password" autoComplete="current-password" required />
         </Field>
 
-        <Button type="submit" variant="primary" disabled={pending}>
+        {/* chiari e non rossi (24/10): indirizzo e password stanno nella stessa
+            pagina, e due comandi rossi pieni non dicono quale conti di piu' */}
+        <Button type="submit" variant="outline" disabled={pending}>
           {pending ? t.aggiorno : t.cambiaIndirizzo}
         </Button>
       </form>
@@ -165,7 +167,7 @@ export function ChangePasswordForm() {
           <Input type="password" name="repeat" autoComplete="new-password" required />
         </Field>
 
-        <Button type="submit" variant="primary" disabled={pending}>
+        <Button type="submit" variant="outline" disabled={pending}>
           {pending ? t.aggiorno : t.cambiaPassword}
         </Button>
       </form>

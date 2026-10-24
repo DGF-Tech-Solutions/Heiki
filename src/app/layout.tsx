@@ -53,7 +53,7 @@ const monoFace = Geist_Mono({
 
 const TESTI = testi({
   it: {
-    titolo: `${SITE_NAME} — schede, dati e community per i giochi gacha`,
+    titolo: `${SITE_NAME}: schede, dati e community per i giochi gacha`,
     descrizione: "Schede degli eroi, dati e meccaniche lette dal gioco, e community per i giochi gacha.",
     salta: "Salta al contenuto",
     collegamenti: "Collegamenti del sito",
@@ -66,7 +66,7 @@ const TESTI = testi({
     affiliazione: `${SITE_NAME} non è affiliato né approvato da Netmarble, HoYoverse o Kuro Games. Tutti i marchi, i nomi e i contenuti di gioco appartengono ai rispettivi proprietari.`,
   },
   en: {
-    titolo: `${SITE_NAME} — pages, data and community for gacha games`,
+    titolo: `${SITE_NAME}: hero pages, data and community for gacha games`,
     descrizione: "Hero pages, data and mechanics read from the game, and community for gacha games.",
     salta: "Skip to content",
     collegamenti: "Site links",

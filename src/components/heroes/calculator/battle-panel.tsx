@@ -169,7 +169,7 @@ export function BattlePanel({
                   <span className={cx(numeric, "text-ink")}>
                     {(["atk", "def", "hp"] as const)
                       .map((stat) => `${statName(stat, locale)} +${formatStat(Math.round(result.fate!.before[stat] ?? 0), locale)}`)
-                      .join(" · ")}
+                      .join(", ")}
                   </span>
                   {result.fate.link ? (
                     <span className="text-ink">

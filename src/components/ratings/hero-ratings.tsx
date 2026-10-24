@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { StarScore } from "@/components/ratings/star-display";
 import { HeroRatingForm } from "@/components/ratings/hero-rating-form";
-import { cx, eyebrow } from "@/components/ui";
+import { cx, eyebrow, Tag } from "@/components/ui";
 import { roleLabel } from "@/lib/auth/permissions";
 import { relativeTime } from "@/lib/community/ranking";
 import { BEST_CONTENTS, type HeroRatingSummary } from "@/lib/ratings/types";
@@ -205,20 +205,14 @@ export function HeroRatings({
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/u/${rating.user.username}`}
-                        className="font-bold text-sm text-ink hover:text-brand"
+                        className="font-bold text-sm text-ink hover:text-brand-deep"
                       >
                         {rating.user.displayName}
                       </Link>
-                      {isCurrentUser ? (
-                        <span className="rounded bg-brand/10 border border-brand/30 px-1.5 py-0.5 text-[10px] font-bold text-brand uppercase">
-                          {t.tu}
-                        </span>
-                      ) : null}
-                      {rating.user.role !== "USER" ? (
-                        <span className="rounded bg-brand/20 px-1.5 py-0.5 text-[10px] font-bold text-brand uppercase">
-                          {roleLabel(rating.user.role, locale)}
-                        </span>
-                      ) : null}
+                      {/* le etichette del sito e non pastiglie rosse a 10px (24/10): il
+                          rosso su rosso scuro non arrivava al 4,5:1 */}
+                      {isCurrentUser ? <Tag>{t.tu}</Tag> : null}
+                      {rating.user.role !== "USER" ? <Tag>{roleLabel(rating.user.role, locale)}</Tag> : null}
                     </div>
 
                     <span className="font-mono text-xs text-ink-3">

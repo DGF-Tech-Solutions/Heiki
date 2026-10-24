@@ -61,8 +61,8 @@ export function TeamReport({
       <h2 className={cx(display, "m-0 text-[clamp(24px,3vw,32px)]")}>{t.resoconto}</h2>
       <p className="mt-1.5 mb-0 text-[13px] text-ink-2">
         {t.riepilogo(analysis.gives.length, accesi)}
-        {analysis.allMet + analysis.allBroken > 0 ? ` · ${t.condTutti(analysis.allMet, analysis.allBroken)}` : ""}
-        {analysis.leftmostOff > 0 ? ` · ${t.specialiSpente(analysis.leftmostOff)}` : ""}
+        {analysis.allMet + analysis.allBroken > 0 ? `; ${t.condTutti(analysis.allMet, analysis.allBroken)}` : ""}
+        {analysis.leftmostOff > 0 ? `; ${t.specialiSpente(analysis.leftmostOff)}` : ""}
       </p>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">

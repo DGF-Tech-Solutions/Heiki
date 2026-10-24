@@ -18,10 +18,14 @@ import { getLocale } from "@/lib/i18n/server";
  * Fino al 10/10 /<gioco> era il feed delle Discussioni, e la prima voce di ogni
  * briciola portava li': chi apriva Grand Cross trovava post di prova invece del
  * gioco. Ora e' la schermata di un menu alla Persona: i comandi grandi a
- * sinistra, di misura calante (Database, Endgame, Strumenti, Progressione, Tu e
- * la community, con le loro voci), a destra il palco con l'ultimo eroe uscito, e
- * sotto gli ultimi eroi e il prossimo aggiornamento del calendario. Il feed sta in
- * /<gioco>/discussioni.
+ * sinistra, di misura calante, uno per gruppo col nome del gruppo sopra e le
+ * altre voci sotto, a destra il palco con l'ultimo eroe uscito, e sotto gli
+ * ultimi eroi e il prossimo aggiornamento. Il feed sta in /<gioco>/discussioni.
+ *
+ * Dal 24/10 (revisione del design) i gruppi sono quelli della barra laterale,
+ * nello stesso ordine e coi loro nomi: prima questa pagina li rimescolava e li
+ * nascondeva, e chi arrivava imparava qui una mappa e alla pagina dopo ne trovava
+ * un'altra.
  *
  * La scena sono i comandi. Fino alla sera del 10/10 il nome del gioco, a 84 px
  * su tre righe, si prendeva la prima meta' dello schermo e spingeva i comandi
@@ -38,17 +42,20 @@ const TESTI = testi({
     // i numeri arrivano gia' composti (nel monospaziato), le parole restano nel testo
     riga: (eroi: ReactNode, aggiornamenti: ReactNode) => (
       <>
-        {eroi} eroi · {aggiornamenti} aggiornamenti nel calendario · dati letti dal client del gioco
+        {eroi} eroi e {aggiornamenti} aggiornamenti in calendario, coi dati presi dal gioco.
       </>
     ),
     menu: "Sezioni",
     ultimoEroe: "L'ultimo eroe uscito",
+    novita: "Ultima uscita",
+    percorso: (da: string, a: string) => (da === a ? da : `da ${da} a ${a}`),
     apri: "Apri la scheda",
     ultimi: "Gli ultimi eroi",
     tutti: "Tutti gli eroi",
     prossimo: "Prossimo aggiornamento",
     ultimo: "Ultimo aggiornamento",
-    nelCalendario: "Nel calendario",
+    // il nome della voce di menu: la stessa pagina si chiamava anche «Nel calendario»
+    nelCalendario: "Uscite",
     eroiNuovi: (n: number) => (n === 1 ? "1 eroe nuovo" : `${n} eroi nuovi`),
     nessunEroe: "Nessun eroe nuovo",
     quando: (giorni: number) =>
@@ -66,17 +73,19 @@ const TESTI = testi({
     descrizione: (game: string) => `${game} heroes, releases, endgame and tools, with data read from the game.`,
     riga: (heroes: ReactNode, updates: ReactNode) => (
       <>
-        {heroes} heroes · {updates} updates in the calendar · data read from the game client
+        {heroes} heroes and {updates} updates in the calendar, with data taken from the game.
       </>
     ),
     menu: "Sections",
     ultimoEroe: "The latest hero released",
+    novita: "Latest release",
+    percorso: (from: string, to: string) => (from === to ? from : `${from} to ${to}`),
     apri: "Open the page",
     ultimi: "The latest heroes",
     tutti: "All heroes",
     prossimo: "Next update",
     ultimo: "Latest update",
-    nelCalendario: "In the calendar",
+    nelCalendario: "Releases",
     eroiNuovi: (n: number) => (n === 1 ? "1 new hero" : `${n} new heroes`),
     nessunEroe: "No new heroes",
     quando: (days: number) =>
@@ -103,9 +112,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: entry?.shortName ?? game, description: t.descrizione(entry?.name ?? game) };
 }
 
-/** L'ordine dei comandi: prima quello che si apre di piu'. */
-const ORDER = ["Database", "Endgame", "Strumenti", "Tools", "Progressione", "Progression"];
-
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default async function GameHubPage({ params }: Props) {
@@ -116,10 +122,8 @@ export default async function GameHubPage({ params }: Props) {
   const locale = await getLocale();
   const t = TESTI[locale];
 
-  const groups = [...gameGroups(game, locale)].sort((a, b) => {
-    const rank = (label: string) => (ORDER.includes(label) ? ORDER.indexOf(label) : ORDER.length);
-    return rank(a.label) - rank(b.label);
-  });
+  // nell'ordine del catalogo, come la barra laterale delle altre pagine
+  const groups = gameGroups(game, locale);
   const heroes = gameModule?.roster?.heroes ?? [];
   const latest = heroes[0];
   const affinity = latest ? gameModule?.roster?.affinities.find((a) => a.id === latest.affinity) : undefined;
@@ -165,21 +169,23 @@ export default async function GameHubPage({ params }: Props) {
 
           {/*
             I comandi: il primo enorme, poi a scalare. Ogni comando porta alla
-            prima voce del suo gruppo, e sotto ha le altre, piccole.
-
-            Niente piu' il nome del gruppo sopra ogni comando (DATABASE sopra EROI,
-            ENDGAME sopra SCONTRI FINALI): i comandi si leggono da soli, e i gruppi
-            li dicono gia' il menu del telefono e la barra laterale delle altre
-            pagine (qui la barra non c'e': la toglie il layout, vedendo `.hub-menu`).
-            Resta per i lettori di schermo, come nome dell'elenco delle altre voci.
+            prima voce del suo gruppo, e sotto ha le altre, piccole. Sopra, il nome
+            del gruppo nella targhetta della barra laterale (che qui non c'e': la
+            toglie il layout, vedendo `.hub-menu`). Dal 10/10 al 24/10 il nome non
+            c'era, e la prima voce sembrava il gruppo: «Tier list» stava sotto
+            «Squadra», «Discussioni» sotto «Il mio account».
           */}
           <nav aria-label={t.menu} className="mt-6">
             <ol className="hub-menu m-0 grid list-none gap-6 p-0">
               {groups.map((group, index) => {
                 const [main, ...rest] = group.items;
                 if (!main) return null;
+                const labelId = `hub-gruppo-${index}`;
                 return (
                   <li key={group.label} className="hub-command" style={{ "--i": index } as React.CSSProperties}>
+                    <p id={labelId} className={cx(eyebrow, "p5-cut-sm m-0 mb-2 block w-fit bg-ink px-2.5 py-0.5 text-paper")}>
+                      {group.label}
+                    </p>
                     <Link
                       href={`/${game}${main.path}`}
                       title={main.hint}
@@ -188,14 +194,14 @@ export default async function GameHubPage({ params }: Props) {
                       {main.label}
                     </Link>
                     {rest.length > 0 ? (
-                      <ul aria-label={group.label} className="m-0 mt-1 flex list-none flex-wrap gap-x-4 p-0">
+                      <ul aria-labelledby={labelId} className="m-0 mt-1 flex list-none flex-wrap gap-x-5 p-0">
                         {rest.map((item) => (
                           <li key={item.path}>
-                            {/* alte 28px e non 20: si prendono col pollice */}
+                            {/* alte 32px e non 20: si prendono col pollice */}
                             <Link
                               href={`/${game}${item.path}`}
                               title={item.hint}
-                              className="inline-block py-1 font-display text-[15px] font-extrabold uppercase tracking-[0.02em] text-ink-2 [font-variation-settings:'wdth'_82] hover:text-brand-deep"
+                              className="inline-block py-1.5 font-display text-[16px] font-extrabold uppercase tracking-[0.02em] text-ink-2 [font-variation-settings:'wdth'_82] hover:text-brand-deep"
                             >
                               {item.label}
                             </Link>
@@ -212,8 +218,12 @@ export default async function GameHubPage({ params }: Props) {
 
         {latest ? (
           <aside aria-labelledby="hub-ultimo-eroe" className="lg:sticky lg:top-[76px]">
-            {/* e' il titolo del riquadro, non un'etichetta sopra un titolo: il nome dell'eroe sta nel palco */}
-            <h2 id="hub-ultimo-eroe" className={cx(eyebrow, "m-0 mb-2")}>
+            {/*
+              Il titolo del riquadro resta ai lettori di schermo; a chi guarda lo
+              dice la targhetta «Ultima uscita» nel palco. Fino al 24/10 era
+              un'etichetta sopra il palco, che il nome dell'eroe ripeteva subito sotto.
+            */}
+            <h2 id="hub-ultimo-eroe" className="sr-only">
               {t.ultimoEroe}
             </h2>
             <HeroStage
@@ -221,7 +231,11 @@ export default async function GameHubPage({ params }: Props) {
               hero={latest}
               locale={locale}
               affinity={affinity}
-              badges={affinity ? [{ label: affinityLabel(affinity.id, locale) }, { label: `${latest.obtainedAs} → ${latest.rarity}` }] : undefined}
+              badges={[
+                { label: t.novita },
+                ...(affinity ? [{ label: affinityLabel(affinity.id, locale) }] : []),
+                { label: t.percorso(latest.obtainedAs, latest.rarity) },
+              ]}
               art={stageArtOf(gameModule?.heroAssets?.[latest.id])}
               className="p5-corner h-[min(640px,calc(100dvh-140px))] min-h-[480px]"
             >

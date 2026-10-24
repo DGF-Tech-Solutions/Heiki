@@ -16,8 +16,8 @@ const text = (it: string, en: string) => ({ it, en });
 
 describe("compressRanges", () => {
   it("scrive corti i ranghi consecutivi", () => {
-    expect(compressRanges([2, 3, 4, 5, 6])).toBe("2–6");
-    expect(compressRanges([6, 2, 3, 8, 3])).toBe("2–3, 6, 8");
+    expect(compressRanges([2, 3, 4, 5, 6])).toBe("2-6");
+    expect(compressRanges([6, 2, 3, 8, 3])).toBe("2-3, 6, 8");
     expect(compressRanges([1])).toBe("1");
     expect(compressRanges([])).toBe("");
   });

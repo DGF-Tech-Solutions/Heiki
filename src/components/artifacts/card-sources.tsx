@@ -147,7 +147,7 @@ export function CardSources({
         <div>
           <p className={cx("m-0", compact ? "text-[12px] text-ink-3" : cx(eyebrow, "mb-1.5"))}>
             {t.eventi}
-            {compact ? `: ${single.map(({ id }) => packName(id)).join(" · ")}` : null}
+            {compact ? `: ${single.map(({ id }) => packName(id)).join(", ")}` : null}
           </p>
           {compact ? null : (
             <ul className="m-0 list-none p-0">
@@ -183,8 +183,8 @@ export function CardSources({
               <li key={position} className="flex flex-wrap items-baseline gap-x-2 py-0.5">
                 <Link href={source.href} className="text-brand-deep underline-offset-2 hover:underline">
                   {t.modi[source.mode]}
-                  {source.target ? ` · ${inLingua(source.target, locale)}` : null}
-                  {source.stage ? ` · ${inLingua(source.stage, locale)}` : null}
+                  {source.target ? `: ${inLingua(source.target, locale)}` : null}
+                  {source.stage ? `${source.target ? "," : ":"} ${inLingua(source.stage, locale)}` : null}
                 </Link>
                 <span className="text-ink-3">{sourceText(source, locale)}</span>
               </li>

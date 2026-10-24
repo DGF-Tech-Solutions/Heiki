@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -11,7 +12,25 @@ import {
 } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { buttonClass, cx, eyebrow } from "@/components/ui";
+import { FilterRow } from "@/components/filter-chips";
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconCheck,
+  IconClose,
+  IconDownload,
+  IconEraser,
+  IconFilters,
+  IconLink,
+  IconMore,
+  IconPencil,
+  IconPlus,
+  IconTrash,
+  IconUndo,
+} from "@/components/icons";
+import { buttonClass, chipClass, cx, eyebrow, Input, Tag } from "@/components/ui";
+import { MenuButton, menuItemClass } from "@/components/tier-list/menu-button";
+import { labelInk } from "@/lib/tier-list/colors";
 import { exportTierListToImage } from "@/lib/tier-list/export-image";
 import {
   deleteTierListAction,
@@ -20,6 +39,7 @@ import {
 } from "@/lib/tier-list/actions";
 import {
   defaultTiers,
+  nextTierColor,
   TIER_COLORS,
   type SavedTierListDetail,
   type SavedTierListSummary,
@@ -32,156 +52,210 @@ import { SITE_NAME } from "@/lib/site";
 
 const TESTI = testi({
   it: {
-    titolo: "Tier List Maker",
-    titoloPredefinito: "La mia Tier List",
-    tierListDelGioco: (gioco: string) => `Tier List · ${gioco}`,
-    nomeLista: "Nome della Tier List",
-    aggiungiTier: "+ Aggiungi riga",
-    righeMassime: (n: number) => `Al massimo ${n} righe`,
+    titoloPredefinito: "La mia tier list",
+    tierListDelGioco: (gioco: string) => `Tier list · ${gioco}`,
+    nomeLista: "Nome della tier list",
+    titoloPlaceholder: "Nome della lista, per esempio PvP di ottobre",
+    righe: "Righe della tier list",
+    aggiungiRiga: "Aggiungi riga",
+    righeMassime: (n: number) => `Al massimo ${n} righe: per aggiungerne una, eliminane un'altra.`,
     nuovaRiga: "NUOVA",
     svuotaTutto: "Svuota tutto",
-    svuotaRiga: "Svuota riga",
-    svuotaRigaBreve: "Svuota",
-    eliminaRiga: "Elimina riga",
+    ripristina: "Ripristina predefiniti",
+    altreAzioni: "Altre azioni",
+    comandiRiga: (riga: string) => `Comandi della riga ${riga}`,
+    rinomina: "Rinomina",
+    nomeRiga: (riga: string) => `Nome della riga ${riga}`,
+    colore: "Colore",
     spostaSu: "Sposta su",
     spostaGiu: "Sposta giù",
-    cambiaColore: "Cambia colore",
-    coloriRiga: (riga: string) => `Colori della riga ${riga}`,
-    rinominaTier: "Rinomina tier",
-    ripristina: "Ripristina predefiniti",
-    esportaImmagine: "Scarica immagine PNG",
-    esportazioneInCorso: "Generazione PNG...",
-    immagineFallita: "Non è stato possibile creare l'immagine su questo dispositivo.",
+    svuotaRiga: "Svuota riga",
+    eliminaRiga: "Elimina riga",
+    esportaImmagine: "Scarica immagine",
+    esportazioneInCorso: "Creo l'immagine…",
+    immagineFallita:
+      "L'immagine non si è potuta creare su questo dispositivo. Riprova; se non va, prova da un altro browser o da un computer.",
     diAutore: (autore: string) => `di @${autore}`,
-    copiaLink: "Condividi link",
-    suggerimentoLink: "Copia il link permanente o un'istantanea condivisibile",
-    linkCopiato: "Link copiato!",
-    linkPrivato: "Link copiato: la lista è privata, si apre solo dal tuo account.",
-    copiaFallita: "Copia non riuscita: il browser non ha dato accesso agli appunti.",
+    copiaLink: "Copia link",
+    suggerimentoLink: "Copia un link che apre questa lista",
+    linkCopiato: "Link copiato",
+    linkPrivato: "Link copiato. La lista è privata: il link si apre solo dal tuo account.",
+    copiaFallita:
+      "Copia non riuscita: il browser ha bloccato gli appunti. Permetti l'accesso agli appunti e riprova.",
     poolEroi: "Eroi disponibili",
-    cercaPlaceholder: "Cerca eroe per nome...",
-    tuttiGliAttributi: "Tutti gli attributi",
-    tutteLeRarita: "Tutte le rarità",
-    trascinaQui: "Trascina qui gli eroi o clicca una card per assegnarla",
-    nessunEroeTrovato: "Nessun eroe corrisponde ai filtri selezionati",
-    eroiAssegnati: (n: number, tot: number) => `${n} di ${tot} eroi posizionati`,
-    eroiPosizionati: (n: number) => `${n} eroi posizionati`,
-    suggerimentoInRiga: (eroe: string) => `${eroe} · Clicca per spostare o rimuovere`,
-    suggerimentoPool: (eroe: string) => `${eroe} · Clicca per assegnare`,
-    rimuoviDalTier: "Rimuovi dal tier",
-    rimuoviEroe: (eroe: string) => `Rimuovi ${eroe} dal tier`,
-    assegnaATier: "Assegna a:",
+    cerca: "Cerca per nome",
+    filtri: "Filtri",
+    rarita: "Rarità",
+    attributo: "Attributo",
+    togliFiltri: "Togli i filtri",
+    trascinaQui: "Trascina qui un eroe dall'elenco, o cliccalo e scegli la riga.",
+    toccaQui: "Tocca un eroe nell'elenco in basso e scegli questa riga.",
+    nessunEroeTrovato: "Nessun eroe con questi filtri.",
+    tuttiInRiga: "Tutti gli eroi sono in una riga.",
+    eroiAssegnati: (n: number, tot: number) => `${n} di ${tot} in riga`,
+    eroiPosizionati: (n: number) => `${n} eroi in riga`,
+    suggerimentoInRiga: (eroe: string) => `${eroe}: clicca per spostarlo o toglierlo`,
+    suggerimentoPool: (eroe: string) => `${eroe}: clicca per scegliere la riga`,
+    rimuoviDalTier: "Togli dalla riga",
+    rimuoviEroe: (eroe: string) => `Togli ${eroe} dalla riga`,
+    assegnaATier: "Metti nella riga",
+    rigaAttuale: "(qui ora)",
     chiudi: "Chiudi",
-    salvaSuAccount: "Salva su Account",
+    salva: "Salva",
     salvaModifiche: "Salva modifiche",
-    salvaComeNuova: "Salva con nuovo nome...",
+    salvaComeNuova: "Salva come nuova",
     visibileNelProfilo: "Visibile nel profilo",
     suggerimentoVisibile:
       "Se togli la spunta la lista resta solo tua: non compare nel profilo e il link non si apre per gli altri.",
     nelProfilo: "Nel profilo",
     privata: "Privata",
-    leMieTierList: (n: number) => `Le mie Tier List (${n})`,
-    nuovaTierList: "+ Nuova Tier List",
-    salvataggioInCorso: "Salvataggio...",
-    salvatoConSuccesso: "Tier List salvata sul tuo profilo!",
-    erroreSalvataggio: "Errore durante il salvataggio.",
+    leMieTierList: (n: number) => `Le mie liste (${n})`,
+    titoloLeMieTierList: "Le mie tier list",
+    nuovaTierList: "Nuova tier list",
+    salvataggioInCorso: "Salvo…",
+    salvatoConSuccesso: "Salvata sul tuo account.",
+    erroreRete: "Non salvata: il server non ha risposto. Controlla la connessione e riprova.",
+    erroreSalvataggio: "Non salvata. Riprova tra poco: intanto la lista resta in questa pagina.",
     salvataSuAccount: "Salvata sul tuo account",
-    modificaLocale: "Modifica in corso (locale)",
-    accediPerSalvare:
-      "Accedi per salvare più tier list con nomi diversi sul tuo account, visualizzarle nel profilo e condividerle con un link permanente.",
-    entra: "Accedi",
-    entraPerSalvare: "Accedi per salvare",
-    elimina: "Elimina",
-    carica: "Carica",
-    copiaLinkDiretto: "Copia link diretto",
-    confermaElimina: "Sei sicuro di voler eliminare questa tier list?",
-    scaricaBackup: "Scarica Backup JSON",
-    visualizzandoDi: (autore: string) => `Stai visualizzando la Tier List di @${autore}`,
-    copiaNelTuoMaker: "Clona nel tuo account",
+    modificaLocale: "Non ancora salvata: la bozza resta in questo browser.",
+    bozzaLocale: "La bozza resta in questo browser.",
+    spiegazioneEntra: "Entra per salvare le liste sul tuo account e condividerle con un link.",
+    entraPerSalvare: "Entra per salvare",
+    elimina: (titolo: string) => `Elimina ${titolo}`,
+    apri: "Apri",
+    copiaLinkDi: (titolo: string) => `Copia il link di ${titolo}`,
+    confermaElimina: (titolo: string) => `Eliminare «${titolo}»? Non si può annullare.`,
+    eliminazioneFallita: "Non eliminata: il server non ha risposto. Riprova.",
+    scaricaBackup: "Scarica backup (JSON)",
+    backupFallito: "Backup non scaricato: il server non ha risposto. Riprova.",
+    visualizzandoDi: (autore: string) => `Tier list di @${autore}`,
+    salvaUnaCopia: "Salva una copia",
     suffissoCopia: " (Copia)",
-    titoloPlaceholder: "Nome della Tier List (es. PvP Meta Ottobre)",
-    nessunaTierListSalvata: "Non hai ancora tier list salvate su questo account per questo gioco.",
-    salvaNuovaCopia: "Salva nuova copia",
+    nessunaTierListSalvata: "Non hai ancora tier list salvate per questo gioco.",
     annulla: "Annulla",
     conferma: "Salva",
-    nomeTierList: "Nome della nuova Tier List:",
+    nomeTierList: "Nome della nuova lista",
+    annullaAzione: "Annulla",
+    svuotatoTutto: "Righe svuotate: gli eroi sono tornati nell'elenco.",
+    rigaSvuotata: (riga: string) => `Riga «${riga}» svuotata.`,
+    rigaEliminata: (riga: string) => `Riga «${riga}» eliminata.`,
+    ripristinato: "Righe predefinite ripristinate.",
   },
   en: {
-    titolo: "Tier List Maker",
-    titoloPredefinito: "My Tier List",
-    tierListDelGioco: (gioco: string) => `Tier List · ${gioco}`,
-    nomeLista: "Tier List name",
-    aggiungiTier: "+ Add row",
-    righeMassime: (n: number) => `At most ${n} rows`,
+    titoloPredefinito: "My tier list",
+    tierListDelGioco: (gioco: string) => `Tier list · ${gioco}`,
+    nomeLista: "Tier list name",
+    titoloPlaceholder: "List name, for example October PvP",
+    righe: "Tier list rows",
+    aggiungiRiga: "Add row",
+    righeMassime: (n: number) => `At most ${n} rows: delete one to add another.`,
     nuovaRiga: "NEW",
     svuotaTutto: "Clear all",
-    svuotaRiga: "Clear row",
-    svuotaRigaBreve: "Clear",
-    eliminaRiga: "Delete row",
+    ripristina: "Reset to default",
+    altreAzioni: "More actions",
+    comandiRiga: (riga: string) => `Commands for row ${riga}`,
+    rinomina: "Rename",
+    nomeRiga: (riga: string) => `Name of row ${riga}`,
+    colore: "Color",
     spostaSu: "Move up",
     spostaGiu: "Move down",
-    cambiaColore: "Change color",
-    coloriRiga: (riga: string) => `Colors for row ${riga}`,
-    rinominaTier: "Rename tier",
-    ripristina: "Reset to default",
-    esportaImmagine: "Download PNG image",
-    esportazioneInCorso: "Generating PNG...",
-    immagineFallita: "The image couldn't be created on this device.",
+    svuotaRiga: "Clear row",
+    eliminaRiga: "Delete row",
+    esportaImmagine: "Download image",
+    esportazioneInCorso: "Creating image…",
+    immagineFallita:
+      "The image couldn't be created on this device. Try again; if it still fails, try another browser or a computer.",
     diAutore: (autore: string) => `by @${autore}`,
-    copiaLink: "Share link",
-    suggerimentoLink: "Copy the permanent link or a shareable snapshot",
-    linkCopiato: "Link copied!",
-    linkPrivato: "Link copied: the list is private, it only opens from your account.",
-    copiaFallita: "Copy failed: the browser denied access to the clipboard.",
+    copiaLink: "Copy link",
+    suggerimentoLink: "Copy a link that opens this list",
+    linkCopiato: "Link copied",
+    linkPrivato: "Link copied. The list is private: the link only opens from your account.",
+    copiaFallita:
+      "Copy failed: the browser blocked the clipboard. Allow clipboard access and try again.",
     poolEroi: "Available heroes",
-    cercaPlaceholder: "Search hero by name...",
-    tuttiGliAttributi: "All attributes",
-    tutteLeRarita: "All rarities",
-    trascinaQui: "Drag heroes here or click a card to assign",
-    nessunEroeTrovato: "No heroes match the selected filters",
-    eroiAssegnati: (n: number, tot: number) => `${n} of ${tot} heroes ranked`,
+    cerca: "Search by name",
+    filtri: "Filters",
+    rarita: "Rarity",
+    attributo: "Attribute",
+    togliFiltri: "Clear filters",
+    trascinaQui: "Drag a hero here from the list, or click it and pick the row.",
+    toccaQui: "Tap a hero in the list below and pick this row.",
+    nessunEroeTrovato: "No hero matches these filters.",
+    tuttiInRiga: "Every hero is in a row.",
+    eroiAssegnati: (n: number, tot: number) => `${n} of ${tot} ranked`,
     eroiPosizionati: (n: number) => `${n} heroes ranked`,
-    suggerimentoInRiga: (eroe: string) => `${eroe} · Click to move or remove`,
-    suggerimentoPool: (eroe: string) => `${eroe} · Click to assign`,
-    rimuoviDalTier: "Remove from tier",
-    rimuoviEroe: (eroe: string) => `Remove ${eroe} from the tier`,
-    assegnaATier: "Assign to:",
+    suggerimentoInRiga: (eroe: string) => `${eroe}: click to move or remove`,
+    suggerimentoPool: (eroe: string) => `${eroe}: click to pick a row`,
+    rimuoviDalTier: "Remove from row",
+    rimuoviEroe: (eroe: string) => `Remove ${eroe} from the row`,
+    assegnaATier: "Put in row",
+    rigaAttuale: "(here now)",
     chiudi: "Close",
-    salvaSuAccount: "Save to Account",
+    salva: "Save",
     salvaModifiche: "Save changes",
-    salvaComeNuova: "Save as new...",
+    salvaComeNuova: "Save as new",
     visibileNelProfilo: "Visible on profile",
     suggerimentoVisibile:
       "Untick it to keep the list to yourself: it won't appear on your profile and the link won't open for others.",
     nelProfilo: "On profile",
     privata: "Private",
-    leMieTierList: (n: number) => `My Tier Lists (${n})`,
-    nuovaTierList: "+ New Tier List",
-    salvataggioInCorso: "Saving...",
-    salvatoConSuccesso: "Tier list saved to your profile!",
-    erroreSalvataggio: "Error while saving.",
+    leMieTierList: (n: number) => `My lists (${n})`,
+    titoloLeMieTierList: "My tier lists",
+    nuovaTierList: "New tier list",
+    salvataggioInCorso: "Saving…",
+    salvatoConSuccesso: "Saved to your account.",
+    erroreRete: "Not saved: the server didn't respond. Check your connection and try again.",
+    erroreSalvataggio: "Not saved. Try again shortly: the list stays on this page meanwhile.",
     salvataSuAccount: "Saved to your account",
-    modificaLocale: "Editing (local only)",
-    accediPerSalvare:
-      "Log in to save multiple tier lists under your account, keep backups in your profile, and share permanent links.",
-    entra: "Log in",
+    modificaLocale: "Not saved yet: the draft stays in this browser.",
+    bozzaLocale: "The draft stays in this browser.",
+    spiegazioneEntra: "Log in to save lists to your account and share them with a link.",
     entraPerSalvare: "Log in to save",
-    elimina: "Delete",
-    carica: "Load",
-    copiaLinkDiretto: "Copy direct link",
-    confermaElimina: "Are you sure you want to delete this tier list?",
-    scaricaBackup: "Download JSON Backup",
-    visualizzandoDi: (autore: string) => `Viewing @${autore}'s Tier List`,
-    copiaNelTuoMaker: "Clone into your account",
+    elimina: (titolo: string) => `Delete ${titolo}`,
+    apri: "Open",
+    copiaLinkDi: (titolo: string) => `Copy the link to ${titolo}`,
+    confermaElimina: (titolo: string) => `Delete “${titolo}”? This can't be undone.`,
+    eliminazioneFallita: "Not deleted: the server didn't respond. Try again.",
+    scaricaBackup: "Download backup (JSON)",
+    backupFallito: "Backup not downloaded: the server didn't respond. Try again.",
+    visualizzandoDi: (autore: string) => `@${autore}'s tier list`,
+    salvaUnaCopia: "Save a copy",
     suffissoCopia: " (Copy)",
-    titoloPlaceholder: "Tier List name (e.g. October PvP Meta)",
     nessunaTierListSalvata: "You don't have any saved tier lists for this game yet.",
-    salvaNuovaCopia: "Save as new copy",
     annulla: "Cancel",
     conferma: "Save",
-    nomeTierList: "Name for the new Tier List:",
+    nomeTierList: "Name of the new list",
+    annullaAzione: "Undo",
+    svuotatoTutto: "Rows cleared: the heroes are back in the list.",
+    rigaSvuotata: (riga: string) => `Row “${riga}” cleared.`,
+    rigaEliminata: (riga: string) => `Row “${riga}” deleted.`,
+    ripristinato: "Default rows restored.",
   },
 });
+
+/**
+ * Quanto resta l'avviso con «Annulla» dopo Svuota, Elimina riga e Ripristina
+ * (24/10): fino a quel giorno agivano subito e per sempre, uno accanto all'altro.
+ * Col puntatore o il fuoco sopra l'avviso il tempo si ferma.
+ */
+const UNDO_MS = 8000;
+const UNDO_AFTER_PAUSE_MS = 4000;
+
+/**
+ * Almeno 44 px sul tocco (24/10): i comandi della riga erano da 8 a 20 px. Con
+ * min-height, che vince sull'altezza fissa dei bottoni `sm` (32 px) senza
+ * dipendere dall'ordine delle classi.
+ */
+const TOUCH = "max-lg:min-h-11 pointer-coarse:min-h-11";
+const TOUCH_SQUARE = "max-lg:min-h-11 max-lg:min-w-11 pointer-coarse:min-h-11 pointer-coarse:min-w-11";
+
+/** La misura della scritta della riga: le lettere grandi, i nomi lunghi piu' piccoli. */
+function labelSize(label: string): string {
+  const length = Array.from(label).length;
+  if (length <= 2) return "text-[30px] sm:text-[36px]";
+  if (length <= 4) return "text-[20px] sm:text-[24px]";
+  return "text-[13px] sm:text-[15px] wrap-break-word";
+}
 
 /**
  * Una finestra modale col <dialog> del browser: Esc la chiude, il fuoco ci entra
@@ -243,6 +317,13 @@ async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
+/** Il tabellone com'era prima di un'azione che si puo' annullare, bozza del browser compresa. */
+interface BoardSnapshot {
+  tiers: TierRow[];
+  edited: boolean;
+  draft: string | null;
+}
+
 interface TierListMakerProps {
   game: string;
   gameName: string;
@@ -269,6 +350,8 @@ export function TierListMaker({
 }: TierListMakerProps) {
   const t = TESTI[locale];
   const storageKey = `gz_tierlist_${game}`;
+  const poolHeadingId = useId();
+  const filtersId = useId();
 
   const heroesMap = useMemo(() => new Map(heroes.map((h) => [h.id, h])), [heroes]);
   // gli eroi che una tier list puo' contenere: con questi si controllano link e bozza
@@ -318,16 +401,16 @@ export function TierListMaker({
   // Lista delle tier list salvate dell'utente per questo gioco
   const [savedLists, setSavedLists] = useState<SavedTierListSummary[]>(initialSavedLists);
 
-  // Filtri e ricerca
+  // Filtri e ricerca; sul telefono i filtri stanno chiusi sotto un pulsante
   const [search, setSearch] = useState<string>("");
   const [selectedRarity, setSelectedRarity] = useState<string | null>(null);
   const [selectedAffinity, setSelectedAffinity] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
 
-  // UI modali ed editor
-  const [activeColorPickerTierId, setActiveColorPickerTierId] = useState<string | null>(null);
-  const colorButtons = useRef(new Map<string, HTMLButtonElement>());
+  // Rinomina di una riga, e il pulsante dei comandi di ogni riga (per rimetterci il fuoco)
   const [editingTierId, setEditingTierId] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState<string>("");
+  const rowMenus = useRef(new Map<string, HTMLButtonElement>());
 
   const [selectedHeroForAction, setSelectedHeroForAction] = useState<{
     heroId: string;
@@ -336,7 +419,7 @@ export function TierListMaker({
 
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ message: string; error: boolean } | null>(null);
   const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [linkCopied, setLinkCopied] = useState<boolean>(false);
 
@@ -345,12 +428,44 @@ export function TierListMaker({
   const [showSaveAsModal, setShowSaveAsModal] = useState<boolean>(false);
   const [saveAsTitle, setSaveAsTitle] = useState<string>("");
 
+  // L'avviso con «Annulla»: il messaggio si vede, il ripristino resta qui
+  const [undo, setUndo] = useState<{ key: number; message: string } | null>(null);
+  const undoAction = useRef<(() => void) | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // La riga su cui si sta trascinando un eroe: si accende il bordo
+  const [dragOverTierId, setDragOverTierId] = useState<string | null>(null);
+
   /** Un messaggio sotto il titolo, che se ne va da solo; uno nuovo sostituisce il vecchio. */
-  const flash = useCallback((message: string, ms = 3500) => {
-    setStatusMessage(message);
+  const flash = useCallback((message: string, { ms = 3500, error = false } = {}) => {
+    setStatus({ message, error });
     if (statusTimer.current) clearTimeout(statusTimer.current);
-    statusTimer.current = setTimeout(() => setStatusMessage(null), ms);
+    statusTimer.current = setTimeout(() => setStatus(null), ms);
   }, []);
+
+  const dismissUndo = useCallback(() => {
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    undoTimer.current = null;
+    undoAction.current = null;
+    setUndo(null);
+  }, []);
+
+  const armUndoTimer = useCallback(
+    (ms: number) => {
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+      undoTimer.current = setTimeout(dismissUndo, ms);
+    },
+    [dismissUndo],
+  );
+
+  // i timer non sopravvivono alla pagina
+  useEffect(
+    () => () => {
+      if (statusTimer.current) clearTimeout(statusTimer.current);
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+    },
+    [],
+  );
 
   // Caricamento iniziale da `#data=` o dalla bozza, se non si sta aprendo una
   // tier list salvata. Una volta sola: dopo un salvataggio la pagina si
@@ -421,6 +536,59 @@ export function TierListMaker({
     });
   }, [heroes, assignedHeroIds, search, selectedRarity, selectedAffinity]);
 
+  const filtersActive = (selectedRarity ? 1 : 0) + (selectedAffinity ? 1 : 0);
+
+  /** Rimette il fuoco sul pulsante dei comandi di una riga, dopo che React l'ha disegnata. */
+  const focusRowMenu = (tierId: string | undefined) => {
+    if (!tierId) return;
+    requestAnimationFrame(() => rowMenus.current.get(tierId)?.focus());
+  };
+
+  /* ------------------------------------------------------------ annulla -- */
+
+  const readDraft = (): string | null => {
+    try {
+      return localStorage.getItem(storageKey);
+    } catch {
+      return null;
+    }
+  };
+
+  const snapshotBoard = (): BoardSnapshot => ({
+    tiers,
+    edited: boardEdited.current,
+    draft: readDraft(),
+  });
+
+  /**
+   * Il tabellone di prima, e anche la bozza di prima: Svuota e Ripristina la
+   * sovrascrivono, e senza rimetterla l'annullamento lascerebbe nel browser il
+   * tabellone vuoto.
+   */
+  const restoreBoard = (snapshot: BoardSnapshot) => {
+    boardEdited.current = snapshot.edited;
+    setTiers(snapshot.tiers);
+    try {
+      if (snapshot.draft === null) localStorage.removeItem(storageKey);
+      else localStorage.setItem(storageKey, snapshot.draft);
+    } catch {
+      // localStorage disabilitato
+    }
+  };
+
+  /** Mostra l'avviso con «Annulla»; un'azione nuova prende il posto della vecchia. */
+  const offerUndo = (message: string, restore: () => void) => {
+    undoAction.current = restore;
+    setUndo({ key: Date.now(), message });
+    armUndoTimer(UNDO_MS);
+  };
+
+  const runUndo = () => {
+    const restore = undoAction.current;
+    dismissUndo();
+    restore?.();
+  };
+
   /**
    * Mette un eroe in una riga togliendolo da qualunque altra: un eroe sta al
    * massimo in un posto, ed e' la stessa regola che il salvataggio controlla.
@@ -445,7 +613,13 @@ export function TierListMaker({
     dragItem.current = { heroId, fromTierId };
   };
 
+  const handleDragEnd = () => {
+    dragItem.current = null;
+    setDragOverTierId(null);
+  };
+
   const handleDropOnTier = (targetTierId: string) => {
+    setDragOverTierId(null);
     if (!dragItem.current) return;
     moveHeroToTier(dragItem.current.heroId, targetTierId);
     dragItem.current = null;
@@ -467,10 +641,11 @@ export function TierListMaker({
       // due righe aggiunte nello stesso millisecondo avrebbero avuto lo stesso id
       id: `tier-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
       label: t.nuovaRiga,
-      color: TIER_COLORS[tiers.length % TIER_COLORS.length]!.hex,
+      color: nextTierColor(tiers.length),
       heroIds: [],
     };
     editTiers((prev) => (prev.length < TIER_LIST_LIMITS.rows ? [...prev, newTier] : prev));
+    focusRowMenu(newTier.id);
   };
 
   const handleMoveTier = (index: number, direction: "up" | "down") => {
@@ -485,14 +660,32 @@ export function TierListMaker({
     });
   };
 
-  const handleClearTier = (tierId: string) => {
-    editTiers((prev) =>
-      prev.map((tier) => (tier.id === tierId ? { ...tier, heroIds: [] } : tier)),
-    );
+  const handleClearTier = (tier: TierRow) => {
+    if (tier.heroIds.length === 0) return;
+    const before = snapshotBoard();
+    editTiers((prev) => prev.map((row) => (row.id === tier.id ? { ...row, heroIds: [] } : row)));
+    offerUndo(t.rigaSvuotata(tier.label), () => {
+      restoreBoard(before);
+      focusRowMenu(tier.id);
+    });
   };
 
-  const handleDeleteTier = (tierId: string) => {
-    editTiers((prev) => (prev.length > 1 ? prev.filter((tier) => tier.id !== tierId) : prev));
+  const handleDeleteTier = (tier: TierRow, index: number) => {
+    if (tiers.length <= 1) return;
+    const before = snapshotBoard();
+    const remaining = tiers.filter((row) => row.id !== tier.id);
+    editTiers((prev) => (prev.length > 1 ? prev.filter((row) => row.id !== tier.id) : prev));
+    offerUndo(t.rigaEliminata(tier.label), () => {
+      restoreBoard(before);
+      focusRowMenu(tier.id);
+    });
+    // il pulsante premuto se n'e' andato con la riga: il fuoco va alla riga che ne prende il posto
+    focusRowMenu((remaining[index] ?? remaining[index - 1])?.id);
+  };
+
+  const startRename = (tier: TierRow) => {
+    setEditingTierId(tier.id);
+    setEditingLabel(tier.label);
   };
 
   const handleRenameTier = (tierId: string) => {
@@ -505,21 +698,30 @@ export function TierListMaker({
 
   const handleSetColor = (tierId: string, hex: string) => {
     editTiers((prev) => prev.map((r) => (r.id === tierId ? { ...r, color: hex } : r)));
-    closeColorPicker(tierId);
-  };
-
-  /** Chiude la tavolozza e rimette il fuoco sul suo pulsante, invece di perderlo. */
-  const closeColorPicker = (tierId: string) => {
-    setActiveColorPickerTierId(null);
-    colorButtons.current.get(tierId)?.focus();
   };
 
   const handleClearAll = () => {
+    if (assignedHeroIds.size === 0) return;
+    const before = snapshotBoard();
     editTiers((prev) => prev.map((tier) => ({ ...tier, heroIds: [] })));
+    offerUndo(t.svuotatoTutto, () => {
+      restoreBoard(before);
+      focusRowMenu(before.tiers[0]?.id);
+    });
   };
 
-  // Ricominciare e' una modifica: il tabellone vuoto diventa la bozza
+  // Ricominciare e' una modifica: il tabellone vuoto diventa la bozza. Si
+  // annulla tutto insieme: righe, titolo, lista aperta e indirizzo.
   const handleResetDefault = () => {
+    const before = {
+      board: snapshotBoard(),
+      title,
+      currentId,
+      authorInfo,
+      isOwner,
+      isPublic,
+      url: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    };
     editTiers(() => defaultTiers());
     setCurrentId(null);
     setAuthorInfo(null);
@@ -527,6 +729,16 @@ export function TierListMaker({
     setIsPublic(true);
     setTitle(t.titoloPredefinito);
     window.history.replaceState({ ...window.history.state }, "", window.location.pathname);
+    offerUndo(t.ripristinato, () => {
+      restoreBoard(before.board);
+      setTitle(before.title);
+      setCurrentId(before.currentId);
+      setAuthorInfo(before.authorInfo);
+      setIsOwner(before.isOwner);
+      setIsPublic(before.isPublic);
+      window.history.replaceState({ ...window.history.state }, "", before.url);
+      focusRowMenu(before.board.tiers[0]?.id);
+    });
   };
 
   const handleAssignHeroToTier = (heroId: string, targetTierId: string) => {
@@ -564,8 +776,9 @@ export function TierListMaker({
         isPublic,
       });
 
+      // l'azione dice il perche' (database, limite, riga non valida); senza, il generico
       if (!res.ok || !res.tierListId) {
-        flash(res.error ?? t.erroreSalvataggio, 5000);
+        flash(res.error ?? t.erroreSalvataggio, { ms: 7000, error: true });
         return false;
       }
 
@@ -589,7 +802,8 @@ export function TierListMaker({
       }
       return true;
     } catch {
-      flash(t.erroreSalvataggio);
+      // l'azione non e' arrivata o non ha risposto: rete
+      flash(t.erroreRete, { ms: 7000, error: true });
       return false;
     } finally {
       setIsSaving(false);
@@ -615,23 +829,24 @@ export function TierListMaker({
     setShowSavedListsModal(false);
   };
 
-  // Elimina tier list
-  const handleDeleteSavedTierList = async (id: string) => {
-    if (!window.confirm(t.confermaElimina)) return;
+  // Elimina tier list salvata: l'unica cosa che chiede conferma, perche' non si annulla
+  const handleDeleteSavedTierList = async (item: SavedTierListSummary) => {
+    if (!window.confirm(t.confermaElimina(item.title))) return;
 
     try {
-      const res = await deleteTierListAction(id);
+      const res = await deleteTierListAction(item.id);
       if (!res.ok) {
-        if (res.error) flash(res.error, 5000);
+        flash(res.error ?? t.eliminazioneFallita, { ms: 7000, error: true });
         return;
       }
-      setSavedLists((prev) => prev.filter((item) => item.id !== id));
-      if (currentId === id) {
+      setSavedLists((prev) => prev.filter((saved) => saved.id !== item.id));
+      if (currentId === item.id) {
         setCurrentId(null);
         window.history.replaceState({ ...window.history.state }, "", window.location.pathname);
       }
     } catch {
-      // rete: la lista resta dov'era
+      // rete: la lista resta dov'era, e lo si dice
+      flash(t.eliminazioneFallita, { ms: 7000, error: true });
     }
   };
 
@@ -639,7 +854,10 @@ export function TierListMaker({
   const handleDownloadBackup = async () => {
     try {
       const backup = await getTierListBackupAction();
-      if (!backup) return;
+      if (!backup) {
+        flash(t.backupFallito, { ms: 7000, error: true });
+        return;
+      }
 
       const blob = new Blob([JSON.stringify(backup, null, 2)], {
         type: "application/json",
@@ -653,7 +871,7 @@ export function TierListMaker({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {
-      // Ignora
+      flash(t.backupFallito, { ms: 7000, error: true });
     }
   };
 
@@ -669,7 +887,7 @@ export function TierListMaker({
         filename: `tierlist-${game}.png`,
       });
     } catch {
-      flash(t.immagineFallita, 5000);
+      flash(t.immagineFallita, { ms: 8000, error: true });
     } finally {
       setIsExporting(false);
     }
@@ -686,10 +904,10 @@ export function TierListMaker({
       : `${base}#data=${encodeURIComponent(JSON.stringify(tiers))}`;
 
     if (!(await copyToClipboard(url))) {
-      flash(t.copiaFallita, 5000);
+      flash(t.copiaFallita, { ms: 7000, error: true });
       return;
     }
-    if (currentId && isOwner && isSavedPrivate(currentId)) flash(t.linkPrivato, 5000);
+    if (currentId && isOwner && isSavedPrivate(currentId)) flash(t.linkPrivato, { ms: 5000 });
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2500);
   };
@@ -697,650 +915,730 @@ export function TierListMaker({
   const handleCopySavedLink = async (id: string) => {
     const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
     if (!(await copyToClipboard(url))) {
-      flash(t.copiaFallita, 5000);
+      flash(t.copiaFallita, { ms: 7000, error: true });
       return;
     }
-    flash(isSavedPrivate(id) ? t.linkPrivato : t.linkCopiato, isSavedPrivate(id) ? 5000 : 2500);
+    flash(isSavedPrivate(id) ? t.linkPrivato : t.linkCopiato, { ms: isSavedPrivate(id) ? 5000 : 2500 });
   };
 
   const statusLine = (
-    <span role="status" className="font-semibold text-brand">
-      {statusMessage}
+    <span role="status" className={cx("font-semibold", status?.error ? "text-brand-deep" : "text-ink-2")}>
+      {status?.message}
     </span>
   );
 
+  /*
+   * Un solo comando rosso per volta (24/10): erano rossi «Aggiungi riga»,
+   * «Scarica immagine» e «Salva» insieme. Chi e' entrato salva (e l'immagine
+   * passa in seconda fila); chi non e' entrato scarica l'immagine. Guardando la
+   * lista di un altro, il rosso e' «Salva una copia» nell'avviso in cima.
+   */
+  const canSave = viewer !== null && authorInfo === null;
+  const exportVariant = viewer ? "outline" : "primary";
+  const savedHere = currentId !== null && isOwner;
+
   return (
-    <div className="grid gap-6">
-      {/* Banner se si sta visualizzando la tier list condivisa di un altro utente */}
+    <div className="grid gap-4">
+      {/* La tier list condivisa di un altro: chi e' e cosa si puo' fare */}
       {authorInfo ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-brand/40 bg-brand/10 p-4">
-          <div className="flex items-center gap-2">
-            <span aria-hidden className="text-brand font-bold">ℹ</span>
-            <p className="text-sm text-ink">
-              {t.visualizzandoDi(authorInfo.username)}:{" "}
-              <strong className="text-brand">{title}</strong>
-            </p>
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-rule bg-paper-2 px-4 py-3">
+          <p className="m-0 text-[15px] text-ink">
+            {t.visualizzandoDi(authorInfo.username)}: <strong>{title}</strong>
+          </p>
           {viewer ? (
             <button
               type="button"
               disabled={isSaving}
               onClick={() => handleSaveToAccount(null, copyTitle(title, t.suffissoCopia))}
-              className={buttonClass("primary", "sm")}
+              className={buttonClass("primary", "sm", TOUCH)}
             >
-              {t.copiaNelTuoMaker}
+              {isSaving ? t.salvataggioInCorso : t.salvaUnaCopia}
             </button>
           ) : (
-            <Link href="/entra" className={buttonClass("outline", "sm")}>
+            <Link href="/entra" className={buttonClass("outline", "sm", TOUCH)}>
               {t.entraPerSalvare}
             </Link>
           )}
         </div>
       ) : null}
 
-      {/* Intestazione Titolo Tier List e Barra Account */}
-      <div className="p5-corner flex flex-col gap-3 border border-rule bg-paper-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1 min-w-[240px]">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t.titoloPlaceholder}
-              aria-label={t.nomeLista}
-              className="w-full bg-paper px-3 py-1.5 text-base font-bold text-ink border border-rule focus:border-brand focus:outline-none"
-              maxLength={TIER_LIST_LIMITS.title}
-            />
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-ink-3">
-            {currentId && isOwner ? (
-              <span className="flex items-center gap-1 text-emerald-400">
-                <span aria-hidden>☁</span> {t.salvataSuAccount}
-              </span>
-            ) : viewer ? (
-              <span>{t.modificaLocale}</span>
-            ) : null}
-            {showSavedListsModal ? null : statusLine}
-          </div>
-        </div>
-
-        {/* Pulsanti Account e Backup */}
+      {/* Il nome della lista e l'account */}
+      <div className="p5-corner grid gap-2 border border-rule bg-paper-2 p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t.titoloPlaceholder}
+            aria-label={t.nomeLista}
+            maxLength={TIER_LIST_LIMITS.title}
+            className="h-10 min-w-0 flex-1 basis-32 border border-rule bg-paper px-3 font-display text-[17px] font-extrabold text-ink [font-variation-settings:'wdth'_85] placeholder:font-body placeholder:text-[15px] placeholder:font-normal placeholder:text-ink-3 hover:border-ink-3 focus:border-brand focus:outline-none max-lg:h-11"
+          />
           {viewer ? (
             <>
-              <label
-                className="flex cursor-pointer items-center gap-1.5 text-xs text-ink-2"
-                title={t.suggerimentoVisibile}
-              >
-                <input
-                  type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="accent-brand"
-                />
-                {t.visibileNelProfilo}
-              </label>
-
-              {currentId && isOwner ? (
+              {canSave ? (
                 <button
                   type="button"
                   disabled={isSaving}
-                  onClick={() => handleSaveToAccount(currentId)}
-                  className={buttonClass("primary", "sm")}
+                  onClick={() => handleSaveToAccount(savedHere ? currentId : null)}
+                  className={buttonClass("primary", "sm", TOUCH)}
                 >
-                  {isSaving ? t.salvataggioInCorso : t.salvaModifiche}
+                  {isSaving ? t.salvataggioInCorso : savedHere ? t.salvaModifiche : t.salva}
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled={isSaving}
-                  onClick={() => handleSaveToAccount(null)}
-                  className={buttonClass("primary", "sm")}
-                >
-                  {isSaving ? t.salvataggioInCorso : t.salvaSuAccount}
-                </button>
-              )}
-
-              {currentId && isOwner ? (
+              ) : null}
+              {canSave && savedHere ? (
                 <button
                   type="button"
                   onClick={() => {
                     setSaveAsTitle(copyTitle(title, t.suffissoCopia));
                     setShowSaveAsModal(true);
                   }}
-                  className={buttonClass("outline", "sm")}
+                  className={buttonClass("ghost", "sm", TOUCH)}
                 >
                   {t.salvaComeNuova}
                 </button>
               ) : null}
-
               <button
                 type="button"
                 onClick={() => setShowSavedListsModal(true)}
-                className={buttonClass("ghost", "sm")}
+                className={buttonClass("ghost", "sm", TOUCH)}
               >
                 {t.leMieTierList(savedLists.length)}
               </button>
             </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-ink-3 hidden md:inline">{t.accediPerSalvare}</span>
-              <Link href="/entra" className={buttonClass("outline", "sm")}>
-                {t.entra}
-              </Link>
-            </div>
+          ) : authorInfo ? null : (
+            <Link href="/entra" className={buttonClass("outline", "sm", TOUCH)}>
+              {t.entraPerSalvare}
+            </Link>
           )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-ink-3">
+          {authorInfo ? null : savedHere ? (
+            <span className="inline-flex items-center gap-1.5 text-ink-2">
+              <IconCheck size={14} />
+              {t.salvataSuAccount}
+            </span>
+          ) : (
+            <span>{viewer ? t.modificaLocale : t.bozzaLocale}</span>
+          )}
+          {viewer && canSave ? (
+            <label
+              className="inline-flex cursor-pointer items-center gap-2 text-ink-2 max-lg:min-h-11 pointer-coarse:min-h-11"
+              title={t.suggerimentoVisibile}
+            >
+              <input
+                type="checkbox"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+                className="size-4 accent-brand"
+              />
+              {t.visibileNelProfilo}
+            </label>
+          ) : null}
+          {viewer || authorInfo ? null : <span className="max-md:hidden">{t.spiegazioneEntra}</span>}
+          {showSavedListsModal ? null : statusLine}
         </div>
       </div>
 
-      {/* Barra comandi globale */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border border-rule bg-paper-2 p-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleAddTier}
-            disabled={!canAddTier}
-            title={canAddTier ? undefined : t.righeMassime(TIER_LIST_LIMITS.rows)}
-            className={buttonClass("primary", "sm")}
-          >
-            {t.aggiungiTier}
-          </button>
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className={buttonClass("outline", "sm")}
-          >
-            {t.svuotaTutto}
-          </button>
-          <button
-            type="button"
-            onClick={handleResetDefault}
-            className={buttonClass("ghost", "sm")}
-          >
-            {t.ripristina}
-          </button>
-        </div>
+      {/*
+        La barra: sul telefono una fila sola (24/10), prima andava a capo in
+        quattro righe prima del tabellone. Restano fuori l'immagine e il link,
+        Svuota e Ripristina stanno sotto «Altre azioni». «Aggiungi riga» e'
+        sotto l'ultima riga, dove la riga nuova compare.
+      */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleClearAll}
+          disabled={assignedHeroIds.size === 0}
+          className={buttonClass("ghost", "sm", "max-sm:hidden")}
+        >
+          <IconEraser />
+          {t.svuotaTutto}
+        </button>
+        <button type="button" onClick={handleResetDefault} className={buttonClass("ghost", "sm", "max-sm:hidden")}>
+          {t.ripristina}
+        </button>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 max-sm:ml-0 max-sm:flex-1">
           <button
             type="button"
             onClick={handleShareLink}
-            className={buttonClass("outline", "sm")}
             title={t.suggerimentoLink}
+            className={buttonClass("ghost", "sm", cx(TOUCH_SQUARE, "max-sm:order-2 max-sm:px-0"))}
           >
-            {linkCopied ? `✓ ${t.linkCopiato}` : t.copiaLink}
+            {linkCopied ? <IconCheck /> : <IconLink />}
+            <span className="max-sm:sr-only">{linkCopied ? t.linkCopiato : t.copiaLink}</span>
           </button>
           <button
             type="button"
             disabled={isExporting}
             onClick={handleExportImage}
-            className={buttonClass("primary", "sm")}
+            className={buttonClass(exportVariant, "sm", cx(TOUCH, "max-sm:order-1"))}
           >
+            <IconDownload />
             {isExporting ? t.esportazioneInCorso : t.esportaImmagine}
           </button>
+          <div className="max-sm:order-3 max-sm:ml-auto sm:hidden">
+            <MenuButton
+              label={t.altreAzioni}
+              content={<IconMore size={20} />}
+              className={buttonClass("ghost", "sm", cx(TOUCH_SQUARE, "px-0"))}
+              panelClassName="w-64"
+            >
+              {(close) => (
+                <>
+                  <button
+                    type="button"
+                    aria-disabled={assignedHeroIds.size === 0}
+                    onClick={() => {
+                      close();
+                      handleClearAll();
+                    }}
+                    className={menuItemClass}
+                  >
+                    <IconEraser />
+                    {t.svuotaTutto}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      handleResetDefault();
+                    }}
+                    className={menuItemClass}
+                  >
+                    <IconUndo />
+                    {t.ripristina}
+                  </button>
+                </>
+              )}
+            </MenuButton>
+          </div>
         </div>
       </div>
 
-      {/* Tabellone Tier List */}
-      <div className="grid gap-2">
-        {tiers.map((tier, index) => {
-          const isColorPickerOpen = activeColorPickerTierId === tier.id;
-          const isEditing = editingTierId === tier.id;
+      {/*
+        Tabellone ed eroi (24/10). Prima l'elenco degli eroi cominciava a ~1.150
+        px, sotto sei righe vuote, in una scatola che scorreva per conto suo: si
+        scendeva a prendere un eroe e si risaliva a lasciarlo. Sul computer ora e'
+        una colonna ferma accanto alle righe; sul telefono una striscia ferma in
+        fondo allo schermo (sopra la barra), che si tocca e da' la scelta della
+        riga. Nel codice viene dopo le righe, come si legge.
+      */}
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid min-w-0 gap-2">
+          <h2 className="sr-only">{t.righe}</h2>
+          <ol aria-label={t.righe} className="m-0 grid list-none gap-2 p-0">
+            {tiers.map((tier, index) => {
+              const isEditing = editingTierId === tier.id;
+              const ink = labelInk(tier.color);
+              const isFirst = index === 0;
+              const isLast = index === tiers.length - 1;
 
-          return (
-            <div
-              key={tier.id}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => handleDropOnTier(tier.id)}
-              className="flex min-h-[90px] border border-rule bg-paper-2 transition-colors"
-            >
-              {/* Etichetta Tier colorata a sinistra */}
-              <div
-                className="relative flex w-28 shrink-0 flex-col items-center justify-between p-2 select-none sm:w-32"
-                style={{ backgroundColor: tier.color }}
-              >
-                {/* Controlli riga (sposta, colore, opzioni) */}
-                <div className="flex w-full items-center justify-between text-white/90">
-                  <div className="flex items-center gap-0.5">
-                    {index > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => handleMoveTier(index, "up")}
-                        title={t.spostaSu}
-                        aria-label={t.spostaSu}
-                        className="rounded p-0.5 hover:bg-black/30 text-[10px] leading-none"
-                      >
-                        ▲
-                      </button>
-                    ) : null}
-                    {index < tiers.length - 1 ? (
-                      <button
-                        type="button"
-                        onClick={() => handleMoveTier(index, "down")}
-                        title={t.spostaGiu}
-                        aria-label={t.spostaGiu}
-                        className="rounded p-0.5 hover:bg-black/30 text-[10px] leading-none"
-                      >
-                        ▼
-                      </button>
-                    ) : null}
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      ref={(element) => {
-                        if (element) colorButtons.current.set(tier.id, element);
-                        else colorButtons.current.delete(tier.id);
-                      }}
-                      onClick={() =>
-                        setActiveColorPickerTierId(isColorPickerOpen ? null : tier.id)
-                      }
-                      title={t.cambiaColore}
-                      aria-label={t.cambiaColore}
-                      aria-expanded={isColorPickerOpen}
-                      className="rounded p-0.5 hover:bg-black/30 text-xs"
-                    >
-                      🎨
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingTierId(isEditing ? null : tier.id);
-                        setEditingLabel(tier.label);
-                      }}
-                      title={t.rinominaTier}
-                      aria-label={t.rinominaTier}
-                      className="rounded p-0.5 hover:bg-black/30 text-xs"
-                    >
-                      ✎
-                    </button>
-                  </div>
-                </div>
-
-                {/* Testo etichetta Tier (o input di rinomina) */}
-                <div className="my-auto text-center w-full px-1">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editingLabel}
-                      autoFocus
-                      aria-label={t.rinominaTier}
-                      onChange={(e) => setEditingLabel(e.target.value)}
-                      onBlur={() => handleRenameTier(tier.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleRenameTier(tier.id);
-                        } else if (e.key === "Escape") {
-                          setEditingTierId(null);
-                        }
-                      }}
-                      className="w-full bg-black/60 px-1 py-0.5 text-center font-extrabold text-sm text-white focus:outline-none"
-                      maxLength={TIER_LIST_LIMITS.label}
-                    />
-                  ) : (
-                    <span
-                      onClick={() => {
-                        setEditingTierId(tier.id);
-                        setEditingLabel(tier.label);
-                      }}
-                      className="cursor-pointer font-black text-lg tracking-wider text-white drop-shadow-md hover:underline"
-                    >
-                      {tier.label}
-                    </span>
+              return (
+                <li
+                  key={tier.id}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (dragOverTierId !== tier.id) setDragOverTierId(tier.id);
+                  }}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragOverTierId(null);
+                  }}
+                  onDrop={() => handleDropOnTier(tier.id)}
+                  className={cx(
+                    "flex min-h-[84px] border bg-paper-2 transition-colors",
+                    dragOverTierId === tier.id ? "border-ink" : "border-rule",
                   )}
-                </div>
-
-                {/* Pulizia o eliminazione riga */}
-                <div className="flex w-full items-center justify-between text-[10px] text-white/80">
-                  <button
-                    type="button"
-                    onClick={() => handleClearTier(tier.id)}
-                    title={t.svuotaRiga}
-                    aria-label={t.svuotaRiga}
-                    className="hover:text-white"
+                >
+                  {/*
+                    La scritta della riga: l'inchiostro lo sceglie il colore (24/10),
+                    prima era sempre bianco con un'ombra (1,4:1 sull'oro). Il bordo
+                    destro tagliato in obliquo come i comandi del sito.
+                  */}
+                  <div
+                    className="flex w-[72px] shrink-0 items-center justify-center py-2 pr-3 pl-2 text-center [clip-path:polygon(0_0,100%_0,calc(100%_-_10px)_100%,0_100%)] sm:w-24"
+                    style={{ backgroundColor: tier.color, color: ink }}
                   >
-                    {t.svuotaRigaBreve}
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editingLabel}
+                        autoFocus
+                        aria-label={t.nomeRiga(tier.label)}
+                        onChange={(e) => setEditingLabel(e.target.value)}
+                        onBlur={() => handleRenameTier(tier.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleRenameTier(tier.id);
+                            focusRowMenu(tier.id);
+                          } else if (e.key === "Escape") {
+                            setEditingTierId(null);
+                            focusRowMenu(tier.id);
+                          }
+                        }}
+                        maxLength={TIER_LIST_LIMITS.label}
+                        className="h-10 w-full min-w-0 border-2 border-ink bg-paper px-1 text-center font-display text-[15px] font-extrabold text-ink focus:outline-none"
+                      />
+                    ) : (
+                      <span
+                        className={cx(
+                          "block max-w-full font-display leading-[0.95] font-black tracking-[-0.01em] [font-variation-settings:'wdth'_80]",
+                          labelSize(tier.label),
+                        )}
+                      >
+                        {tier.label}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Gli eroi della riga, che vanno a capo dentro la riga */}
+                  <div
+                    className={cx(
+                      "flex min-w-0 flex-1 flex-wrap gap-1.5 p-2",
+                      tier.heroIds.length === 0 ? "items-center" : "content-start items-start",
+                    )}
+                  >
+                    {tier.heroIds.length === 0 ? (
+                      <p className="m-0 px-1 text-[13px] leading-snug text-ink-3 select-none">
+                        <span className="lg:hidden">{t.toccaQui}</span>
+                        <span className="max-lg:hidden">{t.trascinaQui}</span>
+                      </p>
+                    ) : (
+                      tier.heroIds.map((heroId) => {
+                        const hero = heroesMap.get(heroId);
+                        if (!hero) return null;
+
+                        // Un pulsante e non un div: con la tastiera ci si arriva e
+                        // si apre la scelta della riga; il nome e' quello dell'eroe
+                        return (
+                          <div key={hero.id} className="group relative size-16 shrink-0">
+                            <button
+                              type="button"
+                              draggable
+                              onDragStart={() => handleDragStart(hero.id, tier.id)}
+                              onDragEnd={handleDragEnd}
+                              onClick={() => setSelectedHeroForAction({ heroId: hero.id, fromTierId: tier.id })}
+                              aria-label={hero.name}
+                              title={t.suggerimentoInRiga(hero.name)}
+                              className="block size-full cursor-grab border border-rule-2 bg-paper transition-transform select-none hover:z-10 hover:scale-105 active:cursor-grabbing motion-reduce:transition-none"
+                            >
+                              <Image
+                                src={hero.cardSrc}
+                                alt=""
+                                width={64}
+                                height={64}
+                                unoptimized
+                                className="size-full object-cover"
+                              />
+                            </button>
+                            {/* togliere al volo col mouse; sul tocco lo fa la finestra della riga */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveHero(hero.id)}
+                              title={t.rimuoviDalTier}
+                              aria-label={t.rimuoviEroe(hero.name)}
+                              className="absolute -top-1.5 -right-1.5 z-20 hidden size-6 cursor-pointer place-items-center bg-ink text-paper group-focus-within:grid group-hover:grid hover:bg-brand hover:text-white pointer-coarse:hidden!"
+                            >
+                              <IconClose size={12} />
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* I comandi della riga, in un menu sul bordo (24/10) */}
+                  <div className="flex w-11 shrink-0 items-center justify-center border-l border-rule-2">
+                    <MenuButton
+                      label={t.comandiRiga(tier.label)}
+                      content={<IconMore size={20} />}
+                      buttonRef={(element) => {
+                        if (element) rowMenus.current.set(tier.id, element);
+                        else rowMenus.current.delete(tier.id);
+                      }}
+                      className="grid size-11 cursor-pointer place-items-center text-ink-3 transition-colors hover:bg-paper-3 hover:text-ink aria-expanded:bg-ink aria-expanded:text-paper"
+                      panelClassName="w-60"
+                    >
+                      {(close) => (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              close(false);
+                              startRename(tier);
+                            }}
+                            className={menuItemClass}
+                          >
+                            <IconPencil />
+                            {t.rinomina}
+                          </button>
+
+                          <div role="group" aria-label={t.colore} className="px-1 pt-1.5 pb-2">
+                            <p className={cx(eyebrow, "m-0 mb-1.5 px-2")}>{t.colore}</p>
+                            <div className="grid grid-cols-6 gap-1 max-lg:grid-cols-4 pointer-coarse:grid-cols-4">
+                              {TIER_COLORS.map((c) => (
+                                <button
+                                  key={c.hex}
+                                  type="button"
+                                  title={c.label[locale]}
+                                  aria-label={c.label[locale]}
+                                  aria-pressed={tier.color === c.hex}
+                                  onClick={() => handleSetColor(tier.id, c.hex)}
+                                  className="grid h-8 cursor-pointer place-items-center border border-white/15 max-lg:h-11 pointer-coarse:h-11"
+                                  style={{ backgroundColor: c.hex, color: labelInk(c.hex) }}
+                                >
+                                  {tier.color === c.hex ? <IconCheck size={14} /> : null}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* aria-disabled e non disabled: il pulsante premuto resta col fuoco */}
+                          <button
+                            type="button"
+                            aria-disabled={isFirst}
+                            onClick={(e) => {
+                              if (isFirst) return;
+                              const button = e.currentTarget;
+                              handleMoveTier(index, "up");
+                              requestAnimationFrame(() => button.focus());
+                            }}
+                            className={menuItemClass}
+                          >
+                            <IconArrowUp size={16} />
+                            {t.spostaSu}
+                          </button>
+                          <button
+                            type="button"
+                            aria-disabled={isLast}
+                            onClick={(e) => {
+                              if (isLast) return;
+                              const button = e.currentTarget;
+                              handleMoveTier(index, "down");
+                              requestAnimationFrame(() => button.focus());
+                            }}
+                            className={menuItemClass}
+                          >
+                            <IconArrowDown size={16} />
+                            {t.spostaGiu}
+                          </button>
+
+                          <div className="my-1 border-t border-rule" />
+                          <button
+                            type="button"
+                            aria-disabled={tier.heroIds.length === 0}
+                            onClick={() => {
+                              close();
+                              handleClearTier(tier);
+                            }}
+                            className={menuItemClass}
+                          >
+                            <IconEraser />
+                            {t.svuotaRiga}
+                          </button>
+                          {tiers.length > 1 ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                close(false);
+                                handleDeleteTier(tier, index);
+                              }}
+                              className={cx(menuItemClass, "text-brand-deep")}
+                            >
+                              <IconTrash />
+                              {t.eliminaRiga}
+                            </button>
+                          ) : null}
+                        </>
+                      )}
+                    </MenuButton>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+
+          {canAddTier ? (
+            <button
+              type="button"
+              onClick={handleAddTier}
+              className={buttonClass("ghost", "sm", cx(TOUCH, "justify-self-start"))}
+            >
+              <IconPlus />
+              {t.aggiungiRiga}
+            </button>
+          ) : (
+            <p className="m-0 text-[13px] text-ink-3">{t.righeMassime(TIER_LIST_LIMITS.rows)}</p>
+          )}
+        </div>
+
+        {/*
+          Gli eroi da mettere in riga. Sul computer la colonna e' alta quanto le
+          righe (almeno 36rem) e l'elenco ci sta fermo dentro: se fosse l'elenco a
+          dare l'altezza, con poche righe sarebbe lui il piu' alto e scorrerebbe
+          via con la pagina invece di restare fermo (`contain: size` gli toglie
+          l'altezza propria). Sul telefono la colonna non c'e' (`contents`), e la
+          striscia resta ferma in fondo per tutto il tabellone.
+        */}
+        <div className="max-lg:contents lg:min-h-[36rem] lg:self-stretch lg:[contain:size]">
+          <section
+            aria-labelledby={poolHeadingId}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDropOnPool}
+            className={cx(
+              "min-w-0 border border-rule bg-paper-2 p-3",
+              // telefono: ferma in fondo, sopra la barra del sito (58 px, misurata il
+              // 24/10): 56 la fa passare 2 px sotto la barra, invece di lasciare una fessura
+              "max-lg:sticky max-lg:bottom-[calc(56px+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:border-t-2 max-lg:border-t-brand max-lg:shadow-[0_-10px_24px_rgba(0,0,0,0.55)]",
+              // computer: ferma sotto l'intestazione (61 px), alta quanto la colonna e al massimo quanto lo schermo
+              "lg:sticky lg:top-[77px] lg:flex lg:h-full lg:max-h-[calc(100dvh-93px)] lg:flex-col lg:p-4",
+            )}
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 max-lg:sr-only">
+              <h2
+                id={poolHeadingId}
+                className="m-0 font-display text-[15px] font-extrabold tracking-[0.03em] text-ink uppercase [font-variation-settings:'wdth'_82]"
+              >
+                {t.poolEroi}
+              </h2>
+              <span className="text-[13px] text-ink-3">{t.eroiAssegnati(assignedHeroIds.size, heroes.length)}</span>
+            </div>
+
+            <div className="flex items-center gap-2 lg:mt-3">
+              <Input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t.cerca}
+                aria-label={t.cerca}
+                className="min-w-0 flex-1 max-lg:h-11"
+              />
+              <button
+                type="button"
+                aria-expanded={filtersOpen}
+                aria-controls={filtersId}
+                onClick={() => setFiltersOpen((open) => !open)}
+                // la lama dei filtri: rossa se un filtro restringe l'elenco, anche a pannello chiuso
+                className={chipClass(filtersActive > 0, false, cx(TOUCH_SQUARE, "justify-center px-0 lg:hidden"))}
+              >
+                <IconFilters />
+                <span className="sr-only">
+                  {t.filtri}
+                  {filtersActive ? ` (${filtersActive})` : ""}
+                </span>
+              </button>
+            </div>
+
+            <div id={filtersId} className={cx("grid gap-2 pt-3", filtersOpen ? null : "max-lg:hidden")}>
+              <FilterRow label={t.rarita} labelClassName="w-[74px]">
+                {rarities.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setSelectedRarity(selectedRarity === r ? null : r)}
+                    aria-pressed={selectedRarity === r}
+                    className={chipClass(selectedRarity === r, false, TOUCH)}
+                  >
+                    {r}
                   </button>
-                  {tiers.length > 1 ? (
+                ))}
+              </FilterRow>
+              {/* Attributi: si filtra per id, si mostra il nome nella lingua */}
+              <FilterRow label={t.attributo} labelClassName="w-[74px]">
+                {affinities.map((aff) => (
+                  <button
+                    key={aff.id}
+                    type="button"
+                    onClick={() => setSelectedAffinity(selectedAffinity === aff.id ? null : aff.id)}
+                    aria-pressed={selectedAffinity === aff.id}
+                    className={chipClass(selectedAffinity === aff.id, false, TOUCH)}
+                  >
+                    {aff.name}
+                  </button>
+                ))}
+              </FilterRow>
+            </div>
+
+            <div className="mt-3 max-lg:-mx-3 max-lg:overflow-x-auto max-lg:overscroll-x-contain max-lg:px-3 max-lg:pb-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1 [scrollbar-color:var(--color-rule)_transparent] [scrollbar-width:thin]">
+              {availableHeroes.length === 0 ? (
+                <div className="flex flex-wrap items-center gap-3 py-3 text-[13px] text-ink-2 lg:py-8">
+                  <p className="m-0">
+                    {assignedHeroIds.size === heroes.length ? t.tuttiInRiga : t.nessunEroeTrovato}
+                  </p>
+                  {filtersActive || search ? (
                     <button
                       type="button"
-                      onClick={() => handleDeleteTier(tier.id)}
-                      title={t.eliminaRiga}
-                      aria-label={t.eliminaRiga}
-                      className="hover:text-white"
+                      onClick={() => {
+                        setSelectedRarity(null);
+                        setSelectedAffinity(null);
+                        setSearch("");
+                      }}
+                      className={buttonClass("ghost", "sm", TOUCH)}
                     >
-                      ✕
+                      {t.togliFiltri}
                     </button>
                   ) : null}
                 </div>
-
-                {/* Color picker a scomparsa: Esc lo chiude, il fuoco entra sul primo colore */}
-                {isColorPickerOpen ? (
-                  <div
-                    role="group"
-                    aria-label={t.coloriRiga(tier.label)}
-                    className="absolute top-full left-0 z-30 mt-1 grid grid-cols-4 gap-1.5 border border-rule bg-paper-2 p-2 shadow-xl"
-                    onMouseLeave={() => setActiveColorPickerTierId(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") {
-                        e.stopPropagation();
-                        closeColorPicker(tier.id);
-                      }
-                    }}
-                  >
-                    {TIER_COLORS.map((c, colorIndex) => (
+              ) : (
+                <ul className="m-0 flex list-none gap-1.5 p-0 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(56px,1fr))]">
+                  {availableHeroes.map((hero) => (
+                    <li key={hero.id} className="shrink-0 max-lg:size-14">
                       <button
-                        key={c.hex}
                         type="button"
-                        autoFocus={colorIndex === 0}
-                        title={c.label[locale]}
-                        aria-label={c.label[locale]}
-                        aria-pressed={tier.color === c.hex}
-                        onClick={() => handleSetColor(tier.id, c.hex)}
-                        className="h-5 w-5 rounded border border-white/20 transition-transform hover:scale-125"
-                        style={{ backgroundColor: c.hex }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Area di drop e contenitore delle card eroi posizionate */}
-              <div className="flex flex-1 flex-wrap items-center content-start gap-1.5 p-2 min-h-[90px] overflow-x-auto">
-                {tier.heroIds.length === 0 ? (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-ink-3/60 italic select-none">
-                    {t.trascinaQui}
-                  </div>
-                ) : (
-                  tier.heroIds.map((heroId, heroIdx) => {
-                    const hero = heroesMap.get(heroId);
-                    if (!hero) return null;
-
-                    // Un pulsante e non un div: con la tastiera ci si arriva e
-                    // si apre la scelta della riga; il nome e' quello dell'eroe
-                    return (
-                      <div
-                        key={`${tier.id}-${hero.id}-${heroIdx}`}
-                        className="group relative h-16 w-16 shrink-0"
+                        draggable
+                        onDragStart={() => handleDragStart(hero.id, null)}
+                        onDragEnd={handleDragEnd}
+                        onClick={() => setSelectedHeroForAction({ heroId: hero.id, fromTierId: null })}
+                        aria-label={hero.name}
+                        title={t.suggerimentoPool(hero.name)}
+                        className="block aspect-square w-full cursor-grab border border-rule-2 bg-paper transition-[border-color,scale] select-none hover:z-10 hover:scale-105 hover:border-ink-3 active:cursor-grabbing motion-reduce:transition-none"
                       >
-                        <button
-                          type="button"
-                          draggable
-                          onDragStart={() => handleDragStart(hero.id, tier.id)}
-                          onClick={() =>
-                            setSelectedHeroForAction({ heroId: hero.id, fromTierId: tier.id })
-                          }
-                          aria-label={hero.name}
-                          title={t.suggerimentoInRiga(hero.name)}
-                          className="block h-full w-full cursor-grab active:cursor-grabbing border border-rule-2 bg-paper transition-transform hover:scale-105 hover:z-10 select-none"
-                        >
-                          <Image
-                            src={hero.cardSrc}
-                            alt=""
-                            width={64}
-                            height={64}
-                            unoptimized
-                            className="h-full w-full object-cover"
-                          />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveHero(hero.id)}
-                          className="absolute -top-1 -right-1 z-20 hidden h-4 w-4 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white group-hover:flex group-focus-within:flex"
-                          title={t.rimuoviDalTier}
-                          aria-label={t.rimuoviEroe(hero.name)}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                        <Image
+                          src={hero.cardSrc}
+                          alt=""
+                          width={64}
+                          height={64}
+                          unoptimized
+                          className="size-full object-cover"
+                        />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          );
-        })}
+          </section>
+        </div>
       </div>
 
-      {/* Banco degli eroi disponibili (Hero Pool) */}
+      {/*
+        L'avviso con «Annulla» (24/10). La regione aria-live c'e' sempre, cosi'
+        il lettore di schermo annuncia il messaggio quando compare; il fuoco non
+        si sposta. Sul telefono in alto, perche' in basso c'e' la striscia degli
+        eroi; sul computer in basso.
+      */}
       <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDropOnPool}
-        className="p5-corner border border-rule bg-paper-2 p-4"
+        aria-live="polite"
+        aria-atomic="true"
+        className="pointer-events-none fixed top-[69px] right-4 left-4 z-40 flex justify-center lg:top-auto lg:right-auto lg:bottom-6 lg:left-1/2 lg:-translate-x-1/2"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule-2 pb-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-ink">
-              {t.poolEroi}
-            </h3>
-            <span className={eyebrow}>
-              {t.eroiAssegnati(assignedHeroIds.size, heroes.length)}
-            </span>
-          </div>
-
-          {/* Campo di ricerca rapida */}
-          <div className="w-full sm:w-64">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t.cercaPlaceholder}
-              aria-label={t.cercaPlaceholder}
-              className="w-full border border-rule bg-paper px-3 py-1.5 text-xs text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Filtri combinati per rarità e attributo */}
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          {/* Rarità */}
-          <div className="flex flex-wrap items-center gap-1 text-xs">
+        {undo ? (
+          <div
+            key={undo.key}
+            onPointerEnter={() => {
+              if (undoTimer.current) clearTimeout(undoTimer.current);
+            }}
+            onPointerLeave={() => armUndoTimer(UNDO_AFTER_PAUSE_MS)}
+            onFocus={() => {
+              if (undoTimer.current) clearTimeout(undoTimer.current);
+            }}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) armUndoTimer(UNDO_AFTER_PAUSE_MS);
+            }}
+            className="pointer-events-auto flex max-w-[34rem] items-center gap-3 border-2 border-ink bg-paper py-1.5 pr-1.5 pl-4 text-[14px] leading-snug text-ink shadow-[6px_6px_0_0_var(--color-brand)]"
+          >
+            <span className="min-w-0">{undo.message}</span>
             <button
               type="button"
-              onClick={() => setSelectedRarity(null)}
-              aria-pressed={selectedRarity === null}
-              className={cx(
-                "rounded px-2 py-1 font-semibold transition-colors",
-                selectedRarity === null
-                  ? "bg-brand text-white"
-                  : "bg-paper text-ink-3 hover:text-ink",
-              )}
+              onClick={runUndo}
+              className={buttonClass("outline", "sm", cx(TOUCH, "shrink-0"))}
             >
-              {t.tutteLeRarita}
+              <IconUndo />
+              {t.annullaAzione}
             </button>
-            {rarities.map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setSelectedRarity(selectedRarity === r ? null : r)}
-                aria-pressed={selectedRarity === r}
-                className={cx(
-                  "rounded px-2 py-1 font-semibold transition-colors",
-                  selectedRarity === r
-                    ? "bg-brand text-white"
-                    : "bg-paper text-ink-3 hover:text-ink",
-                )}
-              >
-                {r}
-              </button>
-            ))}
           </div>
-
-          <div className="h-4 w-px bg-rule-2" />
-
-          {/* Attributi: si filtra per id, si mostra il nome nella lingua */}
-          <div className="flex flex-wrap items-center gap-1 text-xs">
-            <button
-              type="button"
-              onClick={() => setSelectedAffinity(null)}
-              aria-pressed={selectedAffinity === null}
-              className={cx(
-                "rounded px-2 py-1 font-semibold transition-colors",
-                selectedAffinity === null
-                  ? "bg-brand text-white"
-                  : "bg-paper text-ink-3 hover:text-ink",
-              )}
-            >
-              {t.tuttiGliAttributi}
-            </button>
-            {affinities.map((aff) => (
-              <button
-                key={aff.id}
-                type="button"
-                onClick={() =>
-                  setSelectedAffinity(selectedAffinity === aff.id ? null : aff.id)
-                }
-                aria-pressed={selectedAffinity === aff.id}
-                className={cx(
-                  "rounded px-2 py-1 font-semibold transition-colors",
-                  selectedAffinity === aff.id
-                    ? "bg-brand text-white"
-                    : "bg-paper text-ink-3 hover:text-ink",
-                )}
-              >
-                {aff.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Griglia delle miniature eroi nel pool */}
-        <div className="mt-4 max-h-[460px] overflow-y-auto rounded border border-rule-2 bg-paper/40 p-3 [scrollbar-width:thin]">
-          {availableHeroes.length === 0 ? (
-            <p className="py-12 text-center text-xs text-ink-3">{t.nessunEroeTrovato}</p>
-          ) : (
-            <div className="grid grid-cols-5 gap-2 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-14">
-              {availableHeroes.map((hero) => (
-                <button
-                  key={hero.id}
-                  type="button"
-                  draggable
-                  onDragStart={() => handleDragStart(hero.id, null)}
-                  onClick={() =>
-                    setSelectedHeroForAction({ heroId: hero.id, fromTierId: null })
-                  }
-                  aria-label={hero.name}
-                  title={t.suggerimentoPool(hero.name)}
-                  className="group relative block aspect-square cursor-grab active:cursor-grabbing border border-rule-2 bg-paper transition-transform hover:scale-110 hover:z-10 select-none"
-                >
-                  <Image
-                    src={hero.cardSrc}
-                    alt=""
-                    width={64}
-                    height={64}
-                    unoptimized
-                    className="h-full w-full object-cover"
-                  />
-                  <span className="absolute inset-0 bg-brand/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        ) : null}
       </div>
 
       {/* Finestra: Elenco delle mie Tier List salvate */}
       {showSavedListsModal ? (
         <Finestra
-          label={t.leMieTierList(savedLists.length)}
+          label={t.titoloLeMieTierList}
           onClose={() => setShowSavedListsModal(false)}
           className="w-[min(32rem,calc(100vw-2rem))]"
         >
-          <div className="p-6">
-            <div className="flex items-center justify-between border-b border-rule-2 pb-3">
-              <h3 className="text-base font-bold text-ink">
-                {t.leMieTierList(savedLists.length)}
-              </h3>
+          <div className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3 border-b border-rule-2 pb-3">
+              <h2 className="m-0 font-display text-[20px] font-extrabold uppercase [font-variation-settings:'wdth'_82]">
+                {t.titoloLeMieTierList}
+              </h2>
               <button
                 type="button"
                 onClick={() => setShowSavedListsModal(false)}
                 aria-label={t.chiudi}
-                className="text-ink-3 hover:text-ink"
+                title={t.chiudi}
+                className="grid size-10 cursor-pointer place-items-center text-ink-3 hover:bg-paper-3 hover:text-ink max-lg:size-11"
               >
-                ✕
+                <IconClose />
               </button>
             </div>
 
-            <div className="my-4 max-h-80 overflow-y-auto space-y-2 [scrollbar-width:thin]">
+            <ul className="m-0 my-4 grid max-h-80 list-none gap-2 overflow-y-auto p-0 [scrollbar-width:thin]">
               {savedLists.length === 0 ? (
-                <p className="py-8 text-center text-xs text-ink-3">
-                  {t.nessunaTierListSalvata}
-                </p>
+                <li className="py-8 text-center text-[14px] text-ink-2">{t.nessunaTierListSalvata}</li>
               ) : (
                 savedLists.map((item) => (
-                  <div
+                  <li
                     key={item.id}
                     className={cx(
-                      "flex flex-col gap-2 rounded border p-3 transition-colors",
-                      item.id === currentId
-                        ? "border-brand bg-brand/5"
-                        : "border-rule bg-paper hover:border-rule-2",
+                      "grid gap-2 border p-3",
+                      item.id === currentId ? "border-ink bg-paper-3" : "border-rule bg-paper",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-sm text-ink truncate max-w-[260px]">
-                        {item.title}
-                      </h4>
-                      <span suppressHydrationWarning className="shrink-0 text-[11px] text-ink-3">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h3 className="m-0 min-w-0 truncate text-[15px] font-bold text-ink">{item.title}</h3>
+                      <span suppressHydrationWarning className="shrink-0 text-[12px] text-ink-3">
                         {new Date(item.updatedAt).toLocaleDateString(locale)}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 text-xs text-ink-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] text-ink-3">
                       <span className="flex flex-wrap items-center gap-2">
                         <span>{t.eroiPosizionati(item.heroCount)}</span>
-                        <span
-                          className={cx(
-                            "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                            item.isPublic ? "bg-emerald-500/15 text-emerald-400" : "bg-rule text-ink-2",
-                          )}
-                        >
-                          {item.isPublic ? t.nelProfilo : t.privata}
-                        </span>
+                        {item.isPublic ? <span>{t.nelProfilo}</span> : <Tag>{t.privata}</Tag>}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleLoadSavedTierList(item)}
-                          className={buttonClass("primary", "sm")}
+                          className={buttonClass("outline", "sm", TOUCH)}
                         >
-                          {t.carica}
+                          {t.apri}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleCopySavedLink(item.id)}
-                          className={buttonClass("outline", "sm")}
-                          title={t.copiaLinkDiretto}
-                          aria-label={t.copiaLinkDiretto}
+                          className={buttonClass("ghost", "sm", cx(TOUCH_SQUARE, "px-2.5"))}
+                          title={t.copiaLinkDi(item.title)}
+                          aria-label={t.copiaLinkDi(item.title)}
                         >
-                          🔗
+                          <IconLink />
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDeleteSavedTierList(item.id)}
-                          className="rounded px-2 py-1 text-xs font-bold text-red-500 hover:bg-red-500/10"
-                          title={t.elimina}
-                          aria-label={t.elimina}
+                          onClick={() => handleDeleteSavedTierList(item)}
+                          className={buttonClass("ghost", "sm", cx(TOUCH_SQUARE, "px-2.5 text-brand-deep"))}
+                          title={t.elimina(item.title)}
+                          aria-label={t.elimina(item.title)}
                         >
-                          🗑
+                          <IconTrash />
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </li>
                 ))
               )}
-            </div>
+            </ul>
 
-            <p className="mb-2 min-h-4 text-xs">{statusLine}</p>
+            <p className="m-0 mb-2 min-h-5 text-[13px]">{statusLine}</p>
 
-            <div className="border-t border-rule-2 pt-3 flex flex-wrap items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={handleDownloadBackup}
-                className={buttonClass("outline", "sm")}
-              >
-                <span aria-hidden>💾</span> {t.scaricaBackup}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule-2 pt-3">
+              <button type="button" onClick={handleDownloadBackup} className={buttonClass("ghost", "sm", TOUCH)}>
+                <IconDownload />
+                {t.scaricaBackup}
               </button>
 
               <button
@@ -1349,8 +1647,9 @@ export function TierListMaker({
                   handleResetDefault();
                   setShowSavedListsModal(false);
                 }}
-                className={buttonClass("ghost", "sm")}
+                className={buttonClass("ghost", "sm", TOUCH)}
               >
+                <IconPlus />
                 {t.nuovaTierList}
               </button>
             </div>
@@ -1361,7 +1660,7 @@ export function TierListMaker({
       {/* Finestra: Salva con nuovo nome */}
       {showSaveAsModal ? (
         <Finestra
-          label={t.salvaNuovaCopia}
+          label={t.salvaComeNuova}
           onClose={() => setShowSaveAsModal(false)}
           className="w-[min(24rem,calc(100vw-2rem))]"
         >
@@ -1374,31 +1673,33 @@ export function TierListMaker({
               setShowSaveAsModal(false);
             }}
           >
-            <h4 className="font-bold text-base text-ink mb-3">{t.salvaNuovaCopia}</h4>
-            <label className="block text-xs text-ink-3 mb-2" htmlFor="tierlist-salva-come">
+            <h2 className="m-0 mb-3 font-display text-[18px] font-extrabold uppercase [font-variation-settings:'wdth'_82]">
+              {t.salvaComeNuova}
+            </h2>
+            <label className={cx(eyebrow, "mb-1.5 block")} htmlFor="tierlist-salva-come">
               {t.nomeTierList}
             </label>
-            <input
+            <Input
               id="tierlist-salva-come"
               type="text"
               value={saveAsTitle}
               autoFocus
               onChange={(e) => setSaveAsTitle(e.target.value)}
-              className="w-full border border-rule bg-paper px-3 py-2 text-sm text-ink mb-4 focus:border-brand focus:outline-none"
+              className="mb-4 max-lg:h-11"
               maxLength={TIER_LIST_LIMITS.title}
             />
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowSaveAsModal(false)}
-                className={buttonClass("ghost", "sm")}
+                className={buttonClass("ghost", "sm", TOUCH)}
               >
                 {t.annulla}
               </button>
               <button
                 type="submit"
                 disabled={!saveAsTitle.trim() || isSaving}
-                className={buttonClass("primary", "sm")}
+                className={buttonClass("primary", "sm", TOUCH)}
               >
                 {isSaving ? t.salvataggioInCorso : t.conferma}
               </button>
@@ -1408,79 +1709,86 @@ export function TierListMaker({
       ) : null}
 
       {/* Finestra: scelta rapida della riga al clic (o Invio) sull'eroe */}
-      {selectedHeroForAction ? (
-        (() => {
-          const hero = heroesMap.get(selectedHeroForAction.heroId);
-          if (!hero) return null;
+      {selectedHeroForAction
+        ? (() => {
+            const hero = heroesMap.get(selectedHeroForAction.heroId);
+            if (!hero) return null;
 
-          return (
-            <Finestra
-              label={hero.name}
-              onClose={() => setSelectedHeroForAction(null)}
-              className="w-[min(24rem,calc(100vw-2rem))]"
-            >
-              <div className="p-5">
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={hero.cardSrc}
-                    alt=""
-                    width={52}
-                    height={52}
-                    unoptimized
-                    className="border border-rule-2"
-                  />
-                  <div>
-                    <h4 className="font-bold text-sm text-ink">{hero.name}</h4>
-                    {hero.epithet ? (
-                      <p className="text-xs text-ink-3">{hero.epithet}</p>
-                    ) : null}
+            return (
+              <Finestra
+                label={hero.name}
+                onClose={() => setSelectedHeroForAction(null)}
+                className="w-[min(24rem,calc(100vw-2rem))]"
+              >
+                <div className="p-5">
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={hero.cardSrc}
+                      alt=""
+                      width={56}
+                      height={56}
+                      unoptimized
+                      className="size-14 border border-rule-2"
+                    />
+                    <div className="min-w-0">
+                      <h2 className="m-0 font-display text-[18px] leading-tight font-extrabold uppercase [font-variation-settings:'wdth'_82]">
+                        {hero.name}
+                      </h2>
+                      {hero.epithet ? <p className="m-0 text-[13px] text-ink-3">{hero.epithet}</p> : null}
+                    </div>
+                  </div>
+
+                  <p className={cx(eyebrow, "mt-5 mb-2")}>{t.assegnaATier}</p>
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-1.5">
+                    {tiers.map((tier) => {
+                      const here = tier.id === selectedHeroForAction.fromTierId;
+                      return (
+                        <button
+                          key={tier.id}
+                          type="button"
+                          onClick={() => handleAssignHeroToTier(hero.id, tier.id)}
+                          aria-pressed={here}
+                          className="p5-cut-sm p5-press flex h-11 min-w-0 cursor-pointer items-center justify-center gap-1 px-2 font-display text-[17px] leading-none font-black [font-variation-settings:'wdth'_80]"
+                          style={{ backgroundColor: tier.color, color: labelInk(tier.color) }}
+                        >
+                          <span className="truncate">{tier.label}</span>
+                          {here ? (
+                            <>
+                              <IconCheck size={14} className="shrink-0" />
+                              <span className="sr-only">{t.rigaAttuale}</span>
+                            </>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-rule-2 pt-3">
+                    {selectedHeroForAction.fromTierId ? (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveHero(hero.id)}
+                        className={buttonClass("ghost", "sm", TOUCH)}
+                      >
+                        <IconClose size={16} />
+                        {t.rimuoviDalTier}
+                      </button>
+                    ) : (
+                      <span />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedHeroForAction(null)}
+                      className={buttonClass("ghost", "sm", TOUCH)}
+                    >
+                      {t.chiudi}
+                    </button>
                   </div>
                 </div>
-
-                <p className="mt-4 text-xs font-bold uppercase tracking-wider text-ink-2">
-                  {t.assegnaATier}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {tiers.map((tier) => (
-                    <button
-                      key={tier.id}
-                      type="button"
-                      onClick={() => handleAssignHeroToTier(hero.id, tier.id)}
-                      aria-pressed={tier.id === selectedHeroForAction.fromTierId}
-                      className="rounded px-3 py-1.5 text-xs font-bold text-white transition-transform hover:scale-105"
-                      style={{ backgroundColor: tier.color }}
-                    >
-                      {tier.label}
-                    </button>
-                  ))}
-                </div>
-
-                {selectedHeroForAction.fromTierId ? (
-                  <div className="mt-4 border-t border-rule-2 pt-3">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveHero(hero.id)}
-                      className={buttonClass("outline", "sm")}
-                    >
-                      {t.rimuoviDalTier}
-                    </button>
-                  </div>
-                ) : null}
-
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedHeroForAction(null)}
-                    className={buttonClass("ghost", "sm")}
-                  >
-                    {t.chiudi}
-                  </button>
-                </div>
-              </div>
-            </Finestra>
-          );
-        })()
-      ) : null}
+              </Finestra>
+            );
+          })()
+        : null}
     </div>
   );
 }

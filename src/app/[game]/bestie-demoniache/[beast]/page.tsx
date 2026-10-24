@@ -388,7 +388,7 @@ function FloorBrief({
         related.length > 0 && [
           t.eroiLegati,
           <BriefLink key="e" href="#eroi">
-            {related.join(" · ")}
+            {related.join(", ")}
           </BriefLink>,
         ],
       ]}
@@ -643,7 +643,7 @@ function SurtrBlock({
       <div className="p5-corner min-w-0 border border-rule bg-paper-2 p-4 text-[13px]">
         <p className={cx(eyebrow, "m-0")}>{t.kenaz}</p>
         <p className="m-0 mt-1 text-[12px] text-ink-3">{t.kenazSpiega}</p>
-        <p className="m-0 mt-1.5 text-ink-2">{surtr.kenaz.map((type) => say(type, scope)).join(" · ")}</p>
+        <p className="m-0 mt-1.5 text-ink-2">{surtr.kenaz.map((type) => say(type, scope)).join(", ")}</p>
         {surtr.kenazPenalty ? (
           <div className="mt-2">
             <p className={cx(eyebrow, "m-0")}>{t.kenazPenalita}</p>

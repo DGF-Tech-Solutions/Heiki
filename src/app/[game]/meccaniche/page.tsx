@@ -127,7 +127,7 @@ const TESTI = testi({
     manoNota: "Squadra con panchina: storia, PvP normale. Tutti in campo: boss, Re Demone, Divinità Suprema, Bestie demoniache, PvP «tutti gli eroi».",
     smashTitolo: "PvP Smash",
     smashTesto: (serie: string) =>
-      `Nel PvP Smash una carta appena pescata pesa meno per il resto dello stesso rabbocco: la carta A scende ${serie}. Al turno dopo torna al peso pieno.`,
+      `Nel PvP Smash una carta appena pescata pesa meno per il resto dello stesso rabbocco: la carta A pesa via via ${serie}. Al turno dopo torna al peso pieno.`,
 
     cumuloIntro:
       "Due buff sono «lo stesso» se hanno lo stesso effetto nel gioco, chiunque li dia: due eroi diversi, due carte dello stesso eroe o la stessa carta rilanciata sono lo stesso caso.",
@@ -251,7 +251,7 @@ const TESTI = testi({
     manoNota: "Team with a bench: story, normal PvP. All on the field: bosses, Demon King, Supreme Deity, Demonic Beasts, «all heroes» PvP.",
     smashTitolo: "PvP Smash",
     smashTesto: (serie: string) =>
-      `In PvP Smash a card just drawn weighs less for the rest of the same top-up: card A drops ${serie}. The next turn it's back to full weight.`,
+      `In PvP Smash a card just drawn weighs less for the rest of the same top-up: card A weighs ${serie} in turn. The next turn it's back to full weight.`,
 
     cumuloIntro:
       "Two buffs are «the same» if they have the same effect in the game, whoever gives them: two different heroes, two cards of the same hero or the same card used again are the same case.",
@@ -356,7 +356,8 @@ export default async function MechanicsPage({ params }: Props) {
     .sort((x, y) => y.cards - x.cards || x.name.localeCompare(y.name));
 
   const triangle = Object.entries(code.beats).map(([strong, weak]) => [Number(strong), weak] as const);
-  const smash = [0, 1, 2, 3, 4].map((n) => smashWeight(weightA, n, config)).join(" → ");
+  // in fila con le virgole, non con la freccia «→» scritta nel testo (24/10)
+  const smash = [0, 1, 2, 3, 4].map((n) => smashWeight(weightA, n, config)).join(", ");
 
   const Attr = ({ c }: { c: number }) => (
     <span className="inline-flex items-center gap-1.5 font-semibold">

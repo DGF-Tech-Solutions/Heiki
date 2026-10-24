@@ -74,6 +74,8 @@ export const TESTI = testi({
     svuota: "Svuota",
     posto: (n: number) => `Eroe ${n}`,
     panchina: "Slot secondario",
+    // la riga sotto l'etichetta del quarto posto in panchina (24/10)
+    panchinaNota: "In panchina finché non entra in campo",
     associato: "Associato",
     scegli: "Scegli",
     cambia: "Cambia",
@@ -110,7 +112,7 @@ export const TESTI = testi({
     // il resoconto
     resoconto: "Come si influenzano",
     riepilogo: (dati: number, accesi: number) =>
-      `${dati} effetti vanno ai compagni · ${accesi} passive accese dai compagni`,
+      `${dati} effetti vanno ai compagni, ${accesi} passive accese dai compagni`,
     condTutti: (ok: number, ko: number) => `condizioni «tutti»: ${ok} rispettate, ${ko} rotte`,
     specialiSpente: (n: number) => (n === 1 ? "1 abilità speciale spenta" : `${n} abilità speciali spente`),
     lePassive: "Le sue passive",
@@ -196,6 +198,7 @@ export const TESTI = testi({
     svuota: "Clear",
     posto: (n: number) => `Hero ${n}`,
     panchina: "Sub slot",
+    panchinaNota: "On the bench until it enters the field",
     associato: "Associate",
     scegli: "Choose",
     cambia: "Change",
@@ -231,7 +234,7 @@ export const TESTI = testi({
     vuota: "Choose the heroes: click a slot above. The team is saved in the page address and in this browser.",
     resoconto: "How they affect each other",
     riepilogo: (dati: number, accesi: number) =>
-      `${dati} effects go to teammates · ${accesi} passives lit by teammates`,
+      `${dati} effects go to teammates, ${accesi} passives lit by teammates`,
     condTutti: (ok: number, ko: number) => `«all» conditions: ${ok} met, ${ko} broken`,
     specialiSpente: (n: number) => (n === 1 ? "1 special ability off" : `${n} special abilities off`),
     lePassive: "Its passives",

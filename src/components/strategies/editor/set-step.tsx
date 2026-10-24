@@ -15,7 +15,7 @@
  */
 
 import { useState } from "react";
-import { IconCheck } from "@/components/icons";
+import { IconCheck, IconClose } from "@/components/icons";
 import { buttonClass, cx, Input, numeric } from "@/components/ui";
 import { searchText } from "@/lib/games/hero-terms";
 import type { TemplateMode, TemplateSet } from "@/lib/strategies/types";
@@ -113,8 +113,9 @@ export function SetStep({
             {!words ? (
               <li>
                 <SetButton pressed={!chosen} onClick={() => choose(null)}>
-                  <span className="grid h-[52px] w-11 shrink-0 place-items-center bg-paper-3 text-[18px] text-ink-3" aria-hidden>
-                    –
+                  {/* una croce disegnata e non il trattino «–» scritto nel testo (24/10) */}
+                  <span className="grid h-[52px] w-11 shrink-0 place-items-center bg-paper-3 text-ink-3" aria-hidden>
+                    <IconClose size={18} />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-display text-[13px] font-black uppercase [font-variation-settings:'wdth'_80]">{t.nessunSet}</span>

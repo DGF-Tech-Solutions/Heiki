@@ -37,11 +37,15 @@ const TESTI = testi({
   },
 });
 
-/** Il tipo: «Squadra» in nero, «Guida» in rosso, con quante fasi hanno una nota. */
+/**
+ * Il tipo: «Squadra» in nero, «Guida» in oro, con quante fasi hanno una nota.
+ * La guida era rossa fino al 24/10, e nell'editor era oro: ora oro in tutti e
+ * due, e il rosso pieno resta a «sei qui» e all'azione della pagina.
+ */
 export function KindTag({ kind, phases = 0, locale }: { kind: StrategyKind; phases?: number; locale: Locale }) {
   const t = TESTI[locale];
   return (
-    <Tag tone={kind === "guide" ? "brand" : "neutral"}>
+    <Tag tone={kind === "guide" ? "gold" : "neutral"}>
       {kind === "guide" ? t.guida : t.squadra}
       {kind === "guide" && phases > 0 ? <span className="font-semibold normal-case opacity-80">· {t.fasi(phases)}</span> : null}
     </Tag>
@@ -168,7 +172,7 @@ export function SetLine({ set, locale, full = false }: { set: SetView; locale: L
       ) : null}
       <span className="min-w-0">
         <span className={cx(eyebrow, "block text-[11px]")}>
-          {t.set} · {set.code} · {t.carte(set.cards)}
+          {t.set} {set.code} · {t.carte(set.cards)}
         </span>
         <span className="block truncate text-[13.5px] font-semibold text-ink group-hover:text-brand-deep">{set.name}</span>
         {full && set.bonus ? <span className="mt-1 block text-[13px] leading-snug text-ink-2">{set.bonus}</span> : null}

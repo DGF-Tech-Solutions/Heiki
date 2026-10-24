@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { PostCard } from "@/components/community/post-card";
 import { Composer } from "@/components/community/composer";
 import { SponsorSlot } from "@/components/community/sponsor-slot";
-import { buttonClass, Card, chipColors, cx, display, Empty, Notice, PageHeader } from "@/components/ui";
+import { buttonClass, Card, chipColors, cx, display, Empty, MoreArrow, Notice, PageHeader } from "@/components/ui";
 import { currentViewer } from "@/lib/community/actions";
 import {
   FEED_SORTS,
@@ -26,7 +26,7 @@ import { hasStrategies, newStrategyHref } from "@/lib/strategies/rules";
 
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `${gioco} — community`,
+    titoloPagina: (gioco: string) => `Discussioni di ${gioco}`,
     descrizione: (gioco: string) =>
       `Discussioni, build e domande dei giocatori di ${gioco}.`,
     questoGioco: "questo gioco",
@@ -57,7 +57,7 @@ const TESTI = testi({
     creaProfilo: "Crea il profilo",
   },
   en: {
-    titoloPagina: (gioco: string) => `${gioco} — community`,
+    titoloPagina: (gioco: string) => `${gioco} discussions`,
     descrizione: (gioco: string) =>
       `Discussions, builds and questions from ${gioco} players.`,
     questoGioco: "this game",
@@ -99,12 +99,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const entry = findGame(game);
   const t = TESTI[await getLocale()];
   return {
-    title: t.titoloPagina(entry?.shortName ?? "Community"),
+    title: t.titoloPagina(entry?.shortName ?? t.questoGioco),
     description: t.descrizione(entry?.name ?? t.questoGioco),
   };
 }
 
-// Filtri come lame tagliate: rossa quella scelta, scure le altre (bianche al passaggio)
+// Filtri come lame tagliate: chiara quella scelta, scure le altre (chiare al
+// passaggio). Fino al 24/10 la scelta era rossa, identica ai tre comandi rossi
+// della pagina: ora il rosso pieno e' solo «Scrivi», l'azione della pagina.
 const CHIP =
   "p5-cut-sm p5-btn inline-flex h-8 items-center px-3.5 font-display text-[13px] font-extrabold uppercase " +
   "tracking-[0.03em] [font-variation-settings:'wdth'_85]";
@@ -196,12 +198,17 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
         {/* le strategie dell'Endgame hanno un modulo loro, col modello della modalita':
             senza database non si scrivono (le decide un moderatore) */}
         {!store.volatile && hasStrategies(getGameModule(game)) ? (
-          <div className="p5-corner mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 border border-rule border-l-4 border-l-brand bg-paper-2 px-4 py-3">
-            <p className="m-0 min-w-0 flex-1 text-sm text-ink-2">
+          // Senza la barretta rossa a sinistra (24/10) e col comando quieto: il
+          // rosso pieno della pagina e' «Scrivi», qui sotto
+          <div className="p5-corner mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 border border-rule bg-paper-2 px-4 py-3">
+            {/* largo almeno 260px: sul telefono il comando va sotto invece di
+                stringere il testo in una colonna di tre parole */}
+            <p className="m-0 min-w-0 flex-1 basis-[260px] text-sm text-ink-2">
               <strong className="text-ink">{t.strategiaTitolo}</strong> {t.strategiaTesto}
             </p>
-            <Link href={newStrategyHref(game)} className={buttonClass("primary", "sm")}>
+            <Link href={newStrategyHref(game)} className={buttonClass("ghost", "sm", "group/more max-sm:-ml-3.5")}>
               {t.strategiaComando}
+              <MoreArrow />
             </Link>
           </div>
         ) : null}
@@ -292,13 +299,15 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
             </Card>
 
             {viewer === null ? (
-              <Card accent>
+              <Card>
                 <h2 className={cx(display, "text-[15px] [font-variation-settings:'wdth'_92]")}>
                   {t.serveProfilo}
                 </h2>
                 <p className="mt-2 text-[13px] text-ink-2">{t.leggereLibero}</p>
-                <Link href="/registrati" className={cx(buttonClass("primary", "sm"), "mt-3")}>
+                {/* quieto come «Nuova strategia»: un solo rosso pieno per pagina (24/10) */}
+                <Link href="/registrati" className={buttonClass("ghost", "sm", "group/more mt-3 -ml-3.5")}>
                   {t.creaProfilo}
+                  <MoreArrow />
                 </Link>
               </Card>
             ) : null}

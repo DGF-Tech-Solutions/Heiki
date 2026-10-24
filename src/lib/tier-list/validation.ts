@@ -19,7 +19,7 @@
  */
 
 import { z } from "zod";
-import { TIER_COLORS, type TierRow } from "./types";
+import { LEGACY_TIER_COLORS, TIER_COLORS, type TierRow } from "./types";
 
 export const TIER_LIST_LIMITS = {
   /**
@@ -65,8 +65,15 @@ const PROBLEMS: ReadonlySet<string> = new Set<TierListProblem>([
   "hero-duplicate",
 ]);
 
-/** Solo i colori che il Maker offre: un colore qualsiasi finirebbe tale e quale nel PNG e nel profilo. */
-const COLORS: ReadonlySet<string> = new Set(TIER_COLORS.map((color) => color.hex));
+/**
+ * Solo i colori che il Maker offre, o ha offerto: un colore qualsiasi finirebbe
+ * tale e quale nel PNG e nel profilo. Quelli di prima del 24/10 restano validi,
+ * perche' le liste salvate e i backup li hanno ancora.
+ */
+const COLORS: ReadonlySet<string> = new Set([
+  ...TIER_COLORS.map((color) => color.hex),
+  ...LEGACY_TIER_COLORS,
+]);
 
 function tierRowSchema(roster: ReadonlySet<string>) {
   return z.object({

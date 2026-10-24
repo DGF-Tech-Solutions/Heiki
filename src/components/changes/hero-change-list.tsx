@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconArrowRight } from "@/components/icons";
 import { cx, eyebrow } from "@/components/ui";
 import { formatStat, isPercentStat, statName } from "@/components/heroes/calculator/stat-rows";
 import type { ChangePart, HeroChange, HeroTouchup } from "@/lib/games/changes-types";
@@ -142,7 +143,7 @@ function where(change: HeroChange, t: Testi, locale: Locale): string | null {
   if (change.field === "nickname") bits.push(t.epiteto);
   if (change.part === "stats") bits.push(statName(change.field, locale));
   if (change.field.startsWith("stat:")) bits.push(`${statName(change.field.slice(5), locale)} (${t.totale})`);
-  return bits.length > 0 ? bits.join(" · ") : null;
+  return bits.length > 0 ? bits.join(", ") : null;
 }
 
 function NumberChange({ change, locale }: { change: HeroChange; locale: Locale }) {
@@ -154,7 +155,9 @@ function NumberChange({ change, locale }: { change: HeroChange; locale: Locale }
   const delta = before !== null && after !== null ? after - before : null;
   return (
     <span className="font-mono tabular-nums">
-      {show(before)} → <strong className="text-ink">{show(after)}</strong>
+      {/* la freccia disegnata e non il carattere «→» (24/10); per chi ascolta, «a» */}
+      {show(before)} <IconArrowRight size={12} className="inline align-[-1px] text-ink-3" />
+      <span className="sr-only">{locale === "it" ? "a" : "to"}</span> <strong className="text-ink">{show(after)}</strong>
       {delta ? (
         <span className={cx("ml-1.5", delta > 0 ? "text-up" : "text-down")}>
           ({delta > 0 ? "+" : "−"}
@@ -262,7 +265,7 @@ export function HeroChangeList({
                 ? `${t.parti[part]}, ${which.length === 1 ? t.rango(which[0]!).toLowerCase() : t.ranghi(compressRanges(which))}`
                 : t.parti[part],
             )
-            .join(" · ")}
+            .join("; ")}
         </p>
       ) : null}
     </div>

@@ -326,7 +326,7 @@ export function BoxBrowser({
                     data-active={hero.id === selectedId || undefined}
                     data-missing={!mine || undefined}
                     className="hero-card box-card block w-full cursor-pointer border-0 bg-transparent p-0 text-left text-ink"
-                    title={`${heroName(hero, locale)} · ${heroEpithet(hero, locale)} — ${mine ? t.nelBox : t.nonNelBox}`}
+                    title={`${heroName(hero, locale)} · ${heroEpithet(hero, locale)}: ${mine ? t.nelBox : t.nonNelBox}`}
                   >
                     <span className="hero-card-art relative block">
                       {/* eslint-disable-next-line @next/next/no-img-element */}

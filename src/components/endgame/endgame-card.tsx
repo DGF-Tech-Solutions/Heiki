@@ -31,8 +31,9 @@ export function EndgameCard({
   /** l'immagine, gia' col percorso; null se l'import non l'ha trovata */
   image: string | null;
   /**
-   * la targhetta sull'immagine: «Battaglie boss» con le stelle del gioco.
-   * Sull'immagine e non sopra il nome, che resta la prima cosa che si legge
+   * una riga sotto il nome nella card piccola (le stelle delle Battaglie boss).
+   * Nella card grande non c'e' piu' (24/10): stava sull'immagine, «BATTAGLIE
+   * BOSS ★» uguale su ogni boss; le stelle ora le scrive chi riempie la card
    */
   stamp?: ReactNode;
   title: string;
@@ -118,7 +119,6 @@ export function EndgameCard({
               )}
             />
           ) : null}
-          {stamp ? <span className="absolute left-3 top-3">{stamp}</span> : null}
         </span>
         <span className="block p-4">
           <span className="block font-display text-[20px] font-extrabold uppercase leading-[1.05] tracking-[0.01em] [font-variation-settings:'wdth'_85] group-hover:text-brand-deep">
@@ -128,17 +128,5 @@ export function EndgameCard({
         </span>
       </span>
     </Link>
-  );
-}
-
-/** La targhetta di una card: nera e tagliata, come le etichette del palco. */
-export function CardStamp({ children, title }: { children: ReactNode; title?: string }) {
-  return (
-    <span
-      title={title}
-      className="p5-cut-sm inline-flex h-7 items-center gap-1.5 bg-paper px-2.5 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink"
-    >
-      {children}
-    </span>
   );
 }

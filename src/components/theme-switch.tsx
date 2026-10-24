@@ -78,7 +78,8 @@ export function ThemeSwitch({ current }: { current: Theme }) {
         popoverTarget="menu-tema"
         aria-label={t.apri(t.nomi[scelto])}
         title={t.apri(t.nomi[scelto])}
-        className="grid h-[27px] w-[30px] shrink-0 cursor-pointer place-items-center rounded-card border border-rule text-ink-3 transition-colors hover:text-ink"
+        // 32x36 e l'area da toccare alta 44: era 30x27 (revisione del 24/10)
+        className="relative grid h-8 w-9 shrink-0 cursor-pointer place-items-center rounded-card border border-rule text-ink-3 transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] hover:text-ink"
       >
         <IconPalette size={16} />
       </button>

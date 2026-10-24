@@ -237,7 +237,11 @@ export default async function ModerationPage() {
   const role = (value: string) => (isRole(value) ? roleLabel(value, locale) : value);
   const logDetail = (action: string, reason: string | null) => {
     if (action.startsWith("role:")) return role(action.slice(5));
-    if (action === "set_role" && reason?.includes("->")) return reason.split("->").map(role).join(" → ");
+    // a parole e non con la freccia «→» scritta nel testo (24/10)
+    if (action === "set_role" && reason?.includes("->")) {
+      const [from = "", to = ""] = reason.split("->").map(role);
+      return locale === "it" ? `da ${from} a ${to}` : `from ${from} to ${to}`;
+    }
     return reason;
   };
   const now = new Date();

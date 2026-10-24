@@ -46,6 +46,7 @@ export function PartyPanel({
   number,
   label,
   bench = false,
+  benchNote,
   hero,
   empty,
   state,
@@ -58,6 +59,8 @@ export function PartyPanel({
   label: string;
   /** il quarto in panchina: etichetta dorata, come nel resoconto */
   bench?: boolean;
+  /** sotto l'etichetta dorata: cosa vuol dire stare nello slot secondario */
+  benchNote?: string;
   hero: PartyHero | undefined;
   /** il contenuto del posto vuoto */
   empty?: ReactNode;
@@ -93,10 +96,14 @@ export function PartyPanel({
           style={{ background: hero.color }}
         />
       ) : null}
-      {/* il numero del posto, enorme e a contorno: e' la grafica delle schermate di scelta */}
+      {/*
+        il numero del posto, enorme e a contorno: e' la grafica delle schermate
+        di scelta. Dal 24/10 e' l'unico segno del posto (vedi l'etichetta qui
+        sotto), quindi un filo piu' acceso: 15% d'inchiostro si perdeva
+      */}
       <span
         aria-hidden
-        className="absolute -right-1 bottom-[18%] -z-10 font-display text-[clamp(84px,10vw,150px)] leading-[0.8] font-black text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--color-ink)_15%,transparent)] [font-variation-settings:'wdth'_62]"
+        className="absolute -right-1 bottom-[18%] -z-10 font-display text-[clamp(84px,10vw,150px)] leading-[0.8] font-black text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--color-ink)_28%,transparent)] [font-variation-settings:'wdth'_62]"
       >
         {number}
       </span>
@@ -105,14 +112,24 @@ export function PartyPanel({
         <span aria-hidden className="absolute inset-x-0 bottom-0 -z-[5] h-[42%] bg-[linear-gradient(to_top,var(--color-paper)_12%,transparent)]" />
       ) : null}
 
-      <span
-        className={cx(
-          "p5-cut-sm self-start px-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] leading-5 tracking-[0.06em] uppercase",
-          bench ? "bg-gold text-paper" : "bg-ink text-paper",
-        )}
-      >
-        {label}
-      </span>
+      {/*
+        L'etichetta si vede solo per lo slot secondario, che e' diverso dagli
+        altri: «Eroe 1, 2, 3» ripetevano il numero grande qui sopra (24/10).
+        Per gli altri resta per chi usa un lettore di schermo. Lo slot
+        secondario e' il nome del gioco, e la riga sotto dice cosa vuol dire.
+      */}
+      {bench ? (
+        // a destra lo spazio per la croce che toglie l'eroe (Squadra): sul
+        // telefono la croce copriva la fine dell'etichetta
+        <span className={cx("grid justify-items-start gap-1", hero && "pr-10")}>
+          <span className="p5-cut-sm bg-gold px-2 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] leading-5 tracking-[0.06em] text-paper uppercase">
+            {label}
+          </span>
+          {benchNote ? <span className="text-[12px] leading-tight text-ink-2">{benchNote}</span> : null}
+        </span>
+      ) : (
+        <span className="sr-only">{label}</span>
+      )}
 
       {hero ? (
         <>

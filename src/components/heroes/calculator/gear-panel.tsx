@@ -409,7 +409,7 @@ function PieceEditor({
               >
                 {options.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {inLingua(o.name, locale)} ({formatStat(o.min, locale)}–{formatStat(o.max, locale)}%)
+                    {inLingua(o.name, locale)} ({formatStat(o.min, locale)}-{formatStat(o.max, locale)}%)
                   </option>
                 ))}
               </select>

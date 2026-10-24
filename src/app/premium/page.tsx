@@ -81,7 +81,7 @@ const TESTI = testi({
     guardaUnProfilo: "Guarda com'è fatto un profilo",
     pagamentoNonCollegato: "Il pagamento non è ancora collegato",
     spiegazionePagamento:
-      "Non c'è un pulsante per pagare perché non ci sarebbe niente dietro. Quando l'incasso sarà attivo, all'acquisto verranno chiesti il paese per l'IVA e la rinuncia esplicita al diritto di recesso — obbligatoria sui beni digitali resi subito disponibili, e già prevista dallo schema del database. Fino ad allora questa pagina descrive il piano, non lo vende.",
+      "Non c'è un pulsante per pagare perché non ci sarebbe niente dietro. Quando l'incasso sarà attivo, all'acquisto verranno chiesti il paese per l'IVA e la rinuncia esplicita al diritto di recesso, obbligatoria sui beni digitali resi subito disponibili e già prevista dallo schema del database. Fino ad allora questa pagina descrive il piano, non lo vende.",
     personalizzaIlProfilo: "Personalizza il profilo",
     condizioni: "Condizioni",
     modalitaDimostrativa:
@@ -158,7 +158,7 @@ const TESTI = testi({
     guardaUnProfilo: "See what a profile looks like",
     pagamentoNonCollegato: "Payments aren't connected yet",
     spiegazionePagamento:
-      "There's no pay button because there would be nothing behind it. Once payments go live, checkout will ask for your country for VAT and for an explicit waiver of the right of withdrawal — mandatory for digital goods made available immediately, and already provided for in the database schema. Until then, this page describes the plan; it doesn't sell it.",
+      "There's no pay button because there would be nothing behind it. Once payments go live, checkout will ask for your country for VAT and for an explicit waiver of the right of withdrawal, which is mandatory for digital goods made available immediately and already provided for in the database schema. Until then, this page describes the plan; it doesn't sell it.",
     personalizzaIlProfilo: "Customize your profile",
     condizioni: "Terms",
     modalitaDimostrativa:

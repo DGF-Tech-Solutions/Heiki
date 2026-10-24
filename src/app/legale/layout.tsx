@@ -9,14 +9,14 @@ const TESTI = testi({
     termini: "Termini",
     cookie: "Cookie",
     documentiLegali: "Documenti legali",
-    bozza: "Documento in bozza — va rivisto da un legale prima della pubblicazione",
+    bozza: "Documento in bozza: va rivisto da un legale prima della pubblicazione",
   },
   en: {
     privacy: "Privacy",
     termini: "Terms",
     cookie: "Cookies",
     documentiLegali: "Legal documents",
-    bozza: "Draft document — must be reviewed by a lawyer before publication",
+    bozza: "Draft document: it must be reviewed by a lawyer before publication",
   },
 });
 

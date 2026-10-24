@@ -87,7 +87,7 @@ export function costumeName(costume: Costume | undefined, id: string, locale: Lo
 
 export function percentsText(costume: Costume, locale: Locale): string {
   const parts = Object.entries(costume.percents).map(([stat, value]) => `${statName(stat, locale)} +${formatStat(value, locale)}%`);
-  return parts.length ? parts.join(" · ") : TESTI[locale].nessunaPercentuale;
+  return parts.length ? parts.join(", ") : TESTI[locale].nessunaPercentuale;
 }
 
 /**

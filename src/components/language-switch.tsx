@@ -47,8 +47,10 @@ export function LanguageSwitch() {
               router.refresh();
             });
           }}
+          // larghi 28px, e l'area da toccare sale e scende di 10px oltre il bordo:
+          // erano 20x21px, troppo piccoli per il pollice (revisione del 24/10)
           className={cx(
-            "px-1.5 py-0.5 transition-colors disabled:opacity-60",
+            "relative min-w-7 px-1.5 py-0.5 transition-colors after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] disabled:opacity-60",
             lingua === locale ? "bg-ink text-paper" : "text-ink-3 hover:text-ink",
           )}
         >

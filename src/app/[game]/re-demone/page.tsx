@@ -434,7 +434,7 @@ function LevelBrief({ level, data, scope, t }: { level: DemonKingDifficulty; dat
         data.banned.length > 0 && [
           t.esclusiBreve,
           <BriefLink key="e" href="#esclusi">
-            {banned.length === data.banned.length && banned.length <= 3 ? banned.join(" · ") : data.banned.length}
+            {banned.length === data.banned.length && banned.length <= 3 ? banned.join(", ") : data.banned.length}
           </BriefLink>,
         ],
       ]}

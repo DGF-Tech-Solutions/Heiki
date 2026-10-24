@@ -41,6 +41,13 @@ import { SwordIcon } from "@phosphor-icons/react/dist/ssr/Sword";
 import { UserIcon } from "@phosphor-icons/react/dist/ssr/User";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/ssr/UsersThree";
 import { XIcon } from "@phosphor-icons/react/dist/ssr/X";
+import { ArrowDownIcon } from "@phosphor-icons/react/dist/ssr/ArrowDown";
+import { ArrowUUpLeftIcon } from "@phosphor-icons/react/dist/ssr/ArrowUUpLeft";
+import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/ssr/DotsThreeVertical";
+import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/ssr/DownloadSimple";
+import { EraserIcon } from "@phosphor-icons/react/dist/ssr/Eraser";
+import { PencilSimpleIcon } from "@phosphor-icons/react/dist/ssr/PencilSimple";
+import { TrashIcon } from "@phosphor-icons/react/dist/ssr/Trash";
 
 type Weight = "regular" | "bold" | "fill";
 
@@ -102,3 +109,15 @@ export const IconPlus = /*#__PURE__*/ make(PlusIcon, { size: 16 });
 export const IconCheck = /*#__PURE__*/ make(CheckIcon, { size: 16 });
 export const IconHeart = /*#__PURE__*/ make(HeartIcon, { size: 16, weight: "fill" });
 export const IconLink = /*#__PURE__*/ make(LinkSimpleIcon, { size: 16 });
+
+/*
+ * I comandi della Tier list (24/10): fino a quel giorno erano emoji e caratteri
+ * (🎨 ▲ ▼ ✕ 💾 🔗 🗑), ognuno con la forma del font che capitava.
+ */
+export const IconArrowDown = /*#__PURE__*/ make(ArrowDownIcon);
+export const IconMore = /*#__PURE__*/ make(DotsThreeVerticalIcon);
+export const IconPencil = /*#__PURE__*/ make(PencilSimpleIcon, { size: 16 });
+export const IconEraser = /*#__PURE__*/ make(EraserIcon, { size: 16 });
+export const IconTrash = /*#__PURE__*/ make(TrashIcon, { size: 16 });
+export const IconUndo = /*#__PURE__*/ make(ArrowUUpLeftIcon, { size: 16 });
+export const IconDownload = /*#__PURE__*/ make(DownloadSimpleIcon, { size: 16 });

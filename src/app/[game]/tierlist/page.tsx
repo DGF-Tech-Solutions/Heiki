@@ -15,32 +15,36 @@ import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { SITE_NAME } from "@/lib/site";
 
+/*
+ * I testi (24/10): prima parlavano da pubblicita' («Crea, personalizza e
+ * scarica... condividi l'immagine con la community», «in alta risoluzione per
+ * condividerla ovunque»). Ora dicono cosa fa la pagina e come si usa, e il nome
+ * e' quello della voce di menu: «Tier list».
+ */
 const TESTI = testi({
   it: {
-    titoloPagina: (gioco: string) => `Tier List Maker · ${gioco}`,
+    titoloPagina: (gioco: string) => `Tier list · ${gioco}`,
     descrizione: (gioco: string) =>
-      `Crea, personalizza e scarica la tua tier list degli eroi di ${gioco}. Trascina gli eroi, assegna i tier e condividi l'immagine con la community.`,
+      `Metti in ordine gli eroi di ${gioco}, dal più forte al più debole, e scarica il risultato come immagine.`,
     titoloLista: (titolo: string, autore: string, gioco: string) =>
-      `${titolo} · Tier List di ${autore} · ${gioco}`,
+      `${titolo} · Tier list di ${autore} · ${gioco}`,
     descrizioneLista: (titolo: string, autore: string) =>
-      `Guarda e personalizza la tier list "${titolo}" creata da ${autore} su ${SITE_NAME}.`,
-    titolo: "Tier List Maker",
+      `La tier list «${titolo}» di ${autore} su ${SITE_NAME}.`,
+    titolo: "Tier list",
     introduzione:
-      "Trascina gli eroi nei diversi livelli o clicca su una miniatura per assegnarla al volo. Personalizza i nomi delle righe, i colori, svuota o aggiungi nuovi tier, e scarica la tua tier list in alta risoluzione per condividerla ovunque.",
-    strumenti: "Strumenti",
+      "Trascina un eroe in una riga, o toccalo e scegli dove metterlo. Nome, colore e ordine delle righe si cambiano dal menu di ciascuna.",
   },
   en: {
-    titoloPagina: (gioco: string) => `Tier List Maker · ${gioco}`,
+    titoloPagina: (gioco: string) => `Tier list · ${gioco}`,
     descrizione: (gioco: string) =>
-      `Create, customize and download your hero tier list for ${gioco}. Drag and drop heroes, configure tiers, and share high-res images with the community.`,
+      `Rank the ${gioco} heroes from strongest to weakest and download the result as an image.`,
     titoloLista: (titolo: string, autore: string, gioco: string) =>
-      `${titolo} · ${autore}'s Tier List · ${gioco}`,
+      `${titolo} · ${autore}'s tier list · ${gioco}`,
     descrizioneLista: (titolo: string, autore: string) =>
-      `View and customize the tier list "${titolo}" made by ${autore} on ${SITE_NAME}.`,
-    titolo: "Tier List Maker",
+      `“${titolo}”, a tier list by ${autore} on ${SITE_NAME}.`,
+    titolo: "Tier list",
     introduzione:
-      "Drag and drop heroes into the tier rows or tap any portrait to quickly rank them. Customize row names, colors, add or clear tiers, and export your tier list as a crisp PNG image ready to share.",
-    strumenti: "Tools",
+      "Drag a hero into a row, or tap it and pick where it goes. Each row's menu changes its name, color and position.",
   },
 });
 
@@ -127,16 +131,12 @@ export default async function TierListPage({ params, searchParams }: Props) {
 
   return (
     <main className="pt-6 pb-20">
-      <Breadcrumb
-        items={[
-          { label: entry.shortName, href: `/${game}` },
-          { label: t.strumenti, href: `/${game}/squadra` },
-          { label: "Tier List" },
-        ]}
-      />
+      {/* Gioco e pagina: «Strumenti» portava a /squadra, che non e' il gruppo (24/10) */}
+      <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.titolo }]} />
 
       <PageHeader title={t.titolo} className="mb-6">
-        <p>{t.introduzione}</p>
+        {/* righe sotto i 75 caratteri: con la misura della testata ne facevano 87 */}
+        <p className="max-w-[50ch]">{t.introduzione}</p>
       </PageHeader>
 
       <TierListMaker

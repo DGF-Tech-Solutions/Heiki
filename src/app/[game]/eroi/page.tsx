@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
+import type { FigureBox } from "@/components/heroes/hero-peek";
 import { DEFAULT_STAGE_ART, stageArtOf, type StageArt } from "@/components/heroes/hero-stage";
 import { RosterBrowser } from "@/components/heroes/roster-browser";
 import { PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
+import { plainHeroText } from "@/lib/games/hero-markup";
 import { requireGameModule } from "@/lib/games/registry";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
@@ -76,7 +78,7 @@ export default async function HeroesPage({ params }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster, icons, releases, heroContext, heroAssets } = requireGameModule(game);
+  const { roster, icons, releases, heroContext, heroAssets, heroTexts } = requireGameModule(game);
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -127,23 +129,35 @@ export default async function HeroesPage({ params }: Props) {
       }
     : undefined;
 
-  // Per il palco: volto e cima della sagoma di ogni eroe, e solo per le eccezioni (poche)
-  // il tipo d'illustrazione e la mancanza del cut-in. Al browser arriva questo,
-  // non l'elenco degli asset di tutti gli eroi
+  // Per l'anteprima accanto alla griglia: volto e cima della sagoma di ogni eroe,
+  // il riquadro della sagoma (la figura si inquadra su quello), e solo per le
+  // eccezioni (poche) il tipo d'illustrazione e la mancanza del cut-in. Al
+  // browser arriva questo, non l'elenco degli asset di tutti gli eroi.
+  //
+  // E la descrizione del gioco, che l'anteprima mostra: solo nella lingua della
+  // pagina e gia' senza markup (in media 140 caratteri: tutte e 377 pesano ~55 KB,
+  // ~20 compresse). I testi completi restano sul server, nella scheda.
   const stageKinds: Record<string, StageArt["art"]> = {};
   const stageFigures: Record<string, StageArt["figure"]> = {};
+  const figureBoxes: Record<string, FigureBox> = {};
   const withoutCutIn: string[] = [];
+  const descriptions: Record<string, string> = {};
   for (const hero of roster.heroes) {
-    const stage = stageArtOf(heroAssets?.[hero.id]);
+    const assets = heroAssets?.[hero.id];
+    const stage = stageArtOf(assets);
     if (stage.art !== DEFAULT_STAGE_ART.art) stageKinds[hero.id] = stage.art;
     if (!stage.cutIn) withoutCutIn.push(hero.id);
     stageFigures[hero.id] = stage.figure;
+    if (assets?.box) figureBoxes[hero.id] = assets.box;
+    const text = heroTexts?.[hero.id];
+    const raw = inLingua(text?.i18n?.description, locale) ?? text?.description;
+    if (raw) descriptions[hero.id] = plainHeroText(raw);
   }
 
   const rarest = roster.rarities[0];
   const counted = roster.heroes.filter((hero) => hero.rarity === rarest).length;
 
-  // Briciole e titolo nella colonna della griglia: il palco accanto parte
+  // Briciole e titolo nella colonna della griglia: l'anteprima accanto parte
   // dall'alto della pagina (roster-browser.tsx, `intro`). Niente etichetta sopra
   // il titolo: la striscia del gioco e le briciole dicono gia' dove sei (10/10).
   const intro = (
@@ -182,7 +196,9 @@ export default async function HeroesPage({ params }: Props) {
         traits={traits}
         art={stageKinds}
         figures={stageFigures}
+        boxes={figureBoxes}
         withoutCutIn={withoutCutIn}
+        descriptions={descriptions}
       />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">

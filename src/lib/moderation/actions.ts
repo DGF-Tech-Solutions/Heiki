@@ -490,7 +490,7 @@ export async function reportQueue(): Promise<QueueItem[]> {
         },
       });
       if (post) {
-        preview = `${post.title} — ${post.bodyMd.slice(0, 160)}`;
+        preview = `${post.title}: ${post.bodyMd.slice(0, 160)}`;
         hidden = post.hidden;
         gameSlug = post.hub.game?.slug ?? null;
         postId = post.id;

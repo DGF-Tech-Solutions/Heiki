@@ -65,7 +65,11 @@ export function GameSidebar({
   }, [activePath]);
 
   return (
-    <nav ref={nav} aria-label={t.sezioni} className="grid gap-5">
+    // Sette gruppi e venti voci (24/10): sul computer la barra si stringe per
+    // stare in uno schermo alto 1.000 px (righe da 26px, 16 fra i gruppi); nel
+    // menu del telefono, dove la stessa barra si tocca col pollice, le voci sono
+    // alte 41px
+    <nav ref={nav} aria-label={t.sezioni} className="grid gap-5 lg:gap-4">
       {groups.map((group) => (
         <div key={group.label}>
           {/* il nome del gruppo e' una targhetta bianca tagliata, come le
@@ -88,7 +92,7 @@ export function GameSidebar({
                     // lama bianca al passaggio, lama rossa con la sagoma sfalsata
                     // sulla voce attiva: le disegna .p5-menu-item in globals.css
                     className={cx(
-                      "p5-menu-item block px-3 py-1.5 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82]",
+                      "p5-menu-item block px-3 py-2.5 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82] lg:py-1 lg:leading-tight",
                       // il nero del passaggio va scritto qui: l'utility di riposo scavalca
                       // quello di .p5-menu-item, e il testo chiaro restava sulla lama bianca
                       active ? "text-white" : "text-ink-2 hover:text-paper",

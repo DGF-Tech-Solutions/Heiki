@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { AwakenStar } from "@/components/ratings/star-display";
-import { buttonClass, cx, eyebrow } from "@/components/ui";
+import { buttonClass, chipColors, cx, eyebrow } from "@/components/ui";
 import { deleteHeroRatingAction, saveHeroRatingAction } from "@/lib/ratings/actions";
 import {
   BEST_CONTENTS,
@@ -295,8 +295,10 @@ export function HeroRatingForm({
                     // il fuoco dentro il taglio, come sui comandi tagliati (globals.css):
                     // clip-path ritaglia un contorno esterno
                     "peer-focus-visible:outline-2 peer-focus-visible:outline-current peer-focus-visible:outline-offset-[-5px]",
+                    // scelta chiara come tutte le scelte del sito (24/10): era rossa
+                    // col bianco caldo sopra, 4,2:1 a 12px
                     isSelected
-                      ? "[--btn-bg:var(--color-brand)] [--btn-fg:var(--color-ink)]"
+                      ? chipColors(true)
                       : "[--btn-bg:var(--color-paper)] [--btn-fg:var(--color-ink-2)] hover:[--btn-fg:var(--color-ink)]",
                   )}
                 >

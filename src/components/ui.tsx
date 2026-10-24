@@ -78,16 +78,20 @@ const BUTTON_VARIANT: Record<ButtonVariant, string> = {
 };
 
 /**
- * I colori della lama dei filtri (`p5-btn`): spenta, scelta in rosso, scelta
- * quieta (in nero, per le scelte che hanno sempre un valore). La scelta non
- * cambia al passaggio: e' gia' accesa.
+ * I colori della lama dei filtri (`p5-btn`): spenta, o scelta (chiara, col
+ * testo scuro). La scelta non cambia al passaggio: e' gia' accesa.
+ *
+ * Fino al 24/10 c'erano due scelte: rossa se restringeva l'elenco, chiara se
+ * c'era sempre (un ordine, un server). In pratica lo stesso filtro era chiaro
+ * in Eroi e Uscite e rosso nelle Discussioni, e il rosso pieno della scelta
+ * era uguale a quello dei comandi e della voce di menu dove sei. Il rosso
+ * pieno ora vuol dire solo «sei qui» e «l'azione della pagina». `quiet` resta
+ * nella firma perche' lo passano ancora molti chiamanti: non cambia piu' niente.
  */
-export function chipColors(active: boolean, quiet = false): string {
-  return active && quiet
+export function chipColors(active: boolean, _quiet = false): string {
+  return active
     ? "font-bold [--btn-bg:var(--color-ink)] [--btn-fg:var(--color-paper)] [--btn-hi:var(--color-ink)] [--btn-hi-fg:var(--color-paper)]"
-    : active
-      ? "font-bold [--btn-bg:var(--color-brand)] [--btn-fg:#fff] [--btn-hi:var(--color-brand)] [--btn-hi-fg:#fff]"
-      : "font-semibold";
+    : "font-semibold";
 }
 
 /**
@@ -175,7 +179,7 @@ export function Tag({
 /* ------------------------------------------------------- collegamenti -- */
 
 /**
- * Un collegamento «vai a» («Tutti gli eroi», «Nel calendario», «Community»): le
+ * Un collegamento «vai a» («Tutti gli eroi», «Nelle Uscite», «Community»): le
  * parole e una freccia disegnata, che al passaggio scatta avanti di un passo.
  * Fino al 10/10 la freccia era il carattere «→» scritto nel testo: cambiava
  * forma da un font all'altro e il lettore di schermo lo leggeva ad alta voce.
@@ -183,6 +187,16 @@ export function Tag({
 export const moreLinkClass =
   "group/more inline-flex items-center gap-1.5 font-display text-[13px] font-extrabold uppercase tracking-[0.04em] " +
   "text-brand-deep no-underline [font-variation-settings:'wdth'_85] hover:text-ink";
+
+/**
+ * La zona di tocco di un comando piccolo (un collegamento in una fascia di
+ * dati, «Valuta l'eroe»): sugli schermi a tocco un rettangolo invisibile alto
+ * 44px centrato sul comando, che si prende il dito senza ingrandire quello che
+ * si vede (24/10: «Valuta l'eroe» era 86×16). Solo col puntatore grossolano:
+ * col mouse due zone sovrapposte si ruberebbero il passaggio.
+ */
+export const tapArea =
+  "relative pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 pointer-coarse:after:top-1/2 pointer-coarse:after:h-11 pointer-coarse:after:-translate-y-1/2 pointer-coarse:after:content-['']";
 
 /** La freccia di `MoreLink`, per chi la mette dentro un suo collegamento (dentro una frase, un pulsante). */
 export function MoreArrow({ className }: { className?: string }) {
@@ -317,14 +331,14 @@ export function HowItWorks({
 /**
  * La forma dei pulsanti di scelta (filtri, ordini, «server»), per chi li fa con
  * un collegamento invece che con un pulsante: la stessa lama di `Chip`
- * (filter-chips.tsx). Rossa se la scelta restringe l'elenco, bianca se e' una
- * scelta che c'e' sempre (un ordine, un server).
+ * (filter-chips.tsx). Scelta e' chiara, come tutte le scelte dal 24/10
+ * (`chipColors`); il secondo argomento non cambia piu' il colore.
  */
-export function chipClass(active: boolean, quiet = false, className?: string): string {
+export function chipClass(active: boolean, _quiet = false, className?: string): string {
   return cx(
     // 40px sul telefono e non 36: si centrano col pollice (10/10)
     "p5-cut-sm p5-btn inline-flex h-9 cursor-pointer items-center gap-1.5 px-3 text-[12px] uppercase tracking-[0.04em] no-underline max-sm:h-10",
-    chipColors(active, quiet),
+    chipColors(active),
     className,
   );
 }

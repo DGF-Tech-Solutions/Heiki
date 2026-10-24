@@ -3,24 +3,26 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { buttonClass, cx, Empty, eyebrow, SectionHead } from "@/components/ui";
+import { IconCheck, IconDownload, IconLink } from "@/components/icons";
+import { buttonClass, Empty, eyebrow, SectionHead } from "@/components/ui";
 import { heroCardSrc } from "@/lib/games/heroes";
 import type { SavedTierListSummary } from "@/lib/tier-list/types";
 import { getTierListBackupAction } from "@/lib/tier-list/actions";
 import { testi, type Locale } from "@/lib/i18n/locale";
 
+// 24/10: niente maiuscole all'inglese («Tier List», «Backup JSON») e niente emoji per icone
 const TESTI = testi({
   it: {
-    titolo: "Tier List",
+    titolo: "Tier list",
     totale: (n: number) => `${n} ${n === 1 ? "tier list creata" : "tier list create"}`,
     nessunaTierListOwner: "Non hai ancora salvato alcuna tier list.",
     nessunaTierListVisitatore: "Nessuna tier list condivisa.",
-    creaTierList: "Crea la tua prima Tier List",
-    apriNelMaker: "Apri nel Maker",
+    creaTierList: "Crea la tua prima tier list",
+    apriNelMaker: "Apri",
     copiaLink: "Copia link",
-    linkCopiato: "Link copiato!",
-    copiaFallita: "Copia non riuscita",
-    scaricaBackup: "Scarica Backup JSON",
+    linkCopiato: "Link copiato",
+    copiaFallita: "Copia non riuscita: riprova",
+    scaricaBackup: "Scarica backup (JSON)",
     suggerimentoBackup: "Scarica un file JSON con tutti i salvataggi",
     backupScaricato: "Backup scaricato!",
     eroiPosizionati: (n: number) => `${n} eroi posizionati`,
@@ -31,16 +33,16 @@ const TESTI = testi({
     suggerimentoPrivata: "La vedi solo tu: chi visita il profilo non la trova.",
   },
   en: {
-    titolo: "Tier Lists",
+    titolo: "Tier lists",
     totale: (n: number) => `${n} ${n === 1 ? "tier list created" : "tier lists created"}`,
     nessunaTierListOwner: "You haven't saved any tier lists yet.",
     nessunaTierListVisitatore: "No shared tier lists.",
-    creaTierList: "Create your first Tier List",
-    apriNelMaker: "Open in Maker",
+    creaTierList: "Create your first tier list",
+    apriNelMaker: "Open",
     copiaLink: "Copy link",
-    linkCopiato: "Link copied!",
-    copiaFallita: "Copy failed",
-    scaricaBackup: "Download JSON Backup",
+    linkCopiato: "Link copied",
+    copiaFallita: "Copy failed: try again",
+    scaricaBackup: "Download backup (JSON)",
     suggerimentoBackup: "Download a JSON file with all your saved lists",
     backupScaricato: "Backup downloaded!",
     eroiPosizionati: (n: number) => `${n} heroes ranked`,
@@ -128,7 +130,8 @@ export function ProfileTierLists({
                 className={buttonClass("ghost", "sm")}
                 title={t.suggerimentoBackup}
               >
-                <span aria-hidden>💾</span> {t.scaricaBackup}
+                <IconDownload />
+                {t.scaricaBackup}
               </button>
             ) : null}
           </div>
@@ -168,7 +171,7 @@ export function ProfileTierLists({
                     {!item.isPublic ? (
                       <span
                         title={t.suggerimentoPrivata}
-                        className="rounded bg-rule px-1.5 py-0.5 text-[10px] text-ink-2"
+                        className="bg-rule px-1.5 py-0.5 text-[11px] text-ink-2"
                       >
                         {t.privata}
                       </span>
@@ -226,9 +229,10 @@ export function ProfileTierLists({
 
               {/* Azioni card */}
               <div className="mt-4 flex items-center justify-between border-t border-rule-2 pt-3">
+                {/* non rosso: una card per lista, e il rosso su ognuna non dice piu' niente (24/10) */}
                 <Link
                   href={`/${item.game}/tierlist?id=${item.id}`}
-                  className={buttonClass("primary", "sm")}
+                  className={buttonClass("outline", "sm")}
                 >
                   {t.apriNelMaker}
                 </Link>
@@ -236,11 +240,12 @@ export function ProfileTierLists({
                 <button
                   type="button"
                   onClick={() => handleCopy(item.id, item.game)}
-                  className={cx(buttonClass("outline", "sm"), copied?.id === item.id && !copied.ok && "text-red-500")}
+                  className={buttonClass("ghost", "sm")}
                 >
+                  {copied?.id === item.id && copied.ok ? <IconCheck /> : <IconLink />}
                   {copied?.id === item.id
                     ? copied.ok
-                      ? `✓ ${t.linkCopiato}`
+                      ? t.linkCopiato
                       : t.copiaFallita
                     : t.copiaLink}
                 </button>

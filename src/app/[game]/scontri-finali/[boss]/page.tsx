@@ -382,7 +382,7 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
           <div className="max-w-[80ch]">
             <Facts
               rows={[
-                regionNames.length > 0 && [t.regioni, regionNames.join(" · ")],
+                regionNames.length > 0 && [t.regioni, regionNames.join(", ")],
                 boss.material !== null && [t.materiale, <ItemLabel key="m" id={boss.material} scope={scope} />],
                 boss.repulse.length > 0 && [t.mammaHawk, <Repulse key="r" boss={boss} scope={scope} />],
               ]}
@@ -667,7 +667,7 @@ function BossExtras({
                 sayPlain(boss.artifactSet.name, scope)
               )}
             </PartTitle>
-            <Facts rows={[[t.carte, boss.artifactSet.cards.map((card) => sayPlain(card, scope)).join(" · ")]]} />
+            <Facts rows={[[t.carte, boss.artifactSet.cards.map((card) => sayPlain(card, scope)).join(", ")]]} />
             {boss.artifactSet.levels.length > 0 ? (
               <div className="mt-3">
                 <p className={cx(eyebrow, "m-0 mb-1.5")}>{t.livelliSet}</p>

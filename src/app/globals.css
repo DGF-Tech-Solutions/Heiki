@@ -833,6 +833,306 @@
     }
   }
 
+  /*
+   * L'anteprima accanto alla griglia Eroi (hero-peek.tsx), dal 24/10 sul
+   * modello di Duet Night Abyss. Tre fasce, una sotto l'altra: chi e' (epiteto,
+   * nome, attributo/rarita'/razza), la figura sulla lama, la descrizione col
+   * comando. Niente scatola attorno: i pezzi stanno sulla pagina, e la figura
+   * esce dalla lama ai lati e in cima.
+   */
+  .peek {
+    --peek-tint: var(--color-brand);
+    /* dove il gioco mette il volto nei cut-in: vedi .stage */
+    --cut-fx: 0.57;
+    --cut-fy: 0.4;
+    --echo-side: 1;
+    --name-chars: 10;
+    /* la lama: di quanto la cima e' spostata a destra rispetto al fondo, in larghezza della lama */
+    --lean: 30%;
+    position: relative;
+    isolation: isolate;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
+    /* il nome si misura sulla larghezza dell'anteprima (.stage-name, cqi) */
+    container-type: inline-size;
+  }
+
+  /*
+   * La lama: rossa, col primo piano a due toni (come la fascia del palco) e il
+   * bordo chiaro sfalsato in alto a sinistra. Piu' stretta dell'anteprima e piu'
+   * bassa dello spazio della figura: le figure larghe ne escono ai lati, le teste
+   * dalla cima. Sotto, la linea di terra nel colore dell'attributo.
+   */
+  .peek-blade {
+    grid-row: 2;
+    grid-column: 1;
+    position: relative;
+    z-index: -1;
+    margin: 48px 8% 0;
+    pointer-events: none;
+  }
+  .peek-blade-edge,
+  .peek-blade-face {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(var(--lean) 0, 100% 0, calc(100% - var(--lean)) 100%, 0 100%);
+  }
+  .peek-blade-edge {
+    background: var(--color-ink);
+    translate: -7px -8px;
+  }
+  /* clip-path taglia quello che si vede, non lo spazio: senza overflow il cut-in allargava la pagina */
+  .peek-blade-face {
+    background: var(--color-brand);
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .peek-blade-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#000 1.05px, transparent 1.6px);
+    background-size: 6px 6px;
+    opacity: 0.32;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+  /*
+   * Il cut-in, intero e solo spostato (come nel palco): il volto in alto nella
+   * lama, dalla parte opposta al volto della figura. Il gioco lo taglia di netto
+   * a destra e in basso: li' sfuma nel rosso
+   */
+  .peek-cutin {
+    position: absolute;
+    left: calc(50% + var(--echo-side) * 22%);
+    top: 30%;
+    width: 125%;
+    aspect-ratio: 1;
+    translate: calc(var(--cut-fx) * -100%) calc(var(--cut-fy) * -100%);
+    mix-blend-mode: multiply;
+    -webkit-mask-image: linear-gradient(to left, transparent, #000 22%), linear-gradient(to top, transparent, #000 22%);
+    mask-image: linear-gradient(to left, transparent, #000 22%), linear-gradient(to top, transparent, #000 22%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  /*
+   * Piu' leggero che nella fascia del palco: qui sta dietro tutta la figura, e
+   * coi neri pieni le figure scure (Pellegarde, le armature) ci sparivano dentro.
+   * Al 72% il nero diventa un rosso cupo e la sagoma nera della figura si legge
+   */
+  .peek-cutin-img {
+    filter: grayscale(1) contrast(1.8) brightness(1.02);
+    opacity: 0.72;
+  }
+  .peek-ground {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 5px);
+    width: calc(100% - var(--lean));
+    height: 5px;
+    background: var(--peek-tint);
+    clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  }
+
+  /*
+   * La figura: si inquadra la sagoma (`--box-*`, da 0 a 1 del lato del file), non
+   * il file. La sagoma sta intera nello spazio fra nome e descrizione: larga al
+   * massimo quanto l'anteprima, alta al massimo quanto lo spazio meno un respiro
+   * in cima; centrata, coi piedi sul fondo della lama. Il file (quadrato) si
+   * allarga di conseguenza e i suoi margini vuoti escono dallo spazio senza che
+   * si veda niente: cosi' ogni eroe sta allo stesso posto, intero, qualunque
+   * margine abbia il suo file.
+   *
+   * Dove il file taglia la sagoma (`--cut-*` a 1: gambe, ali, mantelli fino al
+   * bordo) la figura sfuma: un taglio netto a meta' anteprima sembrerebbe nostro.
+   *
+   * La scala di Shinra (24/10, scelta dell'utente su un confronto di regole): la
+   * figura non diventa mai piu' grande di come uscirebbe Shinra Kusakabe
+   * (1991501) nello stesso spazio. Riempire lo spazio e basta faceva lo slime di
+   * Rimuru e la Volpe grandi quanto un umano; nei file del gioco invece le
+   * proporzioni fra eroi sono coerenti (Meliodas piu' basso di Eren, lo slime
+   * piccolo), e il limite le rispetta. Si ottiene contando ogni riquadro almeno
+   * grande quanto quello di Shinra (`--ref-w`, `--ref-h`): chi e' piu' grande si
+   * riduce per starci intero, come prima.
+   */
+  /*
+   * Il file e' largo fino a 2,4 volte la sagoma: i suoi margini vuoti uscirebbero
+   * dall'anteprima, allargando la pagina e coprendo la griglia. Si tagliano al
+   * bordo dello spazio, dove non c'e' niente da vedere (la sagoma e' dentro),
+   * lasciando posto alla sagoma nera sfalsata
+   */
+  .peek-stage {
+    grid-row: 2;
+    grid-column: 1;
+    position: relative;
+    container-type: size;
+    overflow: clip;
+    overflow-clip-margin: 16px;
+    pointer-events: none;
+  }
+  .peek-figure {
+    --bw: calc(var(--box-r) - var(--box-l));
+    --bh: calc(var(--box-b) - var(--box-t));
+    /* il riquadro di Shinra (HeroAssets.box di 1991501: 20, 17, 77, 82) */
+    --ref-w: 0.57;
+    --ref-h: 0.65;
+    --side: min(96cqw / max(var(--bw), var(--ref-w)), (100cqh - 12px) / max(var(--bh), var(--ref-h)));
+    position: absolute;
+    width: var(--side);
+    aspect-ratio: 1;
+    left: calc(50cqw - (var(--box-l) + var(--bw) / 2) * var(--side));
+    top: calc(100cqh - var(--box-b) * var(--side));
+    -webkit-mask-image:
+      linear-gradient(to top, transparent, #000 calc(var(--cut-b) * 14%)),
+      linear-gradient(to bottom, transparent, #000 calc(var(--cut-t) * 8%)),
+      linear-gradient(to right, transparent, #000 calc(var(--cut-l) * 10%)),
+      linear-gradient(to left, transparent, #000 calc(var(--cut-r) * 10%));
+    mask-image:
+      linear-gradient(to top, transparent, #000 calc(var(--cut-b) * 14%)),
+      linear-gradient(to bottom, transparent, #000 calc(var(--cut-t) * 8%)),
+      linear-gradient(to right, transparent, #000 calc(var(--cut-l) * 10%)),
+      linear-gradient(to left, transparent, #000 calc(var(--cut-r) * 10%));
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  .peek-figure-img {
+    filter: drop-shadow(9px 7px 0 #000);
+  }
+
+  .peek-head {
+    grid-row: 1;
+    grid-column: 1;
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    min-width: 0;
+    padding-bottom: 4px;
+  }
+  .peek-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .peek-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    background: var(--color-paper-3);
+    color: var(--color-ink);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  /*
+   * La parola dell'attributo nel suo colore, schiarita col colore del testo: i
+   * colori del gioco puri, su paper-3, stavano fra 3,5 e 4,2:1 (Oscurita',
+   * Forza, Velocita'; il controllo del 24/10). Mescolati al 60% passano 4,5
+   */
+  .peek-badge-tinted {
+    color: color-mix(in oklab, var(--badge-color) 60%, var(--color-ink));
+  }
+
+  .peek-foot {
+    grid-row: 3;
+    grid-column: 1;
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    min-width: 0;
+    /* sotto la linea di terra (5 px di stacco, 5 di filo) */
+    padding-top: 26px;
+  }
+  /* la descrizione del gioco: quattro righe al massimo, il resto e' nella scheda */
+  .peek-desc {
+    margin: 0;
+    max-width: 52ch;
+    color: var(--color-ink-2);
+    font-size: 14.5px;
+    font-style: italic;
+    line-height: 1.55;
+    text-wrap: pretty;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+  }
+
+  /*
+   * Il movimento, uno solo come nel palco: al cambio d'eroe la figura entra con
+   * un taglio obliquo, il primo piano scivola nella lama, poi arrivano il nome e
+   * la descrizione. Partono tutti da dov'e' gia' il loro posto: senza animazioni
+   * l'anteprima c'e' lo stesso. Con «riduci movimento» resta una dissolvenza.
+   */
+  @keyframes peek-figure-in {
+    from {
+      clip-path: polygon(118% -20%, 160% -20%, 128% 120%, 86% 120%);
+      transform: translateX(28px);
+    }
+    to {
+      clip-path: polygon(-60% -20%, 160% -20%, 128% 120%, -92% 120%);
+      transform: none;
+    }
+  }
+  @keyframes peek-echo-in {
+    from {
+      opacity: 0;
+      transform: translateX(calc(var(--echo-side) * 40px));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes peek-head-in {
+    from {
+      opacity: 0;
+      transform: translateX(-24px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes peek-foot-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .peek-figure {
+    animation: peek-figure-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .peek-cutin {
+    animation: peek-echo-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .peek-head {
+    animation: peek-head-in 260ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
+  }
+  .peek-foot {
+    animation: peek-foot-in 260ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .peek-figure,
+    .peek-cutin,
+    .peek-head,
+    .peek-foot {
+      animation: stage-fade-in 150ms ease-out both;
+    }
+  }
+
   /* le card della griglia Eroi: al passaggio, e quella sul palco, si alzano con la sagoma rossa */
   .hero-card-art img {
     transition:

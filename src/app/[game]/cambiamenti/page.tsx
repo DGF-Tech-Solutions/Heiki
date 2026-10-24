@@ -52,7 +52,7 @@ const TESTI = testi({
       [
         nuovi === 1 ? "1 eroe nuovo" : `${nuovi} eroi nuovi`,
         cambiati === 1 ? "1 eroe cambiato" : `${cambiati} eroi cambiati`,
-      ].join(" · "),
+      ].join(", "),
     eroiNuovi: "Eroi nuovi",
     eroiCambiati: "Eroi cambiati",
     nessunEroe: "Nessun eroe è cambiato in questa patch.",
@@ -96,7 +96,7 @@ const TESTI = testi({
       [
         nuovi === 1 ? "1 new hero" : `${nuovi} new heroes`,
         cambiati === 1 ? "1 hero changed" : `${cambiati} heroes changed`,
-      ].join(" · "),
+      ].join(", "),
     eroiNuovi: "New heroes",
     eroiCambiati: "Heroes changed",
     nessunEroe: "No hero changed in this patch.",

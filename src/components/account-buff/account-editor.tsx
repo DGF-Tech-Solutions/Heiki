@@ -279,7 +279,7 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
                   tier.hp ? `${data.stats.hp.name} +${numero(tier.hp, locale)}%` : "",
                 ]
                   .filter(Boolean)
-                  .join(" · ")}
+                  .join(", ")}
               </span>
               {" · "}
               {t.soglia(numero(tier.threshold, locale))}
@@ -395,7 +395,7 @@ export function AccountEditor({ game, data }: { game: string; data: EditorData }
                 constellation.completion.hp ? `${data.stats.hp.name} +${numero(constellation.completion.hp, locale)}` : "",
               ]
                 .filter(Boolean)
-                .join(" · ")}
+                .join(", ")}
             </p>
           </div>
 

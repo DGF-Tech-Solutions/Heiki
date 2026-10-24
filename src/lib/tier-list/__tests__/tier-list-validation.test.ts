@@ -61,10 +61,12 @@ describe("schema delle righe di una tier list", () => {
     );
   });
 
-  it("accetta solo i colori offerti dal Maker", () => {
+  it("accetta solo i colori offerti dal Maker, o offerti prima del 24/10", () => {
     for (const color of TIER_COLORS) {
       expect(rowsProblem([row("s", [], { color: color.hex })])).toBeNull();
     }
+    // l'arcobaleno di prima: le liste salvate lo hanno ancora
+    expect(rowsProblem([row("s", [], { color: "#06b6d4" })])).toBeNull();
     expect(rowsProblem([row("s", [], { color: "#123456" })])).toBe("color");
     expect(rowsProblem([row("s", [], { color: "red" })])).toBe("color");
     expect(rowsProblem([row("s", [], { color: "url(javascript:alert(1))" })])).toBe("color");

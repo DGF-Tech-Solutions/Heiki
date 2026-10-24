@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeaderGame } from "@/components/header-game";
 import { QuickSearch } from "@/components/quick-search";
 import { auth, signOut } from "@/lib/auth";
 import { can, roleLabel } from "@/lib/auth/permissions";
@@ -28,7 +29,6 @@ const TESTI = testi({
   it: {
     cerca: "Cerca",
     sezioni: "Sezioni del gioco",
-    giochi: "Giochi",
     coda: "Coda",
     admin: "Admin",
     notifiche: "Notifiche",
@@ -43,7 +43,6 @@ const TESTI = testi({
   en: {
     cerca: "Search",
     sezioni: "Game sections",
-    giochi: "Games",
     coda: "Queue",
     admin: "Admin",
     notifiche: "Notifications",
@@ -69,6 +68,7 @@ export async function SiteHeader() {
   const locale = await getLocale();
   const theme = await getTheme();
   const t = TESTI[locale];
+  const playable = listGames().filter((game) => game.available);
 
   return (
     <header className="sticky top-0 z-20 border-b-[3px] border-brand bg-paper">
@@ -89,18 +89,22 @@ export async function SiteHeader() {
           </span>
         </Link>
 
+        {/* il gioco in cui sei, nelle sue pagine: prima era una striscia sotto l'intestazione (24/10) */}
+        <HeaderGame games={playable.map((game) => ({ slug: game.slug, name: game.shortName }))} />
+
         {/*
           La ricerca rapida (10/10): un pannello che trova mentre si scrive eroi,
           pagine, boss e artefatti, anche coi tasti «/» e Ctrl+K. Prima era un
           modulo verso /cerca, e sul telefono non c'era.
         */}
-        <QuickSearch games={listGames().filter((game) => game.available).map((game) => game.slug)} />
+        <QuickSearch games={playable.map((game) => game.slug)} />
 
         {/*
           Sul telefono questa riga sforava: a 390px chiedeva 12px in piu', e con
           lei tutta la pagina scorreva di lato, perche' una riga troppo larga
-          allarga l'area visibile di ogni sezione. Sotto sm sparisce "Giochi",
-          che porta alla stessa pagina del logo, e gli spazi si stringono.
+          allarga l'area visibile di ogni sezione. Gli spazi sotto sm si
+          stringono. «Giochi» non c'e' piu' dal 24/10: portava alla stessa pagina
+          del marchio, e i giochi sono uno solo.
 
           `min-w-0` e `overflow-x-auto` sono la rete: con un nome utente lungo, o
           i pulsanti in piu' di chi modera, a scorrere e' la barra e non la pagina.
@@ -112,10 +116,6 @@ export async function SiteHeader() {
           dentro la barra e le ultime non si vedevano.
         */}
         <nav className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto py-1 text-sm font-medium whitespace-nowrap [scrollbar-width:none] sm:gap-5 md:ml-0">
-          <Link href="/" className="hidden text-ink-2 hover:text-brand-deep sm:inline">
-            {t.giochi}
-          </Link>
-
           {/* tema e lingua, vicini: sono le due scelte di chi legge, non dell'account */}
           <span className="flex shrink-0 items-center gap-1.5">
             <ThemeSwitch current={theme} />

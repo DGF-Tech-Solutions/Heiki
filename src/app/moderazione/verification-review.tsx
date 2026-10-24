@@ -141,7 +141,8 @@ export function VerificationReview({ item, locale }: { item: ReviewItem; locale:
               className={cx(numeric, "min-w-0")}
               onChange={(event) => setPower(event.target.value.replace(/[^\d.,\s]/g, ""))}
             />
-            <Button variant="primary" disabled={pending || power.replace(/\D/g, "") === ""} onClick={() => decide("approve")}>
+            {/* chiaro e non rosso (24/10): nella coda ce n'e' uno per richiesta */}
+            <Button variant="outline" disabled={pending || power.replace(/\D/g, "") === ""} onClick={() => decide("approve")}>
               {t.approva}
             </Button>
           </div>
@@ -158,7 +159,7 @@ export function VerificationReview({ item, locale }: { item: ReviewItem; locale:
               className="min-w-0"
               onChange={(event) => setNote(event.target.value)}
             />
-            <Button disabled={pending || note.trim().length < 3} onClick={() => decide("reject")}>
+            <Button variant="ghost" disabled={pending || note.trim().length < 3} onClick={() => decide("reject")}>
               {t.rifiuta}
             </Button>
           </div>

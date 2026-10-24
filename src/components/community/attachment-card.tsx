@@ -79,16 +79,16 @@ export async function AttachmentCard({
   return (
     <figure className="p5-corner m-0 mt-3.5 border border-rule bg-paper-2 p-3.5">
       <figcaption className="mb-3 flex flex-wrap items-center gap-2.5">
-        <Tag tone="brand">{t.simulazione}</Tag>
+        <Tag>{t.simulazione}</Tag>
         {check ? <CheckBadge check={check} t={t} /> : null}
         <span className="font-mono text-[11px] text-ink-3">
-          {data.character} · {t.unita(data.team.length)} · patch {data.patch}
+          {data.character} · {t.unita(data.team.length)}, patch {data.patch}
         </span>
       </figcaption>
 
       <StatGrid className="bg-paper">
         <Stat label={t.dannoMediano} value={round(data.median)} />
-        <Stat label={t.noveSuDieci} small value={`${round(data.p10)} – ${round(data.p90)}`} />
+        <Stat label={t.noveSuDieci} small value={`${round(data.p10)}-${round(data.p90)}`} />
         <Stat
           label={t.koIn}
           value={data.timeToKill === null ? "—" : data.timeToKill}
@@ -107,7 +107,7 @@ export async function AttachmentCard({
       <p className="m-0 mt-2 font-mono text-[11px] text-ink-3">
         seed {data.seed}
         {data.iterations > 0
-          ? ` · ${t.tentativi(data.iterations, data.iterations.toLocaleString(tag))}`
+          ? `, ${t.tentativi(data.iterations, data.iterations.toLocaleString(tag))}`
           : ""}{" "}
         · {t.rifallo}
       </p>

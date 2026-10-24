@@ -11,6 +11,7 @@ import { GameText } from "@/components/heroes/game-text";
 import { boxTitle } from "@/components/heroes/hero-parts";
 import { ItemIcon, costumeSrc } from "@/components/heroes/calculator/item-icon";
 import { formatStat, statName } from "@/components/heroes/calculator/stat-rows";
+import { IconArrowRight } from "@/components/icons";
 import { cx, MoreLink, numeric } from "@/components/ui";
 import { COSTUME_KINDS, costumeFlat, costumeMaxStep } from "@/lib/games/gear";
 import type { CostumeIndex, CostumeKind, ItemIconLayers } from "@/lib/games/gear-types";
@@ -124,19 +125,20 @@ export function HeroCostumes({
                       </p>
                       <p className={cx(numeric, "m-0 mt-1 text-ink-2")}>
                         {icons.rarity[String(costume.rarity)]} · {statName(flat, locale)}{" "}
-                        {formatStat(costumeFlat(costumes, costume, 0), locale)} →{" "}
+                        {formatStat(costumeFlat(costumes, costume, 0), locale)}{" "}
+                        <IconArrowRight size={12} className="inline align-[-1px] text-ink-3" />{" "}
                         {formatStat(costumeFlat(costumes, costume, costumeMaxStep(costumes, costume)), locale)}
                       </p>
                       <p className="m-0 mt-0.5 text-ink-2">
                         {percents.length
-                          ? percents.map(([stat, value]) => `${statName(stat, locale)} +${formatStat(value, locale)}%`).join(" · ")
+                          ? percents.map(([stat, value]) => `${statName(stat, locale)} +${formatStat(value, locale)}%`).join(", ")
                           : t.nessunaPercentuale}
                       </p>
                       {start.has(id) || setName || costume.shared ? (
                         <p className="m-0 mt-0.5 text-ink-3">
                           {[start.has(id) ? t.partenza : null, setName ? t.set(setName) : null, costume.shared ? t.condiviso : null]
                             .filter(Boolean)
-                            .join(" · ")}
+                            .join(", ")}
                         </p>
                       ) : null}
                       {description ? <GameText text={description} className="mt-1 text-[12px] text-ink-3" /> : null}

@@ -16,7 +16,7 @@ const TESTI = testi({
     classe: "Classe dell'account",
     nessunTitolo: "sotto 500.000: nessun titolo",
     buff: (atk: string, def: string, hp: string) =>
-      [atk && `Attacco +${atk}%`, def && `Difesa +${def}%`, hp && `PS +${hp}%`].filter(Boolean).join(" · "),
+      [atk && `Attacco +${atk}%`, def && `Difesa +${def}%`, hp && `PS +${hp}%`].filter(Boolean).join(", "),
     soglia: (soglia: string) => `titolo da ${soglia}`,
     costellazioni: "Costellazioni",
     complete: (n: number) => (n === 0 ? "nessuna costellazione completa" : n === 1 ? "1 costellazione completa" : `${n} costellazioni complete`),
@@ -37,7 +37,7 @@ const TESTI = testi({
     classe: "Account Combat Class",
     nessunTitolo: "below 500,000: no title",
     buff: (atk: string, def: string, hp: string) =>
-      [atk && `Attack +${atk}%`, def && `Defense +${def}%`, hp && `HP +${hp}%`].filter(Boolean).join(" · "),
+      [atk && `Attack +${atk}%`, def && `Defense +${def}%`, hp && `HP +${hp}%`].filter(Boolean).join(", "),
     soglia: (soglia: string) => `${soglia} title`,
     costellazioni: "Constellations",
     complete: (n: number) => (n === 0 ? "no constellation completed" : n === 1 ? "1 constellation completed" : `${n} constellations completed`),

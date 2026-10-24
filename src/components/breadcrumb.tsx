@@ -25,6 +25,11 @@ const TESTI = testi({
  *
  * E' un componente server asincrono: legge la lingua dal cookie per l'etichetta
  * della navigazione. Lo usano solo pagine server.
+ *
+ * Dal 24/10 (revisione del design) la lista visibile compare solo dal terzo
+ * livello (Grand Cross / Eroi / Meliodas): a due livelli («Grand Cross / Eroi»)
+ * ripeteva quello che dicono gia' l'intestazione (il gioco) e la barra laterale
+ * (la sezione). Il BreadcrumbList per i motori di ricerca resta sempre.
  */
 
 export interface Crumb {
@@ -57,30 +62,32 @@ export async function Breadcrumb({
 
   return (
     <>
-      <nav aria-label={t.percorso} className={cx("mb-4", className)}>
-        {/* nel testo e non in monospaziato (10/10): sono nomi, non numeri; la barra
-            obliqua rossa e' il taglio dei comandi del sito */}
-        <ol className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 p-0 text-[13px] leading-snug text-ink-3">
-          {items.map((item, index) => (
-            <li key={`${item.label}-${index}`} className="flex items-center gap-2">
-              {index > 0 ? (
-                <span aria-hidden className="font-display font-black text-brand [font-variation-settings:'wdth'_80]">
-                  /
-                </span>
-              ) : null}
-              {item.href ? (
-                <Link href={item.href} className="no-underline underline-offset-4 hover:text-ink hover:underline">
-                  {item.label}
-                </Link>
-              ) : (
-                <span aria-current="page" className="font-semibold text-ink-2">
-                  {item.label}
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
+      {items.length > 2 ? (
+        <nav aria-label={t.percorso} className={cx("mb-4", className)}>
+          {/* nel testo e non in monospaziato (10/10): sono nomi, non numeri; la barra
+              obliqua rossa e' il taglio dei comandi del sito */}
+          <ol className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 p-0 text-[13px] leading-snug text-ink-3">
+            {items.map((item, index) => (
+              <li key={`${item.label}-${index}`} className="flex items-center gap-2">
+                {index > 0 ? (
+                  <span aria-hidden className="font-display font-black text-brand [font-variation-settings:'wdth'_80]">
+                    /
+                  </span>
+                ) : null}
+                {item.href ? (
+                  <Link href={item.href} className="no-underline underline-offset-4 hover:text-ink hover:underline">
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span aria-current="page" className="font-semibold text-ink-2">
+                    {item.label}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      ) : null}
 
       <script
         type="application/ld+json"

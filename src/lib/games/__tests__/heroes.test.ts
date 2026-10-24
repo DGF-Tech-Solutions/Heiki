@@ -261,6 +261,33 @@ describe("roster di Grand Cross", () => {
     expect(wrong.map((h) => h.id)).toEqual([]);
   });
 
+  // Dal 24/10 l'anteprima della griglia inquadra il riquadro della sagoma: senza,
+  // la figura tornerebbe piccola (si inquadra il file); storto, sarebbe tagliata.
+  // Volto e cima stanno dentro il riquadro: li misura la stessa sagoma
+  it("ogni illustrazione ha il riquadro della sagoma, con volto e cima dentro", () => {
+    const assets = grandCrossModule.heroAssets ?? {};
+    const wrong = (roster?.heroes ?? []).filter((h) => {
+      const a = assets[h.id];
+      if (!a?.splash) return false;
+      const [left, top, right, bottom] = a.box ?? [-1, -1, -1, -1];
+      const [x, y] = a.face ?? [-1, -1];
+      return !(
+        left >= 0 &&
+        top >= 0 &&
+        right <= 100 &&
+        bottom <= 100 &&
+        right - left >= 10 &&
+        bottom - top >= 10 &&
+        x >= left &&
+        x <= right &&
+        y >= top &&
+        y <= bottom &&
+        (a.top ?? -1) >= top
+      );
+    });
+    expect(wrong.map((h) => h.id)).toEqual([]);
+  });
+
   /**
    * Gli epiteti arrivano decorati in tre modi diversi - quadre esterne,
    * virgolette, BBCode rimasto dentro - e a ripulirli e' lo script di

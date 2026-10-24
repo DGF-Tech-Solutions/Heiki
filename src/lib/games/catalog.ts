@@ -141,10 +141,15 @@ interface SectionNames extends Omit<GameSection, "label" | "hint"> {
 
 /** Le sezioni con i nomi nelle due lingue: le risolve `sections(locale)`. */
 const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = [
-  // 10/10: cinque gruppi di quattro voci al massimo (prima sei gruppi, tre con
-  // una voce sola, e 17 voci che su uno schermo da 900px non stavano: le ultime
-  // si vedevano solo in fondo alla pagina). Artefatti e buff dell'account stanno
-  // insieme: sono la crescita dell'account, non schede da consultare.
+  // 24/10, dopo la revisione del design (scelta dell'utente fra due proposte):
+  // sette gruppi raccolti per quello che ci fai, nello STESSO ordine ovunque
+  // (barra laterale, menu del gioco, menu del telefono, pie' di pagina). Prima il
+  // menu del gioco li rimescolava e nascondeva i nomi dei gruppi, cosi' la prima
+  // voce di ogni gruppo sembrava il gruppo («Discussioni» sotto «Il mio
+  // account»); e «Tu e la community» teneva insieme pagine tue e pagine di tutti,
+  // «Strumenti» strumenti e giochi. Indovina l'eroe e Compleanni, che sono svago,
+  // stanno in fondo. Dal 10/10: gruppi di quattro voci al massimo, e i buff
+  // dell'account con gli artefatti, perche' sono la crescita dell'account.
   {
     label: { it: "Database", en: "Database" },
     items: [
@@ -184,34 +189,34 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
     ],
   },
   {
-    label: { it: "Progressione", en: "Progression" },
+    label: { it: "Strumenti", en: "Tools" },
     items: [
       {
-        path: "/set-artefatto",
-        label: { it: "Set artefatto", en: "Artifact Sets" },
+        path: "/squadra",
+        label: { it: "Squadra", en: "Team Builder" },
         hint: {
-          it: "I set bonus: carte, effetto livello per livello, potenziamento",
-          en: "The set bonuses: cards, effect level by level, enhancement",
+          it: "Forma una squadra e guarda come si influenzano gli eroi: Uniche, reliquie, abilità speciali, associati",
+          en: "Build a team and see how the heroes affect each other: Uniques, relics, special abilities, associates",
         },
-        needs: "artifacts",
+        needs: "team",
       },
       {
-        path: "/carte-artefatto",
-        label: { it: "Carte artefatto", en: "Artifact Cards" },
+        path: "/tierlist",
+        label: { it: "Tier list", en: "Tier list" },
         hint: {
-          it: "Le carte: statistiche, set e pacchetti da cui si trovano",
-          en: "The cards: stats, sets and the packs they come from",
+          it: "Metti gli eroi in fasce, dalla S in giù, e salva o scarica la tua classifica",
+          en: "Put the heroes in tiers, from S down, and save or download your ranking",
         },
-        needs: "artifacts",
+        needs: "roster",
       },
       {
-        path: "/buff-account",
-        label: { it: "Buff dell'account", en: "Account Buffs" },
+        path: "/randomizer",
+        label: { it: "Randomizer", en: "Randomizer" },
         hint: {
-          it: "Classe di combattimento dell'account e costellazioni, pietra per pietra",
-          en: "Account Combat Class and constellations, stone by stone",
+          it: "Quattro eroi e i loro associati pescati a caso, anche con le Uniche in sinergia",
+          en: "Four heroes and their associates drawn at random, also with their Uniques in synergy",
         },
-        needs: "accountBuff",
+        needs: "heroFates",
       },
     ],
   },
@@ -257,58 +262,58 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
     ],
   },
   {
-    label: { it: "Strumenti", en: "Tools" },
+    label: { it: "Progressione", en: "Progression" },
     items: [
       {
-        path: "/squadra",
-        label: { it: "Squadra", en: "Team Builder" },
+        path: "/set-artefatto",
+        label: { it: "Set artefatto", en: "Artifact Sets" },
         hint: {
-          it: "Forma una squadra e guarda come si influenzano gli eroi: Uniche, reliquie, abilità speciali, associati",
-          en: "Build a team and see how the heroes affect each other: Uniques, relics, special abilities, associates",
+          it: "I set bonus: carte, effetto livello per livello, potenziamento",
+          en: "The set bonuses: cards, effect level by level, enhancement",
         },
-        needs: "team",
+        needs: "artifacts",
       },
       {
-        path: "/tierlist",
-        label: { it: "Tier List", en: "Tier List" },
+        path: "/carte-artefatto",
+        label: { it: "Carte artefatto", en: "Artifact Cards" },
         hint: {
-          it: "Crea, ordina e condividi la tua tier list personalizzata degli eroi",
-          en: "Create, rank and share your custom hero tier list",
+          it: "Le carte: statistiche, set e pacchetti da cui si trovano",
+          en: "The cards: stats, sets and the packs they come from",
         },
-        needs: "roster",
+        needs: "artifacts",
       },
       {
-        path: "/randomizer",
-        label: { it: "Randomizer", en: "Randomizer" },
+        path: "/buff-account",
+        label: { it: "Buff dell'account", en: "Account Buffs" },
         hint: {
-          it: "Quattro eroi e i loro associati pescati a caso, anche con le Uniche in sinergia",
-          en: "Four heroes and their associates drawn at random, also with their Uniques in synergy",
+          it: "Classe di combattimento dell'account e costellazioni, pietra per pietra",
+          en: "Account Combat Class and constellations, stone by stone",
         },
-        needs: "heroFates",
-      },
-      {
-        path: "/indovina",
-        label: { it: "Indovina l'eroe", en: "Guess the Hero" },
-        hint: {
-          it: "Il gioco degli indizi, come Loldle: attributo, razza, caratteristiche, grado, uscita",
-          en: "The clue game, like Loldle: attribute, race, characteristics, grade, release",
-        },
-        needs: "releases",
-      },
-      {
-        path: "/compleanni",
-        label: { it: "Compleanni", en: "Birthdays" },
-        hint: {
-          it: "Il compleanno di ogni eroe, chi festeggia oggi e il regalo che in taverna vale dieci volte l'Affetto",
-          en: "Every hero's birthday, who is celebrating today and the gift that's worth ten times the Affection at the tavern",
-        },
-        needs: "birthdays",
+        needs: "accountBuff",
       },
     ],
   },
-  // l'account e la community: la parte del sito che dipende da chi la usa
   {
-    label: { it: "Tu e la community", en: "You and the community" },
+    label: { it: "Community", en: "Community" },
+    items: [
+      {
+        path: "/guide",
+        label: { it: "Guide e rotazioni", en: "Guides and rotations" },
+        hint: {
+          it: "Con la patch in cui i numeri sono stati verificati",
+          en: "With the patch in which the numbers were verified",
+        },
+      },
+      {
+        // dal 10/10 il feed ha un indirizzo suo: /<gioco> e' l'ingresso del gioco
+        path: "/discussioni",
+        label: { it: "Discussioni", en: "Discussions" },
+        hint: { it: "Build e rotazioni condivise", en: "Shared builds and rotations" },
+      },
+    ],
+  },
+  {
+    label: { it: "Il tuo account", en: "Your account" },
     items: [
       {
         path: "/account",
@@ -328,19 +333,28 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         },
         needs: "roster",
       },
+    ],
+  },
+  {
+    label: { it: "Extra", en: "Extras" },
+    items: [
       {
-        path: "/guide",
-        label: { it: "Guide e rotazioni", en: "Guides and rotations" },
+        path: "/indovina",
+        label: { it: "Indovina l'eroe", en: "Guess the Hero" },
         hint: {
-          it: "Con la patch in cui i numeri sono stati verificati",
-          en: "With the patch in which the numbers were verified",
+          it: "Il gioco degli indizi, come Loldle: attributo, razza, caratteristiche, grado, uscita",
+          en: "The clue game, like Loldle: attribute, race, characteristics, grade, release",
         },
+        needs: "releases",
       },
       {
-        // dal 10/10 il feed ha un indirizzo suo: /<gioco> e' l'ingresso del gioco
-        path: "/discussioni",
-        label: { it: "Discussioni", en: "Discussions" },
-        hint: { it: "Build e rotazioni condivise", en: "Shared builds and rotations" },
+        path: "/compleanni",
+        label: { it: "Compleanni", en: "Birthdays" },
+        hint: {
+          it: "Il compleanno di ogni eroe, chi festeggia oggi e il regalo che in taverna vale dieci volte l'Affetto",
+          en: "Every hero's birthday, who is celebrating today and the gift that's worth ten times the Affection at the tavern",
+        },
+        needs: "birthdays",
       },
     ],
   },

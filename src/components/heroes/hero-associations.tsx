@@ -13,6 +13,7 @@ import Link from "next/link";
 import { GameText } from "@/components/heroes/game-text";
 import { formatStat, statName } from "@/components/heroes/calculator/stat-rows";
 import { boxTitle } from "@/components/heroes/hero-parts";
+import { IconArrowRight } from "@/components/icons";
 import { cx, MoreLink, numeric } from "@/components/ui";
 import { associatedTo } from "@/lib/games/gear";
 import type { HeroFate, HeroFateEffect, HeroFatesIndex } from "@/lib/games/hero-fates-types";
@@ -39,7 +40,7 @@ const TESTI = testi({
     combinatoNota: "con questo associato la Mossa finale diventa un attacco a due, e la classe della squadra sale di 1.000",
     lr: (nome: string) => `a LR: ${nome}`,
     calcolatore: "Prova un associato nel calcolatore",
-    gradi: (from: string, to: string) => (from === to ? from : `${from} → ${to}`),
+    finoA: "fino a",
   },
   en: {
     suoi: (n: number) => `Its Associated Heroes · ${n}`,
@@ -57,7 +58,7 @@ const TESTI = testi({
     combinatoNota: "with this associate the Ultimate Move becomes a two-hero attack, and the team's Combat Class rises by 1,000",
     lr: (nome: string) => `at LR: ${nome}`,
     calcolatore: "Try an associate in the calculator",
-    gradi: (from: string, to: string) => (from === to ? from : `${from} → ${to}`),
+    finoA: "up to",
   },
 });
 
@@ -69,7 +70,7 @@ function EffectHead({ effect, locale }: { effect: HeroFateEffect; locale: Locale
       <span className={cx(numeric, "text-ink-2")}>
         {effect.grades
           .map((value, i) => `${GRADES[i]} +${formatStat(value, locale)}${unit}`)
-          .join(" · ")}
+          .join(", ")}
       </span>
     </p>
   );
@@ -131,7 +132,17 @@ function HeroList({
                         <span className="block truncate text-[12px] text-ink-3" title={heroEpithet(hero, locale) ?? undefined}>
                           {heroEpithet(hero, locale)}
                         </span>
-                        <span className={cx(numeric, "block text-ink-3")}>{t.gradi(hero.obtainedAs, hero.rarity)}</span>
+                        {/* la freccia disegnata e non il carattere «→» (24/10) */}
+                        <span className={cx(numeric, "flex items-center gap-0.5 text-ink-3")}>
+                          {hero.obtainedAs}
+                          {hero.obtainedAs !== hero.rarity ? (
+                            <>
+                              <IconArrowRight size={11} />
+                              <span className="sr-only">{t.finoA}</span>
+                              {hero.rarity}
+                            </>
+                          ) : null}
+                        </span>
                         {fate[2] ? (
                           <span className="block text-gold" title={t.combinatoNota}>
                             {t.combinato}

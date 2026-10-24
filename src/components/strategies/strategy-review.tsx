@@ -67,10 +67,11 @@ export function StrategyReview({ postId, className }: { postId: string; classNam
       </label>
       <Textarea id={fieldId} rows={2} maxLength={600} value={note} onChange={(event) => setNote(event.target.value)} />
       <div className="flex flex-wrap items-center gap-2.5">
-        <Button type="button" variant="primary" size="sm" disabled={pending} onClick={() => decide("approve")}>
+        {/* chiaro e non rosso (24/10): nella coda ce n'e' uno per strategia */}
+        <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => decide("approve")}>
           {t.pubblica}
         </Button>
-        <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => decide("reject")}>
+        <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={() => decide("reject")}>
           {t.respingi}
         </Button>
         {result && !result.ok ? (

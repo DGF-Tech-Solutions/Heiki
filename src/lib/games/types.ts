@@ -192,6 +192,13 @@ export interface HeroAssets {
    */
   top?: number;
   /**
+   * Il riquadro di tutta la sagoma, in centesimi del lato: [sinistra, cima,
+   * destra, fondo], arrotondato verso l'esterno. L'anteprima della griglia Eroi
+   * inquadra questo e non il file, cosi' ogni figura sta intera e allo stesso
+   * posto (figureOf)
+   */
+  box?: readonly [number, number, number, number];
+  /**
    * C'e' il cut-in della Mossa finale, il primo piano scontornato che il gioco
    * fa entrare con l'ultimate: il palco lo mette nella fascia rossa. Quale sia
    * lo dice il client: `Cut_In_Portrait/<character_base>/cut_in_special_<ritratto>_01`

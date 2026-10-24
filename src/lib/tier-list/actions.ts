@@ -45,16 +45,17 @@ export interface TierListActionResult {
 
 const TESTI = testi({
   it: {
-    serveDatabase: "Database non raggiungibile. Riprova più tardi.",
-    accediSalvare: "Devi accedere per salvare la tua tier list sull'account.",
-    accediEliminare: "Devi accedere per eliminare questa tier list.",
-    giocoNonValido: "Gioco non valido o non registrato.",
-    nonTrovata: "Tier list non trovata o non tua.",
+    // 24/10: il verbo del sito e' «Entra», e ogni errore dice cosa fare dopo
+    serveDatabase: "Il database non risponde: la lista non è salvata. Riprova tra qualche minuto.",
+    accediSalvare: "Entra per salvare la tier list sul tuo account.",
+    accediEliminare: "Entra per eliminare questa tier list.",
+    giocoNonValido: "Questo gioco non ha una tier list: ricarica la pagina e riprova.",
+    nonTrovata: "Tier list non trovata, o non è tua: ricarica l'elenco e riprova.",
     troppe: (n: number) =>
       `Hai già ${n} tier list salvate per questo gioco: eliminane una per salvarne un'altra.`,
-    erroreSalvataggio: "Errore durante il salvataggio della tier list.",
+    erroreSalvataggio: "La lista non è stata salvata. Riprova tra poco.",
     problemi: {
-      invalid: "Dati non validi.",
+      invalid: "La lista ha dati che il sito non riconosce: ricarica la pagina e riprova.",
       "title-missing": "Inserisci un nome per la tua tier list.",
       "title-long": `Il nome non può superare i ${TIER_LIST_LIMITS.title} caratteri.`,
       "description-long": `La descrizione non può superare i ${TIER_LIST_LIMITS.description} caratteri.`,
@@ -62,22 +63,22 @@ const TESTI = testi({
       "rows-many": `Una tier list può avere al massimo ${TIER_LIST_LIMITS.rows} righe.`,
       row: "Una riga della tier list non è valida.",
       label: `Ogni riga ha bisogno di un nome, lungo al massimo ${TIER_LIST_LIMITS.label} caratteri.`,
-      color: "Una riga ha un colore che il Maker non offre.",
+      color: "Una riga ha un colore che il sito non offre: scegline un altro dal menu della riga.",
       "hero-unknown": "Nella tier list c'è un eroe che questo gioco non ha.",
       "hero-duplicate": "Un eroe compare più di una volta nella tier list.",
     } satisfies Record<TierListProblem, string>,
   },
   en: {
-    serveDatabase: "Database unreachable. Please try again later.",
-    accediSalvare: "Log in to save your tier list to your account.",
+    serveDatabase: "The database isn't responding: the list is not saved. Try again in a few minutes.",
+    accediSalvare: "Log in to save the tier list to your account.",
     accediEliminare: "Log in to delete this tier list.",
-    giocoNonValido: "Invalid or unregistered game.",
-    nonTrovata: "Tier list not found or not yours.",
+    giocoNonValido: "This game has no tier list: reload the page and try again.",
+    nonTrovata: "Tier list not found, or not yours: reload the list and try again.",
     troppe: (n: number) =>
       `You already have ${n} saved tier lists for this game: delete one to save another.`,
-    erroreSalvataggio: "Error while saving the tier list.",
+    erroreSalvataggio: "The list was not saved. Try again shortly.",
     problemi: {
-      invalid: "Invalid data.",
+      invalid: "The list has data the site doesn't recognise: reload the page and try again.",
       "title-missing": "Enter a name for your tier list.",
       "title-long": `The name can't be longer than ${TIER_LIST_LIMITS.title} characters.`,
       "description-long": `The description can't be longer than ${TIER_LIST_LIMITS.description} characters.`,
@@ -85,7 +86,7 @@ const TESTI = testi({
       "rows-many": `A tier list can have at most ${TIER_LIST_LIMITS.rows} rows.`,
       row: "A row of the tier list is not valid.",
       label: `Every row needs a name of at most ${TIER_LIST_LIMITS.label} characters.`,
-      color: "A row has a color the Maker doesn't offer.",
+      color: "A row has a color the site doesn't offer: pick another from the row's menu.",
       "hero-unknown": "The tier list contains a hero this game doesn't have.",
       "hero-duplicate": "A hero appears more than once in the tier list.",
     },

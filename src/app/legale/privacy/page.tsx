@@ -85,17 +85,17 @@ function PrivacyIt() {
           <tr>
             <td>UID di gioco pubblici</td>
             <td>Verificare i badge legati al gioco</td>
-            <td>Consenso — li inserisci tu</td>
+            <td>Consenso (li inserisci tu)</td>
           </tr>
           <tr>
             <td>Account di gioco: nickname, Codice amico, server, classe dell&apos;account, costellazioni</td>
             <td>Le statistiche delle schede degli eroi e il profilo pubblico</td>
-            <td>Consenso — li inserisci tu</td>
+            <td>Consenso (li inserisci tu)</td>
           </tr>
           <tr>
             <td>Schermata per la verifica della classe</td>
             <td>Permettere a un moderatore di confermare la classe dell&apos;account</td>
-            <td>Consenso — la carichi tu</td>
+            <td>Consenso (la carichi tu)</td>
           </tr>
           <tr>
             <td>Dati di pagamento</td>
@@ -143,8 +143,8 @@ function PrivacyIt() {
       <h2>Cosa puoi chiedere</h2>
       <p>
         Accesso, rettifica, cancellazione, limitazione, opposizione e portabilità. La cancellazione
-        dell&apos;account è già disponibile in autonomia da{" "}
-        <Link href="/impostazioni/account">Impostazioni → Account</Link>. Per il resto, scrivi
+        dell&apos;account è già disponibile in autonomia nella pagina{" "}
+        <Link href="/impostazioni/account">Account delle impostazioni</Link>. Per il resto, scrivi
         all&apos;indirizzo del titolare.
       </p>
       <p>
@@ -154,7 +154,7 @@ function PrivacyIt() {
       <h2>Trasferimenti e fornitori</h2>
       <p>
         I dati risiedono sul fornitore di hosting e sul database gestito. L&apos;elenco dei
-        fornitori — hosting, rete pubblicitaria, gestore dei pagamenti — va completato qui con i
+        fornitori (hosting, rete pubblicitaria, gestore dei pagamenti) va completato qui con i
         nomi effettivi prima della pubblicazione.
       </p>
     </>
@@ -213,17 +213,17 @@ function PrivacyEn() {
           <tr>
             <td>Public game UIDs</td>
             <td>Verify game-related badges</td>
-            <td>Consent — you enter them yourself</td>
+            <td>Consent (you enter them yourself)</td>
           </tr>
           <tr>
             <td>Game account: nickname, Friend Code, server, Account Combat Class, constellations</td>
             <td>The hero pages&apos; stats and the public profile</td>
-            <td>Consent — you enter them yourself</td>
+            <td>Consent (you enter them yourself)</td>
           </tr>
           <tr>
             <td>Screenshot for the class verification</td>
             <td>Let a moderator confirm the Account Combat Class</td>
-            <td>Consent — you upload it yourself</td>
+            <td>Consent (you upload it yourself)</td>
           </tr>
           <tr>
             <td>Payment data</td>
@@ -270,8 +270,8 @@ function PrivacyEn() {
       <h2>What you can request</h2>
       <p>
         Access, rectification, erasure, restriction, objection and portability. You can already
-        delete your account on your own from{" "}
-        <Link href="/impostazioni/account">Settings → Account</Link>. For everything else, write
+        delete your account on your own from the{" "}
+        <Link href="/impostazioni/account">Account page in Settings</Link>. For everything else, write
         to the controller&apos;s address.
       </p>
       <p>
@@ -282,7 +282,7 @@ function PrivacyEn() {
       <h2>Transfers and providers</h2>
       <p>
         The data resides with the hosting provider and the managed database. The list of
-        providers — hosting, ad network, payment processor — must be completed here with their
+        providers (hosting, ad network, payment processor) must be completed here with their
         actual names before publication.
       </p>
     </>

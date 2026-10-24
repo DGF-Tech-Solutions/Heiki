@@ -35,7 +35,7 @@ const TESTI = testi({
     chiSeiOspite: "Si salva in questo browser. Entra nel sito per ritrovarlo su ogni dispositivo e chiedere la verifica.",
     nickname: "Nickname",
     codiceAmico: "Codice amico",
-    codiceAmicoAiuto: "Info giocatore → Codice amico",
+    codiceAmicoAiuto: "nel gioco, in Info giocatore alla voce Codice amico",
     server: "Server",
     classe: "Classe e costellazioni",
     classeNota:
@@ -88,7 +88,7 @@ const TESTI = testi({
     chiSeiOspite: "It is saved in this browser. Log in to find it on every device and request verification.",
     nickname: "Nickname",
     codiceAmico: "Friend Code",
-    codiceAmicoAiuto: "Player Info → Friend Code",
+    codiceAmicoAiuto: "in the game, under Player Info, Friend Code",
     server: "Server",
     classe: "Class and constellations",
     classeNota:

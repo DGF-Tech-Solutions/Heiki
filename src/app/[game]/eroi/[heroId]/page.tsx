@@ -26,7 +26,7 @@ import type { HeroRatingSummary } from "@/lib/ratings/types";
 import { dayKey } from "@/lib/games/birthdays";
 import type { BirthdaysIndex, MonthDay } from "@/lib/games/birthdays-types";
 import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
-import { buttonClass, cx, eyebrow, MoreArrow, MoreLink, Notice, numeric, Tag } from "@/components/ui";
+import { buttonClass, cx, eyebrow, MoreArrow, MoreLink, Notice, numeric, Tag, tapArea } from "@/components/ui";
 import { sliderData } from "@/lib/games/account-buff";
 import type { AccountBuffIndex } from "@/lib/games/account-buff-types";
 import { findGame } from "@/lib/games/catalog";
@@ -78,8 +78,9 @@ const TESTI = testi({
     uscitaGlobale: "Uscita globale",
     giapponeCorea: "Giappone e Corea",
     evoluzioneLr: "Evoluzione LR",
-    nelCalendario: "Nel calendario",
-    dalloStendardo: "Data dello stendardo di debutto nel gioco: il calendario non ha ancora la sua riga",
+    nelleUscite: "Nelle Uscite",
+    dalloStendardo: "Data dello stendardo di debutto nel gioco: le Uscite non hanno ancora la sua riga",
+    dateTitolo: "Date",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustrazione di ${eroe}`,
     descrizione: "Descrizione",
@@ -132,8 +133,9 @@ const TESTI = testi({
     uscitaGlobale: "Global release",
     giapponeCorea: "Japan and Korea",
     evoluzioneLr: "LR evolution",
-    nelCalendario: "In the calendar",
-    dalloStendardo: "Date of its debut banner in the game: the calendar doesn't have its row yet",
+    nelleUscite: "In Releases",
+    dalloStendardo: "Date of its debut banner in the game: Releases doesn't have its row yet",
+    dateTitolo: "Dates",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustration of ${eroe}`,
     descrizione: "Description",
@@ -542,6 +544,8 @@ export default async function HeroPage({ params, searchParams }: Props) {
         endgame={endgame}
         icons={icons}
         others={others}
+        release={release}
+        birthday={birthday}
         changes={
           changes?.firstPatch ? (
             <HeroChanges
@@ -587,7 +591,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
       <article className="group/scheda">
         {/*
           L'intestazione resta sopra le schede, qualunque sia aperta: chi e',
-          che rarita', quando e' uscito. Dal 10/10 e' un palco (hero-stage.tsx):
+          che rarita' (le date dal 24/10 stanno in Info). Dal 10/10 e' un palco (hero-stage.tsx):
           l'illustrazione grande, che prima stava nell'ultima scheda a 340px, e
           il nome in targa. Sotto, la fascia dei dati (HeroFacts); in alto a
           destra l'eroe prima e dopo nell'ordine della griglia (anche coi tasti
@@ -634,8 +638,6 @@ export default async function HeroPage({ params, searchParams }: Props) {
             race={context?.race != null && raceLabel ? { code: String(context.race), label: raceLabel } : null}
             factions={factionLabels}
             canReachLr={context?.rarity.canReachLr ?? false}
-            release={release}
-            birthday={birthday}
             ratingSummary={ratingSummary}
           />
         </header>
@@ -692,6 +694,8 @@ function HeroInfo({
   endgame,
   icons,
   others,
+  release,
+  birthday,
   changes,
 }: {
   game: string;
@@ -704,6 +708,8 @@ function HeroInfo({
   endgame: readonly EndgameHeroLink[] | undefined;
   icons: Readonly<Record<string, readonly string[]>> | undefined;
   others: readonly HeroEntry[];
+  release: HeroRelease | undefined;
+  birthday: HeroBirthday | null;
   /** la sezione dei cambiamenti di patch, gia' pronta */
   changes: React.ReactNode;
 }) {
@@ -755,6 +761,8 @@ function HeroInfo({
 
           <HeroEndgameLine game={game} locale={locale} links={endgame} icons={icons} />
 
+          <HeroDates game={game} locale={locale} release={release} birthday={birthday} />
+
           <div>
             <h3 className={cx(eyebrow, "mb-1.5")}>{t.identificativo}</h3>
             <p className={cx(numeric, "m-0 text-sm text-ink-2")}>
@@ -792,21 +800,10 @@ function HeroInfo({
 const factValue =
   "font-display text-[15px] font-extrabold uppercase leading-tight tracking-[0.02em] [font-variation-settings:'wdth'_85]";
 
-/**
- * Le celle della fascia: una griglia di riquadri divisi da un filo. Il filo e'
- * il fondo della griglia che passa fra le celle (`gap-px`), non un bordo per
- * cella: cosi' c'e' solo fra due celle, mai doppio, e la cella sola dell'ultima
- * riga si allarga alle due colonne invece di lasciare un buco grigio.
- * Sul telefono due colonne; dalla larghezza di un tablet (`@xl` sulla fascia)
- * una riga sola, celle larghe uguali.
- */
-const factGrid =
-  "m-0 grid grid-cols-2 gap-px bg-rule @xl:grid-flow-col @xl:auto-cols-fr @xl:grid-cols-none @max-xl:[&>div:last-child:nth-child(odd)]:col-span-2";
-
 /** Un dato: il suo nome sopra, il valore sotto. */
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="min-w-0 bg-paper-2 px-3.5 py-3">
+    <div className="min-w-0">
       <dt className={eyebrow}>{label}</dt>
       <dd className="m-0 mt-1.5">{children}</dd>
     </div>
@@ -830,15 +827,16 @@ function birthdayOf(index: BirthdaysIndex | undefined, heroId: string): HeroBirt
 }
 
 /**
- * La fascia dei dati sotto il palco: attributo, rarita', razza,
- * caratteristiche, personaggio, e sotto le uscite col calendario.
+ * La fascia dei dati sotto il palco: chi e' l'eroe (attributo, rarita',
+ * razza, caratteristiche, personaggio) e il voto della community.
  *
- * Fino al 10/10 era una fila di icone e pastiglie senza nomi (l'icona
- * dell'attributo, due icone di rarita', «DEMONE», «COMANDAMENTI», «Derieri»)
- * seguita da una riga di date, e sul telefono andava a capo dove capitava: chi
- * non conosce il gioco non sapeva cosa fosse «Derieri» accanto a «Demone».
- * Ora ogni dato ha il suo nome sopra, come in una scheda, e sul telefono le
- * celle stanno in due colonne fisse.
+ * Fino al 10/10 era una fila di icone e pastiglie senza nomi; dal 10/10 ogni
+ * dato aveva il suo nome sopra, in una griglia di nove riquadri bordati con
+ * compleanno e date d'uscita. Era una tabella generica appesa al palco, e
+ * spingeva le schede a 894px a 1440 e a 1.071 sul telefono (critica del
+ * 24/10). Ora sei dati al massimo, senza riquadri: i nomi sopra come prima,
+ * una riga sola dal tablet in su, due colonne sul telefono. Compleanno e date
+ * sono passati nella scheda Info (`HeroDates`), che e' la parte «chi e'».
  */
 function HeroFacts({
   game,
@@ -849,8 +847,6 @@ function HeroFacts({
   race,
   factions,
   canReachLr,
-  release,
-  birthday,
   ratingSummary,
 }: {
   game: string;
@@ -861,15 +857,13 @@ function HeroFacts({
   race: { code: string; label: string } | null;
   factions: readonly string[];
   canReachLr: boolean;
-  release: HeroRelease | undefined;
-  birthday: HeroBirthday | null;
   ratingSummary: HeroRatingSummary;
 }) {
   const t = TESTI[locale];
 
   return (
-    <div className="@container mt-3 border border-rule bg-paper-2">
-      <dl className={factGrid}>
+    <div className="@container mt-4">
+      <dl className="m-0 grid grid-cols-2 gap-x-5 gap-y-4 @xl:flex @xl:flex-wrap @xl:gap-x-10">
         {/*
           L'attributo con l'icona del gioco: chi gioca la riconosce prima di
           leggere, e il nome accanto la spiega a chi non gioca (l'icona e'
@@ -939,12 +933,91 @@ function HeroFacts({
           <Link
             href={`/${game}/eroi?cerca=${encodeURIComponent(hero.group)}`}
             title={t.versioniPersonaggio(hero.group)}
-            className={cx(factValue, "p5-press group/more inline-flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink")}
+            className={cx(factValue, tapArea, "p5-press group/more inline-flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink")}
           >
             {hero.group}
             <MoreArrow />
           </Link>
         </Fact>
+
+        <Fact label={t.valutazione}>
+          {/* solo i numeri: il riepilogo intero (recensioni, commenti, id degli
+              utenti) finirebbe serializzato nella pagina per un componente client */}
+          <RatingFactsBadge
+            game={game}
+            heroId={hero.id}
+            locale={locale}
+            pveAvg={ratingSummary.pveAvg}
+            pvpAvg={ratingSummary.pvpAvg}
+            totalRatings={ratingSummary.totalRatings}
+          />
+        </Fact>
+      </dl>
+    </div>
+  );
+}
+
+/**
+ * Le date dell'eroe nella scheda Info: uscita globale, Giappone e Corea,
+ * evoluzione LR, compleanno, e il collegamento alla sua riga nelle Uscite.
+ * Fino al 24/10 stavano nella fascia sotto il palco (vedi `HeroFacts`).
+ *
+ * Il globale prima: e' il server di chi legge in italiano. Le due date e non
+ * una: fino a novembre 2024 il globale arrivava mesi dopo il Giappone, e in un
+ * altro ordine (i 52 eroi del lancio giapponese, 4 giugno 2019, sono fra i 60
+ * del lancio globale, 2 marzo 2020). Da allora escono lo stesso giorno, di
+ * solito il giovedi' (Odino il mercoledi' prima, nel globale). Le date sono
+ * quelle delle righe delle Uscite: fino al 26/09 quella globale veniva da
+ * 7dshub, che scrive spesso il lunedi' dove il foglio scrive il martedi', e in
+ * qualche caso sbaglia di mesi (Cardinal Helbram: marzo 2023 contro agosto 2020).
+ */
+function HeroDates({
+  game,
+  locale,
+  release,
+  birthday,
+}: {
+  game: string;
+  locale: Locale;
+  release: HeroRelease | undefined;
+  birthday: HeroBirthday | null;
+}) {
+  const t = TESTI[locale];
+  const format = new Intl.DateTimeFormat(intlLocale(locale), {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const days: { key: string; label: string; value: string }[] = [];
+  if (release?.global) days.push({ key: "gb", label: t.uscitaGlobale, value: release.global });
+  if (release?.jp) days.push({ key: "jp", label: t.giapponeCorea, value: release.jp });
+  const lr = release?.lrGlobal ?? release?.lrJp;
+  if (lr) days.push({ key: "lr", label: t.evoluzioneLr, value: lr });
+  // La riga nelle Uscite globali, quelle da cui la pagina parte; se l'eroe li'
+  // non c'e', quella giapponese.
+  const releasesHref = release?.updateGlobal
+    ? `/${game}/uscite#u-${release.updateGlobal}`
+    : release?.updateJp
+      ? `/${game}/uscite?server=giappone#u-${release.updateJp}`
+      : null;
+  if (days.length === 0 && !releasesHref && !birthday) return null;
+
+  return (
+    <div>
+      <h3 className={cx(eyebrow, "mb-2.5")}>{t.dateTitolo}</h3>
+      <dl className="m-0 flex flex-wrap gap-x-8 gap-y-3">
+        {days.map((item, index) => (
+          <Fact key={item.key} label={item.label}>
+            <span className="flex flex-wrap items-center gap-2">
+              <time dateTime={item.value} className={cx(numeric, "text-[15px] font-medium text-ink")}>
+                {format.format(new Date(`${item.value}T00:00:00Z`))}
+              </time>
+              {/* il Festival e' un modo d'uscita: sta con la prima data */}
+              {index === 0 && release?.festival ? <Tag tone="gold">{t.festival}</Tag> : null}
+            </span>
+          </Fact>
+        ))}
 
         {/*
           Il compleanno del profilo, che porta a quel giorno nella pagina
@@ -959,7 +1032,7 @@ function HeroFacts({
                   key={index}
                   href={`/${game}/compleanni?giorno=${dayKey(date)}#giorno`}
                   title={t.compleannoApri(formatMonthDay(date, locale))}
-                  className={cx(factValue, "p5-press flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink [&+&]:mt-1")}
+                  className={cx(factValue, tapArea, "p5-press flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink [&+&]:mt-1")}
                 >
                   {formatMonthDay(date, locale)}
                   {birthday.guest ? (
@@ -977,98 +1050,17 @@ function HeroFacts({
             )}
           </Fact>
         ) : null}
-
-        <Fact label={t.valutazione}>
-          {/* solo i numeri: il riepilogo intero (recensioni, commenti, id degli
-              utenti) finirebbe serializzato nella pagina per un componente client */}
-          <RatingFactsBadge
-            game={game}
-            heroId={hero.id}
-            locale={locale}
-            pveAvg={ratingSummary.pveAvg}
-            pvpAvg={ratingSummary.pvpAvg}
-            totalRatings={ratingSummary.totalRatings}
-          />
-        </Fact>
       </dl>
 
-      {release ? <ReleaseFacts game={game} release={release} locale={locale} /> : null}
-    </div>
-  );
-}
-
-/**
- * Quando e' uscito: globale, Giappone e Corea, e il collegamento alla sua riga
- * nel calendario. Le date sono dati come gli altri della fascia: una cella
- * ciascuna, col nome sopra.
- *
- * Il globale prima: e' il server di chi legge in italiano. Le due date e non
- * una: fino a novembre 2024 il globale arrivava mesi dopo il Giappone, e in un
- * altro ordine (i 52 eroi del lancio giapponese, 4 giugno 2019, sono fra i 60
- * del lancio globale, 2 marzo 2020). Da allora escono lo stesso giorno, di
- * solito il giovedi' (Odino il mercoledi' prima, nel globale). Le date sono
- * quelle delle righe del calendario:
- * fino al 26/09 quella globale veniva da 7dshub, che scrive spesso il lunedi'
- * dove il foglio scrive il martedi', e in qualche caso sbaglia di mesi
- * (Cardinal Helbram: marzo 2023 contro agosto 2020).
- */
-function ReleaseFacts({ game, release, locale }: { game: string; release: HeroRelease; locale: Locale }) {
-  const t = TESTI[locale];
-  const format = new Intl.DateTimeFormat(intlLocale(locale), {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-  const days: { key: string; label: string; value: string }[] = [];
-  if (release.global) days.push({ key: "gb", label: t.uscitaGlobale, value: release.global });
-  if (release.jp) days.push({ key: "jp", label: t.giapponeCorea, value: release.jp });
-  const lr = release.lrGlobal ?? release.lrJp;
-  if (lr) days.push({ key: "lr", label: t.evoluzioneLr, value: lr });
-  // La riga nel calendario globale, che e' quello da cui la pagina parte; se
-  // l'eroe li' non c'e', quella giapponese.
-  const calendar = release.updateGlobal
-    ? `/${game}/uscite#u-${release.updateGlobal}`
-    : release.updateJp
-      ? `/${game}/uscite?server=giappone#u-${release.updateJp}`
-      : null;
-  if (days.length === 0 && !calendar) return null;
-
-  return (
-    <div className="border-t border-rule @xl:flex @xl:items-center">
-      {days.length > 0 ? (
-        // largo quanto le sue celle, non quanto la fascia: le date sono corte,
-        // e allargate a tutta riga si allontanerebbero dai loro nomi
-        <dl className={cx(factGrid, "@xl:border-r @xl:border-rule")}>
-          {days.map((item, index) => (
-            <Fact key={item.key} label={item.label}>
-              <span className="flex flex-wrap items-center gap-2">
-                <time dateTime={item.value} className={cx(numeric, "text-[15px] font-medium text-ink")}>
-                  {format.format(new Date(`${item.value}T00:00:00Z`))}
-                </time>
-                {/* il Festival e' un modo d'uscita: sta con la prima data */}
-                {index === 0 && release.festival ? <Tag tone="gold">{t.festival}</Tag> : null}
-              </span>
-            </Fact>
-          ))}
-        </dl>
-      ) : null}
-      {calendar ? (
-        <p className={cx("m-0 px-3.5 py-3 @xl:ml-auto", days.length > 0 && "@max-xl:border-t @max-xl:border-rule")}>
-          <MoreLink href={calendar} className="p5-press">
-            {t.nelCalendario}
+      {releasesHref ? (
+        <p className="m-0 mt-3">
+          <MoreLink href={releasesHref} className={cx(tapArea, "p5-press")}>
+            {t.nelleUscite}
           </MoreLink>
         </p>
-      ) : release.banner ? (
-        // senza riga nel calendario la data viene dal client: si dice da dove
-        <p
-          className={cx(
-            "m-0 max-w-[48ch] px-3.5 py-3 text-[13px] text-ink-2 @xl:ml-auto",
-            days.length > 0 && "@max-xl:border-t @max-xl:border-rule",
-          )}
-        >
-          {t.dalloStendardo}
-        </p>
+      ) : release?.banner ? (
+        // senza riga nelle Uscite la data viene dal client: si dice da dove
+        <p className="m-0 mt-3 max-w-[48ch] text-[13px] text-ink-2">{t.dalloStendardo}</p>
       ) : null}
     </div>
   );

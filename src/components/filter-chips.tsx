@@ -41,7 +41,6 @@ export function Chip({
   swatch,
   iconSrc,
   withLabel,
-  quiet,
 }: {
   active: boolean;
   onClick: () => void;
@@ -66,9 +65,8 @@ export function Chip({
    */
   withLabel?: boolean;
   /**
-   * Scelto, ma senza il rosso: per le scelte che hanno sempre un valore (l'ordine
-   * della griglia). Il rosso dice «hai ristretto l'elenco», e un ordine non lo
-   * restringe (10/10: i «Tutte» rossi erano la cosa piu' accesa della pagina).
+   * Era «scelto, ma senza il rosso» (10/10). Dal 24/10 ogni scelta e' chiara
+   * (`chipColors` in ui.tsx): resta per i chiamanti, e non cambia niente.
    */
   quiet?: boolean;
 }) {
@@ -89,12 +87,13 @@ export function Chip({
         // tutti - anche per "Tutte" e per la riga Ordina, che di icona non ne
         // hanno - perche' pulsanti di altezze diverse nella stessa fila si
         // leggono come due gruppi diversi.
-        // Persona: lama nera obliqua, rossa col testo bianco quando e' scelta
-        // (col rosso #e61421 il bianco fa 4.7:1), bianca al passaggio: la lama
-        // che spazza e l'affondo alla pressione li fa `p5-btn` (globals.css).
+        // Persona: lama scura obliqua, chiara col testo scuro quando e' scelta,
+        // chiara anche al passaggio: la lama che spazza e l'affondo alla
+        // pressione li fa `p5-btn` (globals.css). Il rosso pieno no (24/10):
+        // e' il colore di «sei qui» e dell'azione della pagina.
         "p5-cut-sm p5-btn group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3 max-sm:h-10",
         "text-[12px] uppercase tracking-[0.04em] disabled:cursor-not-allowed disabled:opacity-35",
-        chipColors(active, quiet),
+        chipColors(active),
       )}
     >
       {iconOnly ? (
@@ -128,7 +127,7 @@ export function Chip({
           className={cx(
             numeric,
             "text-[12px]",
-            active && quiet ? "text-paper" : active ? "text-white" : "text-ink-3 group-enabled:group-hover:text-paper",
+            active ? "text-paper" : "text-ink-3 group-enabled:group-hover:text-paper",
           )}
         >
           {count}

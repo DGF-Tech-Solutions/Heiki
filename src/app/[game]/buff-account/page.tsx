@@ -215,12 +215,12 @@ export default async function AccountBuffPage({ params }: Props) {
   const bag = (sums: StatBag) =>
     STAT_ORDER.filter((key) => sums[key])
       .map((key) => `${stats[key].name} +${numero(sums[key]!, locale)}${stats[key].percent ? "%" : ""}`)
-      .join(" · ");
+      .join(", ");
   const manaRanges = (sums: { min: StatBag; max: StatBag }) =>
     (["atk", "def", "hp"] as const)
       .filter((key) => sums.max[key])
       .map((key) => `${stats[key].name} ${numero(sums.min[key]!, locale)}-${numero(sums.max[key]!, locale)}`)
-      .join(" · ");
+      .join(", ");
   const rates = Object.values(data.mana)[0]?.tiers ?? [];
   const levels = [1, 5, 10, 15, 20];
   const bugged = data.accountPower.tiers.filter((tier) => tier.textSays);

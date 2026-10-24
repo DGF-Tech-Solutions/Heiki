@@ -645,8 +645,8 @@ function SubmitBar({
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <div className="min-w-0 flex-1 basis-[230px]">
             <p aria-live="polite" className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
-              <Tag tone={guide ? "gold" : "brand"}>{guide ? t.tipoGuida : t.tipoSquadra}</Tag>
-              <span className="text-ink-2">— {guide ? (staysPublished ? t.guidaResta : t.guidaRevisione) : t.squadraSubito}</span>
+              <Tag tone={guide ? "gold" : "neutral"}>{guide ? t.tipoGuida : t.tipoSquadra}</Tag>
+              <span className="text-ink-2">{guide ? (staysPublished ? t.guidaResta : t.guidaRevisione) : t.squadraSubito}</span>
             </p>
             {lacking.length > 0 ? (
               <p className="mt-1 mb-0 text-[12px] text-ink-3">{t.mancano(lacking.join(", "))}</p>

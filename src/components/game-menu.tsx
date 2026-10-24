@@ -16,20 +16,23 @@
  * pannello (`body:has(#menu-sezioni)` in site-header.tsx), quindi l'id si scrive
  * uguale in tutti e due i file.
  *
- * La ricerca sta qui perche' nell'intestazione compare solo da 768px in su.
+ * In cima, la ricerca: dal 24/10 apre la ricerca rapida, come «Cerca» nella
+ * barra in basso e la lente dell'intestazione. Prima era un campo che mandava a
+ * /cerca senza risultati mentre si scrive: tre ingressi, due comportamenti.
  */
 
 import type { GameSectionGroup } from "@/lib/games/catalog";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 import { GameSidebar } from "./game-sidebar";
-import { IconClose } from "./icons";
+import { IconClose, IconSearch } from "./icons";
+import { OPEN_SEARCH_EVENT } from "./mobile-bar";
 import { PopoverPanel } from "./popover-panel";
 import { buttonColors, cx, display } from "./ui";
 
 const TESTI = testi({
-  it: { chiudi: "Chiudi il menu", cerca: "Cerca" },
-  en: { chiudi: "Close the menu", cerca: "Search" },
+  it: { chiudi: "Chiudi il menu", cerca: "Cerca eroi, pagine, boss…" },
+  en: { chiudi: "Close the menu", cerca: "Search heroes, pages, bosses…" },
 });
 
 export function GameMenu({
@@ -68,15 +71,20 @@ export function GameMenu({
         </button>
       </div>
 
-      <form action="/cerca" className="border-b border-rule px-4 py-3">
-        <input
-          name="q"
-          type="search"
-          placeholder={t.cerca}
-          aria-label={t.cerca}
-          className="p5-cut h-9 w-full bg-ink px-3.5 text-[14px] font-semibold text-paper placeholder:text-paper/55 focus:bg-white focus:outline-none"
-        />
-      </form>
+      <div className="border-b border-rule px-4 py-3">
+        {/* si chiude il menu e si apre la ricerca rapida: due pannelli aperti insieme si coprirebbero */}
+        <button
+          type="button"
+          onClick={() => {
+            document.getElementById("menu-sezioni")?.hidePopover();
+            window.dispatchEvent(new Event(OPEN_SEARCH_EVENT));
+          }}
+          className="p5-cut flex h-11 w-full cursor-pointer items-center gap-2.5 bg-ink px-3.5 text-left text-[14px] font-semibold text-paper/70 hover:bg-white hover:text-paper"
+        >
+          <IconSearch size={17} />
+          {t.cerca}
+        </button>
+      </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-8 [scrollbar-width:thin]">
         <GameSidebar game={game} groups={groups} />
