@@ -15,8 +15,8 @@
   <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React 19">
   <img src="https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS v4">
-  <img src="https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL 16">
-  <img src="https://img.shields.io/badge/Drizzle_ORM-0.44+-C5F74F?style=for-the-badge&logo=drizzle" alt="Drizzle ORM">
+  <img src="https://img.shields.io/badge/PostgreSQL-17-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL 17">
+  <img src="https://img.shields.io/badge/Drizzle_ORM-0.45+-C5F74F?style=for-the-badge&logo=drizzle" alt="Drizzle ORM">
   <img src="https://img.shields.io/badge/Vitest-780_Passed-729B1B?style=for-the-badge&logo=vitest" alt="Vitest Tests">
   <img src="https://img.shields.io/badge/DB_Smoke-71_Checks-success?style=for-the-badge" alt="DB Smoke Tests">
 </p>
@@ -29,7 +29,7 @@
 
 In contemporary gacha games, mechanics, formulas, and balance patches are frequently undocumented or obfuscated. Most community resources depend on manual wiki entry, leading to delayed updates, transcription errors, and missing damage ceilings.
 
-Heiki bridges this gap by integrating a **reproducible client decryption and extraction pipeline** directly from game packages and client databases (dynamically-keyed encrypted SQLite databases, obfuscated Unity asset bundles). It transforms over 194,000 localized strings and hundreds of raw entity tables into certified, deterministic mathematical formulas and real-time interactive tools.
+Heiki bridges this gap by integrating a **reproducible client decryption and extraction pipeline** directly from the game client (AES-encrypted Unity asset bundles holding binary data tables, obfuscated localization files, and the obfuscated IL2CPP binary, read for table schemas and combat formulas). It transforms over 194,000 localized strings and hundreds of raw entity tables into certified, deterministic mathematical formulas and real-time interactive tools.
 
 ---
 
@@ -51,7 +51,7 @@ Gacha communities are traditionally fragmented across disparate channels: Discor
 
 ### Flagship Module: The Seven Deadly Sins: Grand Cross (7DSGC)
 We are currently finalizing the core feature set and polishing the **The Seven Deadly Sins: Grand Cross** module:
-- **373+ Indexed Heroes**: Full data coverage extracted directly from client database tables with 194,000+ localized text records.
+- **377 Indexed Heroes**: Full data coverage extracted directly from client database tables with 194,000+ localized text records.
 - **Dynamic Stat Engine**: Complete mathematical calculation covering base stats, Awakenings (1-6 stars), Super Awakening, True Awakening, costume bonuses, and relic bonuses.
 - **Interactive Tooling**: Production-ready Tier List Maker (canvas export, cloud/JSON sync), community dual-mode ratings (PvE/PvP), and local-first Box tracking.
 
@@ -74,7 +74,7 @@ Once the 7DSGC module reaches final release stability, planned expansions includ
 
 Maintaining high-fidelity game data across live-service titles poses a massive operational workload:
 
-1. **Weekly Patch Velocity**: Live gacha games receive weekly or bi-weekly game client updates. Each release alters dozens of internal SQLite tables, adjusts undocumented skill coefficients, and introduces new characters with novel mechanical interactions.
+1. **Weekly Patch Velocity**: Live gacha games receive weekly or bi-weekly game client updates. Each release alters dozens of internal data tables, adjusts undocumented skill coefficients, and introduces new characters with novel mechanical interactions.
 2. **Ambiguous Natural Language Descriptions**: In-game skill tooltips (often translated across Korean, Japanese, and English) frequently contradict raw underlying client logic or hide critical stacking limits.
 3. **High Maintenance Overhead for Small Teams**: Core maintainers must parse raw diffs, draft schema migrations, reverse-engineer ambiguous damage rules, and verify hundreds of mathematical test cases.
 
@@ -83,7 +83,7 @@ Maintaining high-fidelity game data across live-service titles poses a massive o
 To sustain and scale this infrastructure without manual bottlenecks, Heiki is developing an **automated ingestion and maintenance pipeline**:
 
 - **Natural Language to Deterministic AST**: Parsing multi-paragraph skill texts into formal, typed TypeScript AST definitions, extracting exact buff categories, trigger conditions, and damage scaling formulas.
-- **Automated Client Patch Triage**: Running automated diff analysis on decrypted SQLite databases between patch releases to draft technical changelogs, flag stealth adjustments, and scaffold initial Drizzle ORM schema migrations.
+- **Automated Client Patch Triage**: Running automated diff analysis on decrypted data tables between patch releases to draft technical changelogs, flag stealth adjustments, and scaffold initial Drizzle ORM schema migrations.
 - **Automated Unit Test Fixtures**: Automatically producing Vitest test fixtures whenever new characters or skills are staged, comparing damage formula outputs against empirical boundary conditions.
 - **Semantic Theorycrafting Query Layer**: Providing developers and players with an advanced query interface over 194,000+ data points to search complex cross-character mechanics and synergies.
 
@@ -92,7 +92,7 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
 ## Key Features
 
 ### 1. Certified Hero Database & Real-Time Stat Calculator
-- **Comprehensive Roster**: Over 373 heroes with client-decrypted data (194,000+ localized text entries).
+- **Comprehensive Roster**: 377 heroes with client-decrypted data (194,000+ localized text entries).
 - **Dynamic Calculator**: Real-time evaluation of hero stats across Level, Awakening (1-6 stars), Super Awakening, Ultimate Move rank, True Awakening (Demon King / Supreme Deity), and gear/costume combinations.
 - **Contextual Term Parser ("Blue Words")**: Automated lexical parser linking skill mechanics directly to verified rule explanations, tooltips, and stacking limits.
 - **Automated Patch Diffs**: Versioning engine tracking textual and mechanical balance changes introduced by game updates.
@@ -100,7 +100,7 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
 ### 2. Interactive Tier List Maker
 - **Responsive HTML5 Drag & Drop**: Native desktop drag & drop combined with quick-tap mobile assignment.
 - **Customizable Structure**: 6 default tiers (S+, S, A, B, C, D) with Persona-inspired 13-color palettes, inline label editing, row reordering, and combined attribute/rarity filtering.
-- **Cloud Persistence & Local Backups**: Multi-list user storage via PostgreSQL (`user_tier_lists`), non-volatile JSON export/import, and shareable permalinks with one-click cloning.
+- **Cloud Persistence & Local Backups**: Multi-list user storage via PostgreSQL (`user_tier_lists`), JSON backup export, and shareable permalinks with one-click cloning.
 - **High-DPI Retina (2x) Canvas Rendering**: Instant high-resolution PNG export with composite watermark and dark theme layout.
 
 ### 3. Community Hero Ratings & Mode Insights
@@ -118,7 +118,7 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
 
 ### 6. Transparent Moderation & Immutable Audit Logging
 - **Soft-Hiding Policy**: Content is never destroyed; flagged posts are hidden with author and operator metadata preserved in a transactional audit log.
-- **5-Tier Role-Based Access Control (RBAC)**: Fine-grained permissions (`USER`, `COLLABORATOR`, `EDITOR`, `MODERATOR`, `ADMIN`).
+- **5-Tier Role-Based Access Control (RBAC)**: Fine-grained permissions (`USER`, `CONTRIBUTOR`, `EDITOR`, `MODERATOR`, `ADMIN`).
 
 ---
 
@@ -136,14 +136,14 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
          ┌─────────┴─────────┐                        │
          ▼                   ▼                        ▼
 ┌──────────────────┐ ┌──────────────┐       ┌──────────────────┐
-│   PostgreSQL 16  │ │ In-Memory    │       │ Browser Storage  │
+│   PostgreSQL 17  │ │ In-Memory    │       │ Browser Storage  │
 │   (Drizzle ORM)  │ │ Rate Limiter │       │  (localStorage)  │
 └──────────────────┘ └──────────────┘       └──────────────────┘
 ```
 
 ### Architectural Highlights
 1. **Next.js 15.5+ App Router with React 19**: Extensive usage of React Server Components (RSC) to minimize client-side JavaScript, maintaining a compact shared First Load JS bundle (~103 kB).
-2. **PostgreSQL 16 & Drizzle ORM**: End-to-end type safety from schema to UI. Declarative schemas, reproducible SQL migrations, and strict referential integrity.
+2. **PostgreSQL 17 & Drizzle ORM**: End-to-end type safety from schema to UI. Declarative schemas, reproducible SQL migrations, and strict referential integrity.
 3. **Zero-Downtime Resilience**: Seamless in-memory fallback activated if the database becomes temporarily unreachable, allowing full read-only catalog browsing without errors.
 4. **Enterprise-Grade Security**:
    - Dynamic **Content Security Policy (CSP)** with per-request cryptographic nonces enforced at middleware level.
@@ -152,7 +152,7 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
    - Secure cookies with `SameSite=Lax`, `HttpOnly`, and `__Secure-` prefixes in production.
 5. **Persona 5 Visual Identity**:
    - Editorial dark UI (`#0b0a0a` / `#151313`) featuring `.p5-cut` angular borders, `.p5-btn` dynamic buttons, and brand crimson `#e61421`.
-   - 5 user-selectable dark color schemes certified for WCAG AAA contrast ratios (≥ 7:1 for body text, ≥ 4.5:1 for UI elements).
+   - 5 user-selectable dark color schemes with contrast checked by the tests: ≥ 7:1 for body text (WCAG AAA), ≥ 4.5:1 for secondary text (WCAG AA).
 
 ---
 
@@ -163,7 +163,7 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
 | **Web Framework** | [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/) |
 | **Language** | [TypeScript 5](https://www.typescriptlang.org/) (Strict Mode) |
 | **Styling & Design** | [Tailwind CSS v4](https://tailwindcss.com/), [Phosphor Icons](https://phosphoricons.com/) |
-| **Database & ORM** | [PostgreSQL 16](https://www.postgresql.org/), [Drizzle ORM](https://orm.drizzle.team/) |
+| **Database & ORM** | [PostgreSQL 17](https://www.postgresql.org/), [Drizzle ORM](https://orm.drizzle.team/) |
 | **Authentication** | [Auth.js v5 (NextAuth)](https://authjs.dev/) (Credentials, Discord OAuth, Google OAuth) |
 | **Testing Suite** | [Vitest](https://vitest.dev/), custom `smoke-db.mts` database verifier |
 | **Containerization** | [Docker](https://www.docker.com/), Docker Compose |
@@ -235,6 +235,8 @@ npm run dev
 ```
 
 The application will be accessible at [http://localhost:3000](http://localhost:3000).
+
+Hero data is versioned in the repository, game images are not: they belong to Netmarble, come out of the local extraction pipeline and are copied into `public/eroi/` by `npm run eroi:import`. Without them the pages work, but without images.
 
 ---
 

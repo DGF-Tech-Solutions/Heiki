@@ -51,6 +51,7 @@ import { useLocale } from "@/lib/i18n/client";
 import { inLingua } from "@/lib/i18n/locale";
 import { TeamReport } from "./team-report";
 import { slotLabel, TESTI, type BuilderData, type BuilderHero, type Texts } from "./team-labels";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 
 type Picking = { readonly kind: "main" | "associate"; readonly slot: number };
 /** l'ultimo eroe messo in un posto: solo lui entra col taglio del palco */
@@ -89,6 +90,7 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
     restored.current = true;
     if (initial.mains.some(Boolean) || initial.associates.some(Boolean)) return;
     try {
+      moveLegacyStorage();
       const saved = window.localStorage.getItem(storageKey);
       if (!saved) return;
       const params = new URLSearchParams(saved);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StarScore } from "@/components/ratings/star-display";
 import { HeroRatingForm } from "@/components/ratings/hero-rating-form";
 import { cx, eyebrow } from "@/components/ui";
+import { roleLabel } from "@/lib/auth/permissions";
 import { relativeTime } from "@/lib/community/ranking";
 import { BEST_CONTENTS, type HeroRatingSummary } from "@/lib/ratings/types";
 import { testi, type Locale } from "@/lib/i18n/locale";
@@ -20,8 +21,10 @@ const TESTI = testi({
     doveSpicca: "Dove spicca di più",
     nessunContenuto: "Nessun contenuto indicato finora",
     recensioniCommunity: (n: number) => `Opinioni dei giocatori · ${n}`,
+    piuRecenti: (n: number) => `Le ${n} più recenti.`,
     senzaRecensioni: "Nessun commento lasciato finora. Sii il primo a condividere la tua esperienza con questo eroe!",
     consigliatoPer: "Consigliato per:",
+    tu: "Tu",
     pveAbbr: "PvE",
     pvpAbbr: "PvP",
   },
@@ -38,8 +41,10 @@ const TESTI = testi({
     doveSpicca: "Where it shines most",
     nessunContenuto: "No preferred modes specified yet",
     recensioniCommunity: (n: number) => `Player reviews · ${n}`,
+    piuRecenti: (n: number) => `The ${n} most recent.`,
     senzaRecensioni: "No reviews left yet. Be the first to share your insights on this hero!",
     consigliatoPer: "Best for:",
+    tu: "You",
     pveAbbr: "PvE",
     pvpAbbr: "PvP",
   },
@@ -91,6 +96,7 @@ export function HeroRatings({
             <div className="mt-1">
               <StarScore
                 game={game}
+                locale={locale}
                 score={summary.pveAvg}
                 size={20}
                 showScoreText={false}
@@ -120,6 +126,7 @@ export function HeroRatings({
             <div className="mt-1">
               <StarScore
                 game={game}
+                locale={locale}
                 score={summary.pvpAvg}
                 size={20}
                 showScoreText={false}
@@ -171,9 +178,17 @@ export function HeroRatings({
 
       {/* Elenco recensioni della community */}
       <section className="mt-2">
+        {/*
+          Il totale dei voti, non le righe mostrate: l'elenco e' tagliato alle
+          piu' recenti (lib/ratings/server), e contarle diceva «20» anche a
+          trecento voti. Ogni voto e' un'opinione nell'elenco, anche senza commento.
+        */}
         <h4 className={cx(eyebrow, "mb-4 text-ink")}>
-          {t.recensioniCommunity(summary.recentRatings.length)}
+          {t.recensioniCommunity(summary.totalRatings)}
         </h4>
+        {summary.recentRatings.length < summary.totalRatings ? (
+          <p className="-mt-3 mb-4 text-xs text-ink-3">{t.piuRecenti(summary.recentRatings.length)}</p>
+        ) : null}
 
         {summary.recentRatings.length > 0 ? (
           <div className="grid gap-3">
@@ -189,19 +204,19 @@ export function HeroRatings({
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <Link
-                        href={`/profilo/${rating.user.username}`}
+                        href={`/u/${rating.user.username}`}
                         className="font-bold text-sm text-ink hover:text-brand"
                       >
                         {rating.user.displayName}
                       </Link>
                       {isCurrentUser ? (
                         <span className="rounded bg-brand/10 border border-brand/30 px-1.5 py-0.5 text-[10px] font-bold text-brand uppercase">
-                          Tu
+                          {t.tu}
                         </span>
                       ) : null}
                       {rating.user.role !== "USER" ? (
                         <span className="rounded bg-brand/20 px-1.5 py-0.5 text-[10px] font-bold text-brand uppercase">
-                          {rating.user.role}
+                          {roleLabel(rating.user.role, locale)}
                         </span>
                       ) : null}
                     </div>
@@ -217,6 +232,7 @@ export function HeroRatings({
                       <span className="font-bold text-ink-2">{t.pveAbbr}:</span>
                       <StarScore
                         game={game}
+                        locale={locale}
                         score={rating.pveScore}
                         size={15}
                         showScoreText={false}
@@ -229,6 +245,7 @@ export function HeroRatings({
                       <span className="font-bold text-ink-2">{t.pvpAbbr}:</span>
                       <StarScore
                         game={game}
+                        locale={locale}
                         score={rating.pvpScore}
                         size={15}
                         showScoreText={false}

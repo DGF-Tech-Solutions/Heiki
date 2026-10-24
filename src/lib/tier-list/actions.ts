@@ -1,104 +1,172 @@
 "use server";
 
 /**
- * Server Actions per la gestione, salvataggio, cancellazione e backup delle Tier List.
+ * Server Actions delle Tier List salvate sull'account: salvare, eliminare,
+ * elencare e scaricare il backup.
+ *
+ * Ogni funzione esportata qui e' raggiungibile dal browser con qualunque
+ * argomento, anche senza passare dal Maker: per questo ognuna controlla da se'
+ * chi chiama e cosa riceve. Lo schema della lista sta in validation.ts, lo
+ * stesso che il Maker usa per il link `#data=` e per la bozza locale.
+ *
+ * Il ripristino da backup c'era ed e' stato tolto il 24/10: nessuna pagina lo
+ * usava, e accettava qualunque file senza controlli e senza tetto, anche da un
+ * account sospeso, rendendo pubblica ogni lista. Il download del backup resta.
  */
 
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
-import { z } from "zod";
 import { currentViewer } from "@/lib/community/actions";
 import { databaseReachable, db, isDatabaseConfigured } from "@/lib/db";
 import { games, userTierLists } from "@/lib/db/schema";
 import { getGameModule } from "@/lib/games/registry";
-import { suspensionFor, suspensionMessage } from "@/lib/moderation/suspension";
+import type { GameModule } from "@/lib/games/types";
+import { testi } from "@/lib/i18n/locale";
+import { getLocale } from "@/lib/i18n/server";
+import { requireActive } from "@/lib/moderation/suspension";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
 import { exportUserTierListsBackup, getTierListById, getUserTierLists } from "./server";
-import type {
-  SavedTierListDetail,
-  SavedTierListSummary,
-  TierListBackupFile,
-} from "./types";
+import type { SavedTierListDetail, SavedTierListSummary, TierListBackupFile } from "./types";
+import {
+  parseTierListId,
+  saveTierListSchema,
+  TIER_LIST_LIMITS,
+  tierListProblem,
+  type TierListProblem,
+} from "./validation";
 
 export interface TierListActionResult {
   ok: boolean;
   error?: string;
   tierListId?: string;
-  tierList?: SavedTierListDetail | SavedTierListSummary;
+  /** la lista come e' stata salvata, righe comprese: il Maker la rimette nell'elenco cosi' com'e' */
+  tierList?: SavedTierListDetail;
 }
 
-const tierRowSchema = z.object({
-  id: z.string().min(1).max(64),
-  label: z.string().min(1).max(40),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  heroIds: z.array(z.string().min(1).max(64)),
+const TESTI = testi({
+  it: {
+    serveDatabase: "Database non raggiungibile. Riprova più tardi.",
+    accediSalvare: "Devi accedere per salvare la tua tier list sull'account.",
+    accediEliminare: "Devi accedere per eliminare questa tier list.",
+    giocoNonValido: "Gioco non valido o non registrato.",
+    nonTrovata: "Tier list non trovata o non tua.",
+    troppe: (n: number) =>
+      `Hai già ${n} tier list salvate per questo gioco: eliminane una per salvarne un'altra.`,
+    erroreSalvataggio: "Errore durante il salvataggio della tier list.",
+    problemi: {
+      invalid: "Dati non validi.",
+      "title-missing": "Inserisci un nome per la tua tier list.",
+      "title-long": `Il nome non può superare i ${TIER_LIST_LIMITS.title} caratteri.`,
+      "description-long": `La descrizione non può superare i ${TIER_LIST_LIMITS.description} caratteri.`,
+      "rows-empty": "La tier list deve contenere almeno una riga.",
+      "rows-many": `Una tier list può avere al massimo ${TIER_LIST_LIMITS.rows} righe.`,
+      row: "Una riga della tier list non è valida.",
+      label: `Ogni riga ha bisogno di un nome, lungo al massimo ${TIER_LIST_LIMITS.label} caratteri.`,
+      color: "Una riga ha un colore che il Maker non offre.",
+      "hero-unknown": "Nella tier list c'è un eroe che questo gioco non ha.",
+      "hero-duplicate": "Un eroe compare più di una volta nella tier list.",
+    } satisfies Record<TierListProblem, string>,
+  },
+  en: {
+    serveDatabase: "Database unreachable. Please try again later.",
+    accediSalvare: "Log in to save your tier list to your account.",
+    accediEliminare: "Log in to delete this tier list.",
+    giocoNonValido: "Invalid or unregistered game.",
+    nonTrovata: "Tier list not found or not yours.",
+    troppe: (n: number) =>
+      `You already have ${n} saved tier lists for this game: delete one to save another.`,
+    erroreSalvataggio: "Error while saving the tier list.",
+    problemi: {
+      invalid: "Invalid data.",
+      "title-missing": "Enter a name for your tier list.",
+      "title-long": `The name can't be longer than ${TIER_LIST_LIMITS.title} characters.`,
+      "description-long": `The description can't be longer than ${TIER_LIST_LIMITS.description} characters.`,
+      "rows-empty": "The tier list needs at least one row.",
+      "rows-many": `A tier list can have at most ${TIER_LIST_LIMITS.rows} rows.`,
+      row: "A row of the tier list is not valid.",
+      label: `Every row needs a name of at most ${TIER_LIST_LIMITS.label} characters.`,
+      color: "A row has a color the Maker doesn't offer.",
+      "hero-unknown": "The tier list contains a hero this game doesn't have.",
+      "hero-duplicate": "A hero appears more than once in the tier list.",
+    },
+  },
 });
 
-const saveTierListSchema = z.object({
-  id: z.string().uuid().optional(),
-  game: z.string().min(1).max(64),
-  title: z
-    .string()
-    .trim()
-    .min(1, "Inserisci un nome per la tua tier list.")
-    .max(80, "Il nome non può superare gli 80 caratteri."),
-  description: z.string().trim().max(300, "La descrizione non può superare i 300 caratteri.").optional(),
-  tiers: z.array(tierRowSchema).min(1, "La tier list deve contenere almeno una riga."),
-  isPublic: z.boolean().default(true),
-});
+/**
+ * Il modulo del gioco nominato dalla richiesta, prima di controllare il resto:
+ * gli eroi ammessi nella lista sono quelli del suo roster.
+ */
+function requestedGame(raw: unknown): GameModule | undefined {
+  if (typeof raw !== "object" || raw === null) return undefined;
+  const game = (raw as { game?: unknown }).game;
+  return typeof game === "string" ? getGameModule(game) : undefined;
+}
 
 /**
  * Salva o aggiorna una tier list legata all'account dell'utente loggato.
  */
 export async function saveTierListAction(rawInput: unknown): Promise<TierListActionResult> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   if (!isDatabaseConfigured() || !(await databaseReachable())) {
-    return { ok: false, error: "Database non raggiungibile. Riprova più tardi." };
+    return { ok: false, error: t.serveDatabase };
   }
 
   const viewer = await currentViewer();
   if (!viewer) {
-    return { ok: false, error: "Devi accedere per salvare la tua tier list sull'account." };
+    return { ok: false, error: t.accediSalvare };
   }
 
-  const suspension = await suspensionFor(viewer.id);
-  if (suspension) {
-    return { ok: false, error: suspensionMessage(suspension, "it") };
+  // suspensionFor restituisce sempre un oggetto ({active: false} per chi e' in
+  // regola): fino al 24/10 il controllo era `if (suspension)`, sempre vero, e
+  // nessuno poteva salvare. requireActive guarda `.active` e da' il messaggio.
+  const suspended = await requireActive(viewer.id, locale);
+  if (suspended) {
+    return { ok: false, error: suspended };
   }
 
   const limitCheck = rateLimit("tierListSave", viewer.id);
   if (!limitCheck.allowed) {
-    return { ok: false, error: retryMessage(limitCheck, "it") };
+    return { ok: false, error: retryMessage(limitCheck, locale) };
   }
 
-  const parseResult = saveTierListSchema.safeParse(rawInput);
+  const gameModule = requestedGame(rawInput);
+  if (!gameModule?.roster) {
+    return { ok: false, error: t.giocoNonValido };
+  }
+
+  const roster = new Set(gameModule.roster.heroes.map((hero) => hero.id));
+  const parseResult = saveTierListSchema(roster).safeParse(rawInput);
   if (!parseResult.success) {
-    const issue = parseResult.error.issues[0];
-    return { ok: false, error: issue?.message ?? "Dati non validi." };
+    return { ok: false, error: t.problemi[tierListProblem(parseResult.error)] };
   }
 
   const input = parseResult.data;
 
-  const gameModule = getGameModule(input.game);
-  if (!gameModule) {
-    return { ok: false, error: "Gioco non valido o non registrato." };
-  }
-
   const gameRow = await db.query.games.findFirst({
-    where: eq(games.slug, input.game),
+    where: eq(games.slug, gameModule.slug),
     columns: { id: true },
   });
   if (!gameRow) {
-    return { ok: false, error: "Record di gioco non trovato." };
+    return { ok: false, error: t.giocoNonValido };
   }
 
-  // Se è specificato un ID, verifichiamo che la tier list esista e sia dell'utente
+  // Con un id si aggiorna: la lista deve esistere, essere dell'utente e dello
+  // stesso gioco (gli eroi sono stati controllati sul roster di questo)
   if (input.id) {
+    const owned = and(
+      eq(userTierLists.id, input.id),
+      eq(userTierLists.userId, viewer.id),
+      eq(userTierLists.gameId, gameRow.id),
+    );
     const existing = await db.query.userTierLists.findFirst({
-      where: and(eq(userTierLists.id, input.id), eq(userTierLists.userId, viewer.id)),
+      where: owned,
+      columns: { id: true },
     });
 
     if (!existing) {
-      return { ok: false, error: "Tier list non trovata o non autorizzata alla modifica." };
+      return { ok: false, error: t.nonTrovata };
     }
 
     await db
@@ -110,16 +178,24 @@ export async function saveTierListAction(rawInput: unknown): Promise<TierListAct
         isPublic: input.isPublic,
         updatedAt: new Date(),
       })
-      .where(eq(userTierLists.id, input.id));
+      .where(owned);
 
-    revalidatePath(`/${input.game}/tierlist`);
+    revalidatePath(`/${gameModule.slug}/tierlist`);
     revalidatePath(`/u/${viewer.username}`);
 
     const detail = await getTierListById(input.id, viewer.id);
     return { ok: true, tierListId: input.id, tierList: detail ?? undefined };
   }
 
-  // Creazione nuova tier list
+  // Il tetto vale alla creazione: chi e' al limite puo' ancora modificare le sue
+  const count = await db.$count(
+    userTierLists,
+    and(eq(userTierLists.userId, viewer.id), eq(userTierLists.gameId, gameRow.id)),
+  );
+  if (count >= TIER_LIST_LIMITS.listsPerGame) {
+    return { ok: false, error: t.troppe(TIER_LIST_LIMITS.listsPerGame) };
+  }
+
   const [created] = await db
     .insert(userTierLists)
     .values({
@@ -133,10 +209,10 @@ export async function saveTierListAction(rawInput: unknown): Promise<TierListAct
     .returning({ id: userTierLists.id });
 
   if (!created) {
-    return { ok: false, error: "Errore durante il salvataggio della tier list." };
+    return { ok: false, error: t.erroreSalvataggio };
   }
 
-  revalidatePath(`/${input.game}/tierlist`);
+  revalidatePath(`/${gameModule.slug}/tierlist`);
   revalidatePath(`/u/${viewer.username}`);
 
   const detail = await getTierListById(created.id, viewer.id);
@@ -146,14 +222,29 @@ export async function saveTierListAction(rawInput: unknown): Promise<TierListAct
 /**
  * Elimina una tier list salvata dall'utente.
  */
-export async function deleteTierListAction(id: string): Promise<TierListActionResult> {
+export async function deleteTierListAction(rawId: unknown): Promise<TierListActionResult> {
+  const locale = await getLocale();
+  const t = TESTI[locale];
+
   if (!isDatabaseConfigured() || !(await databaseReachable())) {
-    return { ok: false, error: "Database non raggiungibile." };
+    return { ok: false, error: t.serveDatabase };
   }
 
   const viewer = await currentViewer();
   if (!viewer) {
-    return { ok: false, error: "Devi accedere per eliminare questa tier list." };
+    return { ok: false, error: t.accediEliminare };
+  }
+
+  // anche eliminare e' scrivere: un account sospeso non tocca le sue liste
+  const suspended = await requireActive(viewer.id, locale);
+  if (suspended) {
+    return { ok: false, error: suspended };
+  }
+
+  // un id che non e' un UUID farebbe fallire la query: vale come una lista che non c'e'
+  const id = parseTierListId(rawId);
+  if (!id) {
+    return { ok: false, error: t.nonTrovata };
   }
 
   const existing = await db.query.userTierLists.findFirst({
@@ -162,10 +253,12 @@ export async function deleteTierListAction(id: string): Promise<TierListActionRe
   });
 
   if (!existing) {
-    return { ok: false, error: "Tier list non trovata o non autorizzata." };
+    return { ok: false, error: t.nonTrovata };
   }
 
-  await db.delete(userTierLists).where(eq(userTierLists.id, id));
+  await db
+    .delete(userTierLists)
+    .where(and(eq(userTierLists.id, id), eq(userTierLists.userId, viewer.id)));
 
   revalidatePath(`/${existing.game.slug}/tierlist`);
   revalidatePath(`/u/${viewer.username}`);
@@ -176,9 +269,12 @@ export async function deleteTierListAction(id: string): Promise<TierListActionRe
 /**
  * Recupera l'elenco delle tier list salvate dell'utente corrente.
  */
-export async function getMyTierListsAction(gameSlug?: string): Promise<SavedTierListSummary[]> {
+export async function getMyTierListsAction(gameSlug?: unknown): Promise<SavedTierListSummary[]> {
   const viewer = await currentViewer();
   if (!viewer) return [];
+  // solo uno slug di un gioco registrato arriva alla query; senza, tutte le liste
+  if (gameSlug === undefined) return getUserTierLists(viewer.id);
+  if (typeof gameSlug !== "string" || !getGameModule(gameSlug)) return [];
   return getUserTierLists(viewer.id, gameSlug);
 }
 
@@ -190,48 +286,3 @@ export async function getTierListBackupAction(): Promise<TierListBackupFile | nu
   if (!viewer) return null;
   return exportUserTierListsBackup(viewer.id);
 }
-
-/**
- * Ripristina una o più tier list da un file di backup per l'account dell'utente corrente.
- */
-export async function restoreTierListsFromBackupAction(
-  backup: TierListBackupFile,
-): Promise<{ ok: boolean; restoredCount: number; error?: string }> {
-  if (!isDatabaseConfigured() || !(await databaseReachable())) {
-    return { ok: false, restoredCount: 0, error: "Database non raggiungibile." };
-  }
-
-  const viewer = await currentViewer();
-  if (!viewer) {
-    return { ok: false, restoredCount: 0, error: "Devi accedere per ripristinare il backup." };
-  }
-
-  if (!backup || backup.version !== 1 || !Array.isArray(backup.tierLists)) {
-    return { ok: false, restoredCount: 0, error: "Formato del file di backup non valido." };
-  }
-
-  let restored = 0;
-  for (const item of backup.tierLists) {
-    if (!item.title || !Array.isArray(item.tiers) || !item.game) continue;
-
-    const gameRow = await db.query.games.findFirst({
-      where: eq(games.slug, item.game),
-      columns: { id: true },
-    });
-    if (!gameRow) continue;
-
-    await db.insert(userTierLists).values({
-      userId: viewer.id,
-      gameId: gameRow.id,
-      title: item.title,
-      description: item.description ?? null,
-      data: item.tiers,
-      isPublic: true,
-    });
-    restored++;
-  }
-
-  revalidatePath(`/u/${viewer.username}`);
-  return { ok: true, restoredCount: restored };
-}
-

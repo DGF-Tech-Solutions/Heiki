@@ -36,6 +36,7 @@ import {
 import { gameIconSrc, heroCardArtSrc, heroSkillIconSrc } from "@/lib/games/heroes";
 import { useLocale } from "@/lib/i18n/client";
 import { intlLocale, testi } from "@/lib/i18n/locale";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 
 export type PuzzleKind = "carta" | "unica" | "testo";
 
@@ -232,6 +233,7 @@ let mosaicMemory: boolean | null = null;
 function readMosaic(): boolean {
   if (mosaicMemory !== null) return mosaicMemory;
   try {
+    moveLegacyStorage();
     return window.localStorage.getItem(MOSAIC_KEY) !== "0";
   } catch {
     return true;

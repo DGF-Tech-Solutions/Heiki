@@ -9,6 +9,7 @@ import { DemoNotice, SetupHint } from "@/components/demo-notice";
 import { saveProfileAction } from "@/lib/profile/actions";
 import { hasActivePremium, loadProfile, pickableGames } from "@/lib/profile/load";
 import { getUserProfileTierLists } from "@/lib/tier-list/server";
+import { listGameModules } from "@/lib/games/registry";
 import { isFollowing } from "@/lib/social/server";
 import { FollowButton } from "@/components/social/follow-button";
 import { PostCard } from "@/components/community/post-card";
@@ -95,7 +96,9 @@ export default async function ProfilePage({ params }: Props) {
     </section>
   );
 
-  // Tier list salvate dell'utente (backup visibile nel profilo e condivisibile)
+  // Tier list salvate dell'utente (backup visibile nel profilo e condivisibile).
+  // Le private arrivano solo al proprietario; per chi non ne ha ancora, il Maker
+  // del primo gioco che ha un roster.
   const savedTierLists = await getUserProfileTierLists(handle, session?.user?.id);
   const tierListsSection = (
     <ProfileTierLists
@@ -103,6 +106,7 @@ export default async function ProfilePage({ params }: Props) {
       isOwner={isOwner}
       username={data.username}
       locale={locale}
+      defaultGame={listGameModules().find((gameModule) => gameModule.roster)?.slug}
     />
   );
 

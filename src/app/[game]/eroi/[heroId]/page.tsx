@@ -334,10 +334,15 @@ export default async function HeroPage({ params, searchParams }: Props) {
   const found = lookup(game, heroId);
   if (!found) notFound();
 
-  const locale = await getLocale();
+  // lingua, chi guarda e valutazioni insieme: il riepilogo riceve la promessa
+  // di chi guarda e la aspetta solo per la valutazione propria (lib/ratings/server)
+  const viewerPromise = currentViewer();
+  const [locale, viewer, ratingSummary] = await Promise.all([
+    getLocale(),
+    viewerPromise,
+    getHeroRatingSummary(game, heroId, viewerPromise),
+  ]);
   const t = TESTI[locale];
-  const viewer = await currentViewer();
-  const ratingSummary = await getHeroRatingSummary(game, heroId, viewer?.id);
 
   const {
     entry,
@@ -974,11 +979,15 @@ function HeroFacts({
         ) : null}
 
         <Fact label={t.valutazione}>
+          {/* solo i numeri: il riepilogo intero (recensioni, commenti, id degli
+              utenti) finirebbe serializzato nella pagina per un componente client */}
           <RatingFactsBadge
             game={game}
             heroId={hero.id}
             locale={locale}
-            summary={ratingSummary}
+            pveAvg={ratingSummary.pveAvg}
+            pvpAvg={ratingSummary.pvpAvg}
+            totalRatings={ratingSummary.totalRatings}
           />
         </Fact>
       </dl>

@@ -1,7 +1,53 @@
+import { SITE_NAME } from "@/lib/site";
 import type { TierHeroItem, TierRow } from "./types";
 
+/*
+ * Larghezza fissa: fino al 24/10 cresceva con la riga piu' lunga, e una riga
+ * con un centinaio di eroi dava una tela larga piu' di 17.000 pixel, oltre il
+ * limite dei canvas su iPhone (l'immagine non si creava e nessuno lo diceva).
+ * Ora gli eroi vanno a capo dentro la loro riga e cresce solo l'altezza.
+ */
+const WIDTH = 1080;
+const CARD_SIZE = 80;
+const GAP = 6;
+const TIER_LABEL_WIDTH = 120;
+const ROW_MIN_HEIGHT = 88;
+const ROW_GAP = 8;
+const CARD_INSET = 8;
+const PADDING = 24;
+const HEADER_HEIGHT = 70;
+const FOOTER_HEIGHT = 36;
+
+/*
+ * Safari su iPhone non crea tele oltre circa 16,7 milioni di pixel (4096 x 4096):
+ * oltre, getContext o toBlob restituiscono null. La nitidezza doppia si riduce
+ * quanto serve per restare sotto, invece di non dare nessuna immagine.
+ */
+const MAX_PIXELS = 16_000_000;
+const MAX_SIDE = 16_000;
+
+const CARDS_PER_ROW = Math.max(
+  1,
+  Math.floor((WIDTH - PADDING * 2 - TIER_LABEL_WIDTH - CARD_INSET * 2 + GAP) / (CARD_SIZE + GAP)),
+);
+
+/** Il testo accorciato con «…» finche' entra in `maxWidth`, col font gia' impostato. */
+function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  // per punti di codice: tagliare per unita' UTF-16 spezzerebbe le emoji
+  const chars = Array.from(text);
+  while (chars.length > 0 && ctx.measureText(`${chars.join("")}…`).width > maxWidth) {
+    chars.pop();
+  }
+  return `${chars.join("")}…`;
+}
+
 /**
- * Esporta la tier list come immagine PNG ad alta risoluzione tramite HTML5 Canvas.
+ * Esporta la tier list come immagine PNG tramite HTML5 Canvas.
+ *
+ * Se l'immagine non si puo' creare (tela troppo grande per il dispositivo,
+ * memoria, miniature di un altro dominio) la promessa fallisce: il Maker lo
+ * dice a chi l'ha chiesta, invece di non scaricare niente in silenzio.
  */
 export async function exportTierListToImage({
   title,
@@ -16,44 +62,28 @@ export async function exportTierListToImage({
   heroesMap: ReadonlyMap<string, TierHeroItem>;
   filename?: string;
 }): Promise<void> {
-  const CARD_SIZE = 80;
-  const TIER_LABEL_WIDTH = 120;
-  const ROW_MIN_HEIGHT = 88;
-  const PADDING = 24;
-  const HEADER_HEIGHT = 70;
-  const FOOTER_HEIGHT = 36;
-  const GAP = 6;
-
-  // Calcola quante card per riga al massimo per dimensionare la larghezza
-  const maxCardsInRow = Math.max(
-    8,
-    ...tiers.map((t) => t.heroIds.length),
-  );
-  const contentWidth = TIER_LABEL_WIDTH + maxCardsInRow * (CARD_SIZE + GAP) + 16;
-  const totalWidth = Math.max(960, contentWidth + PADDING * 2);
-
-  // Calcola altezze delle righe (se un tier ha molte card, va a capo)
-  const availableRowWidth = totalWidth - PADDING * 2 - TIER_LABEL_WIDTH - 16;
-  const cardsPerRow = Math.max(1, Math.floor(availableRowWidth / (CARD_SIZE + GAP)));
-
   const rowHeights = tiers.map((tier) => {
-    const cardCount = tier.heroIds.length;
-    if (cardCount === 0) return ROW_MIN_HEIGHT;
-    const numRows = Math.ceil(cardCount / cardsPerRow);
-    return Math.max(ROW_MIN_HEIGHT, numRows * (CARD_SIZE + GAP) + 12);
+    const lines = Math.ceil(tier.heroIds.length / CARDS_PER_ROW);
+    return Math.max(ROW_MIN_HEIGHT, lines * (CARD_SIZE + GAP) + 12);
   });
 
   const totalHeight =
     PADDING +
     HEADER_HEIGHT +
-    rowHeights.reduce((acc, h) => acc + h + 8, 0) +
+    rowHeights.reduce((acc, h) => acc + h + ROW_GAP, 0) +
     FOOTER_HEIGHT +
     PADDING;
 
+  // 2x per nitidezza Retina, meno se la tela supererebbe i limiti del dispositivo
+  const scale = Math.min(
+    2,
+    Math.sqrt(MAX_PIXELS / (WIDTH * totalHeight)),
+    MAX_SIDE / totalHeight,
+  );
+
   const canvas = document.createElement("canvas");
-  const scale = 2; // 2x per nitidezza Retina
-  canvas.width = totalWidth * scale;
-  canvas.height = totalHeight * scale;
+  canvas.width = Math.floor(WIDTH * scale);
+  canvas.height = Math.floor(totalHeight * scale);
 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Impossibile inizializzare il contesto Canvas 2D");
@@ -62,17 +92,18 @@ export async function exportTierListToImage({
 
   // 1. Sfondo generale
   ctx.fillStyle = "#0b0a0a";
-  ctx.fillRect(0, 0, totalWidth, totalHeight);
+  ctx.fillRect(0, 0, WIDTH, totalHeight);
 
-  // 2. Testata
+  // 2. Testata: titolo e sottotitolo accorciati se non entrano nella larghezza
+  const textWidth = WIDTH - PADDING * 2;
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 24px system-ui, sans-serif";
-  ctx.fillText(title, PADDING, PADDING + 30);
+  ctx.fillText(fitText(ctx, title, textWidth), PADDING, PADDING + 30);
 
   if (subtitle) {
     ctx.fillStyle = "#a59e95";
     ctx.font = "14px system-ui, sans-serif";
-    ctx.fillText(subtitle, PADDING, PADDING + 52);
+    ctx.fillText(fitText(ctx, subtitle, textWidth), PADDING, PADDING + 52);
   }
 
   // Pre-caricamento di tutte le immagini degli eroi usati
@@ -109,16 +140,27 @@ export async function exportTierListToImage({
     ctx.fillStyle = tier.color;
     ctx.fillRect(PADDING, currentY, TIER_LABEL_WIDTH, rowHeight);
 
-    // Testo del Tier
+    // Testo del Tier: si rimpicciolisce fino a 12px per entrare nel riquadro,
+    // poi si accorcia
+    const labelWidth = TIER_LABEL_WIDTH - 12;
+    let fontSize = 22;
+    ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
+    while (fontSize > 12 && ctx.measureText(tier.label).width > labelWidth) {
+      fontSize -= 2;
+      ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
+    }
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 22px system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
     // Aggiungi ombra al testo per leggibilità
     ctx.shadowColor = "rgba(0,0,0,0.6)";
     ctx.shadowBlur = 4;
-    ctx.fillText(tier.label, PADDING + TIER_LABEL_WIDTH / 2, currentY + rowHeight / 2);
+    ctx.fillText(
+      fitText(ctx, tier.label, labelWidth),
+      PADDING + TIER_LABEL_WIDTH / 2,
+      currentY + rowHeight / 2,
+    );
     ctx.shadowBlur = 0;
 
     // Sfondo dell'area carte del Tier
@@ -126,24 +168,24 @@ export async function exportTierListToImage({
     ctx.fillRect(
       PADDING + TIER_LABEL_WIDTH,
       currentY,
-      totalWidth - PADDING * 2 - TIER_LABEL_WIDTH,
+      WIDTH - PADDING * 2 - TIER_LABEL_WIDTH,
       rowHeight,
     );
 
     // Bordo separatore
     ctx.strokeStyle = "#332e2d";
     ctx.lineWidth = 1;
-    ctx.strokeRect(PADDING, currentY, totalWidth - PADDING * 2, rowHeight);
+    ctx.strokeRect(PADDING, currentY, WIDTH - PADDING * 2, rowHeight);
 
-    // Disegna le card degli eroi nel tier
+    // Disegna le card degli eroi nel tier, a capo dopo CARDS_PER_ROW
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
 
     tier.heroIds.forEach((heroId, index) => {
-      const col = index % cardsPerRow;
-      const row = Math.floor(index / cardsPerRow);
+      const col = index % CARDS_PER_ROW;
+      const row = Math.floor(index / CARDS_PER_ROW);
 
-      const cardX = PADDING + TIER_LABEL_WIDTH + 8 + col * (CARD_SIZE + GAP);
+      const cardX = PADDING + TIER_LABEL_WIDTH + CARD_INSET + col * (CARD_SIZE + GAP);
       const cardY = currentY + 6 + row * (CARD_SIZE + GAP);
 
       const img = loadedImages.get(heroId);
@@ -157,7 +199,7 @@ export async function exportTierListToImage({
         if (hero) {
           ctx.fillStyle = "#ffffff";
           ctx.font = "10px system-ui, sans-serif";
-          ctx.fillText(hero.name.slice(0, 10), cardX + 4, cardY + CARD_SIZE / 2);
+          ctx.fillText(fitText(ctx, hero.name, CARD_SIZE - 8), cardX + 4, cardY + CARD_SIZE / 2);
         }
       }
 
@@ -167,23 +209,23 @@ export async function exportTierListToImage({
       ctx.strokeRect(cardX, cardY, CARD_SIZE, CARD_SIZE);
     });
 
-    currentY += rowHeight + 8;
+    currentY += rowHeight + ROW_GAP;
   }
 
-  // 4. Footer con firma Heiki
+  // 4. Footer con la firma del sito
   ctx.fillStyle = "#e61421";
   ctx.font = "bold 14px system-ui, sans-serif";
   ctx.textAlign = "right";
-  ctx.fillText("Heiki", totalWidth - PADDING, totalHeight - PADDING);
+  ctx.fillText(SITE_NAME, WIDTH - PADDING, totalHeight - PADDING);
 
-  ctx.fillStyle = "#777169";
-  ctx.font = "12px system-ui, sans-serif";
-  ctx.fillText("· heiki.it", totalWidth - PADDING - 45, totalHeight - PADDING);
-
-  // 5. Download dell'immagine
-  return new Promise<void>((resolve) => {
+  // 5. Download dell'immagine. toBlob da' null quando il browser non riesce a
+  // codificare la tela (troppo grande, memoria): e' un errore, non un «fatto»
+  return new Promise<void>((resolve, reject) => {
     canvas.toBlob((blob) => {
-      if (!blob) return resolve();
+      if (!blob) {
+        reject(new Error("Il browser non ha potuto creare l'immagine PNG"));
+        return;
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -196,4 +238,3 @@ export async function exportTierListToImage({
     }, "image/png");
   });
 }
-

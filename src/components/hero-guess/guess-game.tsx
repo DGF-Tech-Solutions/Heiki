@@ -32,6 +32,7 @@ import { filterHeroes, heroCardSrc, heroEpithet, heroName } from "@/lib/games/he
 import type { HeroEntry } from "@/lib/games/types";
 import { useLocale } from "@/lib/i18n/client";
 import { intlLocale, testi } from "@/lib/i18n/locale";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 
 /** Quello che serve di un eroe per giocarlo: la voce del roster (nome, epiteto, ricerca nelle due lingue). */
 export type Playable = HeroEntry;
@@ -108,7 +109,6 @@ function useToday(): string | null {
 }
 
 const EVENT = "heiki:indovina";
-const OLD_EVENT = "gachazone:indovina";
 const memory = new Map<string, string>();
 const parsed = new Map<string, { raw: string | null; value: readonly string[] }>();
 const NONE: readonly string[] = [];
@@ -117,8 +117,9 @@ function readGuesses(key: string): readonly string[] {
   let raw: string | null = null;
   if (memory.has(key)) raw = memory.get(key)!;
   else {
+    moveLegacyStorage();
     try {
-      raw = window.localStorage.getItem(key) ?? window.localStorage.getItem(key.replace(/^heiki:/, "gachazone:"));
+      raw = window.localStorage.getItem(key);
     } catch {
       raw = null;
     }
@@ -140,11 +141,9 @@ function readGuesses(key: string): readonly string[] {
 function subscribeStorage(notify: () => void): () => void {
   window.addEventListener("storage", notify);
   window.addEventListener(EVENT, notify);
-  window.addEventListener(OLD_EVENT, notify);
   return () => {
     window.removeEventListener("storage", notify);
     window.removeEventListener(EVENT, notify);
-    window.removeEventListener(OLD_EVENT, notify);
   };
 }
 

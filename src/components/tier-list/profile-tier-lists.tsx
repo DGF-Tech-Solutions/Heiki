@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { buttonClass, Empty, eyebrow, SectionHead } from "@/components/ui";
+import { buttonClass, cx, Empty, eyebrow, SectionHead } from "@/components/ui";
 import { heroCardSrc } from "@/lib/games/heroes";
 import type { SavedTierListSummary } from "@/lib/tier-list/types";
 import { getTierListBackupAction } from "@/lib/tier-list/actions";
@@ -19,10 +19,16 @@ const TESTI = testi({
     apriNelMaker: "Apri nel Maker",
     copiaLink: "Copia link",
     linkCopiato: "Link copiato!",
+    copiaFallita: "Copia non riuscita",
     scaricaBackup: "Scarica Backup JSON",
+    suggerimentoBackup: "Scarica un file JSON con tutti i salvataggi",
     backupScaricato: "Backup scaricato!",
     eroiPosizionati: (n: number) => `${n} eroi posizionati`,
+    livelli: (n: number) => `${n} ${n === 1 ? "livello" : "livelli"}`,
+    altriEroi: (n: number) => `altri ${n} eroi`,
     aggiornatoIl: (data: string) => `Aggiornato il ${data}`,
+    privata: "Privata",
+    suggerimentoPrivata: "La vedi solo tu: chi visita il profilo non la trova.",
   },
   en: {
     titolo: "Tier Lists",
@@ -33,10 +39,16 @@ const TESTI = testi({
     apriNelMaker: "Open in Maker",
     copiaLink: "Copy link",
     linkCopiato: "Link copied!",
+    copiaFallita: "Copy failed",
     scaricaBackup: "Download JSON Backup",
+    suggerimentoBackup: "Download a JSON file with all your saved lists",
     backupScaricato: "Backup downloaded!",
     eroiPosizionati: (n: number) => `${n} heroes ranked`,
+    livelli: (n: number) => `${n} ${n === 1 ? "tier" : "tiers"}`,
+    altriEroi: (n: number) => `${n} more heroes`,
     aggiornatoIl: (data: string) => `Updated on ${data}`,
+    privata: "Private",
+    suggerimentoPrivata: "Only you can see it: visitors to your profile won't find it.",
   },
 });
 
@@ -45,6 +57,11 @@ interface ProfileTierListsProps {
   isOwner: boolean;
   username: string;
   locale: Locale;
+  /**
+   * Il gioco del Maker per chi non ha ancora liste: con delle liste, ogni
+   * collegamento usa il gioco della sua. Prima era fisso su Grand Cross.
+   */
+  defaultGame?: string;
 }
 
 export function ProfileTierLists({
@@ -52,16 +69,24 @@ export function ProfileTierLists({
   isOwner,
   username,
   locale,
+  defaultGame,
 }: ProfileTierListsProps) {
   const t = TESTI[locale];
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  // l'esito della copia per lista: «copiato» solo se il browser l'ha fatta davvero
+  const [copied, setCopied] = useState<{ id: string; ok: boolean } | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
-  const handleCopy = (id: string, game: string) => {
+  const handleCopy = async (id: string, game: string) => {
     const url = `${window.location.origin}/${game}/tierlist?id=${id}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2500);
+    let ok = true;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // senza permesso o fuori da https la copia fallisce
+      ok = false;
+    }
+    setCopied({ id, ok });
+    setTimeout(() => setCopied((current) => (current?.id === id ? null : current)), 2500);
   };
 
   const handleDownloadBackup = async () => {
@@ -101,9 +126,9 @@ export function ProfileTierLists({
                 onClick={handleDownloadBackup}
                 disabled={isExporting}
                 className={buttonClass("ghost", "sm")}
-                title="Scarica un file JSON con tutti i salvataggi"
+                title={t.suggerimentoBackup}
               >
-                💾 {t.scaricaBackup}
+                <span aria-hidden>💾</span> {t.scaricaBackup}
               </button>
             ) : null}
           </div>
@@ -116,10 +141,10 @@ export function ProfileTierLists({
             <p className="text-sm text-ink-3">
               {isOwner ? t.nessunaTierListOwner : t.nessunaTierListVisitatore}
             </p>
-            {isOwner ? (
+            {isOwner && defaultGame ? (
               <div className="mt-4">
                 <Link
-                  href="/grand-cross/tierlist"
+                  href={`/${defaultGame}/tierlist`}
                   className={buttonClass("primary", "sm")}
                 >
                   {t.creaTierList}
@@ -137,8 +162,17 @@ export function ProfileTierLists({
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
+                  <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-brand">
                     {item.gameName ?? item.game}
+                    {/* solo il proprietario vede le private: gli altri non le ricevono nemmeno */}
+                    {!item.isPublic ? (
+                      <span
+                        title={t.suggerimentoPrivata}
+                        className="rounded bg-rule px-1.5 py-0.5 text-[10px] text-ink-2"
+                      >
+                        {t.privata}
+                      </span>
+                    ) : null}
                   </span>
                   <span suppressHydrationWarning className="text-[11px] text-ink-3">
                     {new Date(item.updatedAt).toLocaleDateString(locale)}
@@ -157,7 +191,7 @@ export function ProfileTierLists({
 
                 <div className="mt-3 flex items-center justify-between text-xs text-ink-2">
                   <span>{t.eroiPosizionati(item.heroCount)}</span>
-                  <span className="text-ink-3">{item.tierCount} livelli</span>
+                  <span className="text-ink-3">{t.livelli(item.tierCount)}</span>
                 </div>
 
                 {/* Anteprima miniature eroi dei primi tier */}
@@ -179,7 +213,10 @@ export function ProfileTierLists({
                       </div>
                     ))}
                     {item.topHeroIds.length > 5 ? (
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-rule text-[11px] font-bold text-ink-3">
+                      <div
+                        aria-label={t.altriEroi(item.heroCount - 5)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center bg-rule text-[11px] font-bold text-ink-3"
+                      >
                         +{item.heroCount - 5}
                       </div>
                     ) : null}
@@ -199,9 +236,13 @@ export function ProfileTierLists({
                 <button
                   type="button"
                   onClick={() => handleCopy(item.id, item.game)}
-                  className={buttonClass("outline", "sm")}
+                  className={cx(buttonClass("outline", "sm"), copied?.id === item.id && !copied.ok && "text-red-500")}
                 >
-                  {copiedId === item.id ? `✓ ${t.linkCopiato}` : t.copiaLink}
+                  {copied?.id === item.id
+                    ? copied.ok
+                      ? `✓ ${t.linkCopiato}`
+                      : t.copiaFallita
+                    : t.copiaLink}
                 </button>
               </div>
             </div>
@@ -211,4 +252,3 @@ export function ProfileTierLists({
     </section>
   );
 }
-

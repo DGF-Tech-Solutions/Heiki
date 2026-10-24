@@ -1,5 +1,10 @@
 /**
  * Operazioni database server per il salvataggio e recupero delle Tier List.
+ *
+ * Le liste private (`isPublic` falso) le vede solo chi le ha fatte: non
+ * compaiono nel profilo di chi visita e il link `?id=` per gli altri vale come
+ * una lista che non esiste. I due controlli stanno qui, nelle query, e non
+ * nelle pagine.
  */
 
 import { and, desc, eq, sql } from "drizzle-orm";
@@ -11,6 +16,7 @@ import type {
   TierListBackupFile,
   TierRow,
 } from "./types";
+import { parseTierListId } from "./validation";
 
 function extractTopHeroIds(tiers: TierRow[], limit = 6): string[] {
   const result: string[] = [];
@@ -39,6 +45,9 @@ function countHeroes(tiers: TierRow[]): number {
 
 /**
  * Recupera l'elenco delle tier list salvate da un utente (per un gioco o per tutti).
+ *
+ * Per il Maker («Le mie Tier List»): le voci portano le righe intere, perche'
+ * caricarne una deve essere immediato e non un'altra richiesta.
  */
 export async function getUserTierLists(
   userId: string,
@@ -103,10 +112,12 @@ export async function getTierListById(
   id: string,
   viewerUserId?: string | null,
 ): Promise<SavedTierListDetail | null> {
-  if (!(await databaseReachable())) return null;
+  // un id che non e' un UUID fa fallire la query in Postgres (22P02): vale come inesistente
+  const validId = parseTierListId(id);
+  if (!validId || !(await databaseReachable())) return null;
 
   const row = await db.query.userTierLists.findFirst({
-    where: eq(userTierLists.id, id),
+    where: eq(userTierLists.id, validId),
     with: {
       game: { columns: { slug: true, name: true } },
       user: {
@@ -150,6 +161,10 @@ export async function getTierListById(
 
 /**
  * Recupera le tier list visibili nel profilo di un utente (per username).
+ *
+ * Senza le righe: la vetrina del profilo mostra titolo, conteggi e le prime
+ * miniature, e mandare al browser ogni tabellone intero di ogni lista serviva
+ * solo a gonfiare la pagina. Chi la apre la carica dal Maker.
  */
 export async function getUserProfileTierLists(
   username: string,
@@ -197,7 +212,6 @@ export async function getUserProfileTierLists(
         role: targetUser.role,
       },
       isOwner,
-      tiers,
     };
   });
 }
@@ -231,6 +245,7 @@ export async function exportUserTierListsBackup(userId: string): Promise<TierLis
       title: row.title,
       description: row.description,
       game: row.game.slug,
+      isPublic: row.isPublic,
       tiers: (row.data as TierRow[]) ?? [],
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),

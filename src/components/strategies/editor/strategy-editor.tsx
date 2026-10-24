@@ -61,6 +61,7 @@ import { GuideStep, type GuideMark } from "./guide-step";
 import { LevelChoice, LevelLimits, ModeChoice, Step, TargetChoice } from "./selection-steps";
 import { SetStep } from "./set-step";
 import { HeroPicker, slotElementId, TeamSlots, type Picking, type PickerFilters } from "./team-step";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 
 export interface StrategyEditorProps {
   template: StrategyTemplate;
@@ -248,6 +249,7 @@ export function StrategyEditor({
     restored.current = true;
     let saved: EditorState | null = null;
     try {
+      moveLegacyStorage();
       saved = parseStoredState(window.localStorage.getItem(storageKey), template);
     } catch {
       saved = null;

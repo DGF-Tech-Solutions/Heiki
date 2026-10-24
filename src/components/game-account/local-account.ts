@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 import {
   EMPTY_PROFILE,
   parseProfile,
@@ -32,10 +33,9 @@ const parsed = new Map<string, { raw: string | null; value: GameAccountProfile }
 
 export function readLocal(key: string): string | null {
   if (memory.has(key)) return memory.get(key)!;
+  moveLegacyStorage();
   try {
-    const val = window.localStorage.getItem(key);
-    if (val !== null) return val;
-    return window.localStorage.getItem(key.replace(/^heiki:/, "gachazone:"));
+    return window.localStorage.getItem(key);
   } catch {
     return null;
   }

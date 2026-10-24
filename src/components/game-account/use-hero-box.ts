@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import { markLocalChange } from "@/components/game-account/local-account";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 import { boxStorageKey, EMPTY_BOX, parseBox, serializeBox, type HeroBox } from "@/lib/games/hero-box";
 
 /**
@@ -17,16 +18,14 @@ import { boxStorageKey, EMPTY_BOX, parseBox, serializeBox, type HeroBox } from "
  */
 
 const EVENT = "heiki:box";
-const OLD_EVENT = "gachazone:box";
 const memory = new Map<string, string>();
 const parsed = new Map<string, { raw: string | null; value: HeroBox }>();
 
 function readRaw(key: string): string | null {
   if (memory.has(key)) return memory.get(key)!;
+  moveLegacyStorage();
   try {
-    const val = window.localStorage.getItem(key);
-    if (val !== null) return val;
-    return window.localStorage.getItem(key.replace(/^heiki:/, "gachazone:"));
+    return window.localStorage.getItem(key);
   } catch {
     return null;
   }
@@ -44,11 +43,9 @@ function snapshot(key: string): HeroBox {
 function subscribe(notify: () => void): () => void {
   window.addEventListener("storage", notify);
   window.addEventListener(EVENT, notify);
-  window.addEventListener(OLD_EVENT, notify);
   return () => {
     window.removeEventListener("storage", notify);
     window.removeEventListener(EVENT, notify);
-    window.removeEventListener(OLD_EVENT, notify);
   };
 }
 

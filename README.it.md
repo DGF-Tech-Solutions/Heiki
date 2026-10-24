@@ -15,8 +15,8 @@
   <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React 19">
   <img src="https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS v4">
-  <img src="https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL 16">
-  <img src="https://img.shields.io/badge/Drizzle_ORM-0.44+-C5F74F?style=for-the-badge&logo=drizzle" alt="Drizzle ORM">
+  <img src="https://img.shields.io/badge/PostgreSQL-17-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL 17">
+  <img src="https://img.shields.io/badge/Drizzle_ORM-0.45+-C5F74F?style=for-the-badge&logo=drizzle" alt="Drizzle ORM">
   <img src="https://img.shields.io/badge/Vitest-780_Superati-729B1B?style=for-the-badge&logo=vitest" alt="Test Vitest">
   <img src="https://img.shields.io/badge/DB_Smoke-71_Verifiche-success?style=for-the-badge" alt="Verifiche DB Live">
 </p>
@@ -29,7 +29,7 @@
 
 Nei videogiochi gacha moderni, le formule di calcolo del danno, le scalature delle abilità e le note di bilanciamento sono frequentemente offuscate o non documentate. La maggior parte delle risorse per la community si affida all'inserimento manuale su wiki, provocando ritardi sistematici, errori di trascrizione e incapacità di calcolare i massimali statistici esatti.
 
-Heiki colma questo divario integrando una **pipeline proprietaria e riproducibile di decifrazione ed estrazione dati** direttamente dai pacchetti client e dai database interni dei videogiochi (database SQLite cifrati con chiavi dinamiche, asset bundle Unity compressi). Il sistema trasforma oltre 194.000 stringhe localizzate e centinaia di tabelle di entità in formule matematiche verificate e strumenti interattivi in tempo reale.
+Heiki colma questo divario integrando una **pipeline proprietaria e riproducibile di decifrazione ed estrazione dati** direttamente dal client di gioco (asset bundle Unity cifrati con AES che contengono le tabelle dati in formato binario, file di testo offuscati e il binario IL2CPP offuscato, letto per gli schemi delle tabelle e le formule di combattimento). Il sistema trasforma oltre 194.000 stringhe localizzate e centinaia di tabelle di entità in formule matematiche verificate e strumenti interattivi in tempo reale.
 
 ---
 
@@ -51,7 +51,7 @@ Le community dei giochi gacha sono storicamente frammentate su decine di canali 
 
 ### Modulo di Riferimento: The Seven Deadly Sins: Grand Cross (7DSGC)
 Attualmente stiamo ultimando e rifinendo i lavori sul modulo principale dedicato a **The Seven Deadly Sins: Grand Cross**:
-- **Oltre 373 Eroi Indicizzati**: Copertura completa dei dati estratti direttamente dalle tabelle SQLite del client di gioco con più di 194.000 record testuali localizzati.
+- **377 Eroi Indicizzati**: Copertura completa dei dati estratti direttamente dalle tabelle dati del client di gioco con più di 194.000 record testuali localizzati.
 - **Motore Statistiche Dinamico**: Modello matematico completo che calcola con esattezza statistiche base, Risveglio (1-6 stelle), Super Risveglio, Vero Risveglio, costumi e reliquie sacre.
 - **Strumenti per la Community**: Tier List Maker ad alta risoluzione (con esportazione canvas e sincronizzazione cloud/JSON), sistema di valutazioni duale (PvE e PvP) e gestione del Box con architettura local-first.
 
@@ -74,7 +74,7 @@ Con il completamento e la stabilizzazione finale del modulo 7DSGC, la tabella di
 
 La gestione continua di dati ad alta fedeltà per giochi "live service" comporta un notevole carico operativo per i maintainer:
 
-1. **Velocità dei Rilasci Settimanali**: I giochi live-service ricevono aggiornamenti client a cadenza settimanale o bisettimanale. Ogni release modifica decine di tabelle SQLite, altera coefficienti non documentati e introduce nuovi personaggi con meccaniche inedite.
+1. **Velocità dei Rilasci Settimanali**: I giochi live-service ricevono aggiornamenti client a cadenza settimanale o bisettimanale. Ogni release modifica decine di tabelle dati, altera coefficienti non documentati e introduce nuovi personaggi con meccaniche inedite.
 2. **Descrizioni Lessicali Ambigue**: Le descrizioni testuali delle abilità (spesso tradotte tra coreano, giapponese, inglese e italiano) presentano spesso discrepanze rispetto alla logica reale del codice o omettono limiti critici di cumulo.
 3. **Collo di Bottiglia per Piccoli Team di Sviluppo**: I maintainer devono analizzare diff grezzi, redigere migrazioni di schema SQL, retro-ingegnerizzare regole di danno ambigue e aggiornare centinaia di casi di test matematici.
 
@@ -83,7 +83,7 @@ La gestione continua di dati ad alta fedeltà per giochi "live service" comporta
 Per garantire la sostenibilità a lungo termine del progetto senza saturare le risorse dei maintainer, Heiki sviluppa una **pipeline automatizzata di ingestion e manutenzione**:
 
 - **Parsing da Linguaggio Naturale ad AST Deterministico**: Trasformazione delle descrizioni complesse delle abilità in nodi AST TypeScript tipizzati, estraendo categorie di buff esatte, condizioni di attivazione e formule di danno verificate.
-- **Triage Automatico delle Patch di Gioco**: Pipeline di analisi automatica dei diff sui database SQLite decifrati a ogni nuova versione del client per generare changelog tecnici, individuare modifiche non annunciate e predisporre le migrazioni di schema.
+- **Triage Automatico delle Patch di Gioco**: Pipeline di analisi automatica dei diff sulle tabelle dati decifrate a ogni nuova versione del client per generare changelog tecnici, individuare modifiche non annunciate e predisporre le migrazioni di schema.
 - **Generazione Automatica di Test Unitari**: Creazione automatizzata di fixture di test Vitest per i nuovi eroi e le nuove abilità, confrontando i risultati delle formule con i dati di benchmark empirici prima dell'approvazione delle modifiche.
 - **Query Semantiche per Theorycrafting**: Interfaccia di ricerca avanzata su oltre 194.000 punti dati per consentire a giocatori e sviluppatori di interrogare complesse interazioni tra abilità e sinergie tra personaggi.
 
@@ -92,7 +92,7 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
 ## Funzionalità Chiave
 
 ### 1. Database Eroi & Calcolatore Statistiche in Tempo Reale
-- **Roster Completo e Certificato**: Oltre 373 eroi con dati estratti dai database SQLite del client di gioco (194.000+ chiavi tradotte in italiano e inglese).
+- **Roster Completo e Certificato**: 377 eroi con dati estratti dalle tabelle del client di gioco (194.000+ chiavi tradotte in italiano e inglese).
 - **Calcolatore Dinamico**: Valutazione in tempo reale delle statistiche al variare di Livello, Risveglio (1-6 stelle), Super Risveglio, Rango Mossa Finale, Vero Risveglio (Re Demone/Divinità Suprema) ed equipaggiamento associato.
 - **Riconoscimento Lessicale (Parole Blu)**: Motore di parsing contestuale che trasforma ogni termine tecnico presente nelle descrizioni delle abilità in rimandi ipertestuali con popup interattivi e regole di cumulo.
 - **Diff Storico di Patch**: Sistema di versionamento automatico che traccia le variazioni testuali, numeriche e di bilanciamento introdotte dai publisher a ogni aggiornamento.
@@ -118,7 +118,7 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
 
 ### 6. Moderazione Trasparente e Audit Log Immutabile
 - **Politica di Soft-Hiding**: I contenuti non vengono mai distrutti indiscriminatamente; i post segnalati vengono nascosti conservando l'autore e i metadati dell'operatore in un registro di audit transazionale.
-- **Controllo degli Accessi su 5 Ruoli (RBAC)**: Gerarchia granulare dei permessi (`USER`, `COLLABORATOR`, `EDITOR`, `MODERATOR`, `ADMIN`).
+- **Controllo degli Accessi su 5 Ruoli (RBAC)**: Gerarchia granulare dei permessi (`USER`, `CONTRIBUTOR`, `EDITOR`, `MODERATOR`, `ADMIN`).
 
 ---
 
@@ -136,14 +136,14 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
          ┌─────────┴─────────┐                        │
          ▼                   ▼                        ▼
 ┌──────────────────┐ ┌──────────────┐       ┌──────────────────┐
-│   PostgreSQL 16  │ │ In-Memory    │       │ Memoria Browser  │
+│   PostgreSQL 17  │ │ In-Memory    │       │ Memoria Browser  │
 │   (Drizzle ORM)  │ │ Rate Limiter │       │  (localStorage)  │
 └──────────────────┘ └──────────────┘       └──────────────────┘
 ```
 
 ### Scelte Architetturali di Rilievo
 1. **Next.js 15.5+ App Router con React 19**: Utilizzo esteso di React Server Components (RSC) per ridurre drasticamente il codice JavaScript inviato al browser (~103 kB First Load JS condiviso).
-2. **PostgreSQL 16 & Drizzle ORM**: Tipizzazione end-to-end garantita dallo schema SQL fino all'interfaccia utente. Schemi dichiarativi, migrazioni riproducibili e integrità referenziale.
+2. **PostgreSQL 17 & Drizzle ORM**: Tipizzazione end-to-end garantita dallo schema SQL fino all'interfaccia utente. Schemi dichiarativi, migrazioni riproducibili e integrità referenziale.
 3. **Resilienza ad Alta Disponibilità**: Fallback automatico in memoria attivo in caso di disconnessione temporanea del database, garantendo la navigazione del catalogo in sola lettura senza interruzioni.
 4. **Sicurezza di Grado Enterprise**:
    - **Content Security Policy (CSP)** dinamica con nonce crittografici per singola richiesta applicati via middleware.
@@ -152,7 +152,7 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
    - Cookie di sessione con attributi `SameSite=Lax`, `HttpOnly` e prefisso di produzione `__Secure-`.
 5. **Identità Visiva Persona 5**:
    - Palette scura editoriale (`#0b0a0a` / `#151313`) con tagli geometrici `.p5-cut`, bottoni stilizzati `.p5-btn` e accento rosso iconico `#e61421`.
-   - 5 temi cromatici scuri selezionabili dall'utente certificati per contrasto elevato WCAG AAA (rapporto ≥ 7:1 per testo normale, ≥ 4.5:1 per componenti grafici).
+   - 5 temi cromatici scuri selezionabili dall'utente con i contrasti controllati dai test: ≥ 7:1 per il testo principale (WCAG AAA), ≥ 4,5:1 per il testo secondario (WCAG AA).
 
 ---
 
@@ -163,7 +163,7 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
 | **Framework Web** | [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/) |
 | **Linguaggio** | [TypeScript 5](https://www.typescriptlang.org/) (Strict Mode) |
 | **Stile & Design** | [Tailwind CSS v4](https://tailwindcss.com/), [Phosphor Icons](https://phosphoricons.com/) |
-| **Database & ORM** | [PostgreSQL 16](https://www.postgresql.org/), [Drizzle ORM](https://orm.drizzle.team/) |
+| **Database & ORM** | [PostgreSQL 17](https://www.postgresql.org/), [Drizzle ORM](https://orm.drizzle.team/) |
 | **Autenticazione** | [Auth.js v5 (NextAuth)](https://authjs.dev/) (Credenziali, Discord OAuth, Google OAuth) |
 | **Suite di Test** | [Vitest](https://vitest.dev/), script custom `smoke-db.mts` |
 | **Containerizzazione** | [Docker](https://www.docker.com/), Docker Compose |
@@ -235,6 +235,8 @@ npm run dev
 ```
 
 L'applicazione sarà accessibile all'indirizzo [http://localhost:3000](http://localhost:3000).
+
+I dati degli eroi sono nel repository, le immagini del gioco no: sono di Netmarble, escono dalla pipeline di estrazione locale e `npm run eroi:import` le copia in `public/eroi/`. Senza, le pagine funzionano, ma senza immagini.
 
 ---
 

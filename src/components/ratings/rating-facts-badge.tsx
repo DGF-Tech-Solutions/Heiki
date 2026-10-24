@@ -1,8 +1,8 @@
 "use client";
 
 import { AwakenStar } from "@/components/ratings/star-display";
+import { openRatingsTab } from "@/components/ratings/open-ratings-tab";
 import { cx } from "@/components/ui";
-import type { HeroRatingSummary } from "@/lib/ratings/types";
 import { testi, type Locale } from "@/lib/i18n/locale";
 
 const TESTI = testi({
@@ -12,7 +12,7 @@ const TESTI = testi({
     pvpAbbr: "PvP",
     votiBreve: (n: number) => `(${n})`,
     ariaLabelSummary: (pve: number, pvp: number, count: number) =>
-      `Valutazione della community: PvE ${pve.toFixed(1)}, PvP ${pvp.toFixed(1)}, su ${count} valutazioni. Clicca per vedere le recensioni.`,
+      `Valutazione della community: PvE ${pve.toFixed(1)}, PvP ${pvp.toFixed(1)}, su ${count} ${count === 1 ? "valutazione" : "valutazioni"}. Clicca per vedere le recensioni.`,
     ariaLabelEmpty: "Nessuna valutazione per questo eroe. Clicca per essere il primo a valutarlo.",
   },
   en: {
@@ -21,51 +21,45 @@ const TESTI = testi({
     pvpAbbr: "PvP",
     votiBreve: (n: number) => `(${n})`,
     ariaLabelSummary: (pve: number, pvp: number, count: number) =>
-      `Community ratings: PvE ${pve.toFixed(1)}, PvP ${pvp.toFixed(1)}, based on ${count} ratings. Click to view evaluations.`,
+      `Community ratings: PvE ${pve.toFixed(1)}, PvP ${pvp.toFixed(1)}, based on ${count} ${count === 1 ? "rating" : "ratings"}. Click to view reviews.`,
     ariaLabelEmpty: "No ratings for this hero yet. Click to submit the first review.",
   },
 });
 
+/**
+ * Solo i numeri che il badge mostra. Prima riceveva l'intero riepilogo, e le
+ * venti recensioni coi commenti e gli id degli utenti finivano serializzate
+ * nella pagina di ogni eroe, per un componente che non le legge.
+ */
 interface RatingFactsBadgeProps {
   game: string;
   heroId: string;
   locale: Locale;
-  summary: HeroRatingSummary;
+  pveAvg: number;
+  pvpAvg: number;
+  totalRatings: number;
   className?: string;
-}
-
-function handleTabClick(e: React.MouseEvent<HTMLAnchorElement>) {
-  const radio = document.getElementById("schede-valutazioni") as HTMLInputElement | null;
-  if (radio) {
-    e.preventDefault();
-    if (!radio.checked) {
-      radio.checked = true;
-      radio.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const schedeSection = document.getElementById("schede");
-    if (schedeSection) {
-      schedeSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
 }
 
 export function RatingFactsBadge({
   game,
   heroId,
   locale,
-  summary,
+  pveAvg,
+  pvpAvg,
+  totalRatings,
   className,
 }: RatingFactsBadgeProps) {
   const t = TESTI[locale];
 
-  if (summary.totalRatings === 0) {
+  if (totalRatings === 0) {
     return (
       <a
         href={`/${game}/eroi/${heroId}?scheda=valutazioni`}
-        onClick={handleTabClick}
+        onClick={(event) => openRatingsTab(event)}
         aria-label={t.ariaLabelEmpty}
         className={cx(
-          "p5-press inline-flex items-center gap-1.5 text-xs text-brand hover:underline focus:outline-hidden",
+          "p5-press inline-flex items-center gap-1.5 text-xs text-brand hover:underline",
           className,
         )}
       >
@@ -78,17 +72,17 @@ export function RatingFactsBadge({
   return (
     <a
       href={`/${game}/eroi/${heroId}?scheda=valutazioni`}
-      onClick={handleTabClick}
-      aria-label={t.ariaLabelSummary(summary.pveAvg, summary.pvpAvg, summary.totalRatings)}
+      onClick={(event) => openRatingsTab(event)}
+      aria-label={t.ariaLabelSummary(pveAvg, pvpAvg, totalRatings)}
       className={cx(
-        "p5-press inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-ink hover:text-brand focus:outline-hidden",
+        "p5-press inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-ink hover:text-brand",
         className,
       )}
     >
       <span className="inline-flex items-center gap-1">
         <span className="text-ink-3">{t.pveAbbr}</span>
         <AwakenStar game={game} size={14} ariaHidden />
-        <span className="font-mono">{summary.pveAvg.toFixed(1)}</span>
+        <span className="font-mono">{pveAvg.toFixed(1)}</span>
       </span>
 
       <span className="text-ink-4">·</span>
@@ -96,13 +90,12 @@ export function RatingFactsBadge({
       <span className="inline-flex items-center gap-1">
         <span className="text-ink-3">{t.pvpAbbr}</span>
         <AwakenStar game={game} size={14} ariaHidden />
-        <span className="font-mono">{summary.pvpAvg.toFixed(1)}</span>
+        <span className="font-mono">{pvpAvg.toFixed(1)}</span>
       </span>
 
       <span className="font-mono font-normal text-ink-3">
-        {t.votiBreve(summary.totalRatings)}
+        {t.votiBreve(totalRatings)}
       </span>
     </a>
   );
 }
-

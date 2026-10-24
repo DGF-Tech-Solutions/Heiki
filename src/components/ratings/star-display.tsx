@@ -1,5 +1,11 @@
 import { gameIconSrc } from "@/lib/games/heroes";
 import { cx } from "@/components/ui";
+import { testi, type Locale } from "@/lib/i18n/locale";
+
+const TESTI = testi({
+  it: { nessunaValutazione: "Nessuna valutazione" },
+  en: { nessunaValutazione: "No ratings yet" },
+});
 
 interface AwakenStarProps {
   game: string;
@@ -43,6 +49,8 @@ export function AwakenStar({
 
 interface StarScoreProps {
   game: string;
+  /** dal chiamante e non da getLocale(): questo modulo lo importano anche componenti client */
+  locale: Locale;
   score: number;
   max?: number;
   size?: number;
@@ -56,6 +64,7 @@ interface StarScoreProps {
  */
 export function StarScore({
   game,
+  locale,
   score,
   max = 5,
   size = 18,
@@ -65,7 +74,7 @@ export function StarScore({
 }: StarScoreProps) {
   const rounded = Math.round(score);
   const accessibleLabel =
-    label ?? (score > 0 ? `${score.toFixed(1)} / ${max}` : "Nessuna valutazione");
+    label ?? (score > 0 ? `${score.toFixed(1)} / ${max}` : TESTI[locale].nessunaValutazione);
 
   return (
     <div

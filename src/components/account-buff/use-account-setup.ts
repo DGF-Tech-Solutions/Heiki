@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import { markLocalChange } from "@/components/game-account/local-account";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 import { EMPTY_SETUP, parseSetup, setupStorageKey, type AccountSetup } from "@/lib/games/account-setup";
 
 /**
@@ -22,17 +23,15 @@ import { EMPTY_SETUP, parseSetup, setupStorageKey, type AccountSetup } from "@/l
  */
 
 const EVENT = "heiki:buff-account";
-const OLD_EVENT = "gachazone:buff-account";
 const memory = new Map<string, string>();
 const parsed = new Map<string, { raw: string | null; value: AccountSetup }>();
 
 function readRaw(key: string): string | null {
   // la memoria c'e' solo se l'ultimo salvataggio nel browser e' fallito: vale lei
   if (memory.has(key)) return memory.get(key)!;
+  moveLegacyStorage();
   try {
-    const val = window.localStorage.getItem(key);
-    if (val !== null) return val;
-    return window.localStorage.getItem(key.replace(/^heiki:/, "gachazone:"));
+    return window.localStorage.getItem(key);
   } catch {
     return null;
   }
@@ -51,11 +50,9 @@ function snapshot(key: string): AccountSetup {
 function subscribe(notify: () => void): () => void {
   window.addEventListener("storage", notify);
   window.addEventListener(EVENT, notify);
-  window.addEventListener(OLD_EVENT, notify);
   return () => {
     window.removeEventListener("storage", notify);
     window.removeEventListener(EVENT, notify);
-    window.removeEventListener(OLD_EVENT, notify);
   };
 }
 

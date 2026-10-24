@@ -16,9 +16,16 @@ describe("Tier List Maker types e costanti", () => {
   it("TIER_COLORS contiene colori esadecimali validi", () => {
     expect(TIER_COLORS.length).toBeGreaterThanOrEqual(8);
     for (const color of TIER_COLORS) {
-      expect(color.label.length).toBeGreaterThan(0);
+      // il nome in tutte e due le lingue: e' il testo del pulsante per i lettori di schermo
+      expect(color.label.it.length).toBeGreaterThan(0);
+      expect(color.label.en.length).toBeGreaterThan(0);
       expect(color.hex).toMatch(/^#[0-9a-f]{6}$/i);
     }
+  });
+
+  it("i colori dei tier predefiniti sono fra quelli offerti dal Maker", () => {
+    const offered = new Set(TIER_COLORS.map((color) => color.hex));
+    for (const tier of defaultTiers()) expect(offered.has(tier.color)).toBe(true);
   });
 
   it("ogni tier predefinito ha un id unico", () => {

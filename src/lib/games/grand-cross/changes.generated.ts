@@ -16,7 +16,7 @@ export const CHANGES: ChangesIndex = {
   {
     from: "2026-10-08",
     to: "2026-10-22",
-    newHeroes: [],
+    newHeroes: ["1929503"],
     heroes: {
       "1929501": [{"part":"costume","which":3314706,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Era della prosperità","en":"Age of Prosperity"}},{"part":"costume","which":3314705,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Abbondanza dorata","en":"Golden Abundance"}},{"part":"costume","which":4002210,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Splendore della prosperità","en":"Radiance of Prosperity"}}],
       "1929502": [{"part":"costume","which":3314706,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Era della prosperità","en":"Age of Prosperity"}},{"part":"costume","which":3314705,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Abbondanza dorata","en":"Golden Abundance"}},{"part":"costume","which":4002210,"field":"name","kind":"aggiunto","before":null,"after":{"it":"Splendore della prosperità","en":"Radiance of Prosperity"}}],

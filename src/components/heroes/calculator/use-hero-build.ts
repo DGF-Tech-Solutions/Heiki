@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import { defaultBuild, parseBuild, type CalculatorData, type HeroBuild } from "@/lib/games/hero-build";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 
 /**
  * La configurazione del calcolatore di un eroe, salvata nel browser: chi mette il
@@ -37,6 +38,7 @@ function fallbackOf(data: CalculatorData): HeroBuild {
 function readRaw(key: string): string | null {
   if (memory.has(key)) return memory.get(key)!;
   try {
+    moveLegacyStorage();
     return window.localStorage.getItem(key);
   } catch {
     return null;

@@ -6,6 +6,8 @@
  * lasciare un commento o consiglio facoltativo.
  */
 
+import type { Role } from "@/lib/auth/permissions";
+
 export const BEST_CONTENTS = {
   pvp: {
     key: "pvp",
@@ -45,6 +47,16 @@ export type BestContentKey = keyof typeof BEST_CONTENTS;
 
 export const BEST_CONTENT_KEYS = Object.keys(BEST_CONTENTS) as readonly BestContentKey[];
 
+export function isBestContentKey(value: string): value is BestContentKey {
+  return Object.hasOwn(BEST_CONTENTS, value);
+}
+
+/**
+ * Lunghezza massima del commento. Un numero solo per il modulo, che taglia
+ * mentre si scrive, e per il controllo sul server, che non si fida del modulo.
+ */
+export const COMMENT_MAX_LENGTH = 280;
+
 export interface UserRatingRecord {
   id: string;
   pveScore: number;
@@ -61,7 +73,7 @@ export interface CommunityRatingEntry {
     id: string;
     username: string;
     displayName: string;
-    role: string;
+    role: Role;
     accent?: string | null;
   };
   pveScore: number;

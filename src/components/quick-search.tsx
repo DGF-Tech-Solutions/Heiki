@@ -24,6 +24,7 @@ import { cx, eyebrow, MoreArrow } from "@/components/ui";
 import { heroCardSrc } from "@/lib/games/heroes";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
+import { moveLegacyStorage } from "@/lib/legacy-storage";
 import { quickSearch, type QuickIndex, type QuickResult } from "@/lib/quick-search";
 
 const TESTI = testi({
@@ -75,6 +76,7 @@ const recentKey = (game: string) => `heiki:${game}:recenti`;
 
 /** La scheda di un eroe lo segna fra i recenti (hero-arrow-keys.tsx lo chiama). */
 export function rememberHero(game: string, heroId: string): void {
+  moveLegacyStorage();
   try {
     const key = recentKey(game);
     const list = (JSON.parse(window.localStorage.getItem(key) ?? "[]") as unknown[]).filter(
@@ -87,6 +89,7 @@ export function rememberHero(game: string, heroId: string): void {
 }
 
 function readRecent(game: string): string[] {
+  moveLegacyStorage();
   try {
     const list = JSON.parse(window.localStorage.getItem(recentKey(game)) ?? "[]") as unknown[];
     return list.filter((id): id is string => typeof id === "string").slice(0, 6);

@@ -11,8 +11,9 @@
  * comportamento che la gente odia.
  */
 
+import { moveLegacyStorage } from "@/lib/legacy-storage";
+
 export const CONSENT_KEY = "heiki:cookie-consent";
-const OLD_CONSENT_KEY = "gachazone:cookie-consent";
 
 export type ConsentState = "unset" | "granted" | "denied";
 
@@ -30,8 +31,9 @@ export const CONSENT_VERSION = 1;
 export function readConsent(): ConsentState {
   if (typeof window === "undefined") return "unset";
 
+  moveLegacyStorage();
   try {
-    const raw = window.localStorage.getItem(CONSENT_KEY) ?? window.localStorage.getItem(OLD_CONSENT_KEY);
+    const raw = window.localStorage.getItem(CONSENT_KEY);
     if (!raw) return "unset";
 
     const parsed = JSON.parse(raw) as Partial<ConsentRecord>;
