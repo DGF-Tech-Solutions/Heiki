@@ -231,14 +231,12 @@ export async function saveStrategyAction(
 
   if (status === "IN_REVIEW") {
     after(async () => {
+      // dove (modalita', bersaglio, difficolta') e' un dato del gioco; autore e
+      // titolo, scritti da una persona, restano nella coda del sito (25/10)
       await notifyModerators({
         title: "Nuova guida dell'Endgame da rivedere",
         path: "/moderazione#guide",
-        fields: [
-          { name: "Autore", value: viewer.username },
-          { name: "Dove", value: selectionLabel(gameModule, draft, "it") },
-          { name: "Titolo", value: draft.title },
-        ],
+        fields: [{ name: "Dove", value: selectionLabel(gameModule, draft, "it") }],
       });
     });
   }

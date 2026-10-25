@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "./login-form";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
+import { PrivacyNote } from "@/components/legal/privacy-note";
 import { Button, display } from "@/components/ui";
 import { enabledOauthProviders } from "@/lib/auth/config";
 import { auth, signIn } from "@/lib/auth";
@@ -85,6 +86,8 @@ export default async function LoginPage() {
                 </Button>
               </form>
             ))}
+            {/* il primo accesso con un fornitore crea l'account: l'informativa va data qui (art. 13 GDPR) */}
+            <PrivacyNote variant="oauth" className="mt-3" />
           </>
         ) : null}
 

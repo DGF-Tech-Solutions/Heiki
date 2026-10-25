@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RegisterForm } from "./register-form";
 import { DemoNotice, SetupHint } from "@/components/demo-notice";
+import { PrivacyNote } from "@/components/legal/privacy-note";
 import { display } from "@/components/ui";
 import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
@@ -70,6 +71,8 @@ export default async function RegisterPage() {
       <div className="p5-corner border border-rule bg-paper-2 p-6 sm:p-7">
         <DemoNotice />
         <RegisterForm demoMode={demoMode} />
+        {/* l'informativa va data quando si raccolgono i dati, accanto al modulo (art. 13 GDPR) */}
+        <PrivacyNote variant="signup" className="mt-3" />
         <SetupHint />
 
         <p className="mt-4.5 border-t border-rule-2 pt-4 text-[13px] text-ink-2">

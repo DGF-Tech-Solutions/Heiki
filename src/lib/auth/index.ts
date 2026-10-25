@@ -16,7 +16,7 @@ import { db } from "@/lib/db";
 import { accounts, profiles, sessions, users, verificationTokens } from "@/lib/db/schema";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/security/client-ip";
-import { authConfig } from "./config";
+import { authConfig, SESSION_ABSOLUTE_MAX_DAYS } from "./config";
 import { isReservedHandle } from "./handles";
 import { EMAIL_MAX_CHARS, LOGIN_MAX_CHARS } from "./password-policy";
 import { isRole } from "./permissions";
@@ -58,6 +58,26 @@ const adapter: Adapter = {
       .onConflictDoNothing();
     return created;
   },
+
+  /**
+   * Il collegamento con Discord o Google: si tengono il fornitore e l'id della
+   * persona presso di lui, che bastano a riconoscerla al prossimo accesso. Fino
+   * al 25/10 l'adapter salvava anche i gettoni (accesso, rinnovo, identita'),
+   * in chiaro, che il sito non usa: con quello di rinnovo di Discord chi leggeva
+   * il database poteva chiedere a Discord profilo ed email, e l'id_token di
+   * Google porta nome e cognome veri. Scelta dell'utente: non si salvano piu',
+   * e quelli gia' salvati li azzera la pulizia (src/lib/legal/retention-job.ts).
+   */
+  async linkAccount(account) {
+    const link = baseAdapter.linkAccount;
+    if (!link) throw new Error("Adapter senza linkAccount");
+    await link({
+      userId: account.userId,
+      type: account.type,
+      provider: account.provider,
+      providerAccountId: account.providerAccountId,
+    });
+  },
 };
 
 /**
@@ -84,7 +104,7 @@ const RECHECK_SECONDS = 60;
  * Da quanto puo' valere un gettone senza un accesso vero (password o OAuth):
  * la sessione si rinnova a ogni visita, ma dopo 60 giorni si rientra.
  */
-const ABSOLUTE_MAX_SECONDS = 60 * 24 * 60 * 60;
+const ABSOLUTE_MAX_SECONDS = SESSION_ABSOLUTE_MAX_DAYS * 24 * 60 * 60;
 
 /**
  * Un'impronta bcrypt di una password che nessuno ha: si confronta anche quando

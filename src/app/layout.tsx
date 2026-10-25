@@ -4,6 +4,9 @@ import { Archivo, Atkinson_Hyperlegible_Next, Geist_Mono } from "next/font/googl
 import { SiteHeader } from "@/components/site-header";
 import { BackToTop } from "@/components/back-to-top";
 import { CookieBanner } from "@/components/cookie-banner";
+import { CONSENT_REQUIRED } from "@/lib/consent";
+import { LEGAL_DOCUMENTS } from "@/lib/legal/documents";
+import { OPERATOR } from "@/lib/legal/operator";
 import { gameGroups, listGames } from "@/lib/games/catalog";
 import { LocaleProvider } from "@/lib/i18n/client";
 import { ogLocale, testi } from "@/lib/i18n/locale";
@@ -57,26 +60,16 @@ const TESTI = testi({
     descrizione: "Schede degli eroi, dati e meccaniche lette dal gioco, e community per i giochi gacha.",
     salta: "Salta al contenuto",
     collegamenti: "Collegamenti del sito",
-    footer: [
-      { href: "/premium", label: "Premium" },
-      { href: "/legale/privacy", label: "Privacy" },
-      { href: "/legale/termini", label: "Termini" },
-      { href: "/legale/cookie", label: "Cookie" },
-    ],
-    affiliazione: `${SITE_NAME} non è affiliato né approvato da Netmarble, HoYoverse o Kuro Games. Tutti i marchi, i nomi e i contenuti di gioco appartengono ai rispettivi proprietari.`,
+    affiliazione: `${SITE_NAME} è un sito di fan, gratuito e non ufficiale: non è affiliato, sponsorizzato né approvato da Netmarble, Kodansha o dagli altri titolari dei diritti dei giochi citati. Nomi, marchi, immagini e testi dei giochi appartengono ai rispettivi titolari.`,
+    partitaIva: "P.IVA",
   },
   en: {
     titolo: `${SITE_NAME}: hero pages, data and community for gacha games`,
     descrizione: "Hero pages, data and mechanics read from the game, and community for gacha games.",
     salta: "Skip to content",
     collegamenti: "Site links",
-    footer: [
-      { href: "/premium", label: "Premium" },
-      { href: "/legale/privacy", label: "Privacy" },
-      { href: "/legale/termini", label: "Terms" },
-      { href: "/legale/cookie", label: "Cookies" },
-    ],
-    affiliazione: `${SITE_NAME} is not affiliated with or endorsed by Netmarble, HoYoverse or Kuro Games. All trademarks, names and game content belong to their respective owners.`,
+    affiliazione: `${SITE_NAME} is a free, unofficial fan site: it is not affiliated with, sponsored or endorsed by Netmarble, Kodansha or the other rights holders of the games mentioned. Game names, trademarks, images and text belong to their respective owners.`,
+    partitaIva: "VAT",
   },
 });
 
@@ -144,7 +137,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             le voci legali, e da fondo pagina non si andava da nessuna parte. Sul
             telefono lascia lo spazio della barra in basso.
           */}
-          <footer className="border-t-[3px] border-brand bg-paper pt-8 pb-10 text-xs text-ink-3 max-lg:pb-24">
+          <footer className="border-t-[3px] border-mark bg-paper pt-8 pb-10 text-xs text-ink-3 max-lg:pb-24">
             <div className="mx-auto w-full max-w-shell px-6">
               {listGames()
                 .filter((game) => game.available)
@@ -157,7 +150,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                           {group.items.map((item) => (
                             <li key={item.path}>
                               <Link
-                                href={`/${game.slug}${item.path}`}
+                                href={item.href}
                                 className="font-display text-[13px] font-extrabold uppercase text-ink-2 [font-variation-settings:'wdth'_85] hover:text-brand-deep"
                               >
                                 {item.label}
@@ -169,19 +162,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     ))}
                   </nav>
                 ))}
-              <nav aria-label={t.collegamenti} className="mb-4 flex flex-wrap gap-4 border-t border-rule-2 pt-4">
-                {t.footer.map((link) => (
-                  <Link key={link.href} href={link.href} className="font-medium hover:text-brand-deep">
-                    {link.label}
+              {/* i documenti legali, coi nomi e l'ordine di LEGAL_DOCUMENTS (gli stessi delle schede di /legale);
+                  «Premium» tolto il 25/10 finché non si può pagare: la pagina resta raggiungibile */}
+              <nav aria-label={t.collegamenti} className="mb-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-rule-2 pt-4">
+                {LEGAL_DOCUMENTS.map((doc) => (
+                  // sul telefono ogni voce e' alta 44px: andando a capo, zone di tocco
+                  // sovrapposte (tapArea) si ruberebbero il dito fra una riga e l'altra
+                  <Link key={doc.href} href={doc.href} className="inline-flex items-center font-medium hover:text-brand-deep pointer-coarse:min-h-11">
+                    {doc.label[locale]}
                   </Link>
                 ))}
               </nav>
 
               <p className="m-0 max-w-[76ch]">{t.affiliazione}</p>
+              {/* la partita IVA va nella home page del sito (art. 35 del D.P.R. 633/1972): nel piè di pagina sta in tutte */}
+              {OPERATOR.name && OPERATOR.vatNumber ? (
+                <p className="m-0 mt-2">
+                  © {new Date().getFullYear()} {OPERATOR.name} · {t.partitaIva} {OPERATOR.vatNumber}
+                </p>
+              ) : null}
             </div>
           </footer>
 
-          <CookieBanner />
+          {/* il banner c'e' solo quando il sito ha qualcosa che chiede consenso: oggi no (vedi consent.ts) */}
+          {CONSENT_REQUIRED ? <CookieBanner /> : null}
           <BackToTop />
         </LocaleProvider>
       </body>

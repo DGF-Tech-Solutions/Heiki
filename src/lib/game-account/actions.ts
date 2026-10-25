@@ -23,7 +23,6 @@ import {
   gameAccounts,
   modActions,
   notifications,
-  users,
   powerVerifications,
   verificationScreenshots,
 } from "@/lib/db/schema";
@@ -31,7 +30,6 @@ import { parseSetup, type AccountSetup } from "@/lib/games/account-setup";
 import { notifyModerators } from "@/lib/discord";
 import { requireActive, suspensionFor } from "@/lib/moderation/suspension";
 import { boxLimitsFrom, boxToJson, parseBox, type HeroBox } from "@/lib/games/hero-box";
-import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { getGameModule } from "@/lib/games/registry";
 import {
   cleanProfile,
@@ -398,20 +396,10 @@ export async function submitScreenshotAction(formData: FormData): Promise<Verifi
   });
 
   // L'avviso ai moderatori su Discord, dopo la risposta: chi carica non aspetta
-  // Discord, e se Discord non risponde la schermata e' comunque in coda
-  const heroId = current.challengeHeroId;
+  // Discord, e se Discord non risponde la schermata e' comunque in coda. Senza
+  // dati della persona (25/10): chi e' e che classe dichiara si leggono nella coda
   after(async () => {
-    const who = await db.query.users.findFirst({ where: eq(users.id, viewer.id), columns: { username: true } });
-    const hero = getGameModule(gameSlug)?.roster?.heroes.find((h) => h.id === heroId);
-    await notifyModerators({
-      title: "Nuova schermata da verificare",
-      path: "/moderazione",
-      fields: [
-        { name: "Utente", value: who?.username ?? "?" },
-        { name: "Classe dichiarata", value: power.toLocaleString("it-IT") },
-        { name: "Eroe del giorno", value: hero ? `${heroName(hero, "it")} · ${heroEpithet(hero, "it")}` : heroId },
-      ],
-    });
+    await notifyModerators({ title: "Nuova schermata da verificare", path: "/moderazione" });
   });
 
   revalidatePath("/moderazione");

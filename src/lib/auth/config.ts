@@ -51,13 +51,22 @@ export function enabledOauthProviders(): readonly { id: string; label: string }[
   return enabled;
 }
 
+/**
+ * Le durate della sessione, esportate perche' la pagina /legale/cookie le
+ * scrive: un numero solo, e la pagina non puo' restare indietro se cambia.
+ * 14 giorni rinnovati a ogni visita; dopo 60 giorni dall'ultimo accesso vero
+ * (password o OAuth) si rientra comunque (callback jwt di ./index.ts).
+ */
+export const SESSION_DAYS = 14;
+export const SESSION_ABSOLUTE_MAX_DAYS = 60;
+
 export const authConfig = {
   // Sessione su JWT: obbligatorio per il provider a credenziali, e permette al
   // middleware di validare senza interrogare il database a ogni richiesta.
   // 14 giorni, rinnovati a ogni visita: chi usa il sito non esce mai, un cookie
   // rubato a qualcuno che non torna smette di valere. Il tetto assoluto (60
   // giorni dall'ultimo accesso vero) sta nel callback jwt di ./index.ts.
-  session: { strategy: "jwt", maxAge: 14 * 24 * 60 * 60 },
+  session: { strategy: "jwt", maxAge: SESSION_DAYS * 24 * 60 * 60 },
   pages: {
     signIn: "/entra",
     error: "/entra",

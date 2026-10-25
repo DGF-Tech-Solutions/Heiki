@@ -3,6 +3,7 @@ import { siteUrl } from "@/lib/site";
 import { gameGroups, listGames } from "@/lib/games/catalog";
 import { getGameModule } from "@/lib/games/registry";
 import { databaseReachable, db } from "@/lib/db";
+import { LEGAL_DOCUMENTS } from "@/lib/legal/documents";
 
 /**
  * Mappa del sito.
@@ -35,9 +36,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     { url: base, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${base}/premium`, changeFrequency: "monthly", priority: 0.4 },
-    { url: `${base}/legale/privacy`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${base}/legale/termini`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${base}/legale/cookie`, changeFrequency: "yearly", priority: 0.2 },
+    // i documenti legali con la data della loro ultima modifica vera
+    ...LEGAL_DOCUMENTS.map((doc) => ({
+      url: `${base}${doc.href}`,
+      lastModified: new Date(`${doc.updated}T12:00:00Z`),
+      changeFrequency: "yearly" as const,
+      priority: 0.2,
+    })),
   ];
 
   for (const game of listGames()) {

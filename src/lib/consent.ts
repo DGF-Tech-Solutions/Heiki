@@ -28,6 +28,20 @@ export interface ConsentRecord {
 /** Versione delle categorie: alzandola si richiede di nuovo il consenso. */
 export const CONSENT_VERSION = 1;
 
+/**
+ * Se il sito ha qualcosa per cui serve il consenso. Oggi no: solo cookie
+ * tecnici (accesso, lingua, tema) e dati nel browser messi per una scelta di
+ * chi legge, che per le linee guida del Garante del 10/06/2021 non chiedono
+ * consenso. Il banner chiedeva di accettare una pubblicita' che non c'era, e un
+ * consenso dato a qualcosa di futuro e indeterminato non vale: l'utente l'ha
+ * tolto il 25/10, lasciando il meccanismo pronto.
+ *
+ * Quando arrivera' la pubblicita' (o una statistica che non sia anonima):
+ * `true` qui, i cookie nuovi nella tabella di /legale/cookie, CONSENT_VERSION
+ * alzata, e niente si installa prima della risposta.
+ */
+export const CONSENT_REQUIRED = false;
+
 export function readConsent(): ConsentState {
   if (typeof window === "undefined") return "unset";
 

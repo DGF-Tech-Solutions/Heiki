@@ -12,9 +12,12 @@
  *                                 (Discord: Impostazioni canale > Integrazioni >
  *                                 Webhook). Senza, nessun avviso e nessun errore.
  *
- * Cosa NON parte: la schermata (resta sul sito e si cancella alla decisione, come
- * dice l'informativa: su Discord resterebbe), l'email, il Codice amico. Il
- * messaggio dice chi, che eroe, che classe, e porta alla coda del sito.
+ * Cosa NON parte: nessun dato delle persone. Fino al 25/10 il messaggio diceva
+ * chi (l'handle), la classe dichiarata e l'eroe del giorno, o l'autore e il
+ * titolo di una guida: Discord sta negli Stati Uniti, e ogni handle diventava un
+ * dato personale mandato fuori dall'UE da dichiarare nell'informativa. Ora
+ * l'avviso dice solo che c'e' qualcosa da guardare e dove; chi e cosa li legge
+ * il moderatore nella coda del sito, dietro l'accesso. Scelta dell'utente.
  */
 
 import { siteUrl } from "@/lib/site";
@@ -27,7 +30,12 @@ interface Field {
 /** Manda un messaggio al canale dei moderatori. Non lancia mai: un avviso perso non ferma niente. */
 export async function notifyModerators(message: {
   title: string;
-  fields: readonly Field[];
+  /**
+   * Solo dati del gioco (per esempio la modalita' e la difficolta' di una
+   * guida), mai dati delle persone: niente handle, classe dichiarata, testi
+   * scritti dagli utenti. Vedi la nota in cima.
+   */
+  fields?: readonly Field[];
   path: string;
 }): Promise<boolean> {
   const url = process.env.DISCORD_WEBHOOK_MODERAZIONE;
@@ -46,7 +54,7 @@ export async function notifyModerators(message: {
             title: message.title.slice(0, 256),
             url: link,
             color: 0xe61421,
-            fields: message.fields.slice(0, 10).map((f) => ({
+            fields: (message.fields ?? []).slice(0, 10).map((f) => ({
               name: f.name.slice(0, 256),
               value: f.value.slice(0, 1024) || "—",
               inline: true,
