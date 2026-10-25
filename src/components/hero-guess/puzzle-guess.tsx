@@ -154,7 +154,7 @@ export function PuzzleGuess({
           <h2 className={cx(display, "m-0 text-[clamp(20px,2.6vw,26px)]")}>{t.domanda[kind]}</h2>
           {kind === "carta" && card ? (
             <figure className="m-0 mt-3">
-              <div className="w-fit overflow-hidden border border-rule bg-paper-2 shadow-[5px_5px_0_var(--color-brand)]">
+              <div className="w-fit overflow-hidden border border-rule bg-paper-2 shadow-[5px_5px_0_var(--color-mark)]">
                 <MosaicImage
                   src={heroCardArtSrc(game, answer.id, card.sprite)}
                   width={180}
@@ -173,7 +173,7 @@ export function PuzzleGuess({
             </figure>
           ) : null}
           {kind === "unica" ? (
-            <div className="mt-3 grid h-[148px] w-[148px] place-items-center border border-rule bg-paper-2 shadow-[5px_5px_0_var(--color-brand)]">
+            <div className="mt-3 grid h-[148px] w-[148px] place-items-center border border-rule bg-paper-2 shadow-[5px_5px_0_var(--color-mark)]">
               {answer.uniqueIcon ? (
                 <MosaicImage
                   src={heroSkillIconSrc(game, answer.id)}

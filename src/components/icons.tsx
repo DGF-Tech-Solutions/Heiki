@@ -21,8 +21,10 @@ import type { ComponentType, SVGProps } from "react";
 import { rem } from "@/lib/rem";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { ArrowUpIcon } from "@phosphor-icons/react/dist/ssr/ArrowUp";
+import { BellIcon } from "@phosphor-icons/react/dist/ssr/Bell";
 import { CakeIcon } from "@phosphor-icons/react/dist/ssr/Cake";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/ssr/CalendarBlank";
+import { CaretDownIcon } from "@phosphor-icons/react/dist/ssr/CaretDown";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import { CardsThreeIcon } from "@phosphor-icons/react/dist/ssr/CardsThree";
@@ -84,6 +86,8 @@ function make(Base: PhosphorIcon, defaults: { size?: number; weight?: Weight } =
 }
 
 export const IconChevronLeft = /*#__PURE__*/ make(CaretLeftIcon);
+export const IconChevronDown = /*#__PURE__*/ make(CaretDownIcon, { size: 14 });
+export const IconBell = /*#__PURE__*/ make(BellIcon);
 export const IconChevronRight = /*#__PURE__*/ make(CaretRightIcon);
 export const IconArrowRight = /*#__PURE__*/ make(ArrowRightIcon, { size: 14 });
 export const IconArrowUp = /*#__PURE__*/ make(ArrowUpIcon);

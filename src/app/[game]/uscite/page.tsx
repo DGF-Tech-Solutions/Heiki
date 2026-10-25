@@ -276,7 +276,7 @@ export default async function ReleasesPage({ params, searchParams }: Props) {
       */}
       <nav
         aria-label={t.anni}
-        className="sticky top-[61px] z-20 -mx-1 mb-6 flex gap-1 overflow-x-auto border-b-2 border-brand bg-paper px-1 py-1.5 [scrollbar-width:none]"
+        className="sticky top-[61px] z-20 -mx-1 mb-6 flex gap-1 overflow-x-auto border-b-2 border-mark bg-paper px-1 py-1.5 [scrollbar-width:none]"
       >
         {years.map((group) => (
           <a key={group.year} href={`#anno-${group.year}`} className={chipClass(false, false, cx(numeric, "shrink-0"))}>

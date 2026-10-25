@@ -1240,7 +1240,7 @@ export function TierListMaker({
                               onClick={() => handleRemoveHero(hero.id)}
                               title={t.rimuoviDalTier}
                               aria-label={t.rimuoviEroe(hero.name)}
-                              className="absolute -top-1.5 -right-1.5 z-20 hidden size-6 cursor-pointer place-items-center bg-ink text-paper group-focus-within:grid group-hover:grid hover:bg-brand hover:text-white pointer-coarse:hidden!"
+                              className="absolute -top-1.5 -right-1.5 z-20 hidden size-6 cursor-pointer place-items-center bg-plate text-on-plate group-focus-within:grid group-hover:grid hover:bg-brand hover:text-on-brand pointer-coarse:hidden!"
                             >
                               <IconClose size={12} />
                             </button>
@@ -1392,7 +1392,7 @@ export function TierListMaker({
               "min-w-0 border border-rule bg-paper-2 p-3",
               // telefono: ferma in fondo, sopra la barra del sito (58 px, misurata il
               // 24/10): 56 la fa passare 2 px sotto la barra, invece di lasciare una fessura
-              "max-lg:sticky max-lg:bottom-[calc(56px+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:border-t-2 max-lg:border-t-brand max-lg:shadow-[0_-10px_24px_rgba(0,0,0,0.55)]",
+              "max-lg:sticky max-lg:bottom-[calc(56px+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:border-t-2 max-lg:border-t-mark max-lg:shadow-[0_-10px_24px_rgba(0,0,0,0.55)]",
               // computer: ferma sotto l'intestazione (61 px), alta quanto la colonna e al massimo quanto lo schermo
               "lg:sticky lg:top-[77px] lg:flex lg:h-full lg:max-h-[calc(100dvh-93px)] lg:flex-col lg:p-4",
             )}
@@ -1538,7 +1538,7 @@ export function TierListMaker({
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node | null)) armUndoTimer(UNDO_AFTER_PAUSE_MS);
             }}
-            className="pointer-events-auto flex max-w-[34rem] items-center gap-3 border-2 border-ink bg-paper py-1.5 pr-1.5 pl-4 text-[14px] leading-snug text-ink shadow-[6px_6px_0_0_var(--color-brand)]"
+            className="pointer-events-auto flex max-w-[34rem] items-center gap-3 border-2 border-ink bg-paper py-1.5 pr-1.5 pl-4 text-[14px] leading-snug text-ink shadow-[6px_6px_0_0_var(--color-mark)]"
           >
             <span className="min-w-0">{undo.message}</span>
             <button

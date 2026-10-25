@@ -210,7 +210,7 @@ function Slot({
           aria-label={t.togliTitolo(hero.name)}
           title={t.togliTitolo(hero.name)}
           className={cx(
-            "p5-btn absolute grid h-9 w-9 cursor-pointer place-items-center border-0 [--btn-bg:color-mix(in_srgb,var(--color-paper)_85%,transparent)] [--btn-fg:var(--color-ink)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:#fff]",
+            "p5-btn absolute grid h-9 w-9 cursor-pointer place-items-center border-0 [--btn-bg:color-mix(in_srgb,var(--color-paper)_85%,transparent)] [--btn-fg:var(--color-ink)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:var(--color-on-brand)]",
             small ? "top-1/2 right-0.5 -translate-y-1/2" : "top-1.5 right-1.5",
           )}
         >
@@ -313,7 +313,7 @@ export function HeroPicker({
     <section
       ref={panel}
       aria-label={title}
-      className="p5-corner mt-5 max-w-[1100px] scroll-mt-24 scroll-mb-40 border border-rule border-t-[3px] border-t-brand bg-paper-2 p-3 sm:p-4"
+      className="p5-corner mt-5 max-w-[1100px] scroll-mt-24 scroll-mb-40 border border-rule border-t-[3px] border-t-mark bg-paper-2 p-3 sm:p-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="m-0 font-display text-[20px] leading-tight font-black uppercase [font-variation-settings:'wdth'_80]">{title}</h3>

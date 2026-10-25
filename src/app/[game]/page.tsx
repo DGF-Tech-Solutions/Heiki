@@ -157,7 +157,7 @@ export default async function GameHubPage({ params }: Props) {
             sotto i conteggi, coi numeri nel monospaziato. Il filo rosso e' quello
             delle testate delle altre pagine (PageHeader).
           */}
-          <header className="border-b-2 border-brand pb-3">
+          <header className="border-b-2 border-mark pb-3">
             <h1 className={cx(display, "text-[clamp(24px,2.2vw,30px)]")}>{entry.name}</h1>
             <p className="m-0 mt-2 text-[13px] text-ink-2">
               {t.riga(
@@ -183,11 +183,11 @@ export default async function GameHubPage({ params }: Props) {
                 const labelId = `hub-gruppo-${index}`;
                 return (
                   <li key={group.label} className="hub-command" style={{ "--i": index } as React.CSSProperties}>
-                    <p id={labelId} className={cx(eyebrow, "p5-cut-sm m-0 mb-2 block w-fit bg-ink px-2.5 py-0.5 text-paper")}>
+                    <p id={labelId} className={cx(eyebrow, "p5-cut-sm m-0 mb-2 block w-fit bg-plate px-2.5 py-0.5 text-on-plate")}>
                       {group.label}
                     </p>
                     <Link
-                      href={`/${game}${main.path}`}
+                      href={main.href}
                       title={main.hint}
                       className={cx("hub-command-link p5-menu-item", `hub-command--${Math.min(index, 4)}`)}
                     >
@@ -199,7 +199,7 @@ export default async function GameHubPage({ params }: Props) {
                           <li key={item.path}>
                             {/* alte 32px e non 20: si prendono col pollice */}
                             <Link
-                              href={`/${game}${item.path}`}
+                              href={item.href}
                               title={item.hint}
                               className="inline-block py-1.5 font-display text-[16px] font-extrabold uppercase tracking-[0.02em] text-ink-2 [font-variation-settings:'wdth'_82] hover:text-brand-deep"
                             >
@@ -249,7 +249,7 @@ export default async function GameHubPage({ params }: Props) {
 
       {heroes.length > 1 ? (
         <section aria-labelledby="hub-ultimi" className="mt-14">
-          <div className="mb-4 flex items-baseline justify-between gap-3 border-b-2 border-brand pb-2">
+          <div className="mb-4 flex items-baseline justify-between gap-3 border-b-2 border-mark pb-2">
             <h2 id="hub-ultimi" className={cx(display, "text-2xl")}>
               {t.ultimi}
             </h2>
@@ -285,7 +285,7 @@ export default async function GameHubPage({ params }: Props) {
       */}
       {update && when ? (
         <section aria-labelledby="hub-aggiornamento" className="mt-12">
-          <div className="mb-4 flex items-baseline justify-between gap-3 border-b-2 border-brand pb-2">
+          <div className="mb-4 flex items-baseline justify-between gap-3 border-b-2 border-mark pb-2">
             <h2 id="hub-aggiornamento" className={cx(display, "text-2xl")}>
               {next ? t.prossimo : t.ultimo}
             </h2>

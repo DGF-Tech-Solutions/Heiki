@@ -81,7 +81,7 @@ export function StrategyView({
 
   return (
     <div>
-      <div className="p5-corner flex flex-wrap items-center gap-x-4 gap-y-2 border border-rule border-l-4 border-l-brand bg-paper-2 px-3.5 py-2.5">
+      <div className="p5-corner flex flex-wrap items-center gap-x-4 gap-y-2 border border-rule border-l-4 border-l-mark bg-paper-2 px-3.5 py-2.5">
         <KindTag kind={kind} phases={written.length} locale={locale} />
         <span className="min-w-0">
           {/* Re Demone e Divinita' hanno un bersaglio solo: il nome della modalita' e' gia' nell'etichetta */}

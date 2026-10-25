@@ -39,31 +39,78 @@
  */
 
 /*
- * 27/09 — direzione «Persona»: nero pieno, bianco carta, UN rosso. I grigi
- * perdono la tinta blu da software gestionale e diventano neutri caldi, perche'
- * accanto al rosso il blu-grigio sporca; il rosso e' quello pieno delle
- * copertine, non un corallo (e abbastanza scuro da reggere il bianco sopra). La forma la danno i tagli obliqui (.p5-*, sotto):
- * parallelogrammi, ombre piene sfalsate, trama a retino. I colori del GIOCO
- * (attributi, tinte delle abilita') restano fuori da tutto questo.
+ * 25/10: il predefinito e' il tema «Classico», nero, bianco e grigio (richiesta
+ * dell'utente: «colori classici», con gli altri temi ancora da scegliere). Le
+ * forme restano quelle «Persona» del 27/09 (tagli obliqui, ombre piene
+ * sfalsate, retino): cambiano solo i colori. I colori del GIOCO (attributi,
+ * tinte delle abilita') restano fuori da tutto questo.
+ *
+ * I gettoni del ruolo, in tutti i temi:
+ *  - `paper`, `paper-2`, `paper-3`: il fondo e i riquadri, dal piu' scuro
+ *  - `ink`, `ink-2`, `ink-3`: il testo, dal piu' forte
+ *  - `rule`, `rule-2`: i fili
+ *  - `brand`: l'ACCENTO, che dice «sei qui» e «l'azione della pagina» (voce
+ *    attiva, pulsante principale, scelta del rango). `on-brand` e' il testo
+ *    sopra: bianco sui temi colorati, nero nel Classico, dove l'accento e' bianco
+ *  - `brand-deep`: l'accento per il testo piccolo sul fondo; `brand-soft`: il
+ *    fondo tinto di una riga scelta
+ *  - `mark`: l'accento DECORATIVO (ombre sfalsate dei pannelli, ombra dei titoli,
+ *    retino, righe sotto le intestazioni). Nei temi colorati e' l'accento; nel
+ *    Classico e' un grigio medio: un'ombra bianca dietro un titolo bianco si
+ *    impastava, e il bianco ovunque toglieva forza alla voce attiva
+ *  - `plate`: il BLOCCO NEUTRO (pulsanti secondari, targhette dei gruppi, campi
+ *    di ricerca, la lama del passaggio sulle voci di menu); `on-plate` il testo
+ *    sopra. Nei temi colorati e' il bianco carta; nel Classico un grigio, cosi'
+ *    il bianco resta all'accento e il secondario non si confonde col principale
+ * Le scelte (chip dei filtri, lingua) restano chiare in tutti i temi: `ink`.
  */
 @theme {
-  --color-paper: #0b0a0a;
-  --color-paper-2: #151313;
-  --color-paper-3: #221f1f;
+  /*
+   * Il Classico: neutri senza tinta. Il fondo e' lo stesso nero quasi pieno
+   * degli altri temi (luminanza 0,003), cosi' i colori del gioco ci stanno
+   * sopra come li stampa lui
+   */
+  --color-paper: #000000;
+  --color-paper-2: #0b0b0b;
+  --color-paper-3: #171717;
 
-  --color-ink: #f6f3ee;
-  /* i grigi del testo secondario schiariti: le descrizioni sono in ink-2 */
-  --color-ink-2: #d9d3cb;
-  --color-ink-3: #a59e95;
+  --color-ink: #ffffff;
+  --color-ink-2: #d4d4d4;
+  --color-ink-3: #a3a3a3;
 
-  --color-rule: #332e2d;
-  --color-rule-2: #1f1b1b;
+  --color-rule: #2b2b2b;
+  --color-rule-2: #161616;
+  /*
+   * Il bordo dei campi (testo, scelta, area di testo): un campo si riconosce dal
+   * bordo, e il bordo deve fare 3:1 sul fondo (WCAG 1.4.11). `rule` faceva 1,2-1,5
+   * in tutti i temi; questo fa almeno 3,1 su paper-3 e 3,5 su paper e paper-2.
+   * Ogni tema ha il suo, dal grigio della sua tinta (25/10)
+   */
+  --color-rule-strong: #6c6c6c;
 
-  /* #e61421 e non un rosso piu' acceso: il bianco sopra deve fare almeno 4.5:1
-     (4.7:1), e i bottoni e le voci attive sono bianco su rosso */
-  --color-brand: #e61421;
-  --color-brand-deep: #ff5560;
-  --color-brand-soft: #3d0a0e;
+  --color-brand: #ffffff;
+  --color-brand-deep: #ffffff;
+  --color-brand-soft: #262626;
+  --color-on-brand: #000000;
+  /* il grigio decorativo, piu' scuro (25/10 sera: «il grigio va bene ma dev'essere meno presente»): 3,1:1 sul nero */
+  --color-mark: #5c5c5c;
+  /* il blocco neutro quasi bianco, col testo nero: targhette, passaggio sulle voci, pulsanti secondari */
+  --color-plate: #e6e6e6;
+  --color-on-plate: #000000;
+  /*
+   * La scelta (chip dei filtri, lingua, livelli, modalita' attiva): nel Classico
+   * un grigio scuro col filo bianco (chipColors), perche' il bianco pieno resta
+   * all'azione principale: con le scelte bianche come l'accento, in una vista
+   * c'erano cinque blocchi bianchi uguali (critica della ricerca, 25/10). Negli
+   * altri temi e' il chip chiaro di prima: ink su paper
+   */
+  --color-select: #2b2b2b;
+  --color-on-select: #ffffff;
+  /*
+   * La lama del palco e dell'anteprima (25/10 sera): bianca nel Classico, col
+   * retino nero sopra, come una tavola di manga; negli altri temi e' l'accento
+   */
+  --color-stage: #ffffff;
 
   --color-hot: #ff4f9a;
   --color-hot-soft: #3a1224;
@@ -99,28 +146,32 @@
 /*
  * I temi (11/10): le varianti di colore che sceglie chi legge, una per blocco.
  * Il layout radice mette il tema su <html> (`data-theme`, dal cookie `tema`);
- * «persona» non ha un blocco perche' e' `@theme` qui sopra. L'elenco dei temi e
- * i loro nomi stanno in src/lib/theme/themes.ts.
+ * «classico» non ha un blocco perche' e' `@theme` qui sopra (dal 25/10: prima il
+ * predefinito era il rosso «persona», che ora e' un blocco come gli altri, e chi
+ * l'aveva scelto lo ritrova). L'elenco dei temi e i loro nomi stanno in
+ * src/lib/theme/themes.ts.
  *
- * Ogni blocco ridefinisce TUTTI gli undici token del ruolo, anche quelli che
- * cambiano poco: un tema che ne dimentica uno prenderebbe il grigio caldo del
- * rosso, e il test lo ferma. Restano fuori di proposito `hot`, `gold`, `up` e
+ * Ogni blocco ridefinisce TUTTI i diciannove gettoni del ruolo, anche quelli che
+ * cambiano poco: un tema che ne dimentica uno prenderebbe il grigio del
+ * Classico, e il test lo ferma. Restano fuori di proposito `hot`, `gold`, `up` e
  * `down`: sono significati (avviso, premium, sale, scende), non l'accento, e
  * un rosa che diventa blu col tema smetterebbe di dire «attenzione».
  *
  * Le regole, uguali per tutti, misurate per ognuno (rapporti WCAG):
  *  - il fondo resta quasi nero (luminanza 0,003 come il rosso): i colori del
  *    gioco ci stanno sopra come li stampa lui
- *  - i grigi prendono un filo della tinta dell'accento, come i neutri caldi
- *    accanto al rosso: il grigio caldo accanto al blu sporca allo stesso modo
- *  - `brand` regge il BIANCO sopra ad almeno 4,5:1 (bottoni, voci attive,
- *    etichette: in tutto il sito il testo sull'accento e' bianco, anche in
- *    pagine che i temi non toccano), e sul fondo fa almeno 3:1 come blocco e
- *    come filo. Per questo niente giallo: col bianco sopra non esiste
+ *  - nei temi colorati i grigi prendono un filo della tinta dell'accento, come i
+ *    neutri caldi accanto al rosso: il grigio caldo accanto al blu sporca
+ *  - `on-brand` sopra `brand` fa almeno 4,5:1 (bottoni, voci attive, etichette);
+ *    `brand` sul fondo fa almeno 3:1 come blocco e come filo. Nei temi colorati
+ *    il testo sopra e' bianco: per questo niente giallo, col bianco non regge
  *  - `brand-deep` e' l'accento per il testo piccolo: almeno 4,5:1 sul fondo
+ *  - nei temi colorati `mark` e' l'accento, `plate` il bianco carta (`ink`) e
+ *    `on-plate` il nero del fondo (`paper`): li' niente cambia rispetto a prima
  *
- *               ink    ink-2   ink-3        bianco/   brand/   deep/
+ *               ink    ink-2   ink-3        sopra/    brand/   deep/
  *               paper  paper   paper/p2/p3  brand     paper    paper/p2
+ *   classico    17,7   12,9    7,4/7,0/6,4  17,7      17,7     19,8/18,5
  *   persona     17,9   13,3    7,5/7,0/6,2  4,7       4,2      6,3/5,9
  *   notte       17,6   13,4    7,6/7,1/6,2  5,2       3,8      7,3/6,8
  *   giada       17,9   13,8    7,9/7,4/6,5  4,7       4,2      10,8/10,1
@@ -128,6 +179,34 @@
  *   ambra       17,7   13,4    7,5/7,0/6,2  4,6       4,3      8,9/8,3
  */
 @layer base {
+  /*
+   * Persona (27/09): nero pieno, bianco carta, UN rosso. Era il predefinito fino
+   * al 25/10. I grigi sono neutri caldi, perche' accanto al rosso il blu-grigio
+   * sporca; il rosso e' quello pieno delle copertine, non un corallo, e
+   * abbastanza scuro da reggere il bianco sopra (#e61421: 4,7:1)
+   */
+  :root[data-theme="persona"] {
+    --color-paper: #0b0a0a;
+    --color-paper-2: #151313;
+    --color-paper-3: #221f1f;
+    --color-ink: #f6f3ee;
+    --color-ink-2: #d9d3cb;
+    --color-ink-3: #a59e95;
+    --color-rule: #332e2d;
+    --color-rule-2: #1f1b1b;
+    --color-rule-strong: #716b66;
+    --color-brand: #e61421;
+    --color-brand-deep: #ff5560;
+    --color-brand-soft: #3d0a0e;
+    --color-on-brand: #ffffff;
+    --color-mark: #e61421;
+    --color-plate: #f6f3ee;
+    --color-on-plate: #0b0a0a;
+    --color-select: #f6f3ee;
+    --color-on-select: #0b0a0a;
+    --color-stage: #e61421;
+  }
+
   /* Notte: il blu delle ore piccole. Accento cobalto, grigi freddi */
   :root[data-theme="notte"] {
     --color-paper: #080a10;
@@ -138,9 +217,17 @@
     --color-ink-3: #97a1b2;
     --color-rule: #2a3242;
     --color-rule-2: #171c27;
+    --color-rule-strong: #656e7e;
     --color-brand: #1c64e8;
     --color-brand-deep: #6b9bff;
     --color-brand-soft: #0c1f4a;
+    --color-on-brand: #ffffff;
+    --color-mark: #1c64e8;
+    --color-plate: #eef2f8;
+    --color-on-plate: #080a10;
+    --color-select: #eef2f8;
+    --color-on-select: #080a10;
+    --color-stage: #1c64e8;
   }
 
   /*
@@ -157,9 +244,17 @@
     --color-ink-3: #97a8a1;
     --color-rule: #28342f;
     --color-rule-2: #161d1a;
+    --color-rule-strong: #62706b;
     --color-brand: #0b836b;
     --color-brand-deep: #3fd5b9;
     --color-brand-soft: #062d25;
+    --color-on-brand: #ffffff;
+    --color-mark: #0b836b;
+    --color-plate: #eef5f2;
+    --color-on-plate: #070b0a;
+    --color-select: #eef5f2;
+    --color-on-select: #070b0a;
+    --color-stage: #0b836b;
   }
 
   /*
@@ -175,9 +270,17 @@
     --color-ink-3: #a29bb3;
     --color-rule: #312b42;
     --color-rule-2: #1c1826;
+    --color-rule-strong: #6e687d;
     --color-brand: #8b51ef;
     --color-brand-deep: #b994ff;
     --color-brand-soft: #27154b;
+    --color-on-brand: #ffffff;
+    --color-mark: #8b51ef;
+    --color-plate: #f3f0f8;
+    --color-on-plate: #0a0910;
+    --color-select: #f3f0f8;
+    --color-on-select: #0a0910;
+    --color-stage: #8b51ef;
   }
 
   /*
@@ -194,9 +297,17 @@
     --color-ink-3: #a99e8d;
     --color-rule: #362f24;
     --color-rule-2: #201b14;
+    --color-rule-strong: #746b5e;
     --color-brand: #c5500d;
     --color-brand-deep: #ff9150;
     --color-brand-soft: #3d1907;
+    --color-on-brand: #ffffff;
+    --color-mark: #c5500d;
+    --color-plate: #f7f2ea;
+    --color-on-plate: #0c0a07;
+    --color-select: #f7f2ea;
+    --color-on-select: #0c0a07;
+    --color-stage: #c5500d;
   }
 }
 
@@ -239,10 +350,10 @@
       linear-gradient(
         160deg,
         transparent 0 58%,
-        color-mix(in srgb, var(--color-brand) 9%, transparent) 58% 62%,
+        color-mix(in srgb, var(--color-mark) 9%, transparent) 58% 62%,
         transparent 62%
       ),
-      radial-gradient(color-mix(in srgb, var(--color-brand) 16%, transparent) 0.0625rem, transparent 0.1rem);
+      radial-gradient(color-mix(in srgb, var(--color-mark) 16%, transparent) 0.0625rem, transparent 0.1rem);
     background-size:
       100% 100%,
       9px 9px;
@@ -253,18 +364,26 @@
     font-size: 16px;
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
-    scrollbar-color: var(--color-brand) var(--color-paper-2);
+    scrollbar-color: var(--color-mark) var(--color-paper-2);
   }
 
   ::selection {
     background: var(--color-brand);
-    color: #fff;
+    color: var(--color-on-brand);
   }
 
+  /*
+   * Il fuoco della tastiera: il contorno nel colore del testo, staccato di 2px, e
+   * attorno un alone. L'alone era l'accento: nel Classico l'accento e' bianco, e
+   * su un pulsante bianco o su un chip scelto il fuoco spariva (bianco attorno a
+   * bianco, provato il 25/10). Ora e' il segno decorativo (`mark`): nei temi
+   * colorati e' lo stesso accento di prima, nel Classico un grigio che stacca il
+   * contorno bianco dall'elemento bianco
+   */
   :focus-visible {
     outline: 2px solid var(--color-ink);
     outline-offset: 2px;
-    box-shadow: 0 0 0 5px var(--color-brand);
+    box-shadow: 0 0 0 5px var(--color-mark);
   }
 
   /*
@@ -343,8 +462,8 @@
   .p5-btn {
     --btn-bg: var(--color-paper-3);
     --btn-fg: var(--color-ink-2);
-    --btn-hi: var(--color-ink);
-    --btn-hi-fg: var(--color-paper);
+    --btn-hi: var(--color-plate);
+    --btn-hi-fg: var(--color-on-plate);
     background: linear-gradient(112deg, var(--btn-hi) 0 50%, var(--btn-bg) 50% 100%) 100% 0 / 250% 100% no-repeat;
     color: var(--btn-fg);
     transition:
@@ -432,7 +551,7 @@
   /* titolo: bianco con la sagoma rossa sfalsata dietro. In em e non in px:
      3px fissi impastavano le lettere dei titoli piccoli (18px) */
   .p5-title {
-    text-shadow: 0.06em 0.06em 0 var(--color-brand);
+    text-shadow: 0.06em 0.06em 0 var(--color-mark);
   }
 
   /* voce di menu: al passaggio una lama bianca, attiva una lama rossa */
@@ -451,7 +570,7 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: var(--color-ink);
+    background: var(--color-plate);
     clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
     transform: scaleX(0);
     transform-origin: left;
@@ -461,10 +580,10 @@
     transform: scaleX(1);
   }
   .p5-menu-item:hover {
-    color: var(--color-paper);
+    color: var(--color-on-plate);
   }
   .p5-menu-item[aria-current="page"] {
-    color: #fff;
+    color: var(--color-on-brand);
   }
   .p5-menu-item[aria-current="page"]::before {
     background: var(--color-brand);
@@ -476,7 +595,7 @@
     position: absolute;
     inset: 3px -4px -3px 4px;
     z-index: -2;
-    background: var(--color-ink);
+    background: var(--color-plate);
     clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   }
 
@@ -588,7 +707,7 @@
   }
 
   .stage-dots {
-    background-image: radial-gradient(color-mix(in srgb, var(--color-brand) 38%, transparent) 0.06875rem, transparent 0.1125rem);
+    background-image: radial-gradient(color-mix(in srgb, var(--color-mark) 38%, transparent) 0.06875rem, transparent 0.1125rem);
     background-size: 8px 8px;
     -webkit-mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
     mask-image: linear-gradient(205deg, #000 0%, transparent 70%);
@@ -621,7 +740,7 @@
     pointer-events: none;
   }
   .stage-band-edge {
-    background: var(--color-ink);
+    background: var(--color-plate);
     translate: -7px -8px;
   }
   .stage-band-line {
@@ -786,7 +905,7 @@
     letter-spacing: -0.01em;
     text-transform: uppercase;
     text-wrap: balance;
-    text-shadow: 0.06em 0.06em 0 var(--color-brand);
+    text-shadow: 0.06em 0.06em 0 var(--color-mark);
   }
   /* nel palco grande la targa e' al 60%, ma il nome puo' passarle sopra: il limite
      e' il bordo del palco, cosi' i nomi che ci stavano restano come prima */
@@ -852,14 +971,28 @@
   }
 
   /*
-   * L'anteprima accanto alla griglia Eroi (hero-peek.tsx), dal 24/10 sul
-   * modello di Duet Night Abyss. Tre fasce, una sotto l'altra: chi e' (epiteto,
-   * nome, attributo/rarita'/razza), la figura sulla lama, la descrizione col
-   * comando. Niente scatola attorno: i pezzi stanno sulla pagina, e la figura
-   * esce dalla lama ai lati e in cima.
+   * L'anteprima accanto alla griglia Eroi (hero-peek.tsx). Dal 24/10 sul
+   * modello di Duet Night Abyss; dal 25/10 una scheda per decidere il clic,
+   * dalla ricerca su altri siti del genere. Tre fasce una sotto l'altra: chi
+   * e' (epiteto, nome, tasselli), la figura sulla lama, i dati in posti fissi
+   * col comando. Niente scatola attorno: i pezzi stanno sulla pagina, e la
+   * figura esce dalla lama ai lati e in cima.
+   *
+   * Ogni fascia ha un'altezza che non dipende dall'eroe (il nome ha sempre lo
+   * spazio di due righe, i fatti di due, le versioni della fila anche quando non
+   * ce ne sono): lo spazio della figura e' lo stesso per tutti, e con lui la
+   * scala di Shinra.
+   *
+   * L'anteprima e' un contenitore anche in altezza (`size`): quando lo schermo
+   * e' basso toglie da sola le righe meno importanti, in quest'ordine: uscita e
+   * seconda riga dei fatti, versioni, statistiche e box; sotto i 42rem anche il
+   * nome si rimpicciolisce (in fondo al blocco). Cosi' la figura resta grande;
+   * a ogni fascia nuova le soglie vanno rimisurate.
    */
   .peek {
     --peek-tint: var(--color-brand);
+    /* la lama: rossa nel tema Persona, bianca col retino nero nel Classico (gettone stage) */
+    --peek-blade: var(--color-stage);
     /* dove il gioco mette il volto nei cut-in: vedi .stage */
     --cut-fx: 0.57;
     --cut-fy: 0.4;
@@ -871,24 +1004,154 @@
     isolation: isolate;
     height: 100%;
     display: grid;
+    /*
+     * La figura prende lo spazio che resta, e puo' scendere a zero: con un
+     * minimo, a 1280x585 (un portatile 1080p al 150%) il comando usciva dalla
+     * finestra (critica della ricerca, 25/10)
+     */
     grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-columns: minmax(0, 1fr);
-    /* il nome si misura sulla larghezza dell'anteprima (.stage-name, cqi) */
-    container-type: inline-size;
+    /* il nome si misura sulla larghezza (.stage-name, cqi), le righe si tolgono sull'altezza */
+    container-type: size;
   }
 
   /*
-   * La lama: rossa, col primo piano a due toni (come la fascia del palco) e il
-   * bordo chiaro sfalsato in alto a sinistra. Piu' stretta dell'anteprima e piu'
-   * bassa dello spazio della figura: le figure larghe ne escono ai lati, le teste
-   * dalla cima. Sotto, la linea di terra nel colore dell'attributo.
+   * In cima: il titolo (h2: l'epiteto, con le frecce accanto, e sotto il nome a
+   * tutta larghezza, misurato sulla larghezza dell'anteprima, .stage-name), poi
+   * i tasselli
+   */
+  .peek-head {
+    grid-row: 1;
+    grid-column: 1;
+    position: relative;
+    min-width: 0;
+    /*
+     * Lo spazio di due righe di nome anche quando ne basta una (la riga delle
+     * frecce, 36 px, due righe del nome al massimo della sua misura, i
+     * tasselli): la figura comincia sempre alla stessa altezza
+     */
+    min-height: calc(82px + 1.84 * clamp(30px, 3vw, 44px));
+  }
+  .peek-title {
+    margin: 0;
+  }
+  /*
+   * L'epiteto in testo semplice: una targhetta sopra il nome sarebbe un'etichetta
+   * sopra un titolo. Alto quanto le frecce accanto (36 px, 44 al tocco), che
+   * stanno nel suo margine destro
+   */
+  .peek-epithet {
+    display: block;
+    height: 36px;
+    padding-right: 9rem;
+    overflow: hidden;
+    color: var(--color-ink-2);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 36px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* come .stage-name, e in piu' mai oltre due righe: «Capitano dei Cavalieri sacri Hendrickson» ne prendeva tre */
+  /* un po' piu' piccolo che nella scheda (54 px): qui la protagonista e' la figura */
+  .peek-name {
+    display: block;
+    margin: 6px 0 0;
+    font-size: min(
+      clamp(30px, 3vw, 44px),
+      calc((100cqi - 36px) / (var(--name-chars) * 0.56)),
+      calc((200cqi - 72px) / ((var(--name-len, 18) + 4) * 0.56))
+    );
+  }
+  .peek-nav {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .peek-nav-button {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-rule);
+    background: var(--color-paper-2);
+    color: var(--color-ink-2);
+    cursor: pointer;
+    transition:
+      background-color 120ms ease-out,
+      border-color 120ms ease-out,
+      color 120ms ease-out;
+  }
+  @media (pointer: coarse) {
+    .peek-nav-button {
+      width: 44px;
+      height: 44px;
+    }
+    .peek-epithet {
+      height: 44px;
+      padding-right: 10rem;
+      line-height: 44px;
+    }
+  }
+  .peek-nav-button:hover {
+    border-color: var(--color-plate);
+    background: var(--color-plate);
+    color: var(--color-on-plate);
+  }
+  .peek-nav-button:active {
+    translate: 0 1px;
+  }
+  .peek-nav-count {
+    min-width: 4.5em;
+    color: var(--color-ink-3);
+    font-size: 12px;
+    text-align: center;
+  }
+  .peek-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  /*
+   * I tasselli: icona del gioco e parola su grigio. Il colore del gioco sta
+   * nell'icona e in un filo sotto, il testo resta bianco su grigio: si legge in
+   * ogni tema, e nel Classico l'attributo e' l'unico colore oltre alla figura
+   */
+  .peek-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    background: var(--color-paper-3);
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-size: 12.5px;
+    font-weight: 800;
+    font-variation-settings: "wdth" 85;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    box-shadow: inset 0 -2px 0 var(--chip-tint, transparent);
+  }
+
+  /*
+   * La lama: col primo piano a due toni (come la fascia del palco) e il bordo
+   * sfalsato in alto a sinistra. Piu' stretta dell'anteprima e piu' bassa dello
+   * spazio della figura: le figure larghe ne escono ai lati, le teste dalla
+   * cima. Sotto, la linea di terra nel colore dell'attributo.
    */
   .peek-blade {
     grid-row: 2;
     grid-column: 1;
     position: relative;
     z-index: -1;
-    margin: 48px 8% 0;
+    margin: 40px 8% 0;
     pointer-events: none;
   }
   .peek-blade-edge,
@@ -898,12 +1161,12 @@
     clip-path: polygon(var(--lean) 0, 100% 0, calc(100% - var(--lean)) 100%, 0 100%);
   }
   .peek-blade-edge {
-    background: var(--color-ink);
+    background: var(--color-plate);
     translate: -7px -8px;
   }
   /* clip-path taglia quello che si vede, non lo spazio: senza overflow il cut-in allargava la pagina */
   .peek-blade-face {
-    background: var(--color-brand);
+    background: var(--peek-blade);
     isolation: isolate;
     overflow: hidden;
   }
@@ -920,7 +1183,7 @@
   /*
    * Il cut-in, intero e solo spostato (come nel palco): il volto in alto nella
    * lama, dalla parte opposta al volto della figura. Il gioco lo taglia di netto
-   * a destra e in basso: li' sfuma nel rosso
+   * a destra e in basso: li' sfuma nella lama
    */
   .peek-cutin {
     position: absolute;
@@ -935,11 +1198,7 @@
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
   }
-  /*
-   * Piu' leggero che nella fascia del palco: qui sta dietro tutta la figura, e
-   * coi neri pieni le figure scure (Pellegarde, le armature) ci sparivano dentro.
-   * Al 72% il nero diventa un rosso cupo e la sagoma nera della figura si legge
-   */
+  /* al 72%: coi neri pieni le figure scure (Pellegarde, le armature) sparivano nella lama */
   .peek-cutin-img {
     filter: grayscale(1) contrast(1.8) brightness(1.02);
     opacity: 0.72;
@@ -955,31 +1214,21 @@
   }
 
   /*
-   * La figura: si inquadra la sagoma (`--box-*`, da 0 a 1 del lato del file), non
-   * il file. La sagoma sta intera nello spazio fra nome e descrizione: larga al
-   * massimo quanto l'anteprima, alta al massimo quanto lo spazio meno un respiro
-   * in cima; centrata, coi piedi sul fondo della lama. Il file (quadrato) si
-   * allarga di conseguenza e i suoi margini vuoti escono dallo spazio senza che
-   * si veda niente: cosi' ogni eroe sta allo stesso posto, intero, qualunque
-   * margine abbia il suo file.
+   * La figura a mezzo busto (25/10 sera, richiesta dell'utente: intere erano
+   * troppo piccole accanto ai dati, «puoi anche farle a mezzo busto e tagliare
+   * la figura, per avere un effetto unico e grandezza unica»). Poi («alcuni sono
+   * decentrati, troppo piccoli, messi male, devono essere tutti coerenti») la
+   * scala e' la stessa per tutti, perche' nei file del gioco gli eroi sono
+   * disegnati alla stessa scala (il file e' largo 2,9 volte lo spazio), e il volto
+   * sta sempre nello stesso punto: al centro, a un terzo dall'alto. Prima la
+   * scala seguiva l'altezza di tutta la sagoma (armi alzate, ali ed effetti
+   * rimpicciolivano la figura) e l'altezza la decideva la cima della sagoma, non
+   * la testa. Provato su fogli con tutti i 377.
    *
-   * Dove il file taglia la sagoma (`--cut-*` a 1: gambe, ali, mantelli fino al
-   * bordo) la figura sfuma: un taglio netto a meta' anteprima sembrerebbe nostro.
-   *
-   * La scala di Shinra (24/10, scelta dell'utente su un confronto di regole): la
-   * figura non diventa mai piu' grande di come uscirebbe Shinra Kusakabe
-   * (1991501) nello stesso spazio. Riempire lo spazio e basta faceva lo slime di
-   * Rimuru e la Volpe grandi quanto un umano; nei file del gioco invece le
-   * proporzioni fra eroi sono coerenti (Meliodas piu' basso di Eren, lo slime
-   * piccolo), e il limite le rispetta. Si ottiene contando ogni riquadro almeno
-   * grande quanto quello di Shinra (`--ref-w`, `--ref-h`): chi e' piu' grande si
-   * riduce per starci intero, come prima.
-   */
-  /*
-   * Il file e' largo fino a 2,4 volte la sagoma: i suoi margini vuoti uscirebbero
-   * dall'anteprima, allargando la pagina e coprendo la griglia. Si tagliano al
-   * bordo dello spazio, dove non c'e' niente da vedere (la sagoma e' dentro),
-   * lasciando posto alla sagoma nera sfalsata
+   * In fondo la figura sfuma nella lama: il taglio e' voluto. Dove il file taglia
+   * la sagoma ai lati o in cima (`--cut-*`) sfuma anche li'. Il file, molto piu'
+   * largo dello spazio, si taglia ai suoi bordi (overflow), e la maschera toglie
+   * quello che uscirebbe sotto
    */
   .peek-stage {
     grid-row: 2;
@@ -987,28 +1236,22 @@
     position: relative;
     container-type: size;
     overflow: clip;
-    overflow-clip-margin: 16px;
+    -webkit-mask-image: linear-gradient(to top, transparent, #000 26%);
+    mask-image: linear-gradient(to top, transparent, #000 26%);
     pointer-events: none;
   }
   .peek-figure {
-    --bw: calc(var(--box-r) - var(--box-l));
-    --bh: calc(var(--box-b) - var(--box-t));
-    /* il riquadro di Shinra (HeroAssets.box di 1991501: 20, 17, 77, 82) */
-    --ref-w: 0.57;
-    --ref-h: 0.65;
-    --side: min(96cqw / max(var(--bw), var(--ref-w)), (100cqh - 12px) / max(var(--bh), var(--ref-h)));
+    --side: calc(2.9 * 100cqh);
     position: absolute;
     width: var(--side);
     aspect-ratio: 1;
-    left: calc(50cqw - (var(--box-l) + var(--bw) / 2) * var(--side));
-    top: calc(100cqh - var(--box-b) * var(--side));
+    left: calc(50cqw - var(--face-x, 0.5) * var(--side));
+    top: calc(33cqh - var(--face-y, 0.25) * var(--side));
     -webkit-mask-image:
-      linear-gradient(to top, transparent, #000 calc(var(--cut-b) * 14%)),
       linear-gradient(to bottom, transparent, #000 calc(var(--cut-t) * 8%)),
       linear-gradient(to right, transparent, #000 calc(var(--cut-l) * 10%)),
       linear-gradient(to left, transparent, #000 calc(var(--cut-r) * 10%));
     mask-image:
-      linear-gradient(to top, transparent, #000 calc(var(--cut-b) * 14%)),
       linear-gradient(to bottom, transparent, #000 calc(var(--cut-t) * 8%)),
       linear-gradient(to right, transparent, #000 calc(var(--cut-l) * 10%)),
       linear-gradient(to left, transparent, #000 calc(var(--cut-r) * 10%));
@@ -1019,81 +1262,293 @@
     filter: drop-shadow(9px 7px 0 #000);
   }
 
-  .peek-head {
-    grid-row: 1;
-    grid-column: 1;
-    display: grid;
-    gap: 8px;
-    justify-items: start;
-    min-width: 0;
-    padding-bottom: 4px;
-  }
-  .peek-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 4px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-  .peek-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 28px;
-    padding: 0 10px;
-    background: var(--color-paper-3);
-    color: var(--color-ink);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
   /*
-   * La parola dell'attributo nel suo colore, schiarita col colore del testo: i
-   * colori del gioco puri, su paper-3, stavano fra 3,5 e 4,2:1 (Oscurita',
-   * Forza, Velocita'; il controllo del 24/10). Mescolati al 60% passano 4,5
+   * I dati, in posti fissi: ogni eroe li ha nello stesso punto, cosi' passando
+   * da una card all'altra si confronta senza cercare
    */
-  .peek-badge-tinted {
-    color: color-mix(in oklab, var(--badge-color) 60%, var(--color-ink));
-  }
-
-  .peek-foot {
+  .peek-body {
     grid-row: 3;
     grid-column: 1;
     display: grid;
-    gap: 14px;
-    justify-items: start;
+    gap: 12px;
     min-width: 0;
     /* sotto la linea di terra (5 px di stacco, 5 di filo) */
-    padding-top: 26px;
+    padding-top: 22px;
   }
-  /* la descrizione del gioco: quattro righe al massimo, il resto e' nella scheda */
-  .peek-desc {
+  .peek-verdict {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1px;
+    border: 1px solid var(--color-rule);
+    background: var(--color-rule);
+  }
+  .peek-cell {
+    min-width: 0;
+    padding: 10px 12px;
+    background: var(--color-paper-2);
+  }
+  .peek-label {
     margin: 0;
-    max-width: 52ch;
-    color: var(--color-ink-2);
-    font-size: 14.5px;
-    font-style: italic;
-    line-height: 1.55;
-    text-wrap: pretty;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    color: var(--color-ink-3);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    font-variation-settings: "wdth" 82;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  /* una riga sola, come tutte le righe delle celle: le due celle hanno sempre la stessa altezza */
+  .peek-big {
+    margin: 4px 0 0;
     overflow: hidden;
+    color: var(--color-ink);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* «PvE» e «PvP» piccoli accanto ai voti */
+  .peek-big-key {
+    color: var(--color-ink-3);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .peek-big--quiet {
+    color: var(--color-ink-2);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .peek-sub {
+    height: 1.35em;
+    margin: 3px 0 0;
+    overflow: hidden;
+    color: var(--color-ink-3);
+    font-size: 12.5px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* il collegamento «Dai il tuo voto»: il bordo del fuoco esce dalla riga */
+  .peek-sub:has(a) {
+    overflow: visible;
+  }
+  .peek-link {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-mark);
+    text-underline-offset: 0.2em;
+  }
+  .peek-link:hover {
+    text-decoration-color: var(--color-ink);
+  }
+  /* i fatti: due righe sempre, anche quando l'eroe ne ha una o nessuna */
+  .peek-facts {
+    display: grid;
+    align-content: start;
+    gap: 3px;
+    min-height: calc(2.7em + 3px);
+    margin: 0;
+    padding: 0;
+    color: var(--color-ink-2);
+    font-size: 13px;
+    line-height: 1.35;
+    list-style: none;
+  }
+  .peek-facts li {
+    position: relative;
+    padding-left: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* un quadratino: la barretta di 7x3 di prima si leggeva come un trattino */
+  .peek-facts li::before {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 0.45em;
+    width: 5px;
+    height: 5px;
+    background: var(--color-mark);
+  }
+  /* attacco, difesa, PS: la barra e' lunga quanto il valore sul piu' alto del gioco, la posizione accanto */
+  .peek-stats {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+  }
+  .peek-stat {
+    display: grid;
+    grid-template-columns: 4.75rem minmax(0, 1fr) auto 5rem;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .peek-stat dt {
+    color: var(--color-ink-2);
+  }
+  .peek-stat dd {
+    margin: 0;
+  }
+  .peek-bar {
+    position: relative;
+    height: 6px;
+    background: var(--color-paper-3);
+  }
+  /* neutra: il rosso del tema Persona e' solo per la posizione e il comando principale (24/10) */
+  .peek-bar > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--fill, 0) * 100%);
+    background: var(--color-ink-2);
+    transition: width 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .peek-value {
+    color: var(--color-ink);
+    text-align: right;
+  }
+  /* in tondo come le altre righe piccole: nel monospaziato «177° su 377» si allargava */
+  .peek-rank {
+    color: var(--color-ink-3);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .peek-versions ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .peek-version {
+    display: block;
+    outline-offset: 2px;
+    transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .peek-version:hover {
+    transform: translateY(-2px);
+  }
+  .peek-version[aria-current] {
+    outline: 2px solid var(--color-brand);
+  }
+  .peek-more {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    height: 44px;
+    color: var(--color-ink-3);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  /* l'eroe senza altre versioni: la fascia resta alta quanto la fila delle miniature */
+  .peek-none {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    margin: 6px 0 0;
+    color: var(--color-ink-3);
+    font-size: 13px;
+  }
+  /* il tuo box: livello, Risvegli, Ultimate; solo per chi ha segnato il suo box */
+  .peek-box {
+    margin: 0;
+    overflow: hidden;
+    color: var(--color-ink-2);
+    font-size: 13px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .peek-box svg {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: -2px;
+  }
+  .peek-release {
+    min-height: 1.35em;
+    margin: 0;
+    color: var(--color-ink-3);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+  .peek-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 2px;
+  }
+  /*
+   * Schermi bassi: via le righe meno importanti, la figura resta grande. Le
+   * soglie sono sull'altezza dell'anteprima (60rem al massimo): 58,75rem con la
+   * finestra di uno schermo 2560x1440 (c'e' tutto), 48rem con quella di un
+   * 1920x1080, 42rem con quella di un 1440x900, 39rem con un portatile 1080p al
+   * 125%, 30rem con uno al 150% (1280x585: restano titolo, figura piccola,
+   * verdetto e comando)
+   */
+  @container (max-height: 52rem) {
+    .peek-release {
+      display: none;
+    }
+    .peek-facts {
+      min-height: 1.35em;
+    }
+    .peek-facts li:nth-child(n + 2) {
+      display: none;
+    }
+  }
+  @container (max-height: 50rem) {
+    .peek-versions {
+      display: none;
+    }
+  }
+  /* a 37rem e non 40: con la finestra di un portatile 1080p al 125% (1536x730) le statistiche restano */
+  @container (max-height: 37rem) {
+    .peek-stats,
+    .peek-box {
+      display: none;
+    }
+  }
+  /* finestre bassissime (sotto i 600 px circa): restano titolo, verdetto e comando */
+  @container (max-height: 34rem) {
+    .peek-facts {
+      display: none;
+    }
+  }
+  @container (max-height: 28rem) {
+    .peek-blade,
+    .peek-stage {
+      display: none;
+    }
+  }
+  /* sotto i 42rem i nomi lunghi andavano su due righe e la figura restava di 11rem */
+  @container (max-height: 42rem) {
+    .peek-head {
+      min-height: calc(82px + 1.84 * 36px);
+    }
+    .peek-name {
+      font-size: min(
+        36px,
+        calc((100cqi - 36px) / (var(--name-chars) * 0.56)),
+        calc((200cqi - 72px) / ((var(--name-len, 18) + 4) * 0.56))
+      );
+    }
   }
 
   /*
-   * Il movimento, uno solo come nel palco: al cambio d'eroe la figura entra con
-   * un taglio obliquo, il primo piano scivola nella lama, poi arrivano il nome e
-   * la descrizione. Partono tutti da dov'e' gia' il loro posto: senza animazioni
-   * l'anteprima c'e' lo stesso. Con «riduci movimento» resta una dissolvenza.
+   * Il movimento, uno solo: al cambio d'eroe la figura entra con un taglio
+   * obliquo e il primo piano compare nella lama. Breve (240 ms): chi scorre la
+   * griglia passa su piu' card al secondo. I dati cambiano subito, senza
+   * animazione: con un ingresso a tappe l'anteprima mostrava ancora l'eroe di
+   * prima. Con «riduci movimento» niente.
    */
   @keyframes peek-figure-in {
     from {
       clip-path: polygon(118% -20%, 160% -20%, 128% 120%, 86% 120%);
-      transform: translateX(28px);
+      transform: translateX(16px);
     }
     to {
       clip-path: polygon(-60% -20%, 160% -20%, 128% 120%, -92% 120%);
@@ -1103,51 +1558,25 @@
   @keyframes peek-echo-in {
     from {
       opacity: 0;
-      transform: translateX(calc(var(--echo-side) * 40px));
     }
     to {
       opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes peek-head-in {
-    from {
-      opacity: 0;
-      transform: translateX(-24px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes peek-foot-in {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
     }
   }
   .peek-figure {
-    animation: peek-figure-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: peek-figure-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .peek-cutin {
-    animation: peek-echo-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .peek-head {
-    animation: peek-head-in 260ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
-  }
-  .peek-foot {
-    animation: peek-foot-in 260ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+    animation: peek-echo-in 240ms ease-out both;
   }
   @media (prefers-reduced-motion: reduce) {
     .peek-figure,
-    .peek-cutin,
-    .peek-head,
-    .peek-foot {
-      animation: stage-fade-in 150ms ease-out both;
+    .peek-cutin {
+      animation: none;
+    }
+    .peek-bar > span,
+    .peek-version {
+      transition: none;
     }
   }
 
@@ -1189,7 +1618,7 @@
     width: 22px;
     height: 20px;
     background: var(--color-brand);
-    color: #fff;
+    color: var(--color-on-brand);
     clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
   }
   @media (prefers-reduced-motion: reduce) {
@@ -1244,7 +1673,7 @@
   }
   .hub-command--0 {
     font-size: clamp(48px, 6.6vw, 88px);
-    text-shadow: 0.05em 0.05em 0 var(--color-brand);
+    text-shadow: 0.05em 0.05em 0 var(--color-mark);
   }
   .hub-command--1 {
     font-size: clamp(40px, 5vw, 64px);
@@ -1308,7 +1737,7 @@
  */
 [data-accent="brand"] {
   --accent: var(--color-brand);
-  --accent-fg: #fff;
+  --accent-fg: var(--color-on-brand);
 }
 [data-accent="magenta"] {
   --accent: #db1597;

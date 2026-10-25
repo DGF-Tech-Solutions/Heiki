@@ -58,7 +58,7 @@ export function EndgameCard({
         <span
           className={cx(
             "p5-corner flex min-w-0 items-center gap-3 border p-2 transition-colors",
-            current ? "border-ink bg-ink text-paper" : "border-rule bg-paper group-hover:border-ink-3",
+            current ? "border-ink bg-select text-on-select" : "border-rule bg-paper group-hover:border-ink-3",
           )}
         >
           {image ? (

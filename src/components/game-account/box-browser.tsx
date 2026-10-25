@@ -231,7 +231,7 @@ export function BoxBrowser({
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t.cerca}
               aria-label={t.cercaEtichetta}
-              className="p5-cut h-10 min-w-[200px] max-w-[320px] flex-1 border-ink! bg-ink! px-4 text-sm font-semibold text-paper! placeholder:text-paper/60"
+              className="p5-cut h-10 min-w-[200px] max-w-[320px] flex-1 border-plate! bg-plate! px-4 text-sm font-semibold text-on-plate! placeholder:text-on-plate/60"
             />
             <div role="group" aria-label={t.mostra} className="flex items-center gap-1">
               {(["all", "owned", "missing"] as const).map((value) => (
@@ -276,7 +276,7 @@ export function BoxBrowser({
 
         <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
           <p className="m-0 text-[14px] text-ink-2" aria-live="polite">
-            <strong className={cx(numeric, "p5-cut-sm mr-1.5 inline-block bg-brand px-2 font-bold text-white")}>{owned}</strong>
+            <strong className={cx(numeric, "p5-cut-sm mr-1.5 inline-block bg-brand px-2 font-bold text-on-brand")}>{owned}</strong>
             {t.hai(owned, heroes.length)}
           </p>
           <div className="flex flex-wrap items-center gap-2">
@@ -365,7 +365,7 @@ export function BoxBrowser({
 
       {/* sul telefono: un foglio dal basso, quando si sceglie un eroe */}
       {selected && sheetOpen ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 max-h-[72vh] overflow-y-auto border-t-2 border-brand bg-paper-2 px-4 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-[0_-12px_32px_-8px_rgba(0,0,0,0.7)] lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 max-h-[72vh] overflow-y-auto border-t-2 border-mark bg-paper-2 px-4 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-[0_-12px_32px_-8px_rgba(0,0,0,0.7)] lg:hidden">
           <div className="mb-2 flex justify-end">
             <button
               type="button"

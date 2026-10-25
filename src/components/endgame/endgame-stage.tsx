@@ -87,7 +87,7 @@ export function EndgameStage({
         aria-hidden
         className={cx("absolute inset-0 -z-10 bg-brand", BLADE, mode === "backdrop" && "opacity-90 mix-blend-multiply")}
       />
-      <div aria-hidden className={cx("absolute inset-0 -z-10 bg-ink opacity-85", THIN_BLADE)} />
+      <div aria-hidden className={cx("absolute inset-0 -z-10 bg-plate opacity-85", THIN_BLADE)} />
       {word && mode !== "backdrop" ? (
         <p aria-hidden className="stage-word absolute -z-10 m-0">
           {word}

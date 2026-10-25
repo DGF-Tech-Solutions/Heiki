@@ -51,42 +51,42 @@ export interface HeroTab {
 const TAB_CLASSES = [
   {
     hook: "tab1",
-    chip: "group-has-[.tab1:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-fg:#fff] group-has-[.tab1:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab1:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab1:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab1:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab1:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab1:focus-visible]/schede:outline-2",
     show: "group-has-[.tab1:checked]/schede:block",
   },
   {
     hook: "tab2",
-    chip: "group-has-[.tab2:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-fg:#fff] group-has-[.tab2:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab2:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab2:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab2:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab2:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab2:focus-visible]/schede:outline-2",
     show: "group-has-[.tab2:checked]/schede:block",
   },
   {
     hook: "tab3",
-    chip: "group-has-[.tab3:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-fg:#fff] group-has-[.tab3:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab3:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab3:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab3:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab3:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab3:focus-visible]/schede:outline-2",
     show: "group-has-[.tab3:checked]/schede:block",
   },
   {
     hook: "tab4",
-    chip: "group-has-[.tab4:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-fg:#fff] group-has-[.tab4:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab4:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab4:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab4:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab4:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab4:focus-visible]/schede:outline-2",
     show: "group-has-[.tab4:checked]/schede:block",
   },
   {
     hook: "tab5",
-    chip: "group-has-[.tab5:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-fg:#fff] group-has-[.tab5:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab5:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab5:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab5:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab5:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab5:focus-visible]/schede:outline-2",
     show: "group-has-[.tab5:checked]/schede:block",
   },
   {
     hook: "tab6",
-    chip: "group-has-[.tab6:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-fg:#fff] group-has-[.tab6:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab6:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab6:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab6:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab6:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab6:focus-visible]/schede:outline-2",
     show: "group-has-[.tab6:checked]/schede:block",
   },
   {
     hook: "tab7",
-    chip: "group-has-[.tab7:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-fg:#fff] group-has-[.tab7:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab7:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab7:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab7:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab7:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab7:focus-visible]/schede:outline-2",
     show: "group-has-[.tab7:checked]/schede:block",
   },
   {
     hook: "tab8",
-    chip: "group-has-[.tab8:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-fg:#fff] group-has-[.tab8:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab8:focus-visible]/schede:outline-2",
+    chip: "group-has-[.tab8:checked]/schede:[--btn-bg:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-hi:var(--color-brand)] group-has-[.tab8:checked]/schede:[--btn-fg:var(--color-on-brand)] group-has-[.tab8:checked]/schede:[--btn-hi-fg:#fff] group-has-[.tab8:focus-visible]/schede:outline-2",
     show: "group-has-[.tab8:checked]/schede:block",
   },
 ] as const;
@@ -134,7 +134,7 @@ export function HeroTabs({
       <div
         role="radiogroup"
         aria-label={label}
-        className="z-10 mb-5 flex flex-wrap gap-1 border-b-2 border-brand bg-paper py-1.5 sm:sticky sm:top-[60px]"
+        className="z-10 mb-5 flex flex-wrap gap-1 border-b-2 border-mark bg-paper py-1.5 sm:sticky sm:top-[60px]"
       >
         {tabs.map((tab, index) => (
           <input

@@ -241,7 +241,7 @@ export default async function PremiumPage() {
       ) : null}
 
       <div className="mb-12 grid gap-4 md:grid-cols-2">
-        <section className="rounded-card border border-rule border-t-[3px] border-t-brand bg-paper p-6">
+        <section className="rounded-card border border-rule border-t-[3px] border-t-mark bg-paper p-6">
           <h2 className={cx(display, "mb-4 text-xl")}>{t.cosaApre}</h2>
           <ul className="m-0 grid list-none gap-3 p-0 text-sm">
             {t.vantaggi.map(({ titolo, testo }) => (

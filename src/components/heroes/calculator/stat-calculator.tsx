@@ -209,7 +209,7 @@ export function StatCalculator({
           {fromBox ? (
             <p className="m-0 text-[12px] text-ink-2">
               {t.dalBox}{" "}
-              <a href={`/${game}/account/eroi`} className="font-semibold text-brand-deep hover:underline">
+              <a href={`/profilo/${game}/eroi`} className="font-semibold text-brand-deep hover:underline">
                 {t.ilTuoBox}
               </a>
             </p>

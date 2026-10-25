@@ -218,7 +218,7 @@ function Patch({
 
   return (
     <section id={patchAnchor(comparison)} className="scroll-mt-[120px]">
-      <header className="mb-6 flex flex-wrap items-end gap-x-4 gap-y-1.5 border-b-2 border-brand pb-3">
+      <header className="mb-6 flex flex-wrap items-end gap-x-4 gap-y-1.5 border-b-2 border-mark pb-3">
         <h2 className={cx(display, "m-0 text-[clamp(24px,3vw,32px)]")}>{t.patchDel(day(comparison.to))}</h2>
         <p className="m-0 pb-0.5 text-[13px] text-ink-3">{t.rispetto(day(comparison.from))}</p>
         <p className={cx(eyebrow, "m-0 pb-1 text-ink-2 sm:ml-auto")}>{t.sintesi(comparison.newHeroes.length, changed.length)}</p>

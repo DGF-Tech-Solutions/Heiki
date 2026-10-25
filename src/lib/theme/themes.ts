@@ -7,6 +7,11 @@
  * attributi, le icone) sono nati per un fondo nero, e un tema chiaro andrebbe
  * rifatto colore per colore (vedi game-color.ts).
  *
+ * Dal 25/10 il predefinito e' il «Classico», nero, bianco e grigio (l'utente:
+ * «colori classici, con la possibilita' di cambiare tema»). Il rosso «Persona»,
+ * che lo era prima, e' un tema come gli altri: chi l'aveva scelto ha il cookie
+ * `persona` e lo ritrova.
+ *
  * I COLORI stanno in globals.css e solo li': il tema predefinito e' il blocco
  * `@theme`, ogni altro e' un blocco `:root[data-theme="…"]` che ridefinisce gli
  * stessi token. Qui c'e' quello che il CSS non sa dire: quali temi esistono,
@@ -22,12 +27,12 @@
  * Questo modulo non importa niente del server ne' del browser, come locale.ts.
  */
 
-export const THEMES = ["persona", "notte", "giada", "viola", "ambra"] as const;
+export const THEMES = ["classico", "persona", "notte", "giada", "viola", "ambra"] as const;
 
 export type Theme = (typeof THEMES)[number];
 
-/** Senza cookie il sito e' com'era: il rosso «Persona». */
-export const DEFAULT_THEME: Theme = "persona";
+/** Senza cookie: nero, bianco e grigio. */
+export const DEFAULT_THEME: Theme = "classico";
 
 /** Il cookie che ricorda la scelta: tecnico, lo imposta chi legge scegliendo un tema. */
 export const THEME_COOKIE = "tema";
@@ -38,6 +43,7 @@ export function isTheme(value: unknown): value is Theme {
 
 /** Fondo (`--color-paper`) e accento (`--color-brand`) di ogni tema: la copia controllata, vedi sopra. */
 export const THEME_COLORS: Readonly<Record<Theme, { readonly paper: string; readonly brand: string }>> = {
+  classico: { paper: "#000000", brand: "#ffffff" },
   persona: { paper: "#0b0a0a", brand: "#e61421" },
   notte: { paper: "#080a10", brand: "#1c64e8" },
   giada: { paper: "#070b0a", brand: "#0b836b" },

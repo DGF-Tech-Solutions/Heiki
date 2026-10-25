@@ -37,13 +37,14 @@ import { findPickable, type PickableGame } from "@/lib/profile/favorite-heroes";
 import { filterHeroes, heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import type { HeroEntry } from "@/lib/games/types";
 import { IconChevronRight, IconClose } from "./icons";
+import { PrivacyNote } from "./legal/privacy-note";
 import { chipClass, cx, display, Empty, eyebrow, Field, Input, Tag, Textarea } from "./ui";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
 
-/** I giochi con la pagina «Il mio account» (sta nel modulo del gioco, che qui nel browser non si carica). */
+/** I giochi con l'account di gioco nel profilo (/profilo/<gioco>: il modulo del gioco qui nel browser non si carica). */
 const ACCOUNT_PAGES: readonly { game: string; href: string }[] = [
-  { game: "Grand Cross", href: "/grand-cross/account" },
+  { game: "Grand Cross", href: "/profilo/grand-cross" },
 ];
 
 /** quante card mostra la ricerca: quattro o cinque file nel pannello, non il roster intero */
@@ -87,8 +88,8 @@ const TESTI = testi({
     profiliGioco: "Profili di gioco",
     profiliGiocoNota:
       "Solo quello che scrivi tu: nickname, Codice amico, server e classe dell'account. Non chiediamo mai le credenziali del tuo account di gioco.",
-    profiliGiocoDove: "Si scrivono nella pagina «Il mio account» di ogni gioco, dove chiedi anche la verifica della classe:",
-    ilMioAccount: "Il mio account",
+    profiliGiocoDove: "Si scrivono nel tuo profilo, alla scheda di ogni gioco, dove chiedi anche la verifica della classe:",
+    ilMioAccount: "account di gioco",
     spostaSu: (nome: string) => `Sposta su ${nome}`,
     spostaGiu: (nome: string) => `Sposta giù ${nome}`,
   },
@@ -129,8 +130,8 @@ const TESTI = testi({
     profiliGioco: "Game profiles",
     profiliGiocoNota:
       "Only what you enter: nickname, Friend Code, server and Account Combat Class. We never ask for your game account credentials.",
-    profiliGiocoDove: "They are entered on each game's «My account» page, where you also request the class verification:",
-    ilMioAccount: "My account",
+    profiliGiocoDove: "They are entered in your profile, on each game's tab, where you also request the class verification:",
+    ilMioAccount: "game account",
     spostaSu: (nome: string) => `Move ${nome} up`,
     spostaGiu: (nome: string) => `Move ${nome} down`,
   },
@@ -368,6 +369,9 @@ export function ProfileEditorPanel({ value, onChange, canUsePremium, heroes }: P
           ))}
         </ul>
       </Group>
+
+      {/* in fondo al modulo, dove si arriva prima di «Salva» */}
+      <PrivacyNote variant="data" />
     </div>
   );
 }
@@ -528,7 +532,7 @@ function FavoritesPicker({
                         )}
                       />
                       {chosen ? (
-                        <span aria-hidden className="p5-cut-sm absolute top-1 left-1 bg-brand px-1.5 font-display text-[11px] font-extrabold text-white">
+                        <span aria-hidden className="p5-cut-sm absolute top-1 left-1 bg-brand px-1.5 font-display text-[11px] font-extrabold text-on-brand">
                           {value.indexOf(key) + 1}
                         </span>
                       ) : null}

@@ -127,7 +127,7 @@ export async function StrategySection({
 
   return (
     <section id="squadre" className={cx("scroll-mt-[140px]", className)} aria-labelledby="squadre-titolo">
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-x-5 gap-y-2 border-b-2 border-brand pb-2.5">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-x-5 gap-y-2 border-b-2 border-mark pb-2.5">
         <div className="min-w-0">
           <h2 id="squadre-titolo" className={cx(display, TITLE)}>
             {t.titolo}

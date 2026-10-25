@@ -28,7 +28,7 @@ const TESTI = testi({
     interagito: "ha interagito",
     verificata: (n: string) => `La classe di combattimento del tuo account è stata verificata: ${n}.`,
     rifiutata: "La verifica della classe del tuo account non è stata accettata.",
-    ilMioAccount: "Il mio account",
+    ilMioAccount: "Account di gioco",
     guidaPubblicata: "La tua guida dell'Endgame è stata pubblicata:",
     guidaRespinta: "La tua guida dell'Endgame non è stata accettata (il motivo è nella pagina):",
   },
@@ -47,7 +47,7 @@ const TESTI = testi({
     interagito: "interacted with you",
     verificata: (n: string) => `Your Account Combat Class has been verified: ${n}.`,
     rifiutata: "The verification of your account's class was not accepted.",
-    ilMioAccount: "My account",
+    ilMioAccount: "Game account",
     guidaPubblicata: "Your Endgame guide has been published:",
     guidaRespinta: "Your Endgame guide was not accepted (the reason is on its page):",
   },
@@ -124,7 +124,7 @@ export default async function NotificationsPage() {
                   </span>
                   {item.gameSlug ? (
                     <Link
-                      href={`/${item.gameSlug}/account`}
+                      href={`/profilo/${item.gameSlug}`}
                       className="text-ink-2 underline decoration-rule underline-offset-2 hover:text-brand-deep"
                     >
                       {t.ilMioAccount}

@@ -42,7 +42,7 @@ export function MobileBar({ game, hasReleases }: { game: string; hasReleases: bo
   return (
     <nav
       aria-label={t.barra}
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t-2 border-brand bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t-2 border-mark bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
       <Link href={`/${game}/eroi`} aria-current={eroi ? "page" : undefined} className={cx(item, eroi ? "text-ink" : "text-ink-2")}>
         {eroi ? blade : null}

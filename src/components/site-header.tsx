@@ -8,7 +8,7 @@ import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { unreadCount } from "@/lib/social/server";
 import { getTheme } from "@/lib/theme/server";
-import { IconUser } from "./icons";
+import { IconBell, IconChevronDown, IconUser } from "./icons";
 import { LanguageSwitch } from "./language-switch";
 import { PopoverPanel } from "./popover-panel";
 import { ThemeSwitch } from "./theme-switch";
@@ -19,11 +19,11 @@ import { buttonClass, buttonColors, cx, Tag } from "./ui";
 const PHONE = "max-sm:px-2 max-sm:text-[12px]";
 
 // una voce del pannello dell'utente: come le voci della barra laterale.
-// `hover:text-paper` qui e non solo in globals.css: l'utility del colore di
+// `hover:text-on-plate` qui e non solo in globals.css: l'utility del colore di
 // riposo scavalca .p5-menu-item, e al passaggio il testo chiaro restava sulla
-// lama bianca (visto l'11/10)
+// lama bianca (visto l'11/10). La lama e' la «targa» del tema (`plate`)
 const MENU_VOCE =
-  "p5-menu-item flex items-center px-3 py-2 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink-2 hover:text-paper [font-variation-settings:'wdth'_82]";
+  "p5-menu-item flex items-center px-3 py-2 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink-2 hover:text-on-plate [font-variation-settings:'wdth'_82]";
 
 const TESTI = testi({
   it: {
@@ -33,8 +33,11 @@ const TESTI = testi({
     admin: "Admin",
     notifiche: "Notifiche",
     daLeggere: (n: number) => `Notifiche: ${n} da leggere`,
-    personalizza: "Personalizza",
+    personalizza: "Personalizza il profilo",
     profilo: "Il tuo profilo",
+    profiloOspite: "Il tuo profilo: account di gioco e box, salvati in questo browser",
+    paginaPubblica: "La tua pagina pubblica",
+    impostazioni: "Impostazioni dell'account",
     menuDi: (nome: string) => `Menu di ${nome}`,
     esci: "Esci",
     entra: "Entra",
@@ -47,8 +50,11 @@ const TESTI = testi({
     admin: "Admin",
     notifiche: "Notifications",
     daLeggere: (n: number) => `Notifications: ${n} unread`,
-    personalizza: "Customize",
+    personalizza: "Customize your profile",
     profilo: "Your profile",
+    profiloOspite: "Your profile: game account and box, saved in this browser",
+    paginaPubblica: "Your public page",
+    impostazioni: "Account settings",
     menuDi: (nome: string) => `${nome}'s menu`,
     esci: "Log out",
     entra: "Log in",
@@ -71,7 +77,7 @@ export async function SiteHeader() {
   const playable = listGames().filter((game) => game.available);
 
   return (
-    <header className="sticky top-0 z-20 border-b-[3px] border-brand bg-paper">
+    <header className="sticky top-0 z-20 border-b-[3px] border-mark bg-paper">
       <div className="mx-auto flex h-[58px] w-full max-w-shell items-center gap-2 px-4 sm:gap-6 sm:px-6">
         {/*
           Il menu del gioco sul telefono stava qui, in alto a sinistra: dal 10/10
@@ -84,7 +90,7 @@ export async function SiteHeader() {
           className="group flex shrink-0 items-center whitespace-nowrap font-display text-[17px] font-black sm:text-[22px] uppercase tracking-[-0.02em] [font-variation-settings:'wdth'_70]"
         >
           <span className="text-ink">Hei</span>
-          <span className="p5-cut ml-0.5 bg-brand px-1.5 text-white sm:px-2 transition-colors group-hover:bg-ink group-hover:text-paper">
+          <span className="p5-cut ml-0.5 bg-brand px-1.5 text-on-brand sm:px-2 transition-colors group-hover:bg-plate group-hover:text-on-plate">
             ki
           </span>
         </Link>
@@ -125,71 +131,62 @@ export async function SiteHeader() {
           <span className="flex items-center gap-1 sm:gap-2.5 sm:border-l sm:border-rule sm:pl-5">
             {user ? (
               <>
-                {/* sul telefono: un pulsante solo, col numero delle notifiche */}
-                <span className="relative sm:hidden">
+                {/* le notifiche a un colpo: la campana col numero, da 640px; sul telefono stanno nel menu */}
+                <Link
+                  href="/notifiche"
+                  aria-label={unread > 0 ? t.daLeggere(unread) : t.notifiche}
+                  title={unread > 0 ? t.daLeggere(unread) : t.notifiche}
+                  className="relative grid h-8 w-9 shrink-0 place-items-center text-ink-3 transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] hover:text-ink max-sm:hidden"
+                >
+                  <IconBell size={18} />
+                  {unread > 0 ? (
+                    <span className="pointer-events-none absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-on-brand">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  ) : null}
+                </Link>
+                {/*
+                  Il menu dell'utente (25/10): il profilo del sito, la pagina
+                  pubblica, le impostazioni. Prima, sul computer, erano cinque
+                  pulsanti in fila (Coda, Notifiche, Personalizza, il nome, Esci);
+                  i siti studiati (HoYoLAB, Enka, op.gg) tengono tutto dietro un
+                  pulsante solo, ed e' li' che si cerca il profilo.
+                */}
+                <span className="relative">
                   <button
                     type="button"
                     popoverTarget="menu-utente"
                     aria-label={unread > 0 ? `${t.menuDi(user.username)} · ${t.daLeggere(unread)}` : t.menuDi(user.username)}
-                    className={cx("p5-cut grid h-8 w-10 cursor-pointer place-items-center", buttonColors("outline"))}
+                    className={cx("p5-cut flex h-8 cursor-pointer items-center gap-2 px-2.5", buttonColors("outline"))}
                   >
-                    <IconUser size={17} />
+                    <IconUser size={16} />
+                    <span className="max-w-[14ch] truncate font-display text-[13px] font-extrabold uppercase [font-variation-settings:'wdth'_85] max-sm:hidden">
+                      {user.username}
+                    </span>
+                    <IconChevronDown size={12} className="max-sm:hidden" />
                   </button>
                   {unread > 0 ? (
-                    <span className="pointer-events-none absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-white">
+                    <span className="pointer-events-none absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-on-brand sm:hidden">
                       {unread > 9 ? "9+" : unread}
                     </span>
                   ) : null}
                 </span>
-
-                <span className="hidden sm:contents">
-                  {/* Le aree riservate compaiono solo a chi le puo' aprire: un
-                      collegamento visibile a tutti sarebbe una porta annunciata. */}
-                  {can(user.role, "moderate") ? (
-                    <Link
-                      href="/moderazione"
-                      className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-hot hover:underline"
-                    >
-                      {t.coda}
-                    </Link>
-                  ) : null}
-                  {can(user.role, "administer") ? (
-                    <Link
-                      href="/admin"
-                      className="font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em] text-ink-3 hover:text-ink"
-                    >
-                      {t.admin}
-                    </Link>
-                  ) : null}
-
-                  <Link
-                    href="/notifiche"
-                    className={cx(buttonClass("ghost", "sm"), "relative")}
-                    aria-label={unread > 0 ? t.daLeggere(unread) : t.notifiche}
-                  >
-                    {t.notifiche}
-                    {unread > 0 ? (
-                      <span className="grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-white">
-                        {unread > 9 ? "9+" : unread}
-                      </span>
-                    ) : null}
-                  </Link>
-                  <Link href="/impostazioni/profilo" className={buttonClass("ghost", "sm")}>
-                    {t.personalizza}
-                  </Link>
-                  <Link href={`/u/${user.username}`} className={buttonClass("ghost", "sm")}>
-                    {user.username}
-                    <Tag>{roleLabel(user.role, locale)}</Tag>
-                  </Link>
-                  <form action={esci}>
-                    <button type="submit" className={buttonClass("ghost", "sm")}>
-                      {t.esci}
-                    </button>
-                  </form>
-                </span>
               </>
             ) : (
               <>
+                {/*
+                  Il profilo anche a chi non e' entrato (25/10): account di gioco
+                  e box funzionano gia' nel browser, e /profilo li raccoglie per
+                  tutti i giochi. Prima ci si arrivava solo dal menu di Grand Cross
+                */}
+                <Link
+                  href="/profilo"
+                  aria-label={t.profilo}
+                  title={t.profiloOspite}
+                  className="relative grid h-8 w-9 shrink-0 place-items-center text-ink-3 transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] hover:text-ink"
+                >
+                  <IconUser size={17} />
+                </Link>
                 <Link href="/entra" className={buttonClass("ghost", "sm", PHONE)}>
                   {t.entra}
                 </Link>
@@ -203,10 +200,10 @@ export async function SiteHeader() {
       </div>
 
       {user ? (
-        // le voci di chi e' entrato, sul telefono: le stesse della riga qui sopra
+        // sotto il pulsante: a destra quanto il bordo del guscio, mai fuori dallo schermo
         <PopoverPanel
           id="menu-utente"
-          className="inset-auto top-[64px] right-3 m-0 w-[min(84vw,280px)] border-2 border-ink bg-paper p-0 text-ink shadow-[6px_6px_0_0_var(--color-brand)] backdrop:bg-black/50"
+          className="inset-auto top-[64px] right-[max(0.75rem,calc((100vw-var(--container-shell))/2+1.5rem))] m-0 w-[min(84vw,300px)] border-2 border-ink bg-paper p-0 text-ink shadow-[6px_6px_0_0_var(--color-mark)] backdrop:bg-black/50"
         >
           <div className="flex items-center gap-2 border-b border-rule px-4 py-3">
             <span className="min-w-0 truncate font-display text-[16px] font-extrabold">{user.username}</span>
@@ -214,23 +211,33 @@ export async function SiteHeader() {
           </div>
           <ul className="m-0 grid list-none gap-0.5 p-2">
             <li>
+              <Link href="/profilo" className={MENU_VOCE}>
+                {t.profilo}
+              </Link>
+            </li>
+            <li>
+              <Link href={`/u/${user.username}`} className={MENU_VOCE}>
+                {t.paginaPubblica}
+              </Link>
+            </li>
+            <li>
               <Link href="/notifiche" className={MENU_VOCE}>
                 {t.notifiche}
                 {unread > 0 ? (
-                  <span className="ml-2 inline-grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-white">
+                  <span className="ml-2 inline-grid h-4 min-w-4 place-items-center bg-brand px-1 font-mono text-[11px] leading-none text-on-brand">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 ) : null}
               </Link>
             </li>
             <li>
-              <Link href={`/u/${user.username}`} className={MENU_VOCE}>
-                {t.profilo}
+              <Link href="/impostazioni/profilo" className={MENU_VOCE}>
+                {t.personalizza}
               </Link>
             </li>
             <li>
-              <Link href="/impostazioni/profilo" className={MENU_VOCE}>
-                {t.personalizza}
+              <Link href="/impostazioni/account" className={MENU_VOCE}>
+                {t.impostazioni}
               </Link>
             </li>
             {can(user.role, "moderate") ? (

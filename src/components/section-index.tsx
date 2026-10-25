@@ -109,7 +109,7 @@ export function SectionIndex({
     <nav
       aria-label={label}
       className={cx(
-        "sticky top-[61px] z-20 -mx-1 mb-6 border-b-2 border-brand bg-paper px-1 py-1.5",
+        "sticky top-[61px] z-20 -mx-1 mb-6 border-b-2 border-mark bg-paper px-1 py-1.5",
         rail && "xl:top-[85px] xl:mx-0 xl:mb-0 xl:self-start xl:border-b-0 xl:bg-transparent xl:p-0",
         className,
       )}

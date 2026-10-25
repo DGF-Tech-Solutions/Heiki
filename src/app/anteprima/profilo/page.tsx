@@ -74,6 +74,7 @@ const SAMPLE: Omit<ProfileViewData, "favoriteHeroes" | "cover"> = {
     {
       id: "g1",
       game: "Grand Cross",
+      slug: "grand-cross",
       uid: "394188201",
       nickname: "franz",
       trust: "VERIFIED",

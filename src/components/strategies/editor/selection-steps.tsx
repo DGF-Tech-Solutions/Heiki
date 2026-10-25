@@ -50,7 +50,7 @@ export function Step({
       <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
         <span
           aria-hidden
-          className="font-display text-[46px] leading-[0.78] font-black text-transparent [-webkit-text-stroke:1.5px_var(--color-brand)] [font-variation-settings:'wdth'_62]"
+          className="font-display text-[46px] leading-[0.78] font-black text-transparent [-webkit-text-stroke:1.5px_var(--color-mark)] [font-variation-settings:'wdth'_62]"
         >
           {number}
         </span>
@@ -107,7 +107,7 @@ export function ModeChoice({
               className={cx(
                 "p5-corner relative isolate flex h-full min-h-[96px] flex-col justify-between gap-3 overflow-hidden border p-3 transition-colors",
                 RADIO_FOCUS,
-                checked ? "border-brand bg-brand text-white" : "border-rule bg-paper-2 text-ink group-hover:border-ink-3 group-hover:bg-paper-3",
+                checked ? "border-brand bg-brand text-on-brand" : "border-rule bg-paper-2 text-ink group-hover:border-ink-3 group-hover:bg-paper-3",
               )}
             >
               {/* il retino del palco, solo sulla scelta */}
@@ -120,7 +120,7 @@ export function ModeChoice({
               <span className="font-display text-[16px] leading-[1.02] font-black uppercase [font-variation-settings:'wdth'_76] sm:text-[19px]">
                 {mode.name}
               </span>
-              <span className={cx("flex items-center justify-between gap-2 text-[12px]", checked ? "text-white" : "text-ink-3")}>
+              <span className={cx("flex items-center justify-between gap-2 text-[12px]", checked ? "text-on-brand" : "text-ink-3")}>
                 {single ? t.difficoltaN(single.levels.length) : t.bersagli(mode.targets.length)}
                 {checked ? <IconCheck size={16} /> : null}
               </span>
@@ -172,7 +172,7 @@ export function TargetChoice({
             >
               <span
                 aria-hidden
-                className="absolute inset-0 -z-10 bg-[radial-gradient(color-mix(in_srgb,var(--color-brand)_34%,transparent)_1.1px,transparent_1.8px)] bg-[length:8px_8px] [mask-image:linear-gradient(200deg,#000_0%,transparent_72%)]"
+                className="absolute inset-0 -z-10 bg-[radial-gradient(color-mix(in_srgb,var(--color-mark)_34%,transparent)_1.1px,transparent_1.8px)] bg-[length:8px_8px] [mask-image:linear-gradient(200deg,#000_0%,transparent_72%)]"
               />
               <span
                 aria-hidden

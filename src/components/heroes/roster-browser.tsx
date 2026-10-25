@@ -41,11 +41,11 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useId, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { readableColor } from "@/components/heroes/game-color";
-import { HeroPeek, type FigureBox } from "@/components/heroes/hero-peek";
+import { HeroPeek, preloadPeek, type FigureBox } from "@/components/heroes/hero-peek";
 import { DEFAULT_STAGE_ART, type StageArt, type StageBadge } from "@/components/heroes/hero-stage";
 import { IconArrowRight, IconCheck, IconChevronRight, IconClose, IconFilters } from "@/components/icons";
 import {
@@ -72,7 +72,9 @@ import {
   type HeroOrder,
   type IconFamily,
 } from "@/lib/games/heroes";
+import type { PeekIndex } from "@/lib/games/hero-peek-facts";
 import type { HeroEntry, HeroRoster } from "@/lib/games/types";
+import type { HeroRatingOverview } from "@/lib/ratings/types";
 import { useLocale } from "@/lib/i18n/client";
 import { testi, type Locale } from "@/lib/i18n/locale";
 
@@ -100,6 +102,8 @@ const TESTI = testi({
     nessunaRicerca: (testo: string) => `Nessun eroe trovato per «${testo}».`,
     togliUltimo: (label: string) => `Togli «${label}»`,
     apri: "Apri la scheda",
+    saltaEroi: "Salta gli eroi",
+    frecce: "Nella griglia le frecce passano da una card all'altra",
     // si trova come «da» e si risveglia fino ad «a»: in parole, non con una freccia di testo (24/10)
     percorso: (da: string, a: string) => (da === a ? da : `da ${da} a ${a}`),
   },
@@ -126,6 +130,8 @@ const TESTI = testi({
     nessunaRicerca: (text: string) => `No heroes found for “${text}”.`,
     togliUltimo: (label: string) => `Remove “${label}”`,
     apri: "Open the page",
+    saltaEroi: "Skip the heroes",
+    frecce: "In the grid, the arrow keys move between cards",
     percorso: (from: string, to: string) => (from === to ? from : `${from} to ${to}`),
   },
 });
@@ -218,7 +224,8 @@ export function RosterBrowser({
   figures = {},
   boxes = {},
   withoutCutIn = [],
-  descriptions = {},
+  peek,
+  ratings = {},
 }: {
   game: string;
   roster: HeroRoster;
@@ -250,8 +257,10 @@ export function RosterBrowser({
   boxes?: Readonly<Record<string, FigureBox>>;
   /** gli eroi senza il cut-in della Mossa finale: la loro lama resta vuota */
   withoutCutIn?: readonly string[];
-  /** la descrizione del gioco di ogni eroe, nella lingua della pagina e senza markup */
-  descriptions?: Readonly<Record<string, string>>;
+  /** i dati dell'anteprima: classe, statistiche con la posizione, uscita, fine gioco (hero-peek-facts.ts) */
+  peek?: PeekIndex;
+  /** il voto della community di ogni eroe votato */
+  ratings?: Readonly<Record<string, HeroRatingOverview>>;
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
@@ -307,9 +316,131 @@ export function RosterBrowser({
   const byAffinity = useMemo(() => new Map(roster.affinities.map((item) => [item.id, item])), [roster.affinities]);
   const raceOf = useMemo(() => new Map((traits?.races ?? []).map((item) => [item.code, item])), [traits]);
 
-  // l'eroe sul palco: quello sotto il mouse o col fuoco; se esce dai filtri, il primo
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const active = visible.find((hero) => hero.id === activeId) ?? visible[0];
+  // L'eroe sul palco: quello sotto il mouse o col fuoco; se esce dai filtri, il
+  // primo. Tornando dalla scheda con Indietro riparte da quello aperto: il clic
+  // lo scrive nell'indirizzo (`eroe`, vedi openHero), come fanno i filtri.
+  const [activeId, setActiveId] = useState<string | null>(() => searchParams.get("eroe"));
+  const activeIndex = Math.max(0, visible.findIndex((hero) => hero.id === activeId));
+  const active = visible[activeIndex];
+  const stageArt = useCallback(
+    (id: string): StageArt => ({
+      art: art[id] ?? DEFAULT_STAGE_ART.art,
+      figure: figures[id] ?? DEFAULT_STAGE_ART.figure,
+      cutIn: !withoutCutIn.includes(id),
+    }),
+    [art, figures, withoutCutIn],
+  );
+
+  // Il passaggio del mouse cambia l'anteprima solo quando il mouse si ferma un
+  // attimo su una card (25/10, dalla ricerca: senza, portando il mouse dalla
+  // griglia verso l'anteprima si attraversano altre card e l'anteprima mostra
+  // l'ultima toccata, non quella voluta). 90 ms non si sentono; il fuoco della
+  // tastiera e le frecce dell'anteprima cambiano subito.
+  // Funzioni stabili: le card sono memo, e a ogni cambio d'eroe si ridisegnano
+  // solo le due che cambiano (prima tutte e 377, critica della ricerca)
+  const peekTimer = useRef<number | null>(null);
+  const cancelPeek = useCallback(() => {
+    if (peekTimer.current !== null) window.clearTimeout(peekTimer.current);
+    peekTimer.current = null;
+  }, []);
+  const peekNow = useCallback(
+    (id: string) => {
+      cancelPeek();
+      setActiveId(id);
+    },
+    [cancelPeek],
+  );
+  const peekSoon = useCallback(
+    (id: string) => {
+      cancelPeek();
+      peekTimer.current = window.setTimeout(() => setActiveId(id), 90);
+    },
+    [cancelPeek],
+  );
+  useEffect(() => cancelPeek, [cancelPeek]);
+
+  // Le figure dei vicini (prima e dopo nella griglia) si scaricano mentre si
+  // guarda questo: frecce, pulsanti e mouse che scorre la riga ci arrivano di
+  // solito. Solo dove l'anteprima si vede: al telefono non serve. Non a ogni
+  // card attraversata: scaricava figure da 240 KB che nessuno vedeva
+  useEffect(() => {
+    if (!active || !window.matchMedia("(min-width: 64rem) and (pointer: fine)").matches) return;
+    for (const near of [visible[activeIndex + 1], visible[activeIndex - 1]]) {
+      if (near) preloadPeek(game, near.id, stageArt(near.id));
+    }
+  }, [active, activeIndex, visible, game, stageArt]);
+
+  // Aprendo la scheda, l'eroe resta nell'indirizzo della griglia: Indietro
+  // riporta l'anteprima su di lui. Solo al clic, mai al passaggio (Safari
+  // ferma la pagina oltre ~100 replaceState in 30 secondi)
+  const openHero = useCallback((id: string) => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("eroe", id);
+      window.history.replaceState(window.history.state, "", url);
+    } catch {
+      // senza, Indietro riparte dal primo eroe: niente di rotto
+    }
+  }, []);
+
+  // Tastiera (25/10, dalla ricerca: Pokemon Showdown, nikke.gg). Le card
+  // restano tutte nel Tab; in piu' le frecce spostano il fuoco di card in card
+  // (su e giu' di una riga, contando le colonne di adesso), Inizio e Fine al
+  // primo e all'ultimo, Invio apre la scheda; «Salta gli eroi», prima della
+  // griglia, porta all'anteprima senza 377 Tab
+  const grid = useRef<HTMLUListElement>(null);
+  const onGridKey = (event: KeyboardEvent<HTMLUListElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const columns = grid.current ? getComputedStyle(grid.current).gridTemplateColumns.split(" ").length : 1;
+    // si parte dalla card col fuoco: col mouse l'anteprima puo' essere passata a un'altra
+    const focused = (event.target as HTMLElement).closest<HTMLElement>("[data-hero]")?.dataset.hero;
+    const from = Math.max(0, visible.findIndex((hero) => hero.id === focused));
+    const moves: Record<string, number> = {
+      ArrowLeft: from - 1,
+      ArrowRight: from + 1,
+      ArrowUp: from - columns,
+      ArrowDown: from + columns,
+      Home: 0,
+      End: visible.length - 1,
+    };
+    const target = moves[event.key];
+    if (target === undefined) return;
+    event.preventDefault();
+    const next = visible[Math.min(visible.length - 1, Math.max(0, target))];
+    if (!next) return;
+    peekNow(next.id);
+    grid.current?.querySelector<HTMLElement>(`[data-hero="${next.id}"]`)?.focus();
+  };
+  const previewId = useId();
+  const afterGridId = useId();
+  // all'anteprima se si vede, se no subito dopo la griglia
+  const skipGrid = (event: MouseEvent<HTMLAnchorElement>) => {
+    const preview = document.getElementById(previewId);
+    const target = preview && preview.offsetParent !== null ? preview : document.getElementById(afterGridId);
+    if (!target) return;
+    event.preventDefault();
+    target.focus();
+  };
+
+  // precedente e successivo fra gli eroi della griglia, coi filtri di adesso; la card resta in vista
+  const step = (delta: number) => {
+    if (visible.length === 0) return;
+    const next = visible[(activeIndex + delta + visible.length) % visible.length];
+    if (!next) return;
+    peekNow(next.id);
+    document.querySelector(`[data-hero="${next.id}"]`)?.scrollIntoView({ block: "nearest" });
+  };
+
+  // le versioni dello stesso personaggio, nell'ordine del roster: tutte, filtri o no
+  const versionsByGroup = useMemo(() => {
+    const groups = new Map<string, HeroEntry[]>();
+    for (const hero of roster.heroes) {
+      const list = groups.get(hero.group) ?? [];
+      list.push(hero);
+      groups.set(hero.group, list);
+    }
+    return groups;
+  }, [roster.heroes]);
 
   // i filtri scelti nel pannello (la ricerca e' sempre in vista, e un ordine non
   // restringe l'elenco): e' il numero che il comando «Filtri» del telefono porta
@@ -340,7 +471,7 @@ export function RosterBrowser({
   };
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,min(30vw,480px))]">
+    <div className="grid items-start gap-6 lg:pointer-fine:grid-cols-[minmax(0,1fr)_minmax(352px,min(32vw,544px))]">
       <div className="min-w-0">
         {intro}
         {/*
@@ -363,7 +494,7 @@ export function RosterBrowser({
             onChange={(event) => change({ search: event.target.value })}
             placeholder={t.cercaSegnaposto}
             aria-label={t.cercaEtichetta}
-            className="p5-cut h-10 border-ink! bg-ink! px-4 text-sm font-semibold text-paper! placeholder:text-paper/60 focus:shadow-[inset_0_-3px_0_var(--color-brand)] lg:min-w-[200px] lg:max-w-[340px] lg:flex-1"
+            className="p5-cut h-10 border-plate! bg-plate! px-4 text-sm font-semibold text-on-plate! placeholder:text-on-plate/60 focus:shadow-[inset_0_-3px_0_var(--color-brand)] lg:min-w-[200px] lg:max-w-[340px] lg:flex-1"
           />
 
           {/*
@@ -516,7 +647,7 @@ export function RosterBrowser({
           */}
           <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-2 lg:basis-full lg:border-t lg:border-rule-2 lg:pt-3">
             <p className="m-0 flex items-center gap-2" aria-live="polite">
-              <strong className={cx(numeric, "p5-cut-sm bg-ink px-2 text-[14px] font-bold leading-6 text-paper")}>
+              <strong className={cx(numeric, "p5-cut-sm bg-plate px-2 text-[14px] font-bold leading-6 text-on-plate")}>
                 {visible.length}
               </strong>
               <span className="font-display text-[14px] font-extrabold uppercase tracking-[0.04em] text-ink [font-variation-settings:'wdth'_85]">
@@ -563,43 +694,75 @@ export function RosterBrowser({
             ) : null}
           </Empty>
         ) : (
-          <ul
-            className="m-0 grid list-none gap-x-2.5 gap-y-4 p-0"
-            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))" }}
-          >
-            {visible.map((hero) => (
-              <HeroCard
-                key={hero.id}
-                game={game}
-                locale={locale}
-                hero={hero}
-                active={hero.id === active?.id}
-                owned={hasBox && ownsHero(box, hero.id)}
-                onPeek={() => setActiveId(hero.id)}
-              />
-            ))}
-          </ul>
+          <>
+            {/* si vede solo col fuoco della tastiera */}
+            <a
+              href={`#${afterGridId}`}
+              onClick={skipGrid}
+              className="sr-only focus:not-sr-only focus:mb-3 focus:block focus:w-fit focus:border focus:border-rule-strong focus:bg-paper-2 focus:px-3 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-ink"
+            >
+              {t.saltaEroi}
+              <span className="block font-normal text-ink-3">{t.frecce}</span>
+            </a>
+            <ul
+              ref={grid}
+              onKeyDown={onGridKey}
+              className="m-0 grid list-none gap-x-2.5 gap-y-4 p-0"
+              style={{ gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))" }}
+            >
+              {visible.map((hero) => (
+                <HeroCard
+                  key={hero.id}
+                  game={game}
+                  locale={locale}
+                  hero={hero}
+                  active={hero.id === active?.id}
+                  owned={hasBox && ownsHero(box, hero.id)}
+                  onPeek={peekSoon}
+                  onPeekNow={peekNow}
+                  onLeave={cancelPeek}
+                  onOpen={openHero}
+                />
+              ))}
+            </ul>
+            <span id={afterGridId} tabIndex={-1} />
+          </>
         )}
       </div>
 
-      {/* l'anteprima: solo dove c'e' spazio accanto alla griglia */}
+      {/*
+        L'anteprima: solo dove c'e' spazio accanto alla griglia e un mouse (su
+        tablet e portatili col tocco il passaggio non c'e', e la colonna restava
+        ferma sul primo eroe). Alta quanto lo schermo sotto l'intestazione, fino a
+        60rem (960 px con la base a 16, 1.200 a 2560), e mai di piu': con un
+        minimo di 560 px, a 1280x585 il comando usciva dalla finestra. Quando lo
+        schermo e' basso l'anteprima toglie da sola le righe meno importanti
+        (globals.css, .peek)
+      */}
       {active ? (
-        <aside className="sticky top-[76px] mt-6 hidden h-[calc(100dvh-100px)] max-h-[780px] min-h-[540px] lg:block" aria-label={heroName(active, locale)}>
+        <aside
+          id={previewId}
+          tabIndex={-1}
+          className="sticky top-[76px] mt-6 hidden h-[calc(100dvh-100px)] max-h-[960px] focus:outline-none lg:pointer-fine:block"
+          aria-label={heroName(active, locale)}
+        >
           <HeroPeek
             game={game}
             hero={active}
             locale={locale}
             badges={badgesFor(active)}
             tint={byAffinity.get(active.affinity)?.color}
-            art={{
-              art: art[active.id] ?? DEFAULT_STAGE_ART.art,
-              figure: figures[active.id] ?? DEFAULT_STAGE_ART.figure,
-              cutIn: !withoutCutIn.includes(active.id),
-            }}
+            art={stageArt(active.id)}
             box={boxes[active.id]}
-            description={descriptions[active.id]}
+            facts={peek?.facts[active.id]}
+            peek={peek}
+            rating={ratings[active.id]}
+            boxEntry={hasBox ? (box.heroes[active.id] ?? null) : undefined}
+            versions={versionsByGroup.get(active.group)}
+            onVersion={peekSoon}
+            nav={{ index: activeIndex, count: visible.length, onPrev: () => step(-1), onNext: () => step(1) }}
           >
-            <Link href={`/${game}/eroi/${active.id}`} className={buttonClass("primary", "md")}>
+            <Link href={`/${game}/eroi/${active.id}`} onClick={() => openHero(active.id)} className={buttonClass("primary", "md")}>
               {t.apri}
               <IconArrowRight size={16} />
             </Link>
@@ -652,20 +815,30 @@ function FilterGroup({
 
 /* ------------------------------------------------------------------ card -- */
 
-function HeroCard({
+const HeroCard = memo(function HeroCard({
   game,
   locale,
   hero,
   active,
   owned,
   onPeek,
+  onPeekNow,
+  onLeave,
+  onOpen,
 }: {
   game: string;
   locale: Locale;
   hero: HeroEntry;
+  /** l'eroe dell'anteprima */
   active: boolean;
   owned: boolean;
-  onPeek: () => void;
+  /** il mouse si e' fermato sulla card (con l'attesa d'intenzione) */
+  onPeek: (heroId: string) => void;
+  /** il fuoco della tastiera: subito */
+  onPeekNow: (heroId: string) => void;
+  onLeave: () => void;
+  /** il clic che apre la scheda */
+  onOpen: (heroId: string) => void;
 }) {
   const name = heroName(hero, locale);
   const epithet = heroEpithet(hero, locale);
@@ -679,10 +852,14 @@ function HeroCard({
       */}
       <Link
         href={`/${game}/eroi/${hero.id}`}
-        onMouseEnter={onPeek}
-        onFocus={onPeek}
+        onMouseEnter={() => onPeek(hero.id)}
+        onMouseLeave={onLeave}
+        onFocus={() => onPeekNow(hero.id)}
+        onClick={() => onOpen(hero.id)}
+        data-hero={hero.id}
         data-active={active || undefined}
-        className="hero-card group block focus-visible:outline-2 focus-visible:outline-offset-2"
+        // col fuoco la card scorre in vista sotto l'intestazione ferma, non dietro (WCAG 2.4.11)
+        className="hero-card group block scroll-mt-24 scroll-mb-4 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <span className="hero-card-art relative block">
           {/*
@@ -721,4 +898,4 @@ function HeroCard({
       </Link>
     </li>
   );
-}
+});

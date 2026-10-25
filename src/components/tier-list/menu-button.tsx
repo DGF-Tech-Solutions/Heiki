@@ -20,14 +20,14 @@ import { cx } from "@/components/ui";
 /** Una voce del pannello: la lama delle voci di menu del sito (`p5-menu-item`). */
 export const menuItemClass =
   "p5-menu-item flex min-h-10 w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left font-display " +
-  "text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink-2 hover:text-paper [font-variation-settings:'wdth'_82] " +
+  "text-[14px] font-extrabold uppercase tracking-[0.02em] text-ink-2 hover:text-on-plate [font-variation-settings:'wdth'_82] " +
   "max-lg:min-h-11 pointer-coarse:min-h-11 " +
   "aria-disabled:pointer-events-none aria-disabled:opacity-40";
 
 /** Il pannello: come il menu dell'utente nell'intestazione, bordo pieno e ombra sfalsata. */
 const PANEL =
   "absolute top-full z-[15] mt-1.5 grid gap-0.5 border-2 border-ink bg-paper p-2 text-ink " +
-  "shadow-[6px_6px_0_0_var(--color-brand)]";
+  "shadow-[6px_6px_0_0_var(--color-mark)]";
 
 export function MenuButton({
   label,

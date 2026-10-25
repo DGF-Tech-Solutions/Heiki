@@ -65,16 +65,20 @@ type ButtonSize = "md" | "sm";
 // Tagliati in obliquo come i comandi dei menu di Persona: il taglio e' clip-path
 // (p5-cut, in globals.css), quindi la misura del bottone non cambia. Il passaggio
 // e la pressione li fa `p5-btn` (la lama che spazza, il comando che affonda): qui
-// solo i quattro colori di ogni variante, a riposo e al passaggio.
+// solo i quattro colori di ogni variante, a riposo e al passaggio. Dal 25/10 coi
+// gettoni del tema: il principale e' l'accento (`brand`, col suo testo
+// `on-brand`), il secondario la targa (`plate`). Nei temi colorati la targa e' il
+// bianco carta, come prima; nel Classico l'accento e' bianco e la targa grigia,
+// cosi' principale e secondario restano due cose diverse.
 const BUTTON_BASE =
   "p5-cut p5-btn inline-flex items-center justify-center gap-2 font-display font-extrabold uppercase " +
   "tracking-[0.03em] [font-variation-settings:'wdth'_85] " +
   "cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
-  primary: "[--btn-bg:var(--color-brand)] [--btn-fg:#fff] [--btn-hi:var(--color-ink)] [--btn-hi-fg:var(--color-paper)]",
-  outline: "[--btn-bg:var(--color-ink)] [--btn-fg:var(--color-paper)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:#fff]",
-  ghost: "[--btn-bg:transparent] [--btn-fg:var(--color-ink-2)] [--btn-hi:var(--color-ink)] [--btn-hi-fg:var(--color-paper)]",
+  primary: "[--btn-bg:var(--color-brand)] [--btn-fg:var(--color-on-brand)] [--btn-hi:var(--color-plate)] [--btn-hi-fg:var(--color-on-plate)]",
+  outline: "[--btn-bg:var(--color-plate)] [--btn-fg:var(--color-on-plate)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:var(--color-on-brand)]",
+  ghost: "[--btn-bg:transparent] [--btn-fg:var(--color-ink-2)] [--btn-hi:var(--color-plate)] [--btn-hi-fg:var(--color-on-plate)]",
 };
 
 /**
@@ -90,7 +94,8 @@ const BUTTON_VARIANT: Record<ButtonVariant, string> = {
  */
 export function chipColors(active: boolean, _quiet = false): string {
   return active
-    ? "font-bold [--btn-bg:var(--color-ink)] [--btn-fg:var(--color-paper)] [--btn-hi:var(--color-ink)] [--btn-hi-fg:var(--color-paper)]"
+    ? // la scelta (select): nel Classico grigio scuro col filo bianco, negli altri temi il chip chiaro (il filo non si vede)
+      "font-bold [--btn-bg:var(--color-select)] [--btn-fg:var(--color-on-select)] [--btn-hi:var(--color-select)] [--btn-hi-fg:var(--color-on-select)] shadow-[inset_0_0_0_2px_var(--color-ink)]"
     : "font-semibold";
 }
 
@@ -142,11 +147,11 @@ export function Button({
 type TagTone = "neutral" | "brand" | "gold" | "accent";
 
 const TAG_TONE: Record<TagTone, string> = {
-  neutral: "bg-ink text-paper",
-  brand: "bg-brand text-white",
+  neutral: "bg-plate text-on-plate",
+  brand: "bg-brand text-on-brand",
   gold: "bg-gold text-paper",
   // il testo sopra l'accento lo decide l'accento (--accent-fg in globals.css): su oro e tramonto il bianco non si leggeva
-  accent: "bg-[var(--accent)] text-[color:var(--accent-fg,#fff)]",
+  accent: "bg-[var(--accent)] text-[color:var(--accent-fg,var(--color-on-brand))]",
 };
 
 /**
@@ -244,7 +249,7 @@ export function Card({
     <div
       className={cx(
         "p5-corner border border-rule bg-paper-2 p-5",
-        accent && "border-t-[3px] border-t-brand",
+        accent && "border-t-[3px] border-t-mark",
         className,
       )}
     >
@@ -292,7 +297,7 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <header className={cx("mb-5 border-b-2 border-brand pb-4", className)}>
+    <header className={cx("mb-5 border-b-2 border-mark pb-4", className)}>
       <h1 className={cx(display, "text-[clamp(34px,5vw,58px)]")}>{title}</h1>
       {children ? (
         <div className="m-0 mt-2.5 max-w-[56ch] text-[15px] leading-relaxed text-ink-2 [&_p]:m-0">{children}</div>
@@ -393,10 +398,13 @@ export function RadioChips<T extends string | number>({
 
 export function Empty({ children }: { children: ReactNode }) {
   return (
-    // un riquadro con l'angolo tagliato come le altre note, non il tratteggio (10/10)
-    <p className="p5-corner m-0 border border-rule bg-paper-2 p-6 text-center text-sm text-ink-2">
+    // un riquadro con l'angolo tagliato come le altre note, non il tratteggio (10/10).
+    // Un div e non un paragrafo (25/10): chi lo usa ci mette anche blocchi (un
+    // paragrafo e un pulsante, nelle tier list del profilo), e un <p> dentro un
+    // <p> e' HTML non valido: il browser lo spezza e React segnala l'idratazione
+    <div className="p5-corner m-0 border border-rule bg-paper-2 p-6 text-center text-sm text-ink-2">
       {children}
-    </p>
+    </div>
   );
 }
 
@@ -480,8 +488,9 @@ export function Field({
   );
 }
 
+// il bordo a 3:1 (rule-strong): un campo si riconosce dal bordo
 const CONTROL =
-  "w-full rounded-card border border-rule bg-paper text-ink font-body " +
+  "w-full rounded-card border border-rule-strong bg-paper text-ink font-body " +
   "hover:border-ink-3 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand-soft";
 
 export function Input({ className, ...props }: ComponentProps<"input">) {

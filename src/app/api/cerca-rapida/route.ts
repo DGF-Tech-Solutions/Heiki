@@ -30,7 +30,14 @@ export function GET(request: Request) {
   ]);
   const it = gameGroups(slug, "it").flatMap((group) => group.items);
   const en = gameGroups(slug, "en").flatMap((group) => group.items);
-  const pages: QuickIndex["pages"][number][] = it.map((item, i) => [item.label, en[i]?.label ?? item.label, item.path]);
+  // le pagine del gioco col percorso dentro il gioco; quelle del profilo (dal 25/10
+  // fuori dal gioco, /profilo/<gioco>) con l'indirizzo intero: quick-search.tsx le
+  // riconosce dalla barra iniziale di /profilo
+  const pages: QuickIndex["pages"][number][] = it.map((item, i) => [
+    item.label,
+    en[i]?.label ?? item.label,
+    item.href.startsWith("/profilo/") ? item.href : item.path,
+  ]);
   const name = (label: { it: string | null; en: string | null }) => [label.it ?? label.en ?? "", label.en ?? label.it ?? ""] as const;
   const items: QuickIndex["items"][number][] = [
     ...(gameModule.deathMatch?.bosses ?? []).map((boss) => ["boss", ...name(boss.name), `/scontri-finali/${boss.key}`] as const),

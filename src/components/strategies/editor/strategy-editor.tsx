@@ -640,7 +640,7 @@ function SubmitBar({
     <div className="sticky bottom-[calc(58px+env(safe-area-inset-bottom))] z-20 mt-10 max-lg:-mx-6 lg:bottom-0">
       <div
         className={cx(
-          "border-t-2 border-brand bg-paper/95 py-3 backdrop-blur max-lg:pl-6 max-[1879px]:pr-[76px]",
+          "border-t-2 border-mark bg-paper/95 py-3 backdrop-blur max-lg:pl-6 max-[1879px]:pr-[76px]",
           "lg:border-x lg:border-x-rule lg:bg-paper-2/95 lg:pl-4 min-[1880px]:pr-4",
         )}
       >

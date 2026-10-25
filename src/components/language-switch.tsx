@@ -30,6 +30,7 @@ export function LanguageSwitch() {
     <div
       role="group"
       aria-label={t.gruppo}
+      aria-busy={inCorso || undefined}
       className="flex shrink-0 items-center rounded-card border border-rule p-0.5 font-display font-bold [font-variation-settings:'wdth'_82] text-[12px] uppercase tracking-[0.06em]"
     >
       {LOCALES.map((lingua) => (
@@ -47,11 +48,13 @@ export function LanguageSwitch() {
               router.refresh();
             });
           }}
-          // larghi 28px, e l'area da toccare sale e scende di 10px oltre il bordo:
-          // erano 20x21px, troppo piccoli per il pollice (revisione del 24/10)
+          // larghi 28px (44 al tocco), e l'area da toccare sale e scende di 12px
+          // oltre il bordo: erano 20x21px, troppo piccoli per il pollice (24/10).
+          // Durante il cambio niente opacita' (il disattivato e' un grigio, non
+          // una trasparenza): il gruppo dice che sta lavorando (aria-busy)
           className={cx(
-            "relative min-w-7 px-1.5 py-0.5 transition-colors after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] disabled:opacity-60",
-            lingua === locale ? "bg-ink text-paper" : "text-ink-3 hover:text-ink",
+            "relative min-w-7 px-1.5 py-0.5 transition-colors after:absolute after:inset-x-0 after:-inset-y-3 after:content-[''] disabled:cursor-wait pointer-coarse:min-w-11",
+            lingua === locale ? "bg-select text-on-select shadow-[inset_0_0_0_2px_var(--color-ink)]" : "text-ink-3 hover:text-ink",
           )}
         >
           {lingua}

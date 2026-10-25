@@ -233,7 +233,7 @@ function TavernNote({
         <p className="m-0 text-[13px] leading-snug text-ink-2">{t.vivonoInTaverna}</p>
       )}
       {character.guest.line ? (
-        <blockquote className="m-0 mt-3 border-l-2 border-brand pl-3 text-[14px] leading-snug text-ink-2 italic">
+        <blockquote className="m-0 mt-3 border-l-2 border-mark pl-3 text-[14px] leading-snug text-ink-2 italic">
           «{character.guest.line}»
         </blockquote>
       ) : null}

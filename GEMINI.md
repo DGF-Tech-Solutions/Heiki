@@ -119,12 +119,43 @@ regole.
   - il fuoco deve vedersi: nelle forme tagliate `.p5-*` il contorno va dentro.
 - **Stile Persona**: usa le primitive di `src/components/ui.tsx` (`buttonClass`, `chipClass`, `Card`, `PageHeader`,
   `Notice`, `cx`) e i colori di `globals.css`, senza ricrearle.
+- **Temi e colori** (dal 25/10 il predefinito è il tema **Classico**, nero, bianco e grigio; il rosso «Persona» è un
+  tema da scegliere come Notte, Giada, Viola, Ambra). Nei componenti si usano solo i gettoni del ruolo, mai colori
+  scritti a mano:
+  - `brand` è l'**accento** (voce attiva, azione principale, scelta del rango): nel Classico è bianco. Il testo sopra
+    l'accento è **`text-on-brand`**, mai `text-white` o `#fff` (nel Classico sarebbe bianco su bianco);
+  - `mark` è l'accento **decorativo** (righe sotto le intestazioni, filo dell'intestazione e del piede, ombre sfalsate
+    dei pannelli, retini, ombra dei titoli): nei temi colorati coincide con l'accento, nel Classico è grigio;
+  - `plate` / `on-plate` è il **blocco neutro** (pulsanti secondari, targhette dei gruppi, campi di ricerca, la lama
+    del passaggio sulle voci di menu): nei temi colorati è il bianco carta, nel Classico un grigio;
+  - `select` / `on-select` è la **scelta** (chip dei filtri, lingua, livelli, modalità attiva: `chipColors` di
+    `ui.tsx`, col filo interno `shadow-[inset_0_0_0_2px_var(--color-ink)]`): nei temi colorati il chip chiaro di
+    prima, nel Classico un grigio scuro col filo bianco, perché il bianco pieno resta all'azione principale;
+  - `stage` è la **lama** dietro le figure dell'anteprima degli Eroi: nei temi colorati l'accento, nel Classico
+    bianca col retino nero (25/10 sera: l'utente vuole il Classico più bianco e nero, coi grigi meno presenti);
+  - `rule-strong` è il **bordo dei campi** (testo, scelta, area di testo: `Input`, `Select`, `Textarea` di `ui.tsx`),
+    a 3:1 su ogni fondo come chiede la WCAG 1.4.11; `rule` e `rule-2` restano per i fili decorativi;
+  - un tema nuovo è un blocco `:root[data-theme="…"]` in `globals.css` con tutti i gettoni del ruolo, più la riga in
+    `src/lib/theme/themes.ts`; il test `src/lib/theme/__tests__/themes.test.ts` controlla i contrasti (diciannove
+    gettoni dal 25/10).
 - **Regole di design** (revisione del 24/10, approvate dall'utente):
-  - il **rosso pieno** solo per dove sei (voce attiva, scheda scelta) e per **una** azione principale per vista; le
-    altre azioni `outline` o `ghost`; i filtri scelti sono il chip chiaro di `chipClass`, uguale ovunque;
+  - l'**accento pieno** (rosso nel tema Persona, bianco nel Classico) solo per dove sei (voce attiva, scheda scelta) e
+    per **una** azione principale per vista; le altre azioni `outline` o `ghost`; i filtri scelti sono il chip chiaro
+    di `chipClass`, uguale ovunque;
   - **un solo menu**: le sezioni stanno in `GROUPS` di `src/lib/games/catalog.ts`, e barra laterale, menu del gioco,
     menu del telefono e piè di pagina le leggono da lì, nello stesso ordine. Una pagina nuova si aggiunge lì, col
-    nome che avrà ovunque (titolo, briciole, collegamenti);
+    nome che avrà ovunque (titolo, briciole, collegamenti). Il collegamento si scrive con `item.href` (l'indirizzo
+    intero), non con `/${gioco}${item.path}`: le voci del gruppo «Il tuo profilo» portano fuori dal gioco;
+  - il **profilo è del sito** (dal 25/10): `/profilo` (panoramica, anche per chi non è entrato), `/profilo/<gioco>`
+    (account di gioco: nickname, Codice amico, server, classe, verifica), `/profilo/<gioco>/eroi` (il box). Le vecchie
+    `/<gioco>/account` reindirizzano. Una pagina personale nuova di un gioco va lì, non nel gioco;
+  - l'**anteprima degli Eroi** (`hero-peek.tsx`, dal 25/10) è una scheda per decidere il clic: dati in fasce fisse
+    (classe di combattimento con la posizione, voto della community, due righe di fatti, statistiche, versioni, box,
+    uscita) da `src/lib/games/hero-peek-facts.ts`, calcolati sul server una volta per pagina. Ogni fascia ha
+    un'altezza che non dipende dall'eroe, così lo spazio della figura (e la scala di Shinra) è lo stesso per tutti:
+    una fascia nuova deve avere il suo spazio anche vuota, e le soglie in fondo al blocco `.peek` di `globals.css`
+    vanno rimisurate. Nella griglia: attesa di 90 ms al passaggio del mouse, un solo passo del Tab con le frecce fra
+    le card, l'eroe aperto scritto nell'indirizzo (`?eroe=`) per tornare con Indietro;
   - il percorso in cima (`Breadcrumb`) si vede solo dal terzo livello; il gioco lo dice l'intestazione;
   - nel testo visibile niente trattini lunghi (— e –: si riscrive con due punti, virgola o due frasi; il «—» resta solo
     come cella vuota di una tabella), niente frecce di testo come icone (→: `IconArrowRight`), niente etichette

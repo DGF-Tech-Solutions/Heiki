@@ -238,7 +238,7 @@ export function TeamRandomizer({
       ) : null}
 
       {draw?.synergy ? (
-        <section className="p5-corner mt-8 max-w-[48ch] border border-rule border-t-[3px] border-t-brand bg-paper-2 p-4 text-sm text-ink-2">
+        <section className="p5-corner mt-8 max-w-[48ch] border border-rule border-t-[3px] border-t-mark bg-paper-2 p-4 text-sm text-ink-2">
           <h3 className={cx(eyebrow, "m-0")}>{t.sinergia}</h3>
           <ul className="mt-2 mb-0 grid list-none gap-1.5 p-0">
             {draw.slots.map(({ main }) => {

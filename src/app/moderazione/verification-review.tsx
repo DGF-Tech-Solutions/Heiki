@@ -106,7 +106,7 @@ export function VerificationReview({ item, locale }: { item: ReviewItem; locale:
         <div className="grid content-start gap-3 text-sm">
           <div className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={item.hero.card} alt="" width={64} height={86} className="h-auto w-full shadow-[3px_3px_0_var(--color-brand)]" />
+            <img src={item.hero.card} alt="" width={64} height={86} className="h-auto w-full shadow-[3px_3px_0_var(--color-mark)]" />
             <div>
               <p className={cx(eyebrow, "m-0")}>{t.eroe}</p>
               <p className="m-0 font-semibold leading-tight">{item.hero.name}</p>

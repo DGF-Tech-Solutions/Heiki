@@ -80,7 +80,7 @@ export function PartyPanel({
       {/* il fondo: retino, lama dell'attributo, lama rossa (spenta se il posto e' vuoto) */}
       <span
         aria-hidden
-        className="absolute inset-0 -z-10 bg-[radial-gradient(color-mix(in_srgb,var(--color-brand)_34%,transparent)_1.1px,transparent_1.8px)] bg-[length:8px_8px] [mask-image:linear-gradient(200deg,#000_0%,transparent_72%)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(color-mix(in_srgb,var(--color-mark)_34%,transparent)_1.1px,transparent_1.8px)] bg-[length:8px_8px] [mask-image:linear-gradient(200deg,#000_0%,transparent_72%)]"
       />
       <span
         aria-hidden
@@ -147,7 +147,7 @@ export function PartyPanel({
             />
           </span>
           <span key={`${hero.id}-targa`} className={cx("grid min-w-0 justify-items-start gap-1", enter && ENTER_PLATE)}>
-            <span className="p5-cut-sm max-w-full origin-left -rotate-2 truncate bg-ink px-2 py-px font-display text-[11px] leading-tight font-extrabold text-paper uppercase [font-variation-settings:'wdth'_85]">
+            <span className="p5-cut-sm max-w-full origin-left -rotate-2 truncate bg-plate px-2 py-px font-display text-[11px] leading-tight font-extrabold text-paper uppercase [font-variation-settings:'wdth'_85]">
               {hero.epithet}
             </span>
             <span className="p5-title line-clamp-2 max-w-full font-display text-[clamp(15px,1.5vw,20px)] leading-[0.98] font-black uppercase [font-variation-settings:'wdth'_72]">
@@ -169,7 +169,7 @@ export function ChooseMark({ text, strong }: { text: string; strong: boolean }) 
       <span
         className={cx(
           "p5-cut grid h-11 w-14 place-items-center transition-colors",
-          strong ? "bg-brand text-white" : "bg-ink text-paper group-hover:bg-brand group-hover:text-white",
+          strong ? "bg-brand text-on-brand" : "bg-plate text-on-plate group-hover:bg-brand group-hover:text-on-brand",
         )}
       >
         <IconPlus size={20} />
@@ -233,8 +233,8 @@ export function AssociateStrip({
           aria-hidden
           className={cx(
             "grid h-10 w-10 shrink-0 place-items-center bg-paper-3 text-ink-2 transition-colors sm:h-12 sm:w-12",
-            choosable && "group-hover:bg-brand group-hover:text-white",
-            active && "bg-brand text-white",
+            choosable && "group-hover:bg-brand group-hover:text-on-brand",
+            active && "bg-brand text-on-brand",
           )}
         >
           {choosable ? <IconPlus size={16} /> : null}

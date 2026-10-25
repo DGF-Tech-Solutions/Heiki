@@ -53,7 +53,7 @@ export default async function NotFound() {
       */}
       <p
         aria-hidden
-        className="absolute top-8 right-2 -z-10 m-0 font-display text-[clamp(120px,26vw,220px)] leading-none font-black text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--color-brand)_45%,transparent)] [font-variation-settings:'wdth'_62]"
+        className="absolute top-8 right-2 -z-10 m-0 font-display text-[clamp(120px,26vw,220px)] leading-none font-black text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--color-mark)_45%,transparent)] [font-variation-settings:'wdth'_62]"
       >
         404
       </p>

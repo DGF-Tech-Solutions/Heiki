@@ -101,7 +101,14 @@ export function defaultGameSlug(): string {
  * (c'era stato fino a quel giorno con le pagine del vecchio motore, tolte).
  */
 export interface GameSection {
+  /** il percorso dentro il gioco, /<gioco><path>: e' anche l'identificativo della voce */
   path: string;
+  /**
+   * L'indirizzo a cui porta la voce: /<gioco><path>, tranne le voci del profilo,
+   * che portano alla parte di quel gioco del profilo del sito (/profilo/<gioco>,
+   * dal 25/10). Chi disegna un collegamento usa questo, non `path`.
+   */
+  href: string;
   label: string;
   /** descrizione breve, mostrata come titolo del collegamento */
   hint: string;
@@ -134,9 +141,15 @@ export interface GameSectionGroup {
   items: readonly GameSection[];
 }
 
-interface SectionNames extends Omit<GameSection, "label" | "hint"> {
+interface SectionNames extends Omit<GameSection, "label" | "hint" | "href"> {
   label: Bilingual;
   hint: Bilingual;
+  /**
+   * La voce sta nel profilo del sito: porta a /profilo/<gioco> seguito da questo
+   * (25/10: «la scheda profilo dev'essere universale»). Nel menu del gioco resta
+   * come scorciatoia, perche' dal gioco ci si arrivava da li'.
+   */
+  profile?: string;
 }
 
 /** Le sezioni con i nomi nelle due lingue: le risolve `sections(locale)`. */
@@ -150,6 +163,11 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
   // «Strumenti» strumenti e giochi. Indovina l'eroe e Compleanni, che sono svago,
   // stanno in fondo. Dal 10/10: gruppi di quattro voci al massimo, e i buff
   // dell'account con gli artefatti, perche' sono la crescita dell'account.
+  //
+  // Dal 25/10 il gruppo «Il tuo account» si chiama «Il tuo profilo» e porta al
+  // profilo del sito (/profilo/<gioco>, src/lib/profile/games.ts): account di
+  // gioco e box non sono piu' pagine del gioco ma la parte di quel gioco di un
+  // profilo unico per tutti i giochi. Qui restano come scorciatoia (`profile`).
   {
     label: { it: "Database", en: "Database" },
     items: [
@@ -313,11 +331,12 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
     ],
   },
   {
-    label: { it: "Il tuo account", en: "Your account" },
+    label: { it: "Il tuo profilo", en: "Your profile" },
     items: [
       {
         path: "/account",
-        label: { it: "Il mio account", en: "My account" },
+        profile: "",
+        label: { it: "Account di gioco", en: "Game account" },
         hint: {
           it: "Nickname, Codice amico, classe dell'account e costellazioni, e la verifica della classe",
           en: "Nickname, Friend Code, Account Combat Class and constellations, and the class verification",
@@ -326,6 +345,7 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
       },
       {
         path: "/account/eroi",
+        profile: "/eroi",
         label: { it: "I tuoi eroi", en: "Your heroes" },
         hint: {
           it: "Il tuo box: chi hai e a che punto è, per partire dai tuoi numeri nella scheda e nella Squadra",
@@ -360,10 +380,16 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
   },
 ];
 
-function sections(locale: Locale): GameSectionGroup[] {
+function sections(locale: Locale, slug?: string): GameSectionGroup[] {
   return GROUPS.map((group) => ({
     label: group.label[locale],
-    items: group.items.map((item) => ({ ...item, label: item.label[locale], hint: item.hint[locale] })),
+    items: group.items.map(({ profile, ...item }) => ({
+      ...item,
+      // senza il gioco (GAME_GROUPS) l'indirizzo e' il solo percorso
+      href: slug === undefined ? item.path : profile !== undefined ? `/profilo/${slug}${profile}` : `/${slug}${item.path}`,
+      label: item.label[locale],
+      hint: item.hint[locale],
+    })),
   }));
 }
 
@@ -386,7 +412,7 @@ export const GAME_SECTIONS: readonly GameSection[] = GAME_GROUPS.flatMap((group)
 export function gameGroups(slug: string, locale: Locale = "it"): GameSectionGroup[] {
   const gameModule = getGameModule(slug);
 
-  return sections(locale).map((group) => ({
+  return sections(locale, slug).map((group) => ({
     ...group,
     items: group.items.filter((item) => item.needs === undefined || gameModule?.[item.needs]),
   })).filter((group) => group.items.length > 0);

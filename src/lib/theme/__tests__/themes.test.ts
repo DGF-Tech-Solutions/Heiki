@@ -29,9 +29,21 @@ const ROLE_TOKENS = [
   "ink-3",
   "rule",
   "rule-2",
+  // dal 25/10: il bordo dei campi
+  "rule-strong",
   "brand",
   "brand-deep",
   "brand-soft",
+  // dal 25/10: il testo sull'accento, l'accento decorativo, il blocco neutro e il suo testo
+  "on-brand",
+  "mark",
+  "plate",
+  "on-plate",
+  // dal 25/10: la scelta (chip dei filtri, lingua, livelli)
+  "select",
+  "on-select",
+  // dal 25/10 sera: la lama del palco e dell'anteprima
+  "stage",
 ];
 
 function colors(block: string): Record<string, string> {
@@ -124,9 +136,39 @@ describe.each(THEMES)("il tema %s si legge", (theme) => {
     }
   });
 
-  it("l'accento regge il bianco sopra, e sul fondo si vede come blocco e come filo", () => {
-    almeno("#ffffff", "brand", 4.5);
+  it("il testo sull'accento si legge, e l'accento sul fondo si vede come blocco e come filo", () => {
+    almeno("on-brand", "brand", 4.5);
     almeno("brand", "paper", 3);
+  });
+
+  it("la targa (pulsanti secondari, targhette, campi) regge il suo testo e non si confonde col fondo", () => {
+    almeno("on-plate", "plate", 4.5);
+    almeno("on-plate", "plate", 7);
+    expect(c.plate, `${theme}: plate diverso da paper`).not.toBe(c.paper);
+  });
+
+  it("il segno decorativo (ombre dei titoli, ombre sfalsate, retino) si vede sul fondo", () => {
+    almeno("mark", "paper", 3);
+  });
+
+  it("la scelta regge il suo testo, e non e' il blocco dell'azione principale", () => {
+    almeno("on-select", "select", 7);
+    // nel Classico ink e brand sono lo stesso bianco: la scelta deve essere un'altra cosa
+    if (c.ink === c.brand) expect(c.select, `${theme}: select diverso da brand`).not.toBe(c.brand);
+  });
+
+  it("il bordo dei campi fa almeno 3:1 su ogni fondo (WCAG 1.4.11)", () => {
+    for (const fondo of ["paper", "paper-2", "paper-3"]) almeno("rule-strong", fondo, 3);
+  });
+
+  it("nei temi colorati i gettoni nuovi ridanno il sito di prima: segno = accento, targa = bianco carta", () => {
+    if (c["on-brand"] !== "#ffffff") return; // il Classico ha i suoi, provati sopra
+    expect(c.mark, `${theme}: mark`).toBe(c.brand);
+    expect(c.plate, `${theme}: plate`).toBe(c.ink);
+    expect(c["on-plate"], `${theme}: on-plate`).toBe(c.paper);
+    expect(c.select, `${theme}: select`).toBe(c.ink);
+    expect(c["on-select"], `${theme}: on-select`).toBe(c.paper);
+    expect(c.stage, `${theme}: stage`).toBe(c.brand);
   });
 
   it("l'accento del testo piccolo fa almeno 4,5:1 sul fondo", () => {

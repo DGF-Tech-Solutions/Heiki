@@ -41,14 +41,14 @@ export function GameSidebar({
   const base = `/${game}`;
   const t = TESTI[useLocale()];
   // La voce attiva e' quella col percorso PIU' LUNGO che contiene la pagina:
-  // in «I tuoi eroi» (/account/eroi) anche «Il mio account» (/account) ne e'
-  // l'inizio, e si accendevano tutte e due (10/10). La radice del gioco vale solo
+  // in «I tuoi eroi» (/account/eroi, nel profilo dal 25/10) anche «Il mio
+  // account» (/account) ne era l'inizio, e si accendevano tutte e due (10/10). La radice del gioco vale solo
   // per uguaglianza, se no risulterebbe attiva ovunque.
-  const activePath = groups
-    .flatMap((group) => group.items.map((item) => item.path))
-    .filter((path) =>
-      path === "" ? pathname === base : pathname === `${base}${path}` || pathname.startsWith(`${base}${path}/`),
-    )
+  // Si confrontano gli indirizzi (`href`) e non i percorsi: dal 25/10 le voci
+  // del profilo portano fuori dal gioco (/profilo/<gioco>).
+  const activeHref = groups
+    .flatMap((group) => group.items.map((item) => item.href))
+    .filter((href) => (href === base ? pathname === base : pathname === href || pathname.startsWith(`${href}/`)))
     .sort((a, b) => b.length - a.length)[0];
 
   // La barra scorre per conto suo (layout del gioco, 10/10): se la voce attiva e'
@@ -62,7 +62,7 @@ export function GameSidebar({
     const box = aside.getBoundingClientRect();
     const item = link.getBoundingClientRect();
     if (item.top < box.top || item.bottom > box.bottom) aside.scrollTop += item.top - box.top - box.height / 3;
-  }, [activePath]);
+  }, [activeHref]);
 
   return (
     // Sette gruppi e venti voci (24/10): sul computer la barra si stringe per
@@ -74,14 +74,14 @@ export function GameSidebar({
         <div key={group.label}>
           {/* il nome del gruppo e' una targhetta bianca tagliata, come le
               intestazioni dei menu di Persona */}
-          <p className={cx(eyebrow, "p5-cut-sm mb-2 inline-block bg-ink px-2.5 py-0.5 text-paper")}>
+          <p className={cx(eyebrow, "p5-cut-sm mb-2 inline-block bg-plate px-2.5 py-0.5 text-on-plate")}>
             {group.label}
           </p>
 
           <ul className="m-0 grid list-none gap-0.5 p-0">
             {group.items.map((item) => {
-              const href = `${base}${item.path}`;
-              const active = item.path === activePath;
+              const href = item.href;
+              const active = item.href === activeHref;
 
               return (
                 <li key={item.path}>
@@ -95,7 +95,7 @@ export function GameSidebar({
                       "p5-menu-item block px-3 py-2.5 font-display text-[14px] font-extrabold uppercase tracking-[0.02em] transition-colors [font-variation-settings:'wdth'_82] lg:py-1 lg:leading-tight",
                       // il nero del passaggio va scritto qui: l'utility di riposo scavalca
                       // quello di .p5-menu-item, e il testo chiaro restava sulla lama bianca
-                      active ? "text-white" : "text-ink-2 hover:text-paper",
+                      active ? "text-on-brand" : "text-ink-2 hover:text-on-plate",
                     )}
                   >
                     {item.label}

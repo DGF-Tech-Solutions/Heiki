@@ -15,14 +15,14 @@ const TESTI = testi({
     titolo: "Tema",
     gruppo: "Tema del sito",
     nota: "Cambiano solo i colori. La scelta resta in questo browser.",
-    nomi: { persona: "Rosso", notte: "Notte", giada: "Giada", viola: "Viola", ambra: "Ambra" } satisfies Record<Theme, string>,
+    nomi: { classico: "Classico", persona: "Rosso", notte: "Notte", giada: "Giada", viola: "Viola", ambra: "Ambra" } satisfies Record<Theme, string>,
   },
   en: {
     apri: (nome: string) => `Site theme: ${nome}`,
     titolo: "Theme",
     gruppo: "Site theme",
     nota: "Only the colors change. Your choice stays in this browser.",
-    nomi: { persona: "Red", notte: "Midnight", giada: "Jade", viola: "Violet", ambra: "Amber" },
+    nomi: { classico: "Classic", persona: "Red", notte: "Midnight", giada: "Jade", viola: "Violet", ambra: "Amber" },
   },
 });
 
@@ -84,7 +84,7 @@ export function ThemeSwitch({ current }: { current: Theme }) {
         aria-label={t.apri(t.nomi[scelto])}
         title={t.apri(t.nomi[scelto])}
         // 32x36 e l'area da toccare alta 44: era 30x27 (revisione del 24/10)
-        className="relative grid h-8 w-9 shrink-0 cursor-pointer place-items-center rounded-card border border-rule text-ink-3 transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] hover:text-ink"
+        className="relative grid h-8 w-9 shrink-0 cursor-pointer place-items-center rounded-card border border-rule text-ink-3 transition-colors after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] hover:text-ink pointer-coarse:w-11"
       >
         <IconPalette size={16} />
       </button>
@@ -97,26 +97,39 @@ export function ThemeSwitch({ current }: { current: Theme }) {
           if (event.newState === "open") posiziona();
         }}
         style={{ width: rem(LARGHEZZA) }}
-        className="inset-auto m-0 border-2 border-ink bg-paper p-0 whitespace-normal text-ink shadow-[6px_6px_0_0_var(--color-brand)]"
+        className="inset-auto m-0 border-2 border-ink bg-paper p-0 whitespace-normal text-ink shadow-[6px_6px_0_0_var(--color-mark)]"
       >
         <p className={cx(eyebrow, "m-0 border-b border-rule px-4 py-2.5")}>{t.titolo}</p>
         <div role="group" aria-label={t.gruppo} className="grid gap-0.5 p-2">
-          {THEMES.map((tema) => (
+          {THEMES.map((tema, i) => (
             <button
               key={tema}
               type="button"
               aria-pressed={tema === scelto}
               onClick={() => scegli(tema)}
-              // `hover:text-paper` scritto qui: il colore del passaggio di .p5-menu-item sta
+              // `hover:text-on-plate` scritto qui: il colore del passaggio di .p5-menu-item sta
               // in globals.css, e il colore di riposo, un'utility, lo scavalcherebbe (testo
-              // chiaro sulla lama bianca)
+              // chiaro sulla lama bianca). Il predefinito (il primo) ha un filo sotto: e'
+              // «il sito», gli altri sono varianti (25/10, come i temi di shadcn). Al tocco
+              // le righe sono alte 44px
               className={cx(
-                "p5-menu-item flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left font-display text-[14px] font-extrabold uppercase tracking-[0.02em] [font-variation-settings:'wdth'_82] hover:text-paper",
+                "p5-menu-item flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left font-display text-[14px] font-extrabold uppercase tracking-[0.02em] [font-variation-settings:'wdth'_82] hover:text-on-plate pointer-coarse:min-h-11",
                 tema === scelto ? "text-ink" : "text-ink-2",
+                i === 0 && "mb-1.5 after:absolute after:inset-x-1 after:-bottom-1 after:h-px after:bg-rule after:content-['']",
               )}
             >
-              {/* il campione: l'accento del tema, tagliato come le etichette */}
-              <span aria-hidden className="p5-cut-sm h-4 w-7 shrink-0" style={{ backgroundColor: THEME_COLORS[tema].brand }} />
+              {/*
+                il campione: fondo e accento del tema, in diagonale e tagliato come le
+                etichette. Solo l'accento non bastava: quello del Classico e' bianco,
+                un rettangolo uguale al testo accanto
+              */}
+              <span
+                aria-hidden
+                className="p5-cut-sm h-4 w-7 shrink-0 outline outline-1 -outline-offset-1 outline-rule"
+                style={{
+                  background: `linear-gradient(115deg, ${THEME_COLORS[tema].paper} 0 46%, ${THEME_COLORS[tema].brand} 46% 100%)`,
+                }}
+              />
               <span className="min-w-0 flex-1">{t.nomi[tema]}</span>
               {tema === scelto ? <IconCheck className="shrink-0" /> : null}
             </button>

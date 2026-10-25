@@ -127,7 +127,7 @@ export function Chip({
           className={cx(
             numeric,
             "text-[12px]",
-            active ? "text-paper" : "text-ink-3 group-enabled:group-hover:text-paper",
+            active ? "text-paper" : "text-ink-3 group-enabled:group-hover:text-on-plate",
           )}
         >
           {count}

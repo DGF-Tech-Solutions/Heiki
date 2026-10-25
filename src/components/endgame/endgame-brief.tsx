@@ -49,7 +49,7 @@ export function BattleBrief({
   const shownStats = stats.filter((row): row is readonly [string, ReactNode] => !!row);
   const shownRows = (rows ?? []).filter((row): row is readonly [string, ReactNode] => !!row);
   return (
-    <section aria-label={label} className="p5-corner mt-5 border border-rule border-t-[3px] border-t-brand bg-paper-2">
+    <section aria-label={label} className="p5-corner mt-5 border border-rule border-t-[3px] border-t-mark bg-paper-2">
       <div className="flex gap-6 p-4 sm:p-5">
         {image ? (
           /* eslint-disable-next-line @next/next/no-img-element */

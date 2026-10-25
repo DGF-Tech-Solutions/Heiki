@@ -155,6 +155,7 @@ export async function loadProfile(lookup: ProfileLookup, locale: Locale): Promis
           id: account.id,
           // il gioco si riconosce dallo slug: `gameId` e' l'id del database, non quello del modulo
           game: gameNames.get(account.game.slug) ?? TESTI[locale].gioco,
+          slug: account.game.slug,
           uid: account.uid,
           nickname: account.nickname,
           trust: account.trust,

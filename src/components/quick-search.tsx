@@ -169,10 +169,13 @@ export function QuickSearch({ games }: { games: readonly string[] }) {
         },
       ].filter((s) => s.list.length > 0);
   const flat = sections.flatMap((s) => s.list);
+  // i risultati stanno dentro il gioco, tranne le pagine del profilo del sito
+  // (dal 25/10), che arrivano gia' con l'indirizzo intero
+  const hrefOf = (result: QuickResult) => (result.path.startsWith("/profilo/") ? result.path : `/${game}${result.path}`);
   const go = (result: QuickResult | undefined) => {
     if (!result || !game) return;
     dialog.current?.close();
-    router.push(`/${game}${result.path}`);
+    router.push(hrefOf(result));
   };
 
   if (!game) return null;
@@ -188,7 +191,7 @@ export function QuickSearch({ games }: { games: readonly string[] }) {
         aria-keyshortcuts="/ Control+K"
         title={t.scorciatoia}
         // alto 36 e largo 40 sul telefono (era 36x32): col taglio obliquo l'area non si puo' allargare oltre il bordo
-        className="p5-cut ml-auto flex h-9 shrink-0 cursor-pointer items-center gap-2 bg-ink px-3 text-[13px] font-semibold text-paper/70 hover:bg-white hover:text-paper md:w-56 max-md:w-10 max-md:justify-center max-md:px-0"
+        className="p5-cut ml-auto flex h-9 shrink-0 cursor-pointer items-center gap-2 bg-plate px-3 text-[13px] font-semibold text-on-plate/70 hover:bg-ink hover:text-paper md:w-56 max-md:w-10 max-md:justify-center max-md:px-0"
       >
         <IconSearch size={16} className="shrink-0 text-paper" />
         <span className="hidden flex-1 text-left md:inline">{t.apri}</span>
@@ -204,7 +207,7 @@ export function QuickSearch({ games }: { games: readonly string[] }) {
         }}
         className="quick-search m-0 mx-auto mt-[8vh] w-[min(640px,calc(100vw-24px))] max-w-none overflow-hidden border border-rule bg-paper-2 p-0 text-ink backdrop:bg-black/70"
       >
-        <div className="flex items-center gap-3 border-b-2 border-brand px-4">
+        <div className="flex items-center gap-3 border-b-2 border-mark px-4">
           <IconSearch size={20} className="shrink-0 text-ink-3" />
           <input
             ref={input}
@@ -253,19 +256,19 @@ export function QuickSearch({ games }: { games: readonly string[] }) {
                         id={`rr-${mine}`}
                         role="option"
                         aria-selected={mine === active}
-                        href={`/${game}${result.path}`}
+                        href={hrefOf(result)}
                         onMouseEnter={() => setActive(mine)}
                         onClick={() => dialog.current?.close()}
                         className={cx(
                           "flex min-h-11 items-center gap-3 px-3 py-1.5",
-                          mine === active ? "bg-brand text-white" : "text-ink hover:bg-paper-3",
+                          mine === active ? "bg-brand text-on-brand" : "text-ink hover:bg-paper-3",
                         )}
                       >
                         {result.kind === "eroe" ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img src={heroCardSrc(game, result.id)} alt="" width={40} height={40} className="h-10 w-10 shrink-0 bg-paper" loading="lazy" />
                         ) : (
-                          <span className={cx("grid h-10 w-10 shrink-0 place-items-center", mine === active ? "text-white" : "text-ink-3")}>
+                          <span className={cx("grid h-10 w-10 shrink-0 place-items-center", mine === active ? "text-on-brand" : "text-ink-3")}>
                             {result.kind === "boss" || result.kind === "bestia" ? (
                               <IconSword size={20} />
                             ) : result.kind === "pagina" ? (
@@ -279,7 +282,7 @@ export function QuickSearch({ games }: { games: readonly string[] }) {
                           <span className="block truncate font-display text-[15px] font-extrabold uppercase leading-tight [font-variation-settings:'wdth'_80]">
                             {result.title}
                           </span>
-                          <span className={cx("block truncate text-[12px]", mine === active ? "text-white/85" : "text-ink-3")}>
+                          <span className={cx("block truncate text-[12px]", mine === active ? "text-on-brand/85" : "text-ink-3")}>
                             {result.subtitle || t.tipo[result.kind]}
                           </span>
                         </span>

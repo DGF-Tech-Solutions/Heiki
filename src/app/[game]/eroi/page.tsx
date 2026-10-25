@@ -8,10 +8,11 @@ import { RosterBrowser } from "@/components/heroes/roster-browser";
 import { PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
-import { plainHeroText } from "@/lib/games/hero-markup";
+import { peekFacts } from "@/lib/games/hero-peek-facts";
 import { requireGameModule } from "@/lib/games/registry";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { getGameRatingOverview } from "@/lib/ratings/server";
 
 /**
  * Eroi.
@@ -78,7 +79,8 @@ export default async function HeroesPage({ params }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster, icons, releases, heroContext, heroAssets, heroTexts } = requireGameModule(game);
+  const gameModule = requireGameModule(game);
+  const { roster, icons, releases, heroContext, heroAssets } = gameModule;
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -134,14 +136,12 @@ export default async function HeroesPage({ params }: Props) {
   // eccezioni (poche) il tipo d'illustrazione e la mancanza del cut-in. Al
   // browser arriva questo, non l'elenco degli asset di tutti gli eroi.
   //
-  // E la descrizione del gioco, che l'anteprima mostra: solo nella lingua della
-  // pagina e gia' senza markup (in media 140 caratteri: tutte e 377 pesano ~55 KB,
-  // ~20 compresse). I testi completi restano sul server, nella scheda.
+  // Fino al 25/10 arrivava anche la descrizione del gioco di ogni eroe (~55 KB,
+  // ~20 compressi): l'anteprima nuova non la mostra, la storia e' nella scheda.
   const stageKinds: Record<string, StageArt["art"]> = {};
   const stageFigures: Record<string, StageArt["figure"]> = {};
   const figureBoxes: Record<string, FigureBox> = {};
   const withoutCutIn: string[] = [];
-  const descriptions: Record<string, string> = {};
   for (const hero of roster.heroes) {
     const assets = heroAssets?.[hero.id];
     const stage = stageArtOf(assets);
@@ -149,10 +149,14 @@ export default async function HeroesPage({ params }: Props) {
     if (!stage.cutIn) withoutCutIn.push(hero.id);
     stageFigures[hero.id] = stage.figure;
     if (assets?.box) figureBoxes[hero.id] = assets.box;
-    const text = heroTexts?.[hero.id];
-    const raw = inLingua(text?.i18n?.description, locale) ?? text?.description;
-    if (raw) descriptions[hero.id] = plainHeroText(raw);
   }
+
+  // I dati dell'anteprima (25/10): classe di combattimento e statistiche al
+  // massimo con la posizione fra tutti gli eroi, uscita, fine gioco, e il voto
+  // della community dal database. Pochi numeri per eroe, nella lingua della
+  // pagina: le schede intere restano sul server.
+  const ratings = await getGameRatingOverview(game);
+  const peek = peekFacts(gameModule, locale);
 
   const rarest = roster.rarities[0];
   const counted = roster.heroes.filter((hero) => hero.rarity === rarest).length;
@@ -198,7 +202,8 @@ export default async function HeroesPage({ params }: Props) {
         figures={stageFigures}
         boxes={figureBoxes}
         withoutCutIn={withoutCutIn}
-        descriptions={descriptions}
+        peek={peek}
+        ratings={ratings}
       />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">

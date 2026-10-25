@@ -142,7 +142,7 @@ export default async function Home() {
                     headingLevel="h2"
                     plate={{ kicker: t.ultimaUscita(heroName(newest, locale)), title: game.name }}
                     art={stageArtOf(gameModule?.heroAssets?.[newest.id])}
-                    className="p5-corner transition-[filter] duration-200 group-hover:drop-shadow-[6px_6px_0_var(--color-brand)]"
+                    className="p5-corner transition-[filter] duration-200 group-hover:drop-shadow-[6px_6px_0_var(--color-mark)]"
                   >
                     <span className="flex flex-wrap items-center gap-3">
                       {/* «Apri» e il nome del gioco: «Entra» nell'intestazione e' l'accesso (24/10) */}
@@ -163,7 +163,7 @@ export default async function Home() {
                   <ul className="m-0 flex list-none flex-col items-start p-0 sm:flex-row sm:flex-wrap sm:gap-x-9">
                     {scorciatoie.map((item) => (
                       <li key={item.path}>
-                        <Link href={`/${game.slug}${item.path}`} title={item.hint} className={COMANDO}>
+                        <Link href={item.href} title={item.hint} className={COMANDO}>
                           {item.label}
                         </Link>
                       </li>

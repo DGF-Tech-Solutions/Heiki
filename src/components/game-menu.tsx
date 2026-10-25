@@ -52,7 +52,7 @@ export function GameMenu({
       className={cx(
         // il popover del browser sta al centro: qui diventa una colonna alta
         // quanto lo schermo, attaccata a sinistra
-        "inset-y-0 right-auto left-0 m-0 h-dvh max-h-none w-[min(86vw,340px)] flex-col border-0 border-r-[3px] border-brand bg-paper p-0 text-ink open:flex",
+        "inset-y-0 right-auto left-0 m-0 h-dvh max-h-none w-[min(86vw,340px)] flex-col border-0 border-r-[3px] border-mark bg-paper p-0 text-ink open:flex",
         // entra da sinistra; con «riduci movimento» compare e basta
         "-translate-x-full transition-[translate,display,overlay] transition-discrete duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] open:translate-x-0 starting:open:-translate-x-full motion-reduce:transition-none",
         "backdrop:bg-black/70",
@@ -79,7 +79,7 @@ export function GameMenu({
             document.getElementById("menu-sezioni")?.hidePopover();
             window.dispatchEvent(new Event(OPEN_SEARCH_EVENT));
           }}
-          className="p5-cut flex h-11 w-full cursor-pointer items-center gap-2.5 bg-ink px-3.5 text-left text-[14px] font-semibold text-paper/70 hover:bg-white hover:text-paper"
+          className="p5-cut flex h-11 w-full cursor-pointer items-center gap-2.5 bg-plate px-3.5 text-left text-[14px] font-semibold text-on-plate/70 hover:bg-ink hover:text-paper"
         >
           <IconSearch size={17} />
           {t.cerca}

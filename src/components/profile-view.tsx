@@ -32,6 +32,7 @@ import {
 import { FAVORITES_LIMIT } from "@/lib/profile/favorites";
 import type { ProfileCover, ProfileFavoriteHero } from "@/lib/profile/favorite-heroes";
 import {
+  buttonClass,
   cx,
   display,
   Empty,
@@ -59,7 +60,10 @@ export interface ProfileBadge {
 
 export interface ProfileGameAccount {
   id: string;
+  /** il nome del gioco, gia' risolto dal modulo */
   game: string;
+  /** lo slug del gioco: al proprietario porta a /profilo/<gioco> (25/10) */
+  slug?: string;
   uid: string;
   nickname?: string | null;
   trust: BadgeTrust;
@@ -118,8 +122,13 @@ const TESTI = testi({
     verificatiSu: (verificati: number, totale: number) => `${verificati} verificati su ${totale}`,
     accountDiGioco: "Account di gioco",
     soloCodiciPubblici: "solo dati pubblici",
-    nessunAccount: "Nessun account di gioco. Si collega dalla pagina «Il mio account» del gioco.",
+    nessunAccount: "Nessun account di gioco.",
+    collegaAccount: "Si scrive nel tuo profilo, alla scheda del gioco:",
+    gestisciAccount: "Account di gioco",
+    gestisciEroi: "I tuoi eroi",
+    tuoProfilo: "Il tuo profilo",
     codiceAmico: "Codice amico",
+    senzaNickname: "Senza nickname",
     verificataIl: (quando: string) => `verificata il ${quando}`,
     dichiarata: "dichiarata",
     verificataPrima: (n: string, quando: string) => `verificata ${n} il ${quando}`,
@@ -141,8 +150,13 @@ const TESTI = testi({
     verificatiSu: (verificati: number, totale: number) => `${verificati} verified out of ${totale}`,
     accountDiGioco: "Game accounts",
     soloCodiciPubblici: "public data only",
-    nessunAccount: "No game accounts. Link one from the game's «My account» page.",
+    nessunAccount: "No game accounts.",
+    collegaAccount: "You add one in your profile, on the game's tab:",
+    gestisciAccount: "Game account",
+    gestisciEroi: "Your heroes",
+    tuoProfilo: "Your profile",
     codiceAmico: "Friend Code",
+    senzaNickname: "No nickname",
     verificataIl: (quando: string) => `verified on ${quando}`,
     dichiarata: "declared",
     verificataPrima: (n: string, quando: string) => `verified ${n} on ${quando}`,
@@ -189,17 +203,6 @@ function AccountPower({ account, locale }: { account: ProfileGameAccount; locale
   );
 }
 
-/**
- * La classe da mettere fra i numeri della testata: la verificata piu' alta se
- * ce n'e' una, se no la dichiarata piu' alta. Il dettaglio (quale account, da
- * quando) sta nelle card degli account.
- */
-function accountClass(accounts: readonly ProfileGameAccount[]): number | null {
-  const best = (pick: (account: ProfileGameAccount) => number | null | undefined) =>
-    Math.max(0, ...accounts.map((account) => pick(account) ?? 0));
-  return best((account) => account.verifiedPower) || best((account) => account.power) || null;
-}
-
 export function ProfileView({
   data,
   locale = "it",
@@ -226,7 +229,6 @@ export function ProfileView({
   const shownBadges = data.badges.filter((b) => b.shown !== false).slice(0, BADGE_SHOWCASE_LIMIT);
   const shownAccounts = data.gameAccounts.filter((a) => a.shown !== false);
   const verified = shownBadges.filter((b) => b.trust === "VERIFIED").length;
-  const power = accountClass(shownAccounts);
 
   const compact = custom.layout === "compact";
   const editorial = custom.layout === "editorial";
@@ -326,7 +328,6 @@ export function ProfileView({
           <Stat label={t.seguaci} value={data.stats.followers.toLocaleString(numberLocale)} />
           <Stat label={t.segue} value={data.stats.following.toLocaleString(numberLocale)} />
           <Stat label={t.post} value={data.stats.posts.toLocaleString(numberLocale)} />
-          <Stat label={t.classe} value={power ? power.toLocaleString(numberLocale) : "—"} />
         </StatGrid>
       ) : null}
 
@@ -385,19 +386,31 @@ export function ProfileView({
           />
 
           {shownAccounts.length === 0 ? (
-            <Empty>{t.nessunAccount}</Empty>
+            <Empty>
+              {t.nessunAccount}{" "}
+              {owner ? (
+                <>
+                  {t.collegaAccount}{" "}
+                  <Link href="/profilo" className="font-semibold text-ink underline decoration-mark underline-offset-2 hover:decoration-ink">
+                    {t.tuoProfilo}
+                  </Link>
+                </>
+              ) : null}
+            </Empty>
           ) : (
+            // Una card per account di gioco (25/10, dalla ricerca sui profili
+            // multi-gioco: Enka, HoYoLAB): il titolo e' il nickname, sotto il gioco
+            // scritto per esteso (con piu' giochi l'arte da sola non lo dice), il
+            // server e il Codice amico. Niente etichetta sopra il titolo.
             <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
               {shownAccounts.map((account) => (
                 <li key={account.id} className="p5-corner min-w-0 border border-rule bg-paper-2 py-3.5 pr-6 pl-4">
-                  <p className="m-0 flex flex-wrap items-center gap-2">
-                    <span className={eyebrow}>{account.game}</span>
-                    <Tag tone={account.trust === "VERIFIED" ? "accent" : "neutral"}>{t.fiducia[account.trust]}</Tag>
-                  </p>
-                  <p className={cx(display, "m-0 mt-2 text-[22px] wrap-break-word")}>
-                    {account.nickname || "—"}
-                  </p>
-                  <p className="m-0 mt-1.5 flex flex-wrap gap-x-2.5 text-[13px] text-ink-3">
+                  {/* senza nickname lo si dice a parole: un trattino lungo come segnaposto e' contro le regole del 24/10 */}
+                  <h3 className={cx(display, "m-0 text-[22px] wrap-break-word", !account.nickname && "text-ink-3")}>
+                    {account.nickname || t.senzaNickname}
+                  </h3>
+                  <p className="m-0 mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-ink-3">
+                    <span className="font-semibold text-ink-2">{account.game}</span>
                     {account.server ? <span>{account.server}</span> : null}
                     {account.uid ? (
                       <span title={t.codiceAmico}>
@@ -405,8 +418,19 @@ export function ProfileView({
                         <span className={numeric}>#{account.uid}</span>
                       </span>
                     ) : null}
+                    <Tag tone={account.trust === "VERIFIED" ? "accent" : "neutral"}>{t.fiducia[account.trust]}</Tag>
                   </p>
                   <AccountPower account={account} locale={locale} />
+                  {owner && account.slug ? (
+                    <p className="m-0 mt-3 flex flex-wrap gap-2">
+                      <Link href={`/profilo/${account.slug}`} className={buttonClass("outline", "sm")}>
+                        {t.gestisciAccount}
+                      </Link>
+                      <Link href={`/profilo/${account.slug}/eroi`} className={buttonClass("ghost", "sm")}>
+                        {t.gestisciEroi}
+                      </Link>
+                    </p>
+                  ) : null}
                 </li>
               ))}
             </ul>

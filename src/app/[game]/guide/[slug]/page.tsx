@@ -158,7 +158,7 @@ export default async function GuidePage({ params }: Props) {
         sei, 10/10), col filo rosso di PageHeader; l'estratto e chi l'ha scritta
         sotto, perche' una guida si legge dall'alto in basso come un articolo.
       */}
-      <header className="mb-6 border-b-2 border-brand pb-5" data-accent={guide.author.accent}>
+      <header className="mb-6 border-b-2 border-mark pb-5" data-accent={guide.author.accent}>
         <h1 className={cx(display, "text-[clamp(30px,4.4vw,50px)]")}>{guide.title}</h1>
 
         <p className="mt-3 max-w-[48ch] text-base text-ink-2">{guide.excerpt}</p>

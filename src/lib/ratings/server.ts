@@ -3,6 +3,7 @@
  */
 
 import { and, desc, eq, sql } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { databaseReachable, db } from "@/lib/db";
 import { games, heroRatings, profiles, users } from "@/lib/db/schema";
 import { normalizeCustomization } from "@/lib/profile/customization";
@@ -11,6 +12,7 @@ import {
   type BestContentKey,
   type CommunityRatingEntry,
   type ContentDistributionItem,
+  type HeroRatingOverview,
   type HeroRatingSummary,
   type UserRatingRecord,
 } from "./types";
@@ -25,6 +27,64 @@ export function emptyRatingSummary(heroId: string): HeroRatingSummary {
     userRating: null,
     recentRatings: [],
   };
+}
+
+/** Il segno della cache del riepilogo di un gioco: lo svuotano le azioni che salvano o tolgono un voto. */
+export function ratingOverviewTag(gameSlug: string): string {
+  return `valutazioni:${gameSlug}`;
+}
+
+/**
+ * Il riepilogo delle valutazioni di TUTTI gli eroi di un gioco, in una query sola
+ * (25/10): l'anteprima accanto alla griglia Eroi mostra il voto dell'eroe sotto
+ * il mouse, e chiederlo eroe per eroe al passaggio lo farebbe arrivare in
+ * ritardo. Gli eroi senza voti non ci sono. Database spento o non migrato: vuoto,
+ * e l'anteprima dice «nessuna valutazione».
+ *
+ * In cache per 5 minuti, e la cache si svuota a ogni voto salvato o tolto
+ * (`ratingOverviewTag`): senza, ogni visita alla pagina Eroi aspettava il
+ * database prima di disegnare (critica della ricerca). Un errore non entra in
+ * cache: la visita dopo riprova.
+ */
+export async function getGameRatingOverview(gameSlug: string): Promise<Record<string, HeroRatingOverview>> {
+  if (!(await databaseReachable())) return {};
+  try {
+    return await unstable_cache(() => readGameRatingOverview(gameSlug), ["valutazioni-riepilogo", gameSlug], {
+      revalidate: 300,
+      tags: [ratingOverviewTag(gameSlug)],
+    })();
+  } catch {
+    return {};
+  }
+}
+
+async function readGameRatingOverview(gameSlug: string): Promise<Record<string, HeroRatingOverview>> {
+  const gameRow = await db.query.games.findFirst({
+    where: eq(games.slug, gameSlug),
+    columns: { id: true },
+  });
+  if (!gameRow) return {};
+  const rows = await db
+    .select({
+      heroId: heroRatings.heroId,
+      count: sql<number>`count(*)::int`,
+      pve: sql<number>`round(avg(${heroRatings.pveScore})::numeric, 1)::float`,
+      pvp: sql<number>`round(avg(${heroRatings.pvpScore})::numeric, 1)::float`,
+      best: sql<string | null>`mode() within group (order by ${heroRatings.bestContent}) filter (where ${heroRatings.bestContent} is not null and ${heroRatings.bestContent} <> '')`,
+    })
+    .from(heroRatings)
+    .where(eq(heroRatings.gameId, gameRow.id))
+    .groupBy(heroRatings.heroId);
+  const out: Record<string, HeroRatingOverview> = {};
+  for (const row of rows) {
+    out[row.heroId] = {
+      pve: row.pve,
+      pvp: row.pvp,
+      count: row.count,
+      best: row.best && Object.hasOwn(BEST_CONTENTS, row.best) ? (row.best as BestContentKey) : null,
+    };
+  }
+  return out;
 }
 
 /**

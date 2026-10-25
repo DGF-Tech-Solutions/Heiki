@@ -19,14 +19,19 @@ export function SectionTabs({
   className,
 }: {
   label: string;
-  tabs: readonly { href: string; label: string }[];
+  /**
+   * `nested`: la scheda resta accesa anche nelle sue sottopagine (25/10, il
+   * profilo: «Grand Cross» e' accesa sia sull'account sia sugli eroi del gioco).
+   * Senza, vale solo l'indirizzo esatto, come prima.
+   */
+  tabs: readonly { href: string; label: string; nested?: boolean }[];
   className?: string;
 }) {
   const pathname = usePathname();
   return (
     <nav aria-label={label} className={className ?? "flex flex-wrap gap-1.5"}>
       {tabs.map((tab) => {
-        const current = pathname === tab.href;
+        const current = pathname === tab.href || (tab.nested === true && pathname.startsWith(`${tab.href}/`));
         return (
           <Link key={tab.href} href={tab.href} aria-current={current ? "page" : undefined} className={chipClass(current, true)}>
             {tab.label}

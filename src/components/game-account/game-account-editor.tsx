@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { AccountControls } from "@/components/account-buff/account-controls";
 import { useAccountSetup } from "@/components/account-buff/use-account-setup";
+import { PrivacyNote } from "@/components/legal/privacy-note";
 import { Button, buttonClass, cx, display, eyebrow, Input, numeric, Select } from "@/components/ui";
 import {
   cancelVerificationAction,
@@ -218,6 +219,8 @@ export function GameAccountEditor(props: GameAccountEditorProps) {
             </Select>
           </label>
         </div>
+        {/* i campi si salvano da soli: la riga sulla privacy sta sotto i campi, non sotto un pulsante */}
+        <PrivacyNote variant="data" />
       </Section>
 
       <Section title={t.classe}>
@@ -448,7 +451,7 @@ function Challenge({
           alt=""
           width={112}
           height={150}
-          className="h-auto w-full bg-paper-2 shadow-[4px_4px_0_var(--color-brand)]"
+          className="h-auto w-full bg-paper-2 shadow-[4px_4px_0_var(--color-mark)]"
         />
         <div className="grid gap-1.5">
           <p className={cx(eyebrow, "m-0")}>{t.eroeDelGiorno}</p>
@@ -504,7 +507,7 @@ function Challenge({
               id={`${idPrefix}-file`}
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              className="w-full min-w-0 text-sm file:mr-3 file:h-9 file:cursor-pointer file:border-0 file:bg-ink file:px-3.5 file:font-display file:text-[13px] file:font-extrabold file:text-paper file:uppercase hover:file:bg-brand hover:file:text-white"
+              className="w-full min-w-0 text-sm file:mr-3 file:h-9 file:cursor-pointer file:border-0 file:bg-plate file:px-3.5 file:font-display file:text-[13px] file:font-extrabold file:text-on-plate file:uppercase hover:file:bg-brand hover:file:text-on-brand"
               onChange={async (event) => {
                 const chosen = event.target.files?.[0];
                 onError(null);
@@ -538,6 +541,7 @@ function Challenge({
             {t.ritira}
           </Button>
         </div>
+        <PrivacyNote variant="data" />
       </form>
     </div>
   );

@@ -269,7 +269,7 @@ export default async function BirthdaysPage({ params, searchParams }: Props) {
               aria-labelledby={`m-${month}-titolo`}
               className="p5-corner scroll-mt-24 border border-rule bg-paper-2"
             >
-              <h3 id={`m-${month}-titolo`} className={cx(display, "m-0 border-b-2 border-brand px-4 pt-3 pb-2 text-[22px]")}>
+              <h3 id={`m-${month}-titolo`} className={cx(display, "m-0 border-b-2 border-mark px-4 pt-3 pb-2 text-[22px]")}>
                 {monthName(month)}
               </h3>
               {days.length ? (

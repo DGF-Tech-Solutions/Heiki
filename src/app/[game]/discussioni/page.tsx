@@ -177,7 +177,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
               aria-current={!onlyFollowed ? "page" : undefined}
               className={cx(
                 "p5-menu-item px-4 py-1.5 font-display text-base font-black uppercase tracking-[0.02em] [font-variation-settings:'wdth'_80]",
-                onlyFollowed ? "text-ink-2 hover:text-paper" : "text-white",
+                onlyFollowed ? "text-ink-2 hover:text-on-plate" : "text-on-brand",
               )}
             >
               {t.tutti}
@@ -187,7 +187,7 @@ export default async function GameFeedPage({ params, searchParams }: Props) {
               aria-current={onlyFollowed ? "page" : undefined}
               className={cx(
                 "p5-menu-item px-4 py-1.5 font-display text-base font-black uppercase tracking-[0.02em] [font-variation-settings:'wdth'_80]",
-                onlyFollowed ? "text-white" : "text-ink-2 hover:text-paper",
+                onlyFollowed ? "text-on-brand" : "text-ink-2 hover:text-on-plate",
               )}
             >
               {t.seguiti}

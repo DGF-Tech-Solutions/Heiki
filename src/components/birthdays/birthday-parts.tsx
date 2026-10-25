@@ -71,7 +71,7 @@ export function GiftLine({
       <span className="relative shrink-0 border border-rule bg-paper-3" style={{ width: rem(icon), height: rem(icon) }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- icona del gioco, gia' a 128px */}
         <img src={birthdayItemSrc(game, gift.item)} alt="" width={icon} height={icon} loading="lazy" className="block h-full w-full object-contain" />
-        <span className={cx(numeric, "absolute -right-1.5 -bottom-1.5 bg-ink px-1 text-[11px] leading-[16px] font-bold text-paper")}>
+        <span className={cx(numeric, "absolute -right-1.5 -bottom-1.5 bg-plate px-1 text-[11px] leading-[16px] font-bold text-on-plate")}>
           ×{gift.count}
         </span>
       </span>

@@ -151,7 +151,7 @@ export default async function ArtifactCardPage({ params }: Props) {
             frame={data.images.large}
             size={380}
             eager
-            className="mx-auto [filter:drop-shadow(7px_7px_0_var(--color-brand))] md:mx-0"
+            className="mx-auto [filter:drop-shadow(7px_7px_0_var(--color-mark))] md:mx-0"
           />
         </div>
 

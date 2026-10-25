@@ -96,7 +96,7 @@ export function SetStep({
       ) : null}
 
       {open ? (
-        <div id="strategia-set-elenco" className="p5-corner mt-3 border border-rule border-t-[3px] border-t-brand bg-paper-2 p-3">
+        <div id="strategia-set-elenco" className="p5-corner mt-3 border border-rule border-t-[3px] border-t-mark bg-paper-2 p-3">
           <label htmlFor="strategia-cerca-set" className="sr-only">
             {t.cercaSetEtichetta}
           </label>

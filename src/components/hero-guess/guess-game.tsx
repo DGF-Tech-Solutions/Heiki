@@ -384,7 +384,7 @@ export function GuessSearch<T extends Playable>({ game, g }: { game: string; g: 
         onKeyDown={onKey}
         // la casella e' il gioco: la lama bianca della ricerca della griglia Eroi, e il
         // fuoco come filo rosso in basso (il contorno lo taglierebbe l'obliquo)
-        className="p5-cut h-12 w-full border-0 bg-ink px-5 text-[15px] font-semibold text-paper placeholder:font-normal placeholder:text-paper/65 focus:shadow-[inset_0_-3px_0_var(--color-brand)] focus:outline-none disabled:opacity-50"
+        className="p5-cut h-12 w-full border-0 bg-plate px-5 text-[15px] font-semibold text-on-plate placeholder:font-normal placeholder:text-on-plate/65 focus:shadow-[inset_0_-3px_0_var(--color-brand)] focus:outline-none disabled:opacity-50"
       />
       {open && query.trim() ? (
         <ul
@@ -407,12 +407,12 @@ export function GuessSearch<T extends Playable>({ game, g }: { game: string; g: 
                   choose(hero);
                 }}
                 onMouseEnter={() => setActive(i)}
-                className={cx("flex cursor-pointer items-center gap-2.5 px-2 py-1.5", i === active && "bg-brand text-white")}
+                className={cx("flex cursor-pointer items-center gap-2.5 px-2 py-1.5", i === active && "bg-brand text-on-brand")}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
                 <img src={heroCardSrc(game, hero.id)} alt="" width={36} style={{ width: rem(36) }} height={36} />
                 <span className="min-w-0">
-                  <span className={cx("block truncate text-[12px]", i === active ? "text-white/85" : "text-ink-3")}>{heroEpithet(hero, locale)}</span>
+                  <span className={cx("block truncate text-[12px]", i === active ? "text-on-brand/85" : "text-ink-3")}>{heroEpithet(hero, locale)}</span>
                   <span className="block truncate font-display text-[13px] font-black uppercase [font-variation-settings:'wdth'_80]">
                     {heroName(hero, locale)}
                   </span>
@@ -459,9 +459,9 @@ export function GuessEnd<T extends Playable>({
   }
 
   return (
-    <section className="p5-corner mt-5 flex max-w-[640px] flex-wrap items-center gap-4 border border-rule border-t-[3px] border-t-brand bg-paper-2 p-4">
+    <section className="p5-corner mt-5 flex max-w-[640px] flex-wrap items-center gap-4 border border-rule border-t-[3px] border-t-mark bg-paper-2 p-4">
       {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} style={{ width: rem(96) }} height={96} className="shadow-[4px_4px_0_var(--color-brand)]" />
+      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} style={{ width: rem(96) }} height={96} className="shadow-[4px_4px_0_var(--color-mark)]" />
       <div className="min-w-0 flex-1 text-sm">
         <p className={cx(display, "m-0 text-[clamp(18px,2.4vw,22px)]")}>
           {g.solved ? t.vinto(heroName(answer, locale), g.guesses.length) : t.arreso(heroName(answer, locale))}

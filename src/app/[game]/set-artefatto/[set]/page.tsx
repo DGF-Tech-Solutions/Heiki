@@ -97,27 +97,27 @@ const TESTI = testi({
 const LEVEL_CLASSES = [
   {
     hook: "lv1",
-    chip: "group-has-[.lv1:checked]:bg-ink group-has-[.lv1:checked]:font-bold group-has-[.lv1:checked]:text-paper",
+    chip: "group-has-[.lv1:checked]:bg-select group-has-[.lv1:checked]:font-bold group-has-[.lv1:checked]:text-on-select group-has-[.lv1:checked]:shadow-[inset_0_0_0_2px_var(--color-ink)]",
     show: "group-has-[.lv1:checked]:block",
   },
   {
     hook: "lv2",
-    chip: "group-has-[.lv2:checked]:bg-ink group-has-[.lv2:checked]:font-bold group-has-[.lv2:checked]:text-paper",
+    chip: "group-has-[.lv2:checked]:bg-select group-has-[.lv2:checked]:font-bold group-has-[.lv2:checked]:text-on-select group-has-[.lv2:checked]:shadow-[inset_0_0_0_2px_var(--color-ink)]",
     show: "group-has-[.lv2:checked]:block",
   },
   {
     hook: "lv3",
-    chip: "group-has-[.lv3:checked]:bg-ink group-has-[.lv3:checked]:font-bold group-has-[.lv3:checked]:text-paper",
+    chip: "group-has-[.lv3:checked]:bg-select group-has-[.lv3:checked]:font-bold group-has-[.lv3:checked]:text-on-select group-has-[.lv3:checked]:shadow-[inset_0_0_0_2px_var(--color-ink)]",
     show: "group-has-[.lv3:checked]:block",
   },
   {
     hook: "lv4",
-    chip: "group-has-[.lv4:checked]:bg-ink group-has-[.lv4:checked]:font-bold group-has-[.lv4:checked]:text-paper",
+    chip: "group-has-[.lv4:checked]:bg-select group-has-[.lv4:checked]:font-bold group-has-[.lv4:checked]:text-on-select group-has-[.lv4:checked]:shadow-[inset_0_0_0_2px_var(--color-ink)]",
     show: "group-has-[.lv4:checked]:block",
   },
   {
     hook: "lv5",
-    chip: "group-has-[.lv5:checked]:bg-ink group-has-[.lv5:checked]:font-bold group-has-[.lv5:checked]:text-paper",
+    chip: "group-has-[.lv5:checked]:bg-select group-has-[.lv5:checked]:font-bold group-has-[.lv5:checked]:text-on-select group-has-[.lv5:checked]:shadow-[inset_0_0_0_2px_var(--color-ink)]",
     show: "group-has-[.lv5:checked]:block",
   },
 ] as const;
