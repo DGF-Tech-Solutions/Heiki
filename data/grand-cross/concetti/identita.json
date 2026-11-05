@@ -63,7 +63,7 @@
         "en": "UI_text_hero_kind_03"
       },
       "enum": "HUMAN",
-      "eroi": 163,
+      "eroi": 166,
       "forme_nel_testo_en": [
         "human",
         "humans"
@@ -119,7 +119,7 @@
         "en": "etichette_manuali.json"
       },
       "enum": "UNKNOWN",
-      "eroi": 80,
+      "eroi": 81,
       "forme_nel_testo_en": [
         "unknown",
         "unknowns"
@@ -139,7 +139,7 @@
         "en": "etichette_manuali.json"
       },
       "enum": "RED",
-      "eroi": 116,
+      "eroi": 117,
       "certezza": "dichiarato",
       "prove": [],
       "colore_nel_client": "red",
@@ -179,7 +179,7 @@
         "en": "UI_attribute_filter_blue"
       },
       "enum": "BLUE",
-      "eroi": 118,
+      "eroi": 120,
       "certezza": "dichiarato",
       "prove": [],
       "colore_nel_client": "blue",
@@ -217,7 +217,7 @@
         "en": "etichette_manuali.json"
       },
       "enum": "PURPLE",
-      "eroi": 10,
+      "eroi": 11,
       "certezza": "dichiarato",
       "prove": [],
       "colore_nel_client": "purple",
@@ -289,7 +289,7 @@
         "en": "DB_hero_job_group_03"
       },
       "enum": "COLLABO",
-      "eroi": 71,
+      "eroi": 75,
       "forme_nel_testo_en": [
         "collab"
       ],
@@ -463,7 +463,7 @@
       },
       "etichetta_da": "RatingType",
       "enum": "SR",
-      "eroi_escono": 32,
+      "eroi_escono": 33,
       "eroi_arrivano": 0,
       "certezza": "dichiarato",
       "prove": []
@@ -475,7 +475,7 @@
       },
       "etichetta_da": "RatingType",
       "enum": "SSR",
-      "eroi_escono": 317,
+      "eroi_escono": 320,
       "eroi_arrivano": 0,
       "certezza": "dichiarato",
       "prove": []
@@ -488,7 +488,7 @@
       "etichetta_da": "RatingType",
       "enum": "UR",
       "eroi_escono": 19,
-      "eroi_arrivano": 344,
+      "eroi_arrivano": 348,
       "certezza": "dichiarato",
       "prove": []
     },

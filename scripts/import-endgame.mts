@@ -290,6 +290,12 @@ function heroIds(list: readonly SrcHeroRef[] | null | undefined): string[] {
   return out;
 }
 
+// I Talenti nel client non hanno il nome sulla riga della passiva: lo porta
+// abilita_speciali.json, che lo legge dalla loro chiave di testo.
+const specials = JSON.parse(readFileSync(resolve(SOURCE, "eroi/abilita_speciali.json"), "utf8")) as {
+  abilita: Record<string, { nome?: SrcLabel | null }>;
+};
+
 /** Il campo del client da cui viene la passiva dell'eroe, in parole della pagina. */
 function passiveSource(field: string): EndgamePassiveSource {
   const head = field.split(".")[0]!;
@@ -319,7 +325,7 @@ function heroPassives(list: readonly SrcHeroPassive[]): EndgameHeroPassive[] {
   for (const entry of list) {
     const heroId = String(entry.heroId);
     if (!ROSTER.has(heroId)) continue;
-    const passive = unquote(label(entry.passiva.nome));
+    const passive = unquote(label(entry.passiva.nome ?? specials.abilita[entry.passiva.id]?.nome));
     const key = `${heroId}:${passive.en ?? passive.it ?? entry.passiva.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -788,8 +794,8 @@ if (deathMatchSource) {
     );
   const heroesOnly = byCategory("solo_scontro");
   const heroesExcluded = byCategory("esclusa");
-  for (const entry of heroesOnly) link(entry.heroId, { mode: "death-match", kind: "only", passive: entry.passive });
-  for (const entry of heroesExcluded) link(entry.heroId, { mode: "death-match", kind: "excluded", passive: entry.passive });
+  for (const { heroId, passive, source: from } of heroesOnly) link(heroId, { mode: "death-match", kind: "only", passive, source: from });
+  for (const { heroId, passive, source: from } of heroesExcluded) link(heroId, { mode: "death-match", kind: "excluded", passive, source: from });
 
   copyImage(source.immagini_generali.icon_shortcut_destroy, "modalita/death-match.png");
 
@@ -971,7 +977,7 @@ if (nestSource) {
     const heroesOnly = heroPassives(
       beast.eroi_legati.passive_solo_per_questa_bestia.map((entry) => ({ ...entry })),
     );
-    for (const entry of heroesOnly) link(entry.heroId, { mode: "creature-nest", kind: "only", target, passive: entry.passive });
+    for (const { heroId, passive, source: from } of heroesOnly) link(heroId, { mode: "creature-nest", kind: "only", target, passive, source: from });
     const badBlood = heroIds(beast.eroi_legati.sangue_cattivo.map((heroId) => ({ heroId })));
     for (const heroId of badBlood) link(heroId, { mode: "creature-nest", kind: "bad-blood", target });
 
@@ -1005,8 +1011,8 @@ if (nestSource) {
     );
   const heroesOnly = nestHeroes((entry) => entry.motivi.includes("codice_8") && entry.solo_bestie === null);
   const heroesExcluded = nestHeroes((entry) => entry.motivi.includes("codice_9"));
-  for (const entry of heroesOnly) link(entry.heroId, { mode: "creature-nest", kind: "only", passive: entry.passive });
-  for (const entry of heroesExcluded) link(entry.heroId, { mode: "creature-nest", kind: "excluded", passive: entry.passive });
+  for (const { heroId, passive, source: from } of heroesOnly) link(heroId, { mode: "creature-nest", kind: "only", passive, source: from });
+  for (const { heroId, passive, source: from } of heroesExcluded) link(heroId, { mode: "creature-nest", kind: "excluded", passive, source: from });
 
   const exchange = source.scambio_materiali;
   const index: CreatureNestIndex = {

@@ -4299,8 +4299,8 @@ export const DEATH_MATCH: DeathMatchIndex = {
    "heroId": "1971501",
    "source": "talent",
    "passive": {
-    "it": null,
-    "en": null
+    "it": "Alba scintillante",
+    "en": "Twinkling Dawn"
    }
   },
   {
@@ -4323,48 +4323,56 @@ export const DEATH_MATCH: DeathMatchIndex = {
    "heroId": "1977501",
    "source": "talent",
    "passive": {
-    "it": null,
-    "en": null
+    "it": "Lancia del vero spirito Chastiefol, ottava forma: \"Giardino di polline\"",
+    "en": "True Spirit Spear Chastiefol, Eighth Form: \"Pollen Garden\""
    }
   },
   {
    "heroId": "1983501",
    "source": "talent",
    "passive": {
-    "it": null,
-    "en": null
+    "it": "Autorità oscura",
+    "en": "Dark Authority"
    }
   },
   {
    "heroId": "1990501",
    "source": "talent",
    "passive": {
-    "it": null,
-    "en": null
+    "it": "Splendore e abisso",
+    "en": "Radiance and Abyss"
    }
   },
   {
    "heroId": "1996501",
    "source": "talent",
    "passive": {
-    "it": null,
-    "en": null
+    "it": "Bagliore fulminante",
+    "en": "Lightning Flare"
    }
   },
   {
    "heroId": "2007501",
    "source": "talent",
    "passive": {
-    "it": null,
-    "en": null
+    "it": "Benedizioni in incognito",
+    "en": "Blessing in Disguise"
+   }
+  },
+  {
+   "heroId": "2011501",
+   "source": "talent",
+   "passive": {
+    "it": "Colpo abbattente",
+    "en": "Down Shot"
    }
   },
   {
    "heroId": "2016501",
    "source": "talent",
    "passive": {
-    "it": null,
-    "en": null
+    "it": "Onnipotenza",
+    "en": "Omnipotence"
    }
   }
  ],

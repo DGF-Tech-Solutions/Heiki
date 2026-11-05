@@ -51,7 +51,7 @@ Gacha communities are traditionally fragmented across disparate channels: Discor
 
 ### Flagship Module: The Seven Deadly Sins: Grand Cross (7DSGC)
 We are currently finalizing the core feature set and polishing the **The Seven Deadly Sins: Grand Cross** module:
-- **377 Indexed Heroes**: Full data coverage extracted directly from client database tables with 194,000+ localized text records.
+- **381 Indexed Heroes**: Full data coverage extracted directly from client database tables with 194,000+ localized text records.
 - **Dynamic Stat Engine**: Complete mathematical calculation covering base stats, Awakenings (1-6 stars), Super Awakening, True Awakening, costume bonuses, and relic bonuses.
 - **Interactive Tooling**: Production-ready Tier List Maker (canvas export, cloud/JSON sync), community dual-mode ratings (PvE/PvP), and local-first Box tracking.
 
@@ -92,7 +92,7 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
 ## Key Features
 
 ### 1. Certified Hero Database & Real-Time Stat Calculator
-- **Comprehensive Roster**: 377 heroes with client-decrypted data (194,000+ localized text entries).
+- **Comprehensive Roster**: 381 heroes with client-decrypted data (194,000+ localized text entries).
 - **Dynamic Calculator**: Real-time evaluation of hero stats across Level, Awakening (1-6 stars), Super Awakening, Ultimate Move rank, True Awakening (Demon King / Supreme Deity), and gear/costume combinations.
 - **Contextual Term Parser ("Blue Words")**: Automated lexical parser linking skill mechanics directly to verified rule explanations, tooltips, and stacking limits.
 - **Automated Patch Diffs**: Versioning engine tracking textual and mechanical balance changes introduced by game updates.

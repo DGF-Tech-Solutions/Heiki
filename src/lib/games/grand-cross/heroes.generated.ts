@@ -4,8 +4,8 @@
  * GENERATO DA scripts/import-heroes.mts - NON MODIFICARE A MANO.
  * Si rigenera con `npm run eroi:import` dopo ogni aggiornamento del gioco.
  *
- * Le voci sono tuple e non oggetti perche' sono 377: una riga per eroe si
- * legge e si confronta in diff, 377 oggetti su otto righe l'uno no. Il tipo
+ * Le voci sono tuple e non oggetti perche' sono 381: una riga per eroe si
+ * legge e si confronta in diff, 381 oggetti su otto righe l'uno no. Il tipo
  * Row le tiene comunque controllate dal compilatore.
  *
  * L'ordine e' quello d'uscita nel GLOBALE, dal piu' recente: la data del
@@ -23,6 +23,10 @@ import type { HeroEntry } from "../types";
 type Row = readonly [string, string, string, string, string, string, string, string?, string?];
 
 const ROWS: readonly Row[] = [
+  ["2011501", "Joker", "Joker", "The Phantoms", "UR", "SSR", "Oscurita", "Joker", "I Fantasmi"],
+  ["2013501", "Violet", "Violet", "The Phantoms", "UR", "SSR", "Forza", "Violet", "I Fantasmi"],
+  ["2014501", "Queen", "Queen", "The Phantoms", "UR", "SSR", "Velocita", "Queen", "I Fantasmi"],
+  ["2012501", "Mona", "Mona", "The Phantoms", "UR", "SR", "Velocita", "Mona", "I Fantasmi"],
   ["1929503", "Freyja", "Goddess of Beauty Freyja", "Queen of Abundance", "UR", "SSR", "Velocita", "Freyja Dea della Bellezza", "Regina dell'abbondanza"],
   ["2017501", "Heimdallr", "God of Observation Heimdallr", "Omniscient Watcher", "UR", "SSR", "Forza", "Heimdallr Dea dell'osservazione", "Osservatrice onnisciente"],
   ["2016501", "Odin", "Supreme God Odin", "Almighty", "UR", "UR", "Luce", "Dio supremo Odino", "Onnipotente"],

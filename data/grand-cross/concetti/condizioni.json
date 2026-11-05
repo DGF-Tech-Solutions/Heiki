@@ -26,8 +26,8 @@
       "ruolo": "ingresso in battaglia",
       "contenuto": null,
       "uso": {
-        "eroi": 277,
-        "abilita_speciali": 34
+        "eroi": 280,
+        "abilita_speciali": 35
       },
       "certezza": "dichiarato",
       "prove": [
@@ -50,7 +50,7 @@
       "ruolo": "slot secondario",
       "contenuto": null,
       "uso": {
-        "eroi": 96,
+        "eroi": 97,
         "abilita_speciali": 0
       },
       "certezza": "dichiarato",
@@ -147,7 +147,7 @@
       "contenuto": "destroy",
       "uso": {
         "eroi": 31,
-        "abilita_speciali": 15
+        "abilita_speciali": 16
       },
       "certezza": "dichiarato",
       "prove": [
@@ -170,7 +170,7 @@
       "ruolo": "tutti i contenuti",
       "contenuto": null,
       "uso": {
-        "eroi": 297,
+        "eroi": 301,
         "abilita_speciali": 11
       },
       "certezza": "dichiarato",

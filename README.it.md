@@ -51,7 +51,7 @@ Le community dei giochi gacha sono storicamente frammentate su decine di canali 
 
 ### Modulo di Riferimento: The Seven Deadly Sins: Grand Cross (7DSGC)
 Attualmente stiamo ultimando e rifinendo i lavori sul modulo principale dedicato a **The Seven Deadly Sins: Grand Cross**:
-- **377 Eroi Indicizzati**: Copertura completa dei dati estratti direttamente dalle tabelle dati del client di gioco con più di 194.000 record testuali localizzati.
+- **381 Eroi Indicizzati**: Copertura completa dei dati estratti direttamente dalle tabelle dati del client di gioco con più di 194.000 record testuali localizzati.
 - **Motore Statistiche Dinamico**: Modello matematico completo che calcola con esattezza statistiche base, Risveglio (1-6 stelle), Super Risveglio, Vero Risveglio, costumi e reliquie sacre.
 - **Strumenti per la Community**: Tier List Maker ad alta risoluzione (con esportazione canvas e sincronizzazione cloud/JSON), sistema di valutazioni duale (PvE e PvP) e gestione del Box con architettura local-first.
 
@@ -92,7 +92,7 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
 ## Funzionalità Chiave
 
 ### 1. Database Eroi & Calcolatore Statistiche in Tempo Reale
-- **Roster Completo e Certificato**: 377 eroi con dati estratti dalle tabelle del client di gioco (194.000+ chiavi tradotte in italiano e inglese).
+- **Roster Completo e Certificato**: 381 eroi con dati estratti dalle tabelle del client di gioco (194.000+ chiavi tradotte in italiano e inglese).
 - **Calcolatore Dinamico**: Valutazione in tempo reale delle statistiche al variare di Livello, Risveglio (1-6 stelle), Super Risveglio, Rango Mossa Finale, Vero Risveglio (Re Demone/Divinità Suprema) ed equipaggiamento associato.
 - **Riconoscimento Lessicale (Parole Blu)**: Motore di parsing contestuale che trasforma ogni termine tecnico presente nelle descrizioni delle abilità in rimandi ipertestuali con popup interattivi e regole di cumulo.
 - **Diff Storico di Patch**: Sistema di versionamento automatico che traccia le variazioni testuali, numeriche e di bilanciamento introdotte dai publisher a ogni aggiornamento.

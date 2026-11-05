@@ -21,7 +21,7 @@
  */
 
 import { heroCombatClass } from "./account-buff";
-import type { EndgameHeroLink, EndgameMode } from "./endgame-types";
+import type { EndgameHeroLink, EndgameMode, EndgamePassiveSource } from "./endgame-types";
 import { plainHeroText } from "./hero-markup";
 import type { GameModule } from "./types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
@@ -61,8 +61,15 @@ export interface PeekIndex {
 
 const TESTI = testi({
   it: {
-    solo: (dove: string) => `Unica attiva solo ${dove}`,
-    esclusa: (dove: string) => `Unica spenta ${dove}`,
+    // [attiva solo, spenta], accordati con l'abilita' che si spegne
+    abilita: {
+      unique: ["Unica attiva solo", "Unica spenta"],
+      relic: ["Reliquia attiva solo", "Reliquia spenta"],
+      commandment: ["Comandamento attivo solo", "Comandamento spento"],
+      grace: ["Grazia attiva solo", "Grazia spenta"],
+      talent: ["Talento attivo solo", "Talento spento"],
+      bond: ["Legame attivo solo", "Legame spento"],
+    } as Record<EndgamePassiveSource, readonly [string, string]>,
     escluso: (dove: string) => `Escluso ${dove}`,
     squadraIa: (boss: string) => `Nella squadra IA contro ${boss}`,
     sangue: (bestia: string) => `Sangue cattivo di ${bestia}`,
@@ -81,8 +88,14 @@ const TESTI = testi({
     } as Record<EndgameMode, string>,
   },
   en: {
-    solo: (where: string) => `Unique only works ${where}`,
-    esclusa: (where: string) => `Unique off ${where}`,
+    abilita: {
+      unique: ["Unique only works", "Unique off"],
+      relic: ["Holy Relic only works", "Holy Relic off"],
+      commandment: ["Commandment only works", "Commandment off"],
+      grace: ["Grace only works", "Grace off"],
+      talent: ["Talent only works", "Talent off"],
+      bond: ["Bond only works", "Bond off"],
+    } as Record<EndgamePassiveSource, readonly [string, string]>,
     escluso: (where: string) => `Banned ${where}`,
     squadraIa: (boss: string) => `In the AI team against ${boss}`,
     sangue: (beast: string) => `${beast}'s Bad Blood`,
@@ -106,8 +119,9 @@ function endgameLine(link: EndgameHeroLink, locale: Locale): string {
   const t = TESTI[locale];
   const target = link.target ? plainHeroText(inLingua(link.target.name, locale) ?? "") : null;
   const where = target ? t.contro(target) : t.dove[link.mode];
-  if (link.kind === "only") return t.solo(where);
-  if (link.kind === "excluded") return t.esclusa(where);
+  const [only, off] = t.abilita[link.source ?? "unique"];
+  if (link.kind === "only") return `${only} ${where}`;
+  if (link.kind === "excluded") return `${off} ${where}`;
   if (link.kind === "banned") return t.escluso(target ? t.contro(target) : t.da[link.mode]);
   if (link.kind === "ai-team") return t.squadraIa(target ?? "");
   return t.sangue(target ?? "");

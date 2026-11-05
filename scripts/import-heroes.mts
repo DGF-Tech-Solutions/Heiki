@@ -258,6 +258,7 @@ interface SourceReleaseHero {
   rarita: string;
   modo: string;
   heroId?: string;
+  dal_client?: boolean;
 }
 
 interface SourceReleaseUpdate {
@@ -295,7 +296,7 @@ interface SourceCalendar {
   globale?: SourceReleaseUpdate[];
   eroi: Record<
     string,
-    { gb?: string; jpkr?: string; festival?: boolean; gbLr?: string; jpkrLr?: string; stendardo?: string }
+    { gb?: string; jpkr?: string; festival?: boolean; gbLr?: string; jpkrLr?: string; stendardo?: string; patch?: string }
   >;
 }
 
@@ -425,8 +426,10 @@ if (!calendarSource) {
     const inJp = jp.heroAt.get(id);
     if (inGlobal) entry.updateGlobal = inGlobal.date;
     if (inJp) entry.updateJp = inJp.date;
-    // la data dallo stendardo di debutto del client: vale finche' il foglio non ha la riga
-    if (dated?.stendardo && !inGlobal && !inJp) entry.banner = dated.stendardo;
+    // la data dal client (stendardo di debutto o patch): vale finche' il foglio non ha
+    // la riga, e allora date_uscita.py non scrive piu' questi due campi
+    if (dated?.stendardo) entry.banner = dated.stendardo;
+    if (dated?.patch) entry.patch = dated.patch;
     releaseHeroes[id] = entry;
   }
 
@@ -463,6 +466,7 @@ if (!calendarSource) {
       method: methodLabel(hero.modo),
       ...(/festival/i.test(hero.modo) ? { festival: true } : {}),
       ...(hero.heroId ? { heroId: hero.heroId } : {}),
+      ...(hero.dal_client ? { fromClient: true } : {}),
     }));
     if (update.senza_eroi) out.noHeroes = update.senza_eroi === "eroi" ? "heroes" : "banner";
     if (update.lancio) out.launch = true;
@@ -1892,6 +1896,7 @@ const VOLTI_A_MANO: Readonly<Record<string, readonly [number, number]>> = {
   "1992501": [33, 41],
   "2004501": [31, 43],
   "2006501": [54, 33],
+  "2012501": [47, 34],
 };
 
 /** erosione o dilatazione con un quadrato di lato 2r+1, in due passate */

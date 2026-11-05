@@ -245,8 +245,19 @@ describe("i dati di Grand Cross", () => {
       expect(rosterIds.has(heroId), `eroe ${heroId}`).toBe(true);
       for (const link of list) {
         if (link.target) expect(targets.has(link.target.key), `${heroId}: ${link.target.key}`).toBe(true);
-        if (link.kind === "only" || link.kind === "excluded") expect(link.passive).toBeDefined();
+        if (link.kind === "only" || link.kind === "excluded") {
+          // senza nome la scheda scriverebbe «» non si attiva, e senza fonte l'anteprima
+          // direbbe «Unica spenta» anche quando si spegne un Talento (Joker, 29/10)
+          expect(link.passive?.it ?? link.passive?.en, `${heroId}: nome`).toBeTruthy();
+          expect(link.source, `${heroId}: fonte`).toBeDefined();
+        }
       }
     }
+  });
+
+  it("lo sblocco delle modalita' resta scritto: si legge per nome, non per numero di riga", () => {
+    // il 29/10 DB_config_game si e' rinumerata e la Divinita' Suprema ha perso lo sblocco
+    expect(demonKing?.unlock?.en).toContain("Episode");
+    expect(supremeDeity?.unlock?.en).toContain("Episode");
   });
 });

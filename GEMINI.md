@@ -48,7 +48,7 @@ regole.
 - I file `src/lib/games/**/*.generated.ts` **non si toccano a mano**: li scrive `npm run eroi:import`, o uno dei suoi
   import parziali, a partire dai JSON della pipeline.
 - In `data/grand-cross/manuali/` ci sono scelte fatte a mano dall'utente. Tra questi, `uscite_storiche.json` è
-  **congelato**: le date degli eroi nuovi le mette `date_uscita.py`, dal foglio o dallo stendardo di debutto.
+  **congelato**: le date degli eroi nuovi le mette `date_uscita.py` (§5).
 - **Pipeline** (`C:\Users\franc\Desktop\All\Ougi\Video\GC\_7dsgc\`, fuori dal repo e non versionata):
   - si scrive **solo** dentro `_7dsgc\`;
   - la cartella `GC\` intorno contiene il montaggio video dell'utente e **non si tocca mai**;
@@ -190,22 +190,94 @@ regole.
 
 ## 5. Dati di gioco e pipeline
 
-- **Dopo una patch del gioco** la procedura è in fondo al file di contesto, nella sezione «Dopo ogni aggiornamento
-  del gioco»:
-  1. `aggiorna_gc.py`;
-  2. robocopy nell'albero estratto;
-  3. l'elenco delle novità in `_storico`;
-  4. `python script\catena.py`.
+### Dopo una patch del gioco: quando il lavoro è finito
 
-  A fine catena c'è l'elenco dei file del sito cambiati. Guarda il `git diff` dei generati e spiega ogni
-  cambiamento: le rinumerazioni sono normali, un valore cambiato va giustificato.
-- **Eroe nuovo senza data**: `date_uscita.py` lo data dallo stendardo di debutto, se nel client c'è. Se non c'è,
-  l'eroe resta fuori finché il foglio non ha la sua riga: non si aggiunge a mano.
-- Se le date cambiano dopo che la catena ha girato, rilancia `python script\cambiamenti.py --rifai` e
-  `npm run cambiamenti:import`. Altrimenti la pagina Cambiamenti non conta l'eroe nuovo.
+Estrarre gli asset è il primo passo, non il lavoro. Il lavoro è finito quando **gli eroi nuovi si vedono sul sito e
+l'hai controllato**. Se l'utente ti chiede solo di estrarre, fermati pure lì, ma digli cosa manca ancora.
+
+Il 29/10 è andata così: patch estratta bene, catena lanciata, poi l'import si è spento a metà senza errori. La
+pipeline era avanti e il sito indietro, i quattro eroi nuovi restavano fuori, e all'utente non è arrivato niente che
+lo dicesse. Per non ripeterlo, segui questi passi in ordine:
+
+1. L'utente apre il gioco e scarica la patch. Se il gioco non è aggiornato, la pipeline legge la patch vecchia.
+2. `python script\aggiorna_gc.py`: dice cosa è arrivato.
+3. Robocopy della cartella datata nell'albero, **da PowerShell** (in Git Bash `/E` diventa un percorso e il comando
+   fallisce). Il comando esatto lo stampa `aggiorna_gc.py`. Robocopy esce con 1 o 3 quando ha copiato: non è un errore.
+4. `_novita.txt` va in `7dsgc_estratti\_storico\novita_<data>.txt`, poi la cartella datata si cancella. Quell'elenco
+   non è un promemoria: `date_uscita.py` lo legge per datare gli eroi.
+5. La catena, **in background e con l'output su un file**, perché dura una ventina di minuti:
+   `python -X utf8 script\catena.py > catena_log\giro_<data>.txt 2>&1`
+6. Leggi `catena_log\ultimo_giro.txt`:
+   - `COMPLETA`: la catena è arrivata in fondo, import compreso, e la riga dice quali eroi sono entrati e usciti;
+   - `FERMATA`: un controllo non è tornato. Leggi il registro indicato, correggi la causa e riparti con `--da N`;
+   - `IN CORSO` con nessun processo acceso: si è interrotta. Riparti dal passo dopo l'ultimo registro scritto.
+7. Leggi i registri che dicono se il risultato è giusto, anche quando la catena è finita bene:
+
+   | Registro | Cosa guardare |
+   |---|---|
+   | `*_date_uscita.txt` | la riga `senza data` deve essere vuota, o contenere solo eroi davvero non usciti |
+   | `*_decifra_bundle.txt` | `NESSUNA passphrase lo apre` è un problema: non andare avanti senza capirlo |
+   | `*_cambiamenti.txt` | gli eroi nuovi devono essere quelli che ti aspetti |
+
+8. Guarda il `git diff` dei generati e spiega ogni cambiamento: le rinumerazioni sono normali, un valore cambiato va
+   giustificato. **Un eroe che esce dal roster è sempre un errore.**
+9. Verifica come in §6, aprendo la scheda di ogni eroe nuovo e le pagine Eroi, Uscite e Cambiamenti.
+10. Scrivi la sezione nel contesto (§7) e di' all'utente quali eroi sono entrati, con che data e da quale fonte.
+
+### Le date degli eroi nuovi
+
+Il foglio della community arriva spesso giorni dopo la patch, e a volte non arriva: i quattro eroi del 29/10 non ci
+sono, e la riga del 22/10 dice solo «Collab?». `date_uscita.py` prova queste fonti in ordine, e la prima vince:
+
+1. la riga del foglio;
+2. lo stendardo di debutto del client (`new_hero_notice_banner` diverso da 0, data nel nome dell'immagine);
+3. la patch che ha portato l'illustrazione dell'eroe, dagli elenchi in `_storico` (dedotta, e il sito lo dice).
+
+Se nessuna delle tre risponde, l'eroe resta fuori e lo dici all'utente. Non si data a mano.
+
+`date_uscita.py` si ferma da solo se un eroe che aveva una data la perde, o se la data della patch non torna col
+primo stendardo dell'eroe. È una prova che non torna: va capita, non aggirata.
+
+**`eroi\foglio_uscite.csv` è una copia del foglio, non un file di lavoro: mai scriverci a mano.** Lo stesso vale per
+`calendario_uscite.json`, `uscite_jpkr.json` e ogni altro file in `eroi\`: li riscrive la catena. Il 22/10 Freyja è
+entrata nel sito con una riga «Pick Up Draw» che nel foglio di oggi non c'è, mentre il client dice Passo avanti. Alla
+prima patch quella riga è sparita, Freyja ha perso la data e l'import l'avrebbe tolta dal sito.
+
+### Cambiare uno script della pipeline
+
+La pipeline non è versionata: quello che cambi non lascia traccia, se non la lasci tu.
+
+1. Prima copia l'originale in `archivio\script_superati\<nome>.prima-di-<cosa>.py`.
+2. Scrivi nel commento il perché, con l'esempio che l'ha fatto scoprire.
+3. Rilancia dal passo che usa la modifica, non solo lo script. Il 29/10 `decifra_bundle.py` è stato corretto, e la
+   correzione era giusta, ma dopo che la patch era già stata archiviata: l'archivio è rimasto con una tabella sbagliata.
+4. Se `archivio_patch.py` si ferma perché l'archivio di quel giorno c'è già con un contenuto diverso, spostalo in
+   `archivio\` e rilancia. Non usare `--data` con un giorno finto.
+5. Scrivilo nel contesto (§7).
+
+### Le patch cambiano anche quello che non guardi
+
+Una catena finita bene non vuol dire dati giusti. Sulla patch del 29/10 sono uscite tre cose che nessun test vedeva:
+
+- **Righe rinumerate.** `DB_config_game` ha spostato 57 righe senza cambiare un valore, e uno script che leggeva la
+  riga 849 ha perso lo sblocco della Divinità Suprema. Negli script una riga o un testo si prendono **per nome**, mai
+  per numero. Quando vedi un campo diventare vuoto o `null` nel diff, è questo il primo sospetto.
+- **Etichette nuove nei testi.** Il client ha iniziato a scrivere `{buff_t}40162{/buff_t}` invece di
+  `{buff_data_turn}...`. Il modo per accorgersene: cerca `{` nei testi degli eroi nuovi. Le etichette si aggiungono in
+  `FORME_CORTE` di `modelli_client.py`, e solo se la stringa esiste davvero nel `global-metadata.dat` del client.
+- **Frasi false ma ben scritte.** L'anteprima di Joker diceva «Unica spenta negli Scontri finali»: si spegne il
+  Talento. Nessun errore, nessun test rosso. Per ogni eroe nuovo **leggi le frasi in pagina** e confrontale con la
+  sua scheda: una schermata che «sembra a posto» non basta.
+
+### Altre regole
+
 - Se un passo della catena si ferma, è una prova che non torna: leggi il motivo e non aggirarlo.
+- Se le date cambiano dopo che la catena ha girato, rilancia `python script\cambiamenti.py --rifai` e
+  `npm run cambiamenti:import`. Altrimenti la pagina Cambiamenti non conta l'eroe nuovo. Nella catena il `--rifai` c'è
+  già.
 - Un dato si controlla sul client (`_7dsgc\tabelle\DB_*.json`, `_7dsgc\tabelle\testi_en.json` e `testi_it.json`),
   non su un sito di terzi.
+- Se trovi un dato che non torna fra client e foglio, vince il client. Se non sai quale sia giusto, chiedi all'utente.
 
 ## 6. Come si verifica, prima di dire «fatto»
 
@@ -228,7 +300,8 @@ regole.
         `docker exec gachazone-db psql -U gachazone -d gachazone -c "select ..."`;
      4. togli l'utente con `delete from users where username='...'`;
    - i casi sbagliati: campi vuoti, id malformato, utente non entrato.
-3. **Riferisci con onestà**: cosa hai provato e come, cosa no, cosa è dedotto. Nessun numero che non hai misurato.
+3. **Riferisci con onestà**: cosa hai provato e come, cosa no, cosa è dedotto. Nessun numero che non hai misurato. Se
+   un lavoro si è interrotto o è rimasto a metà, è la prima cosa da dire: l'utente deve saperlo senza andare a cercarlo.
 
 ## 7. Documentazione e passaggio di consegne
 

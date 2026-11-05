@@ -598,6 +598,8 @@ export interface ReleaseHero {
   festival?: boolean;
   /** l'eroe del roster. Assente se il legame non e' certo: meglio nessun collegamento che quello sbagliato */
   heroId?: string;
+  /** la riga non viene dal foglio ma dal client: il foglio non ha ancora questo eroe */
+  fromClient?: true;
 }
 
 /** Un'evoluzione a LR annunciata in un aggiornamento. */
@@ -675,12 +677,18 @@ export interface HeroRelease {
   updateGlobal?: string;
   updateJp?: string;
   /**
-   * Lo stendardo di debutto del client da cui viene la data, per chi nel
-   * calendario non ha ancora una riga (Heimdallr, 08/10/2026: il foglio arriva
-   * qualche giorno dopo la patch). Lo scrive date_uscita.py; quando il foglio
-   * aggiunge la riga, sparisce.
+   * Lo stendardo di debutto del client da cui viene la data, per chi nel foglio
+   * non ha ancora una riga (Heimdallr, 08/10/2026: il foglio arriva qualche giorno
+   * dopo la patch). Lo scrive date_uscita.py; quando il foglio aggiunge la riga,
+   * sparisce.
    */
   banner?: string;
+  /**
+   * Il giorno della patch che ha portato l'illustrazione dell'eroe, per chi non ha
+   * ne' una riga nel foglio ne' uno stendardo di debutto (la collaborazione del
+   * 29/10/2026, Freyja del 22/10): e' una deduzione, e sparisce come `banner`.
+   */
+  patch?: string;
 }
 
 /**

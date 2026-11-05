@@ -1,5 +1,5 @@
 {
-  "descrizione": "La tassonomia con cui il client filtra gli effetti delle abilita': 322 voci con nome e descrizione, e i gruppi della ricerca.",
+  "descrizione": "La tassonomia con cui il client filtra gli effetti delle abilita': 330 voci con nome e descrizione, e i gruppi della ricerca.",
   "generato_da": "concetti.py, nella pipeline _7dsgc",
   "fonti": {
     "DB_skill_search_info": "le voci della ricerca: `tag` (l'id che le carte citano in list_array_skill_search_tag), `gruppo`, `ordine`",
@@ -9,7 +9,7 @@
   "note": {
     "certezza": "nome, descrizione, tag e gruppo sono del client: dichiarati. Dove un testo non si legge vale null",
     "codici": "il numero della chiave del nome (DB_skill_search_name_056 -> 056); per le collaborazioni col prefisso (ffx_266). Le voci senza `tag` hanno solo il testo",
-    "leggibili": "nomi leggibili: it 322, en 322 su 322"
+    "leggibili": "nomi leggibili: it 330, en 330 su 330"
   },
   "voci": {
     "001": {
@@ -4120,6 +4120,124 @@
       "gruppo": "03",
       "ordine": 42
     },
+    "sat_325": {
+      "nome": {
+        "it": "Ribellione",
+        "en": "Rebellion"
+      },
+      "descrizione": {
+        "it": "x5 aumento Perforazione. Danni aggiuntivi in proporzione all'Attacco iniziale. Danni inflitti aumentati mentre Fiamma della ribellione è attiva.",
+        "en": "5x Pierce Rate Increase. Additional damage proportional to initial Attack. Increased damage dealt while Flame of Rebellion is active."
+      },
+      "rimanda_a": null,
+      "tag": 1062,
+      "gruppo": "01",
+      "ordine": 161,
+      "tag_bersaglio": 262
+    },
+    "sat_326": {
+      "nome": {
+        "it": "Seguito",
+        "en": "Follow-Up"
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Danni aggiuntivi in proporzione ai PS massimi dell'eroe. Annulla gli Atteggiamenti del nemico usando un'abilità mentre Fiamma della ribellione è attiva.",
+        "en": "3x Crit Chance and 3x Crit Damage Increase. Additional damage proportional to the hero's Max HP. Cancels enemy Stances when using skill while Flame of Rebellion is active."
+      },
+      "rimanda_a": null,
+      "tag": 1063,
+      "gruppo": "01",
+      "ordine": 162,
+      "tag_bersaglio": 263
+    },
+    "sat_327": {
+      "nome": {
+        "it": "Fiamma della ribellione",
+        "en": "Flame of Rebellion"
+      },
+      "descrizione": {
+        "it": "Danni finali inflitti aumentati. Danni aggiuntivi in proporzione ai danni finali inflitti con le abilità dell'eroe.",
+        "en": "Increased final damage dealt. Additional damage proportional to the final damage dealt with the hero's skills."
+      },
+      "rimanda_a": null,
+      "tag": 371,
+      "gruppo": "03",
+      "ordine": 71
+    },
+    "sat_328": {
+      "nome": {
+        "it": "Flusso",
+        "en": "Flow"
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Danni inflitti aumentati in proporzione alla Perforazione dell'eroe.",
+        "en": "3x Crit Chance and 3x Crit Damage Increase. Increased damage dealt proportional to hero's Pierce Rate."
+      },
+      "rimanda_a": null,
+      "tag": 1064,
+      "gruppo": "01",
+      "ordine": 163,
+      "tag_bersaglio": 264
+    },
+    "sat_329": {
+      "nome": {
+        "it": "Piroetta",
+        "en": "Pirouette"
+      },
+      "descrizione": {
+        "it": "x3 aumento Danno critico. Danni inflitti aumentati mentre Passo coraggioso è attivo.",
+        "en": "3x Crit Damage Increase. Increased damage dealt while Brave Step is active."
+      },
+      "rimanda_a": null,
+      "tag": 1065,
+      "gruppo": "01",
+      "ordine": 164,
+      "tag_bersaglio": 265
+    },
+    "sat_330": {
+      "nome": {
+        "it": "Passo coraggioso",
+        "en": "Brave Step"
+      },
+      "descrizione": {
+        "it": "Statistiche relative all'Attacco e aumento Perforazione.",
+        "en": "Attack-related stats and Pierce Rate Increase."
+      },
+      "rimanda_a": null,
+      "tag": 372,
+      "gruppo": "03",
+      "ordine": 72
+    },
+    "sat_331": {
+      "nome": {
+        "it": "Colpo crudele",
+        "en": "Vicious Strike"
+      },
+      "descrizione": {
+        "it": "x3 aumento Possibilità critico e x3 aumento Danno critico. Danni inflitti aumentati per ogni Aura d'acciaio e Patto di Gaia sull'eroe.",
+        "en": "3x Crit Chance and 3x Crit Damage Increase. Increased damage dealt for each Iron Aura and Gaia Pact on the hero."
+      },
+      "rimanda_a": null,
+      "tag": 1066,
+      "gruppo": "01",
+      "ordine": 165,
+      "tag_bersaglio": 266
+    },
+    "sat_332": {
+      "nome": {
+        "it": "Contrasto",
+        "en": "Clash"
+      },
+      "descrizione": {
+        "it": "Attacco aumentato quando usa un'abilità. Danni inflitti aumentati per ogni Signora della difesa sugli alleati.",
+        "en": "Increased Attack when using skill. Increased damage dealt for each Defense Master on allies."
+      },
+      "rimanda_a": null,
+      "tag": 1067,
+      "gruppo": "01",
+      "ordine": 166,
+      "tag_bersaglio": 267
+    },
     "son_166": {
       "nome": {
         "it": "Burrasca",
@@ -4706,6 +4824,12 @@
     "1059": "319",
     "1060": "320",
     "1061": "322",
+    "1062": "sat_325",
+    "1063": "sat_326",
+    "1064": "sat_328",
+    "1065": "sat_329",
+    "1066": "sat_331",
+    "1067": "sat_332",
     "201": "030",
     "203": "032",
     "204": "033",
@@ -4849,6 +4973,8 @@
     "368": "uiop_305",
     "369": "315",
     "370": "318",
+    "371": "sat_327",
+    "372": "sat_330",
     "401": "067",
     "402": "068",
     "403": "069",

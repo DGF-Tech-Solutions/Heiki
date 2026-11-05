@@ -144,20 +144,36 @@ describe("calendario di Grand Cross", () => {
     });
   }
 
-  it("nel globale ogni eroe del roster ha la sua riga, o sta fra quelli del lancio, o ha la data dallo stendardo", () => {
+  it("nel globale ogni eroe del roster ha la sua riga, o sta fra quelli del lancio", () => {
     const ids = new Set(schedule("global").flatMap((u) => [...u.heroes.flatMap((h) => h.heroId ?? []), ...(u.launchHeroes ?? [])]));
-    // senza riga solo chi ha la data dallo stendardo di debutto del client (date_uscita.py)
-    expect([...known].filter((id) => !ids.has(id) && !releases?.heroes[id]?.banner)).toEqual([]);
+    expect([...known].filter((id) => !ids.has(id))).toEqual([]);
   });
 
-  it("la data dallo stendardo vale solo senza una riga nel calendario, e ha le due date", () => {
-    const inRows = new Set(regions.flatMap((r) => schedule(r).flatMap((u) => u.heroes.flatMap((h) => h.heroId ?? []))));
+  it("la data dal client ha le due date, una riga segnata in tutti e due i calendari, e dice la sua fonte", () => {
     for (const [id, release] of Object.entries(releases?.heroes ?? {})) {
-      if (!release.banner) continue;
-      expect(inRows.has(id), id).toBe(false);
-      expect(release.banner, id).toMatch(/^bg_banner_\d{6}_gacha_\d+$/);
-      expect(release.global, id).toBe(`20${release.banner.slice(10, 12)}-${release.banner.slice(12, 14)}-${release.banner.slice(14, 16)}`);
+      if (!release.banner && !release.patch) continue;
+      if (release.banner) {
+        expect(release.banner, id).toMatch(/^bg_banner_\d{6}_gacha_\d+$/);
+        expect(release.global, id).toBe(`20${release.banner.slice(10, 12)}-${release.banner.slice(12, 14)}-${release.banner.slice(14, 16)}`);
+      } else {
+        expect(release.global, id).toBe(release.patch);
+      }
       expect(release.jp, id).toBeDefined();
+      for (const region of regions) {
+        const row = schedule(region).find((u) => u.heroes.some((h) => h.heroId === id));
+        expect(row?.date, `${region} ${id}`).toBe(region === "global" ? release.global : release.jp);
+        expect(row?.heroes.find((h) => h.heroId === id)?.fromClient, `${region} ${id}`).toBe(true);
+        expect(row?.noHeroes, `${region} ${id}`).toBeUndefined();
+      }
+    }
+  });
+
+  it("una riga segnata dal client ha sempre la sua fonte sull'eroe", () => {
+    for (const region of regions) {
+      for (const hero of schedule(region).flatMap((u) => u.heroes.filter((h) => h.fromClient))) {
+        const release = releases?.heroes[hero.heroId ?? ""];
+        expect(Boolean(release?.banner || release?.patch), hero.name).toBe(true);
+      }
     }
   });
 

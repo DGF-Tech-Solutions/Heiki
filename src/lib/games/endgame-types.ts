@@ -454,4 +454,6 @@ export interface EndgameHeroLink {
   /** il boss o la bestia, se il legame e' con uno solo: nome e ancora */
   readonly target?: { readonly key: string; readonly name: HeroLabel };
   readonly passive?: HeroLabel;
+  /** quale abilita' dell'eroe e' la passiva: un Talento spento non e' l'Unica spenta */
+  readonly source?: EndgamePassiveSource;
 }

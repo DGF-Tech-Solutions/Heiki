@@ -74,6 +74,7 @@ const TESTI = testi({
     lancioNota: "Il foglio non li elenca: vengono dalle date del roster.",
     nessunEroe: "Nessun eroe nuovo",
     nessunBanner: "Nessun eroe nuovo, nessun banner",
+    dalGioco: "Eroi e data presi dal gioco: il foglio non ha ancora questa riga",
     armaUr: "Arma UR",
     reliquia: "Reliquia sacra",
     evoluzioneLr: "Evoluzione LR",
@@ -129,6 +130,7 @@ const TESTI = testi({
     lancioNota: "The spreadsheet does not list them: they come from the roster's dates.",
     nessunEroe: "No new heroes",
     nessunBanner: "No new heroes, no banner",
+    dalGioco: "Heroes and date taken from the game: the spreadsheet doesn't have this row yet",
     armaUr: "UR gear",
     reliquia: "Holy Relic",
     evoluzioneLr: "LR evolution",
@@ -604,11 +606,13 @@ function UpdateNotes({ update, view }: { update: ReleaseUpdate; view: HeroView }
   // Nelle righe con eroi la nota del foglio (un banner speciale) sta qui; nelle
   // altre l'ha gia' detta la colonna degli eroi.
   const note = update.heroes.length > 0 ? update.note : undefined;
+  const fromGame = update.heroes.some((hero) => hero.fromClient);
 
-  if (!update.events?.length && rows.length === 0 && !note) return null;
+  if (!update.events?.length && rows.length === 0 && !note && !fromGame) return null;
 
   return (
     <div className="min-w-0 text-[13px]">
+      {fromGame ? <p className="m-0 mb-2 text-ink-2">{t.dalGioco}</p> : null}
       {note ? (
         <p lang="en" className="m-0 mb-2 text-ink-2">
           {note}

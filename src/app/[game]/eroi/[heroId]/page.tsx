@@ -79,7 +79,8 @@ const TESTI = testi({
     giapponeCorea: "Giappone e Corea",
     evoluzioneLr: "Evoluzione LR",
     nelleUscite: "Nelle Uscite",
-    dalloStendardo: "Data dello stendardo di debutto nel gioco: le Uscite non hanno ancora la sua riga",
+    dalloStendardo: "Data dello stendardo di debutto nel gioco: il foglio delle uscite non ha ancora la sua riga",
+    dallaPatch: "Data della patch che ha portato l'eroe nel gioco: il foglio delle uscite non ha ancora la sua riga",
     dateTitolo: "Date",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustrazione di ${eroe}`,
@@ -134,7 +135,8 @@ const TESTI = testi({
     giapponeCorea: "Japan and Korea",
     evoluzioneLr: "LR evolution",
     nelleUscite: "In Releases",
-    dalloStendardo: "Date of its debut banner in the game: Releases doesn't have its row yet",
+    dalloStendardo: "Date of its debut banner in the game: the releases spreadsheet doesn't have its row yet",
+    dallaPatch: "Date of the patch that brought this hero into the game: the releases spreadsheet doesn't have its row yet",
     dateTitolo: "Dates",
     festival: "Festival",
     altIllustrazione: (eroe: string) => `Illustration of ${eroe}`,
@@ -1059,9 +1061,12 @@ function HeroDates({
             {t.nelleUscite}
           </MoreLink>
         </p>
-      ) : release?.banner ? (
-        // senza riga nelle Uscite la data viene dal client: si dice da dove
-        <p className="m-0 mt-3 max-w-[48ch] text-[13px] text-ink-2">{t.dalloStendardo}</p>
+      ) : null}
+      {release?.banner || release?.patch ? (
+        // senza riga nel foglio la data viene dal client: si dice da dove
+        <p className="m-0 mt-3 max-w-[48ch] text-[13px] text-ink-2">
+          {release.banner ? t.dalloStendardo : t.dallaPatch}
+        </p>
       ) : null}
     </div>
   );

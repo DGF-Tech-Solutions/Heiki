@@ -6,10 +6,10 @@
  * Sta in un file separato dal roster perche' ha un destinatario diverso: il
  * roster viaggia fino al browser per far funzionare i filtri, questi testi no.
  * Li legge solo la scheda del singolo eroe, che e' renderizzata sul server, e
- * tenerli qui evita di spedire 377 descrizioni a chi sta solo sfogliando
+ * tenerli qui evita di spedire 381 descrizioni a chi sta solo sfogliando
  * la griglia.
  *
- * Sono 377 eroi su 377: agli altri il gioco assegna i testi dal
+ * Sono 381 eroi su 381: agli altri il gioco assegna i testi dal
  * server, e nel client non ci sono.
  */
 
@@ -2633,6 +2633,34 @@ export const HERO_TEXTS: Readonly<Record<string, HeroText>> = {
     epithet: "[Un mondo distorto]",
     description: "Un membro del leggendario Ordine dei Cavalieri, I [Seven Deadly Sins]. Considera la capitana Meliodas la sua più cara e intima amica.",
     i18n: {"name":{"it":"Ban alter ego","en":"Another Ban"},"title":{"it":"[Un mondo distorto] Ban alter ego","en":"[A Twisted World] Another Ban"},"epithet":{"it":"[Un mondo distorto]","en":"[A Twisted World]"},"description":{"it":"Un membro del leggendario Ordine dei Cavalieri, I [Seven Deadly Sins]. Considera la capitana Meliodas la sua più cara e intima amica.","en":"A member of the legendary knighthood, [The Seven Deadly Sins]. She considers Captain Meliodas her closest and most precious friend."}},
+  },
+  "2011501": {
+    name: "Joker",
+    title: "[I Fantasmi] Joker",
+    epithet: "[I Fantasmi]",
+    description: "Il leader dei [Fantasmi]. Dopo aver scoperto di possedere un potere soprannaturale noto come Persona, di giorno è un normale studente, ma al termine delle lezioni si trasforma in un ladro fantasma che sconvolge la città.",
+    i18n: {"name":{"it":"Joker","en":"Joker"},"title":{"it":"[I Fantasmi] Joker","en":"[The Phantoms] Joker"},"epithet":{"it":"[I Fantasmi]","en":"[The Phantoms]"},"description":{"it":"Il leader dei [Fantasmi]. Dopo aver scoperto di possedere un potere soprannaturale noto come Persona, di giorno è un normale studente, ma al termine delle lezioni si trasforma in un ladro fantasma che sconvolge la città.","en":"Taking the city by storm, he's the leader of [The Phantoms]. After awakening as a Persona user, he's become an ordinary student by day, but a phantom thief by night."}},
+  },
+  "2012501": {
+    name: "Mona",
+    title: "[I Fantasmi] Mona",
+    epithet: "[I Fantasmi]",
+    description: "Un essere misterioso e membro dei [Fantasmi]. Sebbene abbia l'aspetto di un gatto, parla il linguaggio umano e può trasformarsi in varie forme.",
+    i18n: {"name":{"it":"Mona","en":"Mona"},"title":{"it":"[I Fantasmi] Mona","en":"[The Phantoms] Mona"},"epithet":{"it":"[I Fantasmi]","en":"[The Phantoms]"},"description":{"it":"Un essere misterioso e membro dei [Fantasmi]. Sebbene abbia l'aspetto di un gatto, parla il linguaggio umano e può trasformarsi in varie forme.","en":"A mysterious being and member of [The Phantoms]. Though cat-like in appearance, he speaks human language and can transform into various forms."}},
+  },
+  "2013501": {
+    name: "Violet",
+    title: "[I Fantasmi] Violet",
+    epithet: "[I Fantasmi]",
+    description: "Un membro dei [Fantasmi] che ammira Joker e chiama tutti \"senpai\". Educata e sincera, possiede la forza interiore necessaria per combattere per le proprie convinzioni.",
+    i18n: {"name":{"it":"Violet","en":"Violet"},"title":{"it":"[I Fantasmi] Violet","en":"[The Phantoms] Violet"},"epithet":{"it":"[I Fantasmi]","en":"[The Phantoms]"},"description":{"it":"Un membro dei [Fantasmi] che ammira Joker e chiama tutti \"senpai\". Educata e sincera, possiede la forza interiore necessaria per combattere per le proprie convinzioni.","en":"A member of [The Phantoms] who looks up to Joker and calls everyone \"senpai.\" Though polite and honest, she possesses the inner strength to fight for her convictions."}},
+  },
+  "2014501": {
+    name: "Queen",
+    title: "[I Fantasmi] Queen",
+    epithet: "[I Fantasmi]",
+    description: "La mente dei [Fantasmi]. È una brillante e integerrima presidente del consiglio studentesco. Calma e composta, possiede sia un forte senso di responsabilità sia l'iniziativa necessaria per agire. Tuttavia, a causa della sua natura fin troppo ligia e diligente, può essere ostinatamente inflessibile.",
+    i18n: {"name":{"it":"Queen","en":"Queen"},"title":{"it":"[I Fantasmi] Queen","en":"[The Phantoms] Queen"},"epithet":{"it":"[I Fantasmi]","en":"[The Phantoms]"},"description":{"it":"La mente dei [Fantasmi]. È una brillante e integerrima presidente del consiglio studentesco. Calma e composta, possiede sia un forte senso di responsabilità sia l'iniziativa necessaria per agire. Tuttavia, a causa della sua natura fin troppo ligia e diligente, può essere ostinatamente inflessibile.","en":"The brain of [The Phantoms]. She is the brilliant, upright student council president. Calm and collected, she possesses both a strong sense of responsibility and the initiative to take action. However, she can be uncompromisingly stubborn due to her overly earnest, honor-student nature."}},
   },
   "2015501": {
     name: "Gawain cavaliere del sole",
