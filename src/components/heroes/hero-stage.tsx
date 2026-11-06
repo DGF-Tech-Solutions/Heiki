@@ -1,61 +1,44 @@
 /**
- * Il palco di un eroe: la «selezione del personaggio» chiesta dall'utente il
- * 10/10 (griglia + eroe in grande a lato, come un picchiaduro), e la stessa forma
- * apre la scheda dell'eroe.
+ * Il palco di un eroe: apre la scheda, e la stessa forma sta nella home e nel menu del
+ * gioco. Due strati:
+ *   - la FIGURA: l'illustrazione scontornata del client, ingrandita col volto sempre alla
+ *     stessa altezza, con una luce morbida alle spalle (pulito.css) che stacca dal nero le
+ *     figure scure. La cima della sagoma (`HeroAssets.top`) e' il limite: ali, cappelli e
+ *     corna restano dentro
+ *   - la TARGA: epiteto, nome, attributo e rarita', i comandi
  *
- * Tre strati, dal fondo:
- *   - la FASCIA: una lama rossa obliqua che attraversa il palco col primo piano
- *     dell'eroe a due toni, rosso e nero, come gli «All-Out Attack» di Persona
- *     (il mondo scelto il 27/09). Il primo piano e' il cut-in della Mossa
- *     finale (`HeroAssets.cutIn`), messo dalla parte opposta al volto della
- *     figura (`HeroAssets.face`)
- *   - la FIGURA: l'illustrazione scontornata del client, con la sagoma nera
- *     sfalsata. Dall'11/10 (l'utente: «un po' piccola») non sta piu' intera nel
- *     palco: e' ingrandita col volto sempre alla stessa altezza, e le gambe
- *     scendono dietro la targa. La cima della sagoma (`HeroAssets.top`) e' il
- *     limite: ali, cappelli e corna restano dentro
- *   - la TARGA: epiteto su una lama bianca, nome con l'ombra rossa, attributo e
- *     rarita', i comandi
+ * Fino al 06/11 c'erano anche il retino, il nome a contorno e la fascia obliqua col cut-in:
+ * lo stile del sito li ha tolti, e il cut-in non si scarica piu'.
  *
- * La figura e' sempre l'illustrazione dell'eroe (l'utente, 10/10: niente cut-in
- * al suo posto). Nella fascia, dal 10/10 sera, c'era l'illustrazione stessa
- * ingrandita sul volto; l'11/10 l'utente ha chiesto il cut-in, che e' gia' un
- * primo piano: si sposta e si scala, senza ritagli.
+ * Il movimento e' uno solo, ed e' il momento della scelta: cambiando eroe la figura entra e
+ * la targa scatta al suo posto (classi `stage-*` in globals.css; con «riduci movimento»
+ * resta una dissolvenza). Il contenuto e' sempre visibile senza animazione: se lo script
+ * non parte, il palco c'e' lo stesso.
  *
- * Il movimento e' uno solo, ed e' il momento della scelta: cambiando eroe la
- * figura entra con un taglio diagonale e la targa scatta al suo posto (classi
- * `stage-*` in globals.css; con «riduci movimento» resta una dissolvenza). Il
- * contenuto e' sempre visibile senza animazione: se lo script non parte, il
- * palco c'e' lo stesso.
- *
- * Senza stato e senza "use client": la griglia lo usa nel browser, la scheda sul
- * server.
+ * Senza stato e senza "use client": si usa anche dal server.
  */
 
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { cx } from "@/components/ui";
-import { heroCutInSrc, heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
+import { heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
 import type { HeroAffinity, HeroEntry } from "@/lib/games/types";
 import type { Locale } from "@/lib/i18n/locale";
 
 /**
  * Le immagini di un eroe per il palco: l'illustrazione c'e' o no, dove stanno il
- * suo volto e la cima della sagoma, e se c'e' il cut-in. Lo dice `HeroAssets`
- * (`splash`, `face`, `top`, `cutIn`).
+ * suo volto e la cima della sagoma. Lo dice `HeroAssets` (`splash`, `face`, `top`).
  */
 export interface StageArt {
   readonly art: "cutout" | "none";
   /** nell'illustrazione, in centesimi del lato: [x del volto, y del volto, cima della sagoma] */
   readonly figure: readonly [number, number, number];
-  /** il cut-in della Mossa finale, per la fascia */
-  readonly cutIn: boolean;
 }
 
 /** un'illustrazione tipo: il volto al centro nel quarto alto, la sagoma che parte poco sotto il bordo */
 export const DEFAULT_FIGURE: readonly [number, number, number] = [50, 25, 10];
 
-export const DEFAULT_STAGE_ART: StageArt = { art: "cutout", figure: DEFAULT_FIGURE, cutIn: true };
+export const DEFAULT_STAGE_ART: StageArt = { art: "cutout", figure: DEFAULT_FIGURE };
 
 export function stageArtOf(
   assets:
@@ -63,7 +46,6 @@ export function stageArtOf(
         readonly splash?: boolean;
         readonly face?: readonly [number, number];
         readonly top?: number;
-        readonly cutIn?: boolean;
       }
     | undefined,
 ): StageArt {
@@ -71,19 +53,11 @@ export function stageArtOf(
   return {
     art: assets?.splash ? "cutout" : "none",
     figure: [x, y, Math.min(assets?.top ?? DEFAULT_FIGURE[2], y)],
-    cutIn: assets?.cutIn === true,
   };
 }
 
 /** la figura: fino a ~800 px nel palco, a densita' 1 la misura da 1080; l'originale e' 1024 */
 const ART_SIZES = "1080px";
-
-/**
- * Il cut-in nella fascia: un terzo della pagina sul computer, quasi tutto il
- * telefono. L'originale e' 512 px, e il servizio delle immagini non lo
- * ingrandisce: chiedere di piu' non costa.
- */
-const CUT_IN_SIZES = "(max-width: 639px) 80vw, 520px";
 
 export interface StageBadge {
   readonly label: string;
@@ -122,12 +96,12 @@ export function HeroStage({
   /** nella scheda il nome e' il titolo della pagina */
   headingLevel?: "p" | "h1" | "h2";
   /**
-   * La targa con altro che l'eroe: nella home il nome del gioco sopra l'ultimo
-   * eroe uscito. Il nome grande sul fondo segue la targa.
+   * La targa con altro che l'eroe: nella home il titolo della pagina sopra l'ultimo
+   * eroe uscito.
    */
   plate?: { readonly kicker: string; readonly title: string };
   art?: StageArt;
-  /** il colore del filo sotto la fascia, se non e' quello dell'attributo (il profilo: il suo accento) */
+  /** il colore del palco, se non e' quello dell'attributo (il profilo: il suo accento) */
   tint?: string;
 }) {
   const name = plate?.title ?? heroName(hero, locale);
@@ -158,37 +132,6 @@ export function HeroStage({
         } as React.CSSProperties
       }
     >
-      <div aria-hidden className="stage-dots absolute inset-0 -z-10" />
-
-      {/*
-        Il nome del personaggio enorme, solo contorno, sotto la fascia: e' la
-        grafica delle schermate di scelta, e dice chi e' anche a chi guarda di
-        sfuggita. Decorativo per i lettori di schermo: il nome vero sta nella targa.
-      */}
-      <p aria-hidden className="stage-word absolute -z-10 m-0">
-        {name}
-      </p>
-
-      <div aria-hidden className="absolute inset-0 -z-10">
-        <div className="stage-band-edge absolute inset-0" />
-        <div className="stage-band absolute inset-0">
-          {art.cutIn ? (
-            // si rimonta a ogni eroe: senza, il cut-in di prima resta finche' il nuovo non arriva
-            <div key={hero.id} className="stage-band-art">
-              <Image
-                src={heroCutInSrc(game, hero.id)}
-                alt=""
-                fill
-                sizes={CUT_IN_SIZES}
-                priority={priority}
-                className="stage-band-img object-cover"
-              />
-            </div>
-          ) : null}
-        </div>
-        <div className="stage-band-line absolute inset-0" />
-      </div>
-
       {/* la figura: si rimonta a ogni eroe (key), e l'animazione riparte */}
       {art.art === "cutout" ? (
         <div key={hero.id} className="stage-figure absolute">

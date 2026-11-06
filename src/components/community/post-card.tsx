@@ -55,7 +55,7 @@ export async function PostCard({ post }: { post: FeedPost }) {
             className="inline-flex items-center gap-1.5 font-medium text-ink-2 hover:text-ink"
           >
             <span
-              className="size-[7px] flex-none bg-[var(--accent)] [clip-path:polygon(2px_0,100%_0,calc(100%-2px)_100%,0_100%)]"
+              className="size-[7px] flex-none bg-[var(--accent)]"
               aria-hidden
             />
             {post.author.displayName}

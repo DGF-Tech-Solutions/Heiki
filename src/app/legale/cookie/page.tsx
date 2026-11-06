@@ -269,6 +269,14 @@ function CookieIt({ cookies, providers, host, games }: Facts) {
               <td>Ricordare i colori che hai scelto. Contiene il nome del tema</td>
               <td>1 anno dall&apos;ultima scelta</td>
             </tr>
+            <tr>
+              <td>
+                <code>menu-chiuse</code>
+              </td>
+              <td>Quando apri o chiudi una sezione del menu</td>
+              <td>Ricordare quali sezioni hai chiuso. Contiene i loro indirizzi</td>
+              <td>1 anno dall&apos;ultima scelta</td>
+            </tr>
           </tbody>
         </table>
       </TableScroll>
@@ -786,6 +794,14 @@ function CookieEn({ cookies, providers, host, games }: Facts) {
               </td>
               <td>When you pick the site&apos;s colors (the theme)</td>
               <td>Remembering the colors you chose. It holds the theme&apos;s name</td>
+              <td>1 year from your last choice</td>
+            </tr>
+            <tr>
+              <td>
+                <code>menu-chiuse</code>
+              </td>
+              <td>When you open or close a menu section</td>
+              <td>Remembering which sections you closed. It holds their addresses</td>
               <td>1 year from your last choice</td>
             </tr>
           </tbody>

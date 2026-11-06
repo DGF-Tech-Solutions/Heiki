@@ -116,46 +116,51 @@ regole.
   - si clicca solo su `<button>`, `<a>` o `<input>` veri, mai su un `div` con `onClick`;
   - le scelte sono radio veri, anche `sr-only` dentro una `label`, raggruppati in `fieldset` con `legend`;
   - le finestre usano `<dialog>` nativo;
-  - il fuoco deve vedersi: nelle forme tagliate `.p5-*` il contorno va dentro.
-- **Stile Persona**: usa le primitive di `src/components/ui.tsx` (`buttonClass`, `chipClass`, `Card`, `PageHeader`,
-  `Notice`, `cx`) e i colori di `globals.css`, senza ricrearle.
+  - il fuoco deve vedersi: un filetto grigio, dentro i bordi dove il contenitore taglia.
+- **Lo stile del sito** (dal 06/11, adottato dall'utente; le regole intere stanno in `DESIGN.md`): fermo è nero,
+  gli stacchi sono filetti da 1 px, l'interfaccia non ha tinta. **Tre stati**: fermo niente, al passaggio la piastra,
+  scelto o «dove sei» il blocco bianco. **Niente** lame, retini, tagli obliqui, ombre dure sfalsate, numeri a contorno,
+  fili bianchi attorno alle cose (`src/app/pulito.css` sta sopra `globals.css`: le vecchie regole `p5-*` e `stage-*`
+  ci sono ancora, ma pulito.css le annulla: non riusarle per fare forme nuove). **Una sola voce forte per pagina**: il
+  titolo (`display`). Usa le primitive di `src/components/ui.tsx` (`buttonClass`, `chipClass`, `Card`, `PageHeader`,
+  `Notice`, `cx`) e i colori di `globals.css`, senza ricrearle. Per i fondi: `bg-piastra-fondo` a riposo,
+  `hover:bg-piastra` al passaggio, `bg-piastra-forte` per un posto scelto che ha sopra un'immagine.
 - **Temi e colori** (dal 25/10 il predefinito è il tema **Classico**, nero, bianco e grigio; il rosso «Persona» è un
   tema da scegliere come Notte, Giada, Viola, Ambra). Nei componenti si usano solo i gettoni del ruolo, mai colori
   scritti a mano:
   - `brand` è l'**accento** (voce attiva, azione principale, scelta del rango): nel Classico è bianco. Il testo sopra
     l'accento è **`text-on-brand`**, mai `text-white` o `#fff` (nel Classico sarebbe bianco su bianco);
-  - `mark` è l'accento **decorativo** (righe sotto le intestazioni, filo dell'intestazione e del piede, ombre sfalsate
-    dei pannelli, retini, ombra dei titoli): nei temi colorati coincide con l'accento, nel Classico è grigio;
-  - `plate` / `on-plate` è il **blocco neutro** (pulsanti secondari, targhette dei gruppi, campi di ricerca, la lama
-    del passaggio sulle voci di menu): nei temi colorati è il bianco carta, nel Classico un grigio;
+  - `mark` nei temi colorati è l'accento, nel Classico un filetto come `rule`: niente di decorativo, ormai;
+  - `plate` / `on-plate` è il **blocco neutro**, bianco col testo nero;
   - `select` / `on-select` è la **scelta** (chip dei filtri, lingua, livelli, modalità attiva: `chipColors` di
-    `ui.tsx`, col filo interno `shadow-[inset_0_0_0_2px_var(--color-ink)]`): nei temi colorati il chip chiaro di
-    prima, nel Classico un grigio scuro col filo bianco, perché il bianco pieno resta all'azione principale;
-  - `stage` è la **lama** dietro le figure dell'anteprima degli Eroi: nei temi colorati l'accento, nel Classico
-    bianca col retino nero (25/10 sera: l'utente vuole il Classico più bianco e nero, coi grigi meno presenti);
+    `ui.tsx`): il blocco bianco. I comandi di scelta hanno un fondo anche a riposo (classe `chip`);
+  - `piastra-fondo`, `piastra`, `piastra-forte` sono i gradini del passaggio, ricavati dal tema con `color-mix`;
+  - `stage` non si usa più: resta perché ogni tema lo ridefinisce e il test lo controlla;
   - `rule-strong` è il **bordo dei campi** (testo, scelta, area di testo: `Input`, `Select`, `Textarea` di `ui.tsx`),
     a 3:1 su ogni fondo come chiede la WCAG 1.4.11; `rule` e `rule-2` restano per i fili decorativi;
   - un tema nuovo è un blocco `:root[data-theme="…"]` in `globals.css` con tutti i gettoni del ruolo, più la riga in
     `src/lib/theme/themes.ts`; il test `src/lib/theme/__tests__/themes.test.ts` controlla i contrasti (diciannove
-    gettoni dal 25/10).
+    gettoni dal 25/10). I temi cambiano colori e accento, mai le forme.
 - **Regole di design** (revisione del 24/10, approvate dall'utente):
   - l'**accento pieno** (rosso nel tema Persona, bianco nel Classico) solo per dove sei (voce attiva, scheda scelta) e
-    per **una** azione principale per vista; le altre azioni `outline` o `ghost`; i filtri scelti sono il chip chiaro
-    di `chipClass`, uguale ovunque;
-  - **un solo menu**: le sezioni stanno in `GROUPS` di `src/lib/games/catalog.ts`, e barra laterale, menu del gioco,
-    menu del telefono e piè di pagina le leggono da lì, nello stesso ordine. Una pagina nuova si aggiunge lì, col
+    per **una** azione principale per vista; le altre azioni `outline` o `ghost`; i filtri scelti sono il blocco di
+    `chipClass`, uguale ovunque;
+  - **un solo menu**: le sezioni stanno in `GROUPS` di `src/lib/games/catalog.ts`, e barra laterale, menu del
+    telefono e piè di pagina le leggono da lì, nello stesso ordine. Ogni voce ha un'icona del gioco: un'icona nuova si
+    aggiunge in `script/icone_menu.py` e con una riga `.p5-menu-item[href$="…"]` in `pulito.css`. Le sezioni si
+    aprono e si chiudono, e la scelta sta nel cookie `menu-chiuse` (elencato nella pagina dei cookie). Una pagina nuova si aggiunge lì, col
     nome che avrà ovunque (titolo, briciole, collegamenti). Il collegamento si scrive con `item.href` (l'indirizzo
     intero), non con `/${gioco}${item.path}`: le voci del gruppo «Il tuo profilo» portano fuori dal gioco;
   - il **profilo è del sito** (dal 25/10): `/profilo` (panoramica, anche per chi non è entrato), `/profilo/<gioco>`
     (account di gioco: nickname, Codice amico, server, classe, verifica), `/profilo/<gioco>/eroi` (il box). Le vecchie
     `/<gioco>/account` reindirizzano. Una pagina personale nuova di un gioco va lì, non nel gioco;
-  - l'**anteprima degli Eroi** (`hero-peek.tsx`, dal 25/10) è una scheda per decidere il clic: dati in fasce fisse
-    (classe di combattimento con la posizione, voto della community, due righe di fatti, statistiche, versioni, box,
-    uscita) da `src/lib/games/hero-peek-facts.ts`, calcolati sul server una volta per pagina. Ogni fascia ha
-    un'altezza che non dipende dall'eroe, così lo spazio della figura (e la scala di Shinra) è lo stesso per tutti:
-    una fascia nuova deve avere il suo spazio anche vuota, e le soglie in fondo al blocco `.peek` di `globals.css`
-    vanno rimisurate. Nella griglia: attesa di 90 ms al passaggio del mouse, un solo passo del Tab con le frecce fra
-    le card, l'eroe aperto scritto nell'indirizzo (`?eroe=`) per tornare con Indietro;
+  - le **card degli eroi** non superano mai `--card-eroe` (120 px veri, `pulito.css`), su nessuno schermo: i ritratti del
+    gioco sono 128x128, e oltre quella misura il volto si sfoca qualunque file si usi. Più spazio vuol dire più colonne,
+    non card più grandi. Una misura in px veri si scrive `calc(N * var(--px))`;
+  - la **griglia Eroi** è a tutta larghezza (`roster-browser.tsx`, dal 06/11): niente anteprima accanto, filtri sempre
+    aperti sul computer e dietro «Filtri» sul telefono, numeri dei filtri solo al passaggio. Al passaggio la card ha una
+    piastra piatta ad angoli vivi nel colore dell'attributo e si ingrandisce del 5%. Le immagini delle card sono sempre
+    il file da 256: un `srcSet` con `1x` e `2x` guarda la densità dello schermo, non la misura mostrata, e stirava il 128;
   - il percorso in cima (`Breadcrumb`) si vede solo dal terzo livello; il gioco lo dice l'intestazione;
   - nel testo visibile niente trattini lunghi (— e –: si riscrive con due punti, virgola o due frasi; il «—» resta solo
     come cella vuota di una tabella), niente frecce di testo come icone (→: `IconArrowRight`), niente etichette

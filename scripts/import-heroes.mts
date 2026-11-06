@@ -19,7 +19,7 @@
  * dataset e ricopia solo le card cambiate.
  */
 
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import sharp from "sharp";
 // La stessa somma dello slider della scheda: il controllo dei pezzi si fa con
@@ -1931,9 +1931,8 @@ function morph(mask: Uint8Array, n: number, r: number, grow: boolean): Uint8Arra
  * testa (con ali, cappelli, corna) dentro il palco. La punta di una lancia puo'
  * uscire, la testa no.
  *
- * E il riquadro di tutta la sagoma, parti sottili comprese: l'anteprima della
- * griglia Eroi (hero-peek.tsx, 24/10) inquadra quello, e non il file, perche'
- * nei 1024x1024 del gioco la sagoma ha margini diversissimi (larga dal 28 al 99%
+ * E il riquadro di tutta la sagoma, parti sottili comprese: una figura si inquadra
+ * su quello, e non sul file, perche' nei 1024x1024 del gioco la sagoma ha margini diversissimi (larga dal 28 al 99%
  * del lato, alta dal 40 al 100%). Arrotondato verso l'esterno: non taglia mai.
  */
 async function figureOf(
@@ -2218,6 +2217,20 @@ function passiveConditionIcons(): string[] {
   if (!existsSync(contextJson)) return [];
   const ctx = JSON.parse(readFileSync(contextJson, "utf8")) as SourceContext;
   return Object.values(ctx.condizioni_passiva ?? {}).map((condition) => condition.icona);
+}
+
+/**
+ * Le icone della barra laterale, sagome bianche che il sito usa come maschera: le ricava
+ * dagli atlanti del gioco `python script\\icone_menu.py`, e qui si copiano e basta. Non
+ * passano dall'elenco qui sotto: le chiama pulito.css per nome, non il codice.
+ */
+{
+  const from = resolve(SOURCE, "icone_menu");
+  if (existsSync(from)) {
+    cpSync(from, resolve(DEST_IMAGES, "icone/menu"), { recursive: true });
+  } else {
+    console.log("  icone_menu/ non trovata: lancia script/icone_menu.py nella pipeline.");
+  }
 }
 
 const ICONS: readonly { family: string; key: string; file: string; dir?: string }[] = [

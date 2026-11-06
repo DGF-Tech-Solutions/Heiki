@@ -8,7 +8,7 @@
  * validation.ts, che i test possono importare.
  */
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { currentViewer } from "@/lib/community/actions";
 import { databaseReachable, db, isDatabaseConfigured } from "@/lib/db";
@@ -18,7 +18,6 @@ import { testi, type Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { requireActive } from "@/lib/moderation/suspension";
 import { rateLimit, retryMessage } from "@/lib/rate-limit";
-import { ratingOverviewTag } from "./server";
 import { parseRatingForm } from "./validation";
 
 export interface RatingActionState {
@@ -142,8 +141,6 @@ export async function saveHeroRatingAction(
   // Chiamata da un'azione, revalidatePath fa tornare la pagina aggiornata nella
   // stessa risposta: il modulo non deve chiedere un altro giro con router.refresh()
   revalidatePath(`/${game}/eroi/${heroId}`);
-  // e il riepilogo dell'anteprima nella griglia Eroi (getGameRatingOverview)
-  revalidateTag(ratingOverviewTag(game));
   return { success: true };
 }
 
@@ -175,6 +172,5 @@ export async function deleteHeroRatingAction(
     );
 
   revalidatePath(`/${game}/eroi/${heroId}`);
-  revalidateTag(ratingOverviewTag(game));
   return { success: true };
 }

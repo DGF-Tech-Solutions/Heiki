@@ -58,14 +58,12 @@ export function pickableGames(): readonly PickableGame[] {
     if (!heroes || heroes.length === 0) return [];
     const figures: Record<string, StageArt["figure"]> = {};
     const art: Record<string, StageArt["art"]> = {};
-    const withoutCutIn: string[] = [];
     for (const hero of heroes) {
       const stage = stageArtOf(gameModule.heroAssets?.[hero.id]);
       figures[hero.id] = stage.figure;
       if (stage.art !== DEFAULT_STAGE_ART.art) art[hero.id] = stage.art;
-      if (!stage.cutIn) withoutCutIn.push(hero.id);
     }
-    return [{ game: gameModule.slug, name: gameModule.name, heroes, figures, art, withoutCutIn }];
+    return [{ game: gameModule.slug, name: gameModule.name, heroes, figures, art }];
   });
   return pickable;
 }

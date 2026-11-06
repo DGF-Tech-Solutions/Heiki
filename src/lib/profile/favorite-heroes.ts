@@ -35,7 +35,6 @@ export interface PickableGame {
   readonly figures: Readonly<Record<string, StageArt["figure"]>>;
   /** solo gli eroi senza illustrazione scontornata */
   readonly art: Readonly<Record<string, StageArt["art"]>>;
-  readonly withoutCutIn: readonly string[];
 }
 
 /** Un preferito com'e' in pagina: nome ed epiteto gia' nella lingua di chi legge. */
@@ -60,7 +59,6 @@ export function stageArtFor(game: PickableGame, heroId: string): StageArt {
   return {
     art: game.art[heroId] ?? DEFAULT_STAGE_ART.art,
     figure: game.figures[heroId] ?? DEFAULT_FIGURE,
-    cutIn: !game.withoutCutIn.includes(heroId),
   };
 }
 

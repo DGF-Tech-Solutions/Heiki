@@ -46,17 +46,7 @@ export default async function NotFound() {
   const t = TESTI[await getLocale()];
 
   return (
-    <main className="relative isolate mx-auto w-full max-w-[700px] overflow-hidden px-6 pt-16 pb-24">
-      {/*
-        Il numero dell'errore enorme e a contorno dietro il titolo, come il nome
-        sul palco della griglia Eroi: prima stava in un'etichetta sopra il titolo (10/10).
-      */}
-      <p
-        aria-hidden
-        className="absolute top-8 right-2 -z-10 m-0 font-display text-[clamp(120px,26vw,220px)] leading-none font-black text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--color-mark)_45%,transparent)] [font-variation-settings:'wdth'_62]"
-      >
-        404
-      </p>
+    <main className="mx-auto w-full max-w-[700px] px-6 pt-16 pb-24">
       <h1 className={cx(display, "text-[clamp(36px,6vw,60px)]")}>{t.titolo}</h1>
       <p className="mt-4 max-w-[52ch] text-base text-ink-2">{t.spiegazione}</p>
 

@@ -112,7 +112,7 @@ export default async function ProfileOverviewPage() {
               width={88}
               height={88}
               style={{ width: rem(88) }}
-              className="block aspect-square shrink-0 bg-paper-2 shadow-[5px_5px_0_var(--color-mark)]"
+              className="block aspect-square shrink-0 bg-paper-2"
             />
           ) : (
             <span

@@ -62,14 +62,10 @@ export function Eyebrow({ children, className }: { children: ReactNode; classNam
 type ButtonVariant = "primary" | "outline" | "ghost";
 type ButtonSize = "md" | "sm";
 
-// Tagliati in obliquo come i comandi dei menu di Persona: il taglio e' clip-path
-// (p5-cut, in globals.css), quindi la misura del bottone non cambia. Il passaggio
-// e la pressione li fa `p5-btn` (la lama che spazza, il comando che affonda): qui
-// solo i quattro colori di ogni variante, a riposo e al passaggio. Dal 25/10 coi
-// gettoni del tema: il principale e' l'accento (`brand`, col suo testo
-// `on-brand`), il secondario la targa (`plate`). Nei temi colorati la targa e' il
-// bianco carta, come prima; nel Classico l'accento e' bianco e la targa grigia,
-// cosi' principale e secondario restano due cose diverse.
+// Il passaggio e la pressione li fa `p5-btn`: qui solo i quattro colori di ogni variante, a
+// riposo e al passaggio. Il principale e' l'accento (`brand`, col suo testo `on-brand`), e il
+// suo passaggio e quello del secondario li scrive pulito.css. Il passaggio non e' mai bianco:
+// si confonderebbe con la scelta, che lo e'.
 const BUTTON_BASE =
   "p5-cut p5-btn inline-flex items-center justify-center gap-2 font-display font-extrabold uppercase " +
   "tracking-[0.03em] [font-variation-settings:'wdth'_85] " +
@@ -78,7 +74,7 @@ const BUTTON_BASE =
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   primary: "[--btn-bg:var(--color-brand)] [--btn-fg:var(--color-on-brand)] [--btn-hi:var(--color-plate)] [--btn-hi-fg:var(--color-on-plate)]",
   outline: "[--btn-bg:var(--color-plate)] [--btn-fg:var(--color-on-plate)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:var(--color-on-brand)]",
-  ghost: "[--btn-bg:transparent] [--btn-fg:var(--color-ink-2)] [--btn-hi:var(--color-plate)] [--btn-hi-fg:var(--color-on-plate)]",
+  ghost: "[--btn-bg:transparent] [--btn-fg:var(--color-ink-2)] [--btn-hi:var(--color-piastra)] [--btn-hi-fg:var(--color-ink)]",
 };
 
 /**
@@ -342,7 +338,7 @@ export function HowItWorks({
 export function chipClass(active: boolean, _quiet = false, className?: string): string {
   return cx(
     // 40px sul telefono e non 36: si centrano col pollice (10/10)
-    "p5-cut-sm p5-btn inline-flex h-9 cursor-pointer items-center gap-1.5 px-3 text-[12px] uppercase tracking-[0.04em] no-underline max-sm:h-10",
+    "chip p5-cut-sm p5-btn inline-flex h-9 cursor-pointer items-center gap-1.5 px-3 text-[12px] uppercase tracking-[0.04em] no-underline max-sm:h-10",
     chipColors(active),
     className,
   );

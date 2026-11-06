@@ -252,7 +252,6 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
       */}
       <EndgameStage
         title={name}
-        word={name}
         mode="cutout"
         image={
           boss.cutIn
@@ -312,7 +311,6 @@ export default async function DeathMatchBossPage({ params, searchParams }: Props
 
       <SectionIndex
         label={t.inPagina}
-        numbered={false}
         entries={[
           { id: "difficolta", label: t.difficoltaSezione },
           { id: "squadre", label: t.squadre },

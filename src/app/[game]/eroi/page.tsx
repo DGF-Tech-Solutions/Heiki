@@ -2,17 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
-import type { FigureBox } from "@/components/heroes/hero-peek";
-import { DEFAULT_STAGE_ART, stageArtOf, type StageArt } from "@/components/heroes/hero-stage";
 import { RosterBrowser } from "@/components/heroes/roster-browser";
 import { PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
-import { peekFacts } from "@/lib/games/hero-peek-facts";
 import { requireGameModule } from "@/lib/games/registry";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
-import { getGameRatingOverview } from "@/lib/ratings/server";
 
 /**
  * Eroi.
@@ -80,7 +76,7 @@ export default async function HeroesPage({ params }: Props) {
   if (!entry) notFound();
 
   const gameModule = requireGameModule(game);
-  const { roster, icons, releases, heroContext, heroAssets } = gameModule;
+  const { roster, icons, releases, heroContext } = gameModule;
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -131,41 +127,11 @@ export default async function HeroesPage({ params }: Props) {
       }
     : undefined;
 
-  // Per l'anteprima accanto alla griglia: volto e cima della sagoma di ogni eroe,
-  // il riquadro della sagoma (la figura si inquadra su quello), e solo per le
-  // eccezioni (poche) il tipo d'illustrazione e la mancanza del cut-in. Al
-  // browser arriva questo, non l'elenco degli asset di tutti gli eroi.
-  //
-  // Fino al 25/10 arrivava anche la descrizione del gioco di ogni eroe (~55 KB,
-  // ~20 compressi): l'anteprima nuova non la mostra, la storia e' nella scheda.
-  const stageKinds: Record<string, StageArt["art"]> = {};
-  const stageFigures: Record<string, StageArt["figure"]> = {};
-  const figureBoxes: Record<string, FigureBox> = {};
-  const withoutCutIn: string[] = [];
-  for (const hero of roster.heroes) {
-    const assets = heroAssets?.[hero.id];
-    const stage = stageArtOf(assets);
-    if (stage.art !== DEFAULT_STAGE_ART.art) stageKinds[hero.id] = stage.art;
-    if (!stage.cutIn) withoutCutIn.push(hero.id);
-    stageFigures[hero.id] = stage.figure;
-    if (assets?.box) figureBoxes[hero.id] = assets.box;
-  }
-
-  // I dati dell'anteprima (25/10): classe di combattimento e statistiche al
-  // massimo con la posizione fra tutti gli eroi, uscita, fine gioco, e il voto
-  // della community dal database. Pochi numeri per eroe, nella lingua della
-  // pagina: le schede intere restano sul server.
-  const ratings = await getGameRatingOverview(game);
-  const peek = peekFacts(gameModule, locale);
-
   const rarest = roster.rarities[0];
   const counted = roster.heroes.filter((hero) => hero.rarity === rarest).length;
 
-  // Briciole e titolo nella colonna della griglia: l'anteprima accanto parte
-  // dall'alto della pagina (roster-browser.tsx, `intro`). Niente etichetta sopra
-  // il titolo: la striscia del gioco e le briciole dicono gia' dove sei (10/10).
-  const intro = (
-    <div className="pt-6">
+  return (
+    <main className="pt-6 pb-20">
       <Breadcrumb items={[{ label: entry.shortName, href: `/${game}` }, { label: t.eroi }]} />
       <PageHeader title={t.eroi}>
         <p>
@@ -187,24 +153,8 @@ export default async function HeroesPage({ params }: Props) {
           ) : null}
         </p>
       </PageHeader>
-    </div>
-  );
 
-  return (
-    <main className="pb-20">
-      <RosterBrowser
-        intro={intro}
-        game={game}
-        roster={localized}
-        icons={icons}
-        traits={traits}
-        art={stageKinds}
-        figures={stageFigures}
-        boxes={figureBoxes}
-        withoutCutIn={withoutCutIn}
-        peek={peek}
-        ratings={ratings}
-      />
+      <RosterBrowser game={game} roster={localized} icons={icons} traits={traits} />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
         {t.card} {t.diritti(entry.publisher)}

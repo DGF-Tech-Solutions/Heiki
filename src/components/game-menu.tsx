@@ -79,7 +79,7 @@ export function GameMenu({
             document.getElementById("menu-sezioni")?.hidePopover();
             window.dispatchEvent(new Event(OPEN_SEARCH_EVENT));
           }}
-          className="p5-cut flex h-11 w-full cursor-pointer items-center gap-2.5 bg-plate px-3.5 text-left text-[14px] font-semibold text-on-plate/70 hover:bg-ink hover:text-paper"
+          className="flex h-11 w-full cursor-pointer items-center gap-2.5 border border-rule-strong bg-transparent px-3.5 text-left text-[14px] text-ink-3 hover:bg-piastra hover:text-ink"
         >
           <IconSearch size={17} />
           {t.cerca}
@@ -87,7 +87,7 @@ export function GameMenu({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-8 [scrollbar-width:thin]">
-        <GameSidebar game={game} groups={groups} />
+        <GameSidebar game={game} groups={groups} dove="menu" />
       </div>
     </PopoverPanel>
   );

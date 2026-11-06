@@ -28,7 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { IconCheck, IconChevronRight, IconClose, IconLink } from "@/components/icons";
-import { AssociateStrip, ChooseMark, PartyPanel } from "@/components/party-slot";
+import { AssociateStrip, ChooseMark, PartyPanel, partyGridClass } from "@/components/party-slot";
 import { buttonClass, chipClass, cx, eyebrow, heroNameClass, Input, numeric, RadioChips } from "@/components/ui";
 import { boxSize, ownsHero, type HeroBox } from "@/lib/games/hero-box";
 import { heroCardSrc, gameIconSrc } from "@/lib/games/heroes";
@@ -159,7 +159,7 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
         griglia (subgrid): l'associato sta alla stessa altezza in tutte le
         colonne anche quando un nome va a capo.
       */}
-      <ol className="m-0 grid max-w-[1100px] list-none grid-cols-2 gap-x-3 gap-y-6 p-0 sm:grid-cols-4 sm:gap-x-4">
+      <ol className={partyGridClass}>
         {Array.from({ length: TEAM_SLOTS }, (_, slot) => {
           const main = setup.mains[slot] ? heroes.get(setup.mains[slot]!) : undefined;
           const associate = setup.associates[slot] ? heroes.get(setup.associates[slot]!) : undefined;
@@ -410,7 +410,7 @@ function Slot({
           aria-label={t.togliTitolo(hero.name)}
           title={t.togliTitolo(hero.name)}
           className={cx(
-            "p5-btn absolute grid h-9 w-9 cursor-pointer place-items-center border-0 [--btn-bg:color-mix(in_srgb,var(--color-paper)_85%,transparent)] [--btn-fg:var(--color-ink)] [--btn-hi:var(--color-brand)] [--btn-hi-fg:var(--color-on-brand)]",
+            "p5-btn absolute grid h-9 w-9 cursor-pointer place-items-center border-0 [--btn-bg:color-mix(in_srgb,var(--color-paper)_85%,transparent)] [--btn-fg:var(--color-ink)] [--btn-hi:var(--color-piastra-forte)] [--btn-hi-fg:var(--color-ink)]",
             small ? "top-1/2 right-0.5 -translate-y-1/2" : "top-1.5 right-1.5",
           )}
         >

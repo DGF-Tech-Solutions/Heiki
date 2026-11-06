@@ -19,7 +19,7 @@
  */
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { chipClass, cx, eyebrow, numeric } from "@/components/ui";
+import { chipClass, cx, eyebrow } from "@/components/ui";
 import { remPx } from "@/lib/rem";
 
 export interface IndexEntry {
@@ -34,7 +34,6 @@ export function SectionIndex({
   label,
   entries,
   rail = false,
-  numbered = true,
   className,
 }: {
   /** il nome dell'indice, per i lettori di schermo e in testa alla colonna */
@@ -42,7 +41,6 @@ export function SectionIndex({
   entries: readonly IndexEntry[];
   rail?: boolean;
   /** il numero davanti a ogni voce: per sezioni in ordine, non per un elenco di date */
-  numbered?: boolean;
   className?: string;
 }) {
   const [active, setActive] = useState(entries[0]?.id ?? "");
@@ -122,7 +120,7 @@ export function SectionIndex({
           rail && "xl:flex-col xl:overflow-visible",
         )}
       >
-        {entries.map((entry, position) => (
+        {entries.map((entry) => (
           // il fuoco sulla voce e non sulla lama: il taglio obliquo (clip-path) lo ritaglierebbe
           <li
             key={entry.id}
@@ -135,9 +133,6 @@ export function SectionIndex({
               onClick={(event) => go(event, entry.id)}
               className={chipClass(active === entry.id, false, cx("whitespace-nowrap", rail && "xl:flex xl:h-10 xl:w-full"))}
             >
-              {numbered ? (
-                <span className={cx(numeric, "text-[12px] opacity-75")}>{String(position + 1).padStart(2, "0")}</span>
-              ) : null}
               {entry.label}
             </a>
           </li>

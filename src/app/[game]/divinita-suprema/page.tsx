@@ -273,7 +273,6 @@ export default async function SupremeDeityPage({ params, searchParams }: Props) 
       {/* nove schermi di pagina: le parti della difficolta' scelta a un clic, e l'indice resta fermo sotto la testata */}
       <SectionIndex
         label={t.inPagina}
-        numbered={false}
         entries={[
           { id: "difficolta", label: t.difficoltaSezione },
           { id: "squadre", label: t.squadre },

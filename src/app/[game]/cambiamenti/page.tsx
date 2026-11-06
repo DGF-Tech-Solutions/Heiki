@@ -176,7 +176,6 @@ export default async function ChangesPage({ params }: Props) {
       {changes.comparisons.length > 1 ? (
         <SectionIndex
           label={t.vaiAllaPatch}
-          numbered={false}
           entries={changes.comparisons.map((comparison) => ({ id: patchAnchor(comparison), label: shortDay(comparison.to) }))}
         />
       ) : null}
@@ -251,7 +250,7 @@ function Patch({
                 const hero = heroes.get(id);
                 if (!hero) return null;
                 return (
-                  <Card key={id} className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-6">
+                  <Card key={id} className="grid gap-4 sm:grid-cols-[var(--card-eroe)_minmax(0,1fr)] sm:gap-6">
                     <HeroChip game={game} hero={hero} locale={locale} />
                     <HeroChangeList
                       changes={comparison.heroes[id] ?? []}
@@ -319,14 +318,14 @@ function HeroChip({ game, hero, locale }: { game: string; hero: HeroEntry; local
   return (
     <Link
       href={`/${game}/eroi/${hero.id}`}
-      className="group grid w-[120px] gap-1.5 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      className="group grid w-[var(--card-eroe)] gap-1.5 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={heroCardSrc(game, hero.id)}
+        src={heroCardSrc(game, hero.id, 2)}
         alt=""
-        width={120}
-        height={120}
+        width={256}
+        height={256}
         loading="lazy"
         className="aspect-square w-full border border-rule bg-paper-3 object-cover transition-colors group-hover:border-brand"
       />

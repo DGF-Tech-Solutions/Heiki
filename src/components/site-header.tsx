@@ -203,7 +203,7 @@ export async function SiteHeader() {
         // sotto il pulsante: a destra quanto il bordo del guscio, mai fuori dallo schermo
         <PopoverPanel
           id="menu-utente"
-          className="inset-auto top-[64px] right-[max(0.75rem,calc((100vw-var(--container-shell))/2+1.5rem))] m-0 w-[min(84vw,300px)] border-2 border-ink bg-paper p-0 text-ink shadow-[6px_6px_0_0_var(--color-mark)] backdrop:bg-black/50"
+          className="inset-auto top-[64px] right-[max(0.75rem,calc((100vw-var(--container-shell))/2+1.5rem))] m-0 w-[min(84vw,300px)] border border-rule bg-paper-3 p-0 text-ink backdrop:bg-black/50"
         >
           <div className="flex items-center gap-2 border-b border-rule px-4 py-3">
             <span className="min-w-0 truncate font-display text-[16px] font-extrabold">{user.username}</span>

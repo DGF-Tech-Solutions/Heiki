@@ -382,15 +382,13 @@ export function GuessSearch<T extends Playable>({ game, g }: { game: string; g: 
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={onKey}
-        // la casella e' il gioco: la lama bianca della ricerca della griglia Eroi, e il
-        // fuoco come filo rosso in basso (il contorno lo taglierebbe l'obliquo)
-        className="p5-cut h-12 w-full border-0 bg-plate px-5 text-[15px] font-semibold text-on-plate placeholder:font-normal placeholder:text-on-plate/65 focus:shadow-[inset_0_-3px_0_var(--color-brand)] focus:outline-none disabled:opacity-50"
+        className="h-12 w-full border border-rule-strong bg-transparent px-5 text-[15px] font-medium text-ink placeholder:font-normal placeholder:text-ink-3 focus:border-ink-3 focus:outline-none disabled:opacity-50"
       />
       {open && query.trim() ? (
         <ul
           id={listId}
           role="listbox"
-          className="absolute top-full right-0 left-0 z-20 m-0 mt-1 max-h-[360px] list-none overflow-y-auto border border-rule bg-paper-2 p-1 shadow-[5px_5px_0_#000]"
+          className="absolute top-full right-0 left-0 z-20 m-0 mt-1 max-h-[360px] list-none overflow-y-auto border border-rule bg-paper-3 p-1"
         >
           {suggestions.length === 0 ? (
             <li className="px-2 py-2 text-[13px] text-ink-3">{t.nessuno}</li>
@@ -461,7 +459,7 @@ export function GuessEnd<T extends Playable>({
   return (
     <section className="p5-corner mt-5 flex max-w-[640px] flex-wrap items-center gap-4 border border-rule border-t-[3px] border-t-mark bg-paper-2 p-4">
       {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte, come nella griglia Eroi */}
-      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} style={{ width: rem(96) }} height={96} className="shadow-[4px_4px_0_var(--color-mark)]" />
+      <img src={heroCardSrc(game, answer.id, 2)} alt="" width={96} style={{ width: rem(96) }} height={96} className="" />
       <div className="min-w-0 flex-1 text-sm">
         <p className={cx(display, "m-0 text-[clamp(18px,2.4vw,22px)]")}>
           {g.solved ? t.vinto(heroName(answer, locale), g.guesses.length) : t.arreso(heroName(answer, locale))}

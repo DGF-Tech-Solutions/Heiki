@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { Archivo, Atkinson_Hyperlegible_Next, Geist_Mono } from "next/font/google";
+import { Archivo, Atkinson_Hyperlegible_Next } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { BackToTop } from "@/components/back-to-top";
 import { CookieBanner } from "@/components/cookie-banner";
@@ -15,23 +15,19 @@ import { SITE_NAME, siteUrl } from "@/lib/site";
 import { getTheme } from "@/lib/theme/server";
 import { THEME_COLORS } from "@/lib/theme/themes";
 import "./globals.css";
+import "./pulito.css";
 
 /**
- * Tre ruoli tipografici distinti.
+ * Due ruoli tipografici.
  *
  * Archivo ha un asse di larghezza variabile: i titoli si stringono e si fanno
- * pesanti senza cambiare famiglia, e sembrano copertine sportive invece che
- * intestazioni di documento. Il testo lungo e' in Atkinson Hyperlegible Next,
- * disegnato per la leggibilita' (I, l e 1 non si confondono; prima era Public
- * Sans, che sul fondo a retino del tema Persona si leggeva peggio). Il
- * monospaziato e' riservato ai numeri: in un sito che vende calcoli le cifre
- * devono incolonnarsi, e il monospaziato le distingue subito dalla prosa.
+ * pesanti senza cambiare famiglia, mentre comandi e menu restano in tondo a peso
+ * medio. Il testo lungo e' in Atkinson Hyperlegible Next, disegnato per la
+ * leggibilita' (I, l e 1 non si confondono).
  *
- * Geist Mono e non piu' DM Mono (10/10): DM Mono esiste solo nei pesi 300-500,
- * e il sito chiede i numeri a 600, 700 e 900 (tabelle del calcolatore, Uscite,
- * Meccaniche). Il browser li ingrossava da solo, un grassetto finto e sbavato;
- * e la sua «f» ricurva sotto la riga faceva leggere «ƒinali» nelle briciole.
- * Geist Mono e' variabile da 100 a 900: un file solo, pesi veri.
+ * I numeri fino al 06/11 avevano un monospaziato loro (Geist Mono): era un terzo
+ * carattere su ogni pagina. Ora sono Archivo con le cifre tabulari, che si incolonnano
+ * lo stesso (`--font-mono` in globals.css).
  *
  * `axes: ["wdth"]`: next/font di suo scarica solo il peso, e fino al 10/10 il
  * file servito aveva `font-stretch: 100%`. Tutti i `'wdth' 75-85` dei titoli
@@ -45,15 +41,6 @@ const bodyFace = Atkinson_Hyperlegible_Next({
   adjustFontFallback: false,
   fallback: ["system-ui", "sans-serif"],
 });
-// il mono e' solo per numeri e date: niente precaricamento, non e' il testo che
-// si legge per primo, e toglie 23 KB dal primo caricamento (11/10)
-const monoFace = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-  display: "swap",
-  preload: false,
-});
-
 const TESTI = testi({
   it: {
     titolo: `${SITE_NAME}: schede, dati e community per i giochi gacha`,
@@ -115,7 +102,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang={locale}
       data-theme={theme}
-      className={`${archivo.variable} ${bodyFace.variable} ${monoFace.variable}`}
+      className={`${archivo.variable} ${bodyFace.variable}`}
     >
       <body>
         <LocaleProvider locale={locale}>

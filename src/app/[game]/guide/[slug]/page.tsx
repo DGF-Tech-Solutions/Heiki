@@ -165,7 +165,7 @@ export default async function GuidePage({ params }: Props) {
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-[13px] text-ink-3">
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-[7px] bg-[var(--accent)] [clip-path:polygon(2px_0,100%_0,calc(100%-2px)_100%,0_100%)]" aria-hidden />
+            <span className="size-[7px] bg-[var(--accent)]" aria-hidden />
             <Link href={`/u/${guide.author.username}`} className="text-ink-2 hover:text-brand-deep">
               {guide.author.displayName}
             </Link>

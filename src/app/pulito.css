@@ -1,0 +1,944 @@
+/*
+ * Lo stile del sito dal 06/11, nato come prototipo in /prova: sta sopra globals.css, e le
+ * regole fuori da @layer battono le utility di Tailwind e i componenti a qualunque peso.
+ * Le sole eccezioni stanno nel blocco @layer components: li' si danno i valori di partenza
+ * delle variabili dei bottoni, che le varianti in ui.tsx devono poter scavalcare.
+ *
+ * La regola, in tre righe:
+ *   - fermo e' nero: niente retino, lame, tagli, ombre, riquadri. Gli stacchi sono
+ *     i filetti da 1 px
+ *   - l'interfaccia non ha tinta: il colore lo portano figure, card, icone e i
+ *     colori che il gioco mette nei suoi testi
+ *   - tre stati: fermo niente, al passaggio la piastra (grigia per comandi e menu, nel
+ *     colore dell'attributo per le card), scelto o «dove sei» il blocco bianco. Niente
+ *     fili bianchi (06/11: «il bordo bianco non mi piace per niente»)
+ *   - una sola voce forte per pagina: il titolo resta nero, stretto e maiuscolo,
+ *     senza ombra. Tutto il resto parla piano, e per questo lui si sente
+ *
+ * I colori stanno in globals.css (`@theme` e i blocchi dei temi), compresi i gradini della
+ * piastra, che si ricavano dal tema: i temi colorati hanno la loro.
+ */
+
+@layer components {
+  .p5-btn {
+    --btn-bg: transparent;
+    --btn-fg: var(--color-ink-2);
+    --btn-hi: var(--color-piastra);
+    --btn-hi-fg: var(--color-ink);
+  }
+  /*
+   * Le scelte hanno un fondo anche a riposo: si leggono come comandi, non come una riga
+   * di parole. Qui e non fuori dai livelli, perche' la scelta deve poterli scavalcare
+   */
+  .chip {
+    --btn-bg: var(--color-piastra-fondo);
+    --btn-fg: var(--color-ink);
+    --btn-hi: var(--color-piastra-forte);
+    --btn-hi-fg: var(--color-ink);
+  }
+}
+
+/* ------------------------------------------------------------ il fondo -- */
+
+body {
+  background-image: none;
+  scrollbar-color: color-mix(in srgb, var(--color-ink) 23%, var(--color-paper)) var(--color-paper);
+}
+
+/* ---------------------------------------------------------------- testo -- */
+
+/*
+ * Il grosso del cambio sta qui. Oggi tutto e' maiuscolo, pesante e stretto:
+ * menu, etichette, filtri, comandi parlano tutti allo stesso volume. In tondo e a
+ * peso medio, e il peso torna a voler dire qualcosa
+ */
+.font-display {
+  font-variation-settings: "wdth" 100;
+  letter-spacing: -0.006em;
+}
+.uppercase {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.font-black,
+.font-extrabold,
+.font-bold {
+  font-weight: 600;
+}
+.font-semibold {
+  font-weight: 500;
+}
+.p5-title {
+  text-shadow: none;
+  letter-spacing: -0.022em;
+}
+h1.p5-title {
+  font-weight: 900;
+  font-variation-settings: "wdth" 80;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- forme -- */
+
+.p5-cut,
+.p5-cut-sm,
+.p5-corner {
+  clip-path: none;
+}
+/* il fuoco della tastiera: un filetto grigio, che si vede solo da tastiera */
+:focus-visible,
+.p5-cut:focus-visible,
+.p5-cut-sm:focus-visible,
+.p5-corner:focus-visible {
+  outline: 2px solid var(--color-ink-3);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+/* i riquadri diventano un filetto in cima: niente scatole dentro le scatole */
+.p5-corner:not(.stage) {
+  padding-inline: 0;
+  padding-bottom: 8px;
+  border: 0;
+  border-top: 1px solid var(--color-rule);
+  background: none;
+}
+/* i pannelli del calcolatore, come i riquadri */
+section.rounded-card {
+  padding-inline: 0;
+  border: 0;
+  border-top: 1px solid var(--color-rule);
+  background: none;
+}
+/* il primo della colonna sta gia' sotto la linea delle schede: un filetto solo */
+.p5-corner:not(.stage):first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+/* «carta A» viene scritta minuscola: la maiuscola la metteva l'uppercase */
+:is(h2, h3, h4).uppercase::first-letter {
+  text-transform: uppercase;
+}
+/* le etichette su targa bianca: testo e basta */
+.p5-cut-sm.bg-plate {
+  padding-inline: 0;
+  background: none;
+  color: var(--color-ink);
+}
+.border-b-2,
+.border-b-\[3px\] {
+  border-bottom-width: 1px;
+}
+
+/* -------------------------------------------------------------- comandi -- */
+
+/*
+ * Il passaggio non e' bianco: si confonderebbe con la scelta, che lo e'.
+ * `~=`, la parola intera: le schede dell'eroe hanno le stesse variabili dentro un `group-has-[...]`
+ */
+.p5-btn {
+  background: var(--btn-bg);
+  letter-spacing: 0;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    transform 120ms ease-out;
+}
+/* va ridetto: `background` qui sopra vince sul passaggio di globals.css */
+.p5-btn:not(:disabled, [aria-disabled="true"]):hover,
+.p5-btn:not(:disabled, [aria-disabled="true"]):active {
+  background: var(--btn-hi);
+}
+/* i conteggi grigi dentro un comando */
+.p5-btn:hover .text-ink-3 {
+  color: inherit;
+}
+/* il secondario: filetto a riposo, invece del blocco bianco di oggi */
+.p5-btn[class~="[--btn-bg:var(--color-plate)]"] {
+  --btn-bg: transparent;
+  --btn-fg: var(--color-ink);
+  --btn-hi: var(--color-piastra);
+  --btn-hi-fg: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+/* il principale, l'unico blocco bianco a riposo: al passaggio si scurisce un passo */
+.p5-btn[class~="[--btn-bg:var(--color-brand)]"] {
+  --btn-hi: color-mix(in srgb, var(--color-brand) 74%, var(--color-paper));
+  --btn-hi-fg: var(--color-on-brand);
+}
+/* niente fili bianchi attorno alle cose: quello che era acceso col bordo ha il filetto grigio */
+.border-brand {
+  border-color: var(--color-ink-3);
+}
+/* la scelta: il blocco bianco di `--color-select`, senza il filo che ui.tsx gli mette attorno */
+[class~="shadow-[inset_0_0_0_2px_var(--color-ink)]"] {
+  box-shadow: none;
+}
+
+.p5-btn.p5-cut-sm {
+  padding-inline: 10px;
+  font-size: 13px;
+}
+@media (min-width: 640px) {
+  .p5-btn.p5-cut-sm {
+    height: 32px;
+  }
+}
+@media (max-width: 639px) {
+  .p5-btn.p5-cut-sm {
+    height: 44px;
+  }
+}
+.rank-chip:hover {
+  transform: none;
+}
+/* il rango scelto: niente riquadro bianco. Stelle e pietre su un blocco bianco non si leggerebbero */
+.rank-chip {
+  --color-brand: var(--color-ink-3);
+  --color-brand-soft: var(--color-rule);
+}
+
+/*
+ * I filtri si leggono in tre passi: a sinistra di cosa si parla, poi le scelte, per
+ * ultimo il numero. L'etichetta e' il testo forte. Scelti o no il peso resta lo stesso:
+ * col grassetto la parola si allargava e spostava le vicine. Sul computer una tabella
+ * con le etichette in colonna; Rarita' ed Esce come, che sono lo stesso discorso, su
+ * una riga sola
+ */
+.filtri {
+  padding-block: 14px 0;
+}
+.filtri-etichetta {
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.filtri .p5-btn.p5-cut-sm {
+  gap: 8px;
+  padding-inline: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+/*
+ * Le icone del gioco sono piccole illustrazioni piene: a colori su tutte le opzioni
+ * pesavano piu' delle parole. A riposo stanno piccole e in grigio, e il colore arriva
+ * al passaggio o da scelte. Gli attributi restano a colori: li' il colore e' un dato
+ */
+.filtri .p5-btn img {
+  height: 18px;
+  filter: grayscale(1);
+  opacity: 0.65;
+  transition:
+    filter 120ms ease-out,
+    opacity 120ms ease-out;
+}
+.filtri .p5-btn:enabled:hover img,
+.filtri .p5-btn[aria-pressed="true"] img,
+.filtri-colore .p5-btn:enabled img {
+  filter: none;
+  opacity: 1;
+}
+/* i numeri cambiano a ogni scelta: con uno spazio fisso le righe non si muovono sotto il mouse */
+.filtri .p5-btn .tabular-nums {
+  min-width: 3ch;
+  text-align: right;
+}
+/*
+ * Col mouse il numero esce al passaggio: il pulsante si allunga e spinge i successivi
+ * della sua riga (06/11: vicini a riposo, e la spinta invece di coprirli). La disposizione
+ * pero' non cambia mai: il numero e' un prolungamento con gli stessi colori, e i
+ * successivi scivolano con un `transform` (`spingiSuccessivi` in griglia-eroi.tsx).
+ * Allargando davvero il pulsante, a certe larghezze uno finiva su un'altra riga e la
+ * pagina saltava. Il margine a destra della fila tiene dentro la colonna chi scivola.
+ * Sui telefoni il passaggio non c'e', e il numero resta dentro
+ */
+@media (hover: hover) {
+  .filtri-opzioni {
+    padding-right: 32px;
+  }
+  .filtri .p5-btn {
+    position: relative;
+    transition:
+      background-color 120ms ease-out,
+      color 120ms ease-out,
+      transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .filtri .p5-btn[data-spinto] {
+    transform: translateX(32px);
+  }
+  .filtri .p5-btn .tabular-nums {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+    width: 32px;
+    max-width: 0;
+    padding-right: 0;
+    overflow: hidden;
+    background: var(--btn-hi);
+    color: var(--btn-hi-fg);
+    white-space: nowrap;
+    transition:
+      max-width 160ms cubic-bezier(0.16, 1, 0.3, 1),
+      padding-right 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .filtri .p5-btn:enabled:hover .tabular-nums,
+  .filtri .p5-btn:focus-visible .tabular-nums {
+    max-width: 32px;
+    padding-right: 10px;
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: reduce) {
+  .filtri .p5-btn,
+  .filtri .p5-btn .tabular-nums {
+    transition: none;
+  }
+}
+@media (min-width: 640px) {
+  .filtri .p5-btn.p5-cut-sm {
+    height: 34px;
+  }
+}
+@media (min-width: 1024px) {
+  .filtri {
+    grid-template-columns: max-content max-content max-content minmax(0, 1fr);
+    gap: 8px 14px;
+    align-items: start;
+  }
+  .filtri > :not([role="group"]) {
+    grid-column: 1 / -1;
+  }
+  .filtri-ampio {
+    grid-column: 2 / -1;
+  }
+  .filtri-etichetta {
+    line-height: 34px;
+  }
+  /* «Esce come» sta in mezzo alla riga: lo spazio prima dice che e' un altro gruppo */
+  .filtri > div:nth-of-type(2) > .filtri-etichetta {
+    margin-left: 24px;
+  }
+  /* col mouse lo spazio c'e' gia': e' la riserva della fila prima */
+  @media (hover: hover) {
+    .filtri > div:nth-of-type(2) > .filtri-etichetta {
+      margin-left: 0;
+    }
+  }
+}
+
+/*
+ * I collegamenti che si vedono solo da tastiera stanno sopra la pagina, senza occupare
+ * spazio. Se ne occupano, appena perdono il fuoco tutto risale di 57 px: il salto era gia'
+ * calcolato, e la prima fila di card finiva sotto la barra ferma
+ */
+.salto:focus {
+  position: absolute;
+  z-index: 11;
+  background: var(--color-piastra);
+}
+
+/* ferma sotto l'intestazione solo sul computer: sul telefono si mangerebbe lo schermo */
+.barra-eroi {
+  padding-block: 10px;
+  background: var(--color-paper);
+}
+@media (min-width: 1024px) {
+  .barra-eroi {
+    position: sticky;
+    top: 61px;
+    z-index: 10;
+    border-bottom: 1px solid var(--color-rule);
+    /*
+     * Il fondo sborda in alto e ai lati, sotto l'intestazione: `top` cresce col testo e
+     * l'altezza dell'intestazione no del tutto, e dalla fessura si vedevano le card
+     */
+    box-shadow: 0 -8px 0 8px var(--color-paper);
+  }
+}
+
+/* la barra della griglia: ricerca, «Filtri» e ordine alti uguali */
+.p5-btn.barra-filtri {
+  height: 40px;
+  padding-inline: 14px;
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+.p5-btn.barra-filtri[aria-expanded="true"] {
+  background: var(--color-piastra);
+}
+.barra-ordine {
+  border-color: var(--color-rule);
+  border-radius: 0;
+  font-size: 14px;
+}
+.barra-ordine:hover {
+  background: var(--color-piastra);
+  border-color: var(--color-rule);
+}
+.barra-ordine:focus {
+  border-color: var(--color-ink-3);
+  box-shadow: none;
+}
+.p5-btn.tassello {
+  gap: 6px;
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  color: var(--color-ink);
+}
+
+input[type="search"].p5-cut {
+  --color-plate: transparent;
+  --color-on-plate: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  font-weight: 400;
+}
+input[type="search"].p5-cut:focus {
+  box-shadow: inset 0 0 0 1px var(--color-ink-3);
+}
+input[type="search"].p5-cut::placeholder {
+  color: var(--color-ink-3);
+}
+
+/* -------------------------------------------------------- intestazione -- */
+
+header.sticky {
+  padding-bottom: 2px;
+  border-bottom-width: 1px;
+  border-color: var(--color-rule);
+}
+/* il marchio e' l'unica scritta che resta maiuscola: e' un nome, non un'etichetta */
+header.sticky a[href="/"] {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+/* il campo della ricerca rapida */
+header.sticky button.p5-cut.bg-plate {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  color: var(--color-ink-3);
+  font-weight: 400;
+  transition:
+    background-color 120ms ease-out,
+    color 90ms ease-out;
+}
+header.sticky button.p5-cut.bg-plate svg,
+header.sticky button.p5-cut.bg-plate kbd {
+  border-color: var(--color-rule);
+  color: var(--color-ink-3);
+}
+header.sticky button.p5-cut.bg-plate:hover {
+  background: var(--color-piastra);
+  color: var(--color-ink);
+}
+header.sticky button.p5-cut.bg-plate:hover svg,
+header.sticky button.p5-cut.bg-plate:hover kbd {
+  color: var(--color-ink);
+}
+/* un'azione principale per vista: nell'intestazione no, la pagina ha la sua */
+header.sticky .p5-btn[class~="[--btn-bg:var(--color-brand)]"] {
+  --btn-bg: transparent;
+  --btn-fg: var(--color-ink);
+  --btn-hi: var(--color-piastra);
+  --btn-hi-fg: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+
+/* ------------------------------------------------------------------ menu -- */
+
+/*
+ * Ogni sezione ha un'icona ricavata dal gioco, bianca (script/icone_menu.py della pipeline), ed e' un
+ * interruttore: un clic apre o chiude le sue voci (barra-sezioni.tsx). L'icona e' una
+ * maschera col colore del testo, cosi' sul blocco bianco diventa nera. La gerarchia sta in
+ * quattro cose insieme, perche' la misura da sola non bastava (22 e 18 px si leggevano come
+ * una lista unica): le sezioni hanno icona grande e bianca e testo forte; le voci icona
+ * piccola e attenuata, testo piu' leggero, e il loro blocco parte sotto il NOME della
+ * sezione: al passaggio e sulla voce scelta il rientro si vede, non solo nel testo.
+ *
+ * Lo spazio fra le sezioni sta sotto le voci e non fra le sezioni: se ne va con loro, e le
+ * sezioni chiuse si stringono in un elenco compatto
+ */
+.barra-sezioni {
+  display: grid;
+  gap: 4px;
+}
+.sezione-titolo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 2px 8px 2px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+.sezione-titolo::before {
+  content: "";
+  flex: none;
+  width: 26px;
+  height: 26px;
+  background: currentColor;
+  -webkit-mask: var(--icona-sezione) center / contain no-repeat;
+  mask: var(--icona-sezione) center / contain no-repeat;
+}
+.sezione-titolo > span {
+  flex: 1;
+  min-width: 0;
+}
+.sezione-freccia {
+  flex: none;
+  color: var(--color-ink-3);
+  transition:
+    rotate 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 120ms ease-out;
+}
+.sezione[data-chiusa] .sezione-freccia {
+  rotate: -90deg;
+}
+/* solo col mouse: sul telefono il passaggio resterebbe acceso dopo il tocco */
+@media (hover: hover) {
+  .sezione-titolo:hover {
+    background: var(--color-piastra);
+  }
+  .sezione-titolo:hover .sezione-freccia {
+    color: var(--color-ink);
+  }
+}
+.sezione-titolo:active {
+  background: var(--color-piastra-forte);
+}
+/* dentro i bordi: il contenitore delle voci taglia quello che esce */
+.sezione-titolo:focus-visible,
+.sezione-voci .p5-menu-item:focus-visible {
+  outline: 1px solid var(--color-ink-3);
+  outline-offset: -1px;
+  box-shadow: none;
+}
+/* la sezione chiusa con dentro la pagina: e' lei il «dove sei», anche al passaggio */
+.sezione-titolo[aria-current],
+.sezione-titolo[aria-current]:hover {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+}
+.sezione-titolo[aria-current] .sezione-freccia,
+.sezione-titolo[aria-current]:hover .sezione-freccia {
+  color: inherit;
+}
+.sezione:nth-child(1) {
+  --icona-sezione: url("/eroi/grand-cross/icone/menu/database.png");
+}
+.sezione:nth-child(2) {
+  --icona-sezione: url("/eroi/grand-cross/icone/menu/strumenti.png");
+}
+.sezione:nth-child(3) {
+  --icona-sezione: url("/eroi/grand-cross/icone/menu/endgame.png");
+}
+.sezione:nth-child(4) {
+  --icona-sezione: url("/eroi/grand-cross/icone/menu/progressione.png");
+}
+.sezione:nth-child(5) {
+  --icona-sezione: url("/eroi/grand-cross/icone/menu/community.png");
+}
+.sezione:nth-child(6) {
+  --icona-sezione: url("/eroi/grand-cross/icone/menu/profilo.png");
+}
+.sezione:nth-child(7) {
+  --icona-sezione: url("/eroi/grand-cross/icone/menu/extra.png");
+}
+/*
+ * Aprire e chiudere: l'altezza segue una riga di griglia, che si anima anche fino al suo
+ * contenuto. Chiudendo e' piu' svelta, e le voci chiuse escono dal Tab con `visibility`,
+ * che scatta solo a fine corsa, se no spariscono prima che la sezione si sia stretta
+ */
+.sezione-voci {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s;
+}
+.sezione[data-chiusa] .sezione-voci {
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 160ms;
+}
+.sezione-voci > div {
+  min-height: 0;
+  overflow: hidden;
+}
+.sezione-voci ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 2px 0 12px 34px;
+  list-style: none;
+}
+.sezione:last-child .sezione-voci ul {
+  padding-bottom: 0;
+}
+.sezione-voci .p5-menu-item {
+  padding-left: 28px;
+  font-size: 13.5px;
+}
+/* l'icona della voce prende il colore del testo, cosi' sulla voce bianca diventa nera */
+.sezione-voci .p5-menu-item::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 6px;
+  z-index: 0;
+  width: 15px;
+  height: 15px;
+  background: currentColor;
+  clip-path: none;
+  opacity: 0.6;
+  translate: 0 -50%;
+  transition: opacity 120ms ease-out;
+  -webkit-mask: var(--icona-voce) center / contain no-repeat;
+  mask: var(--icona-voce) center / contain no-repeat;
+}
+.sezione-voci .p5-menu-item:hover::after,
+.sezione-voci .p5-menu-item[aria-current="page"]::after {
+  opacity: 1;
+}
+/* sul telefono si tocca col pollice */
+#menu-sezioni .sezione-titolo {
+  min-height: 44px;
+}
+#menu-sezioni .sezione-voci .p5-menu-item {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sezione-voci,
+  .sezione[data-chiusa] .sezione-voci,
+  .sezione-freccia {
+    transition: none;
+  }
+}
+.p5-menu-item[href$="/eroi"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/eroi.png");
+}
+.p5-menu-item[href$="/uscite"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/uscite.png");
+}
+.p5-menu-item[href$="/set-artefatto"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/set-artefatto.png");
+}
+.p5-menu-item[href$="/carte-artefatto"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/carte-artefatto.png");
+}
+.p5-menu-item[href$="/meccaniche"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/meccaniche.png");
+}
+.p5-menu-item[href$="/squadra"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/squadra.png");
+}
+.p5-menu-item[href$="/tierlist"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/tierlist.png");
+}
+.p5-menu-item[href$="/randomizer"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/randomizer.png");
+}
+.p5-menu-item[href$="/scontri-finali"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/scontri-finali.png");
+}
+.p5-menu-item[href$="/bestie-demoniache"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/bestie-demoniache.png");
+}
+.p5-menu-item[href$="/re-demone"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/re-demone.png");
+}
+.p5-menu-item[href$="/divinita-suprema"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/divinita-suprema.png");
+}
+.p5-menu-item[href$="/buff-account"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/buff-account.png");
+}
+.p5-menu-item[href$="/discussioni"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/discussioni.png");
+}
+.p5-menu-item[href$="/profilo/grand-cross"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/account.png");
+}
+.p5-menu-item[href$="/profilo/grand-cross/eroi"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/i-tuoi-eroi.png");
+}
+.p5-menu-item[href$="/indovina"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/indovina.png");
+}
+.p5-menu-item[href$="/compleanni"] {
+  --icona-voce: url("/eroi/grand-cross/icone/menu/voci/compleanni.png");
+}
+.p5-menu-item {
+  font-weight: 500;
+}
+/* dritta, e al passaggio grigia: bianca resta solo dove sei */
+.p5-menu-item::before {
+  background: var(--color-piastra);
+  clip-path: none;
+  opacity: 0;
+  transform: none;
+  transition: opacity 120ms ease-out;
+}
+.p5-menu-item:hover::before {
+  opacity: 1;
+}
+.p5-menu-item[aria-current="page"]::before {
+  background: var(--color-brand);
+  opacity: 1;
+}
+.p5-menu-item:not([aria-current="page"]) {
+  color: var(--color-ink-2);
+}
+.p5-menu-item:not([aria-current="page"]):hover {
+  color: var(--color-ink);
+}
+
+/* ---------------------------------------------------------------- griglia -- */
+
+/*
+ * Il tetto delle card degli eroi. I ritratti del gioco sono 128x128: il file da 256 e' quel
+ * ritratto ingrandito dentro una cornice nitida, quindi oltre i 128 px a schermo il volto si
+ * sfoca per forza, qualunque file si usi. Il tetto e' in pixel veri: l'interfaccia cresce con
+ * lo schermo (a 2560 del 25%), e in rem le card passavano il limite. Una card sopra `--card-eroe`
+ * si vede male: si fa piu' piccolo quello che le sta attorno, non piu' grande lei.
+ *
+ * `--px` e non `120px`: postcss-pxtorem lo convertirebbe in rem, e `calc(120 * 1px)` la build
+ * lo semplifica in `120px` prima che arrivi a lui
+ */
+:root {
+  --px: 1px;
+  --card-eroe: calc(120 * var(--px));
+}
+
+/* la griglia si riempie con piu' colonne, non con card piu' grandi: da 112 a circa 120 px */
+.griglia-eroi {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+}
+@media (min-width: 1024px) {
+  .griglia-eroi {
+    grid-template-columns: repeat(auto-fill, minmax(calc(112 * var(--px)), 1fr));
+  }
+}
+/* le scritte seguono la card e non lo schermo: in rem, a 2560, andavano a capo a ogni parola */
+.griglia-eroi .hero-card-name {
+  font-size: calc(13 * var(--px));
+}
+.griglia-eroi .hero-card .text-ink-3 {
+  font-size: calc(12 * var(--px));
+}
+
+/*
+ * Il passaggio sulla card: una piastra piatta ad angoli vivi nel colore del suo
+ * attributo, e la card si ingrandisce appena, con la morbidezza dei filtri. Solo questo:
+ * ombra, griglia che si abbassa e angoli tondi insieme sapevano di effetto preconfezionato
+ * (06/11). La piastra e' un `box-shadow` pieno, cosi' sborda di 4 px senza spostare
+ * niente; col 5% in piu' resta un po' d'aria dalle vicine (a 6 px le toccava). Le card non hanno
+ * trasparenza: i loro angoli vanno tondi come la cornice nel file, se no sulla piastra
+ * sarebbero neri.
+ */
+.hero-card {
+  --fondo-card: color-mix(in srgb, var(--tinta, #8f8f8f) 30%, #0a0a0a);
+  position: relative;
+  transition:
+    background-color 120ms ease-out,
+    box-shadow 120ms ease-out,
+    transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hero-card-art img {
+  border-radius: 5.5%;
+}
+.hero-card:hover,
+.hero-card:focus-visible {
+  z-index: 1;
+  background: var(--fondo-card);
+  box-shadow: 0 0 0 4px var(--fondo-card);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hero-card:hover {
+    transform: scale(1.05);
+  }
+  .hero-card:active {
+    transform: scale(1.02);
+    transition-duration: 120ms, 120ms, 70ms;
+  }
+}
+.hero-card:hover .hero-card-art img,
+.hero-card:active .hero-card-art img {
+  transform: none;
+  box-shadow: none;
+}
+.hero-card:hover .hero-card-name {
+  color: var(--color-ink);
+}
+.hero-card:hover .text-ink-3 {
+  color: var(--color-ink-2);
+}
+/* il fuoco della tastiera deve vedersi anche su 381 card: filetto grigio, solo da tastiera */
+.hero-card:focus-visible {
+  outline: 2px solid var(--color-ink-3);
+  outline-offset: 4px;
+}
+.hero-card-owned {
+  z-index: 1;
+  clip-path: none;
+}
+.box-card-level {
+  clip-path: none;
+}
+/* la card scelta nel box: la piastra attorno, come al passaggio, niente ombra sfalsata */
+.hero-card[data-active] .hero-card-art img,
+.box-card[data-active] .hero-card-art img {
+  transform: none;
+  box-shadow: 0 0 0 4px var(--color-piastra-forte);
+}
+.hero-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* --------------------------------------------------------- figura della scheda -- */
+
+/*
+ * Sul nero 24 figure su 381 perdono meta' del profilo (misura del 05/11). Prima le
+ * staccava un filo di luce attorno alla sagoma; ora una luce morbida alle spalle,
+ * che non disegna nessun contorno. Viene prima dell'immagine, quindi sta sotto
+ */
+.stage-figure-img {
+  filter: none;
+}
+.stage-figure::before {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  background: radial-gradient(closest-side, var(--color-piastra), transparent);
+}
+.stage-name {
+  text-shadow: none;
+}
+
+/* ------------------------------------------------------- testa della scheda -- */
+
+.stage-dots,
+.stage-word,
+.stage-band,
+.stage-band-edge,
+.stage-band-line {
+  display: none;
+}
+/* in fondo la figura sfuma nel nero: un taglio netto sul nero si leggerebbe come un errore */
+.stage::after,
+.stage--hero::after {
+  inset: auto 0 0 0;
+  width: auto;
+  height: 26%;
+  background: linear-gradient(to top, var(--color-paper) 6%, transparent);
+}
+/* niente pannello attorno: il nome si allinea al contenuto, le frecce al bordo */
+.stage-plate,
+.stage--hero .stage-plate {
+  left: 0;
+  gap: 6px;
+}
+header.mb-5 nav.absolute {
+  top: 0;
+  right: 0;
+}
+.stage-epithet {
+  padding: 0;
+  background: none;
+  clip-path: none;
+  color: var(--color-ink-3);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  font-variation-settings: normal;
+  letter-spacing: 0;
+  text-transform: none;
+  rotate: none;
+}
+@media (max-width: 639px) {
+  .stage::after,
+  .stage--hero::after {
+    height: 58%;
+  }
+}
+
+/* ---------------------------------------------------------- schede dell'eroe -- */
+
+#schede [role="radiogroup"] {
+  gap: 0;
+  padding-block: 0;
+  border-bottom-color: var(--color-rule);
+}
+#schede [role="radiogroup"] label {
+  padding-block: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+  --btn-fg: var(--color-ink-3);
+}
+/* dove sei: testo bianco e il filo sulla linea, e il passaggio non lo riempie */
+#schede:has(.tab1:checked) [role="radiogroup"] label:nth-of-type(1),
+#schede:has(.tab2:checked) [role="radiogroup"] label:nth-of-type(2),
+#schede:has(.tab3:checked) [role="radiogroup"] label:nth-of-type(3),
+#schede:has(.tab4:checked) [role="radiogroup"] label:nth-of-type(4),
+#schede:has(.tab5:checked) [role="radiogroup"] label:nth-of-type(5),
+#schede:has(.tab6:checked) [role="radiogroup"] label:nth-of-type(6),
+#schede:has(.tab7:checked) [role="radiogroup"] label:nth-of-type(7),
+#schede:has(.tab8:checked) [role="radiogroup"] label:nth-of-type(8) {
+  --btn-bg: transparent;
+  --btn-hi: transparent;
+  --btn-fg: var(--color-ink);
+  --btn-hi-fg: var(--color-ink);
+  box-shadow: inset 0 -2px 0 var(--color-ink);
+}
+
+/* il terzo grigio non regge sulla piastra piu' chiara: 4,4:1 */
+.bg-piastra-forte .text-ink-3 {
+  color: var(--color-ink-2);
+}
+/* l'ombra sfalsata della voce attiva resta solo come spazio per l'icona, nella barra */
+.p5-menu-item[aria-current="page"]:not(.sezione-voci .p5-menu-item)::after {
+  content: none;
+}
+/* sul telefono si tocca col pollice: comandi e campi alti almeno 44 px */
+@media (max-width: 639px) {
+  .p5-cut.p5-btn,
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]),
+  select {
+    min-height: 44px;
+  }
+}
+
+/* le cifre si incolonnano, senza un carattere apposta */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- piè di pagina -- */
+
+footer {
+  border-top-width: 1px;
+  border-color: var(--color-rule);
+}

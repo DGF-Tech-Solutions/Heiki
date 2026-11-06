@@ -92,7 +92,7 @@ export interface ProfileCustomization {
 export const DEFAULT_CUSTOMIZATION: ProfileCustomization = {
   accent: "brand",
   frame: "hairline",
-  background: "grid",
+  background: "plain",
   layout: "standard",
 };
 

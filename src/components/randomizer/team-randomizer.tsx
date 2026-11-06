@@ -25,7 +25,7 @@ import { Chip } from "@/components/filter-chips";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { GameText } from "@/components/heroes/game-text";
 import { IconDice } from "@/components/icons";
-import { AssociateStrip, PartyPanel } from "@/components/party-slot";
+import { AssociateStrip, PartyPanel, partyGridClass } from "@/components/party-slot";
 import { buttonClass, cx, eyebrow, RadioChips, Tag } from "@/components/ui";
 import { boxSize, ownsHero } from "@/lib/games/hero-box";
 import type { HeroFatesIndex } from "@/lib/games/hero-fates-types";
@@ -196,7 +196,7 @@ export function TeamRandomizer({
         griglia (subgrid): l'associato sta alla stessa altezza in tutte le
         colonne anche quando il nome di un eroe va a capo.
       */}
-      <ol aria-live="polite" className="m-0 mt-5 grid max-w-[1100px] list-none grid-cols-2 gap-x-3 gap-y-6 p-0 sm:grid-cols-4 sm:gap-x-4">
+      <ol aria-live="polite" className={cx(partyGridClass, "mt-5")}>
         {Array.from({ length: TEAM_SIZE }, (_, i) => {
           const slot = draw?.slots[i];
           const main = slot ? byId.get(slot.main) : undefined;
@@ -268,12 +268,12 @@ export function TeamRandomizer({
 
 /** Il posto pieno porta alla scheda dell'eroe; quello vuoto, prima della pesca, e' solo la cornice. */
 function HeroLink({ game, hero, children }: { game: string; hero: RandomizerHero | undefined; children: React.ReactNode }) {
-  if (!hero) return <div aria-hidden>{children}</div>;
+  if (!hero) return <div aria-hidden className="h-full">{children}</div>;
   return (
     <Link
       href={`/${game}/eroi/${hero.id}`}
       aria-label={`${hero.epithet} ${hero.name}`}
-      className="group block min-w-0 text-ink no-underline focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="group block h-full min-w-0 text-ink no-underline focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       {children}
     </Link>

@@ -142,7 +142,7 @@ export function CharacterChip({
             key={hero.id}
             href={`/${game}/eroi/${hero.id}`}
             title={`${hero.name} [${hero.epithet}]`}
-            className={cx("p5-press relative block shadow-[3px_3px_0_var(--color-paper)]", i > 0 && "-ml-3")}
+            className={cx("p5-press relative block", i > 0 && "-ml-3")}
             style={{ zIndex: max - i }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte in due densita' */}

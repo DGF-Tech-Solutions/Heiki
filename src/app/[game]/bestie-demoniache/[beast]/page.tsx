@@ -242,7 +242,6 @@ export default async function CreatureNestBeastPage({ params, searchParams }: Pr
       */}
       <EndgameStage
         title={name}
-        word={name}
         mode="cutout"
         image={beast.image ? { src: endgameImageSrc(game, `bestie/${beast.key}.png`), width: 256, height: 256 } : null}
         navLabel={t.vicine}
@@ -255,7 +254,6 @@ export default async function CreatureNestBeastPage({ params, searchParams }: Pr
 
       <SectionIndex
         label={t.inPagina}
-        numbered={false}
         entries={[
           { id: "piani", label: t.pianiSezione },
           { id: "squadre", label: t.squadre },

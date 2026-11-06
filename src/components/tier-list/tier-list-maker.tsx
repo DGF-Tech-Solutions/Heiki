@@ -1155,11 +1155,10 @@ export function TierListMaker({
                 >
                   {/*
                     La scritta della riga: l'inchiostro lo sceglie il colore (24/10),
-                    prima era sempre bianco con un'ombra (1,4:1 sull'oro). Il bordo
-                    destro tagliato in obliquo come i comandi del sito.
+                    prima era sempre bianco con un'ombra (1,4:1 sull'oro).
                   */}
                   <div
-                    className="flex w-[72px] shrink-0 items-center justify-center py-2 pr-3 pl-2 text-center [clip-path:polygon(0_0,100%_0,calc(100%_-_10px)_100%,0_100%)] sm:w-24"
+                    className="flex w-[72px] shrink-0 items-center justify-center py-2 pr-3 pl-2 text-center sm:w-24"
                     style={{ backgroundColor: tier.color, color: ink }}
                   >
                     {isEditing ? (
@@ -1538,7 +1537,7 @@ export function TierListMaker({
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node | null)) armUndoTimer(UNDO_AFTER_PAUSE_MS);
             }}
-            className="pointer-events-auto flex max-w-[34rem] items-center gap-3 border-2 border-ink bg-paper py-1.5 pr-1.5 pl-4 text-[14px] leading-snug text-ink shadow-[6px_6px_0_0_var(--color-mark)]"
+            className="pointer-events-auto flex max-w-[34rem] items-center gap-3 border border-rule bg-paper-3 py-1.5 pr-1.5 pl-4 text-[14px] leading-snug text-ink"
           >
             <span className="min-w-0">{undo.message}</span>
             <button

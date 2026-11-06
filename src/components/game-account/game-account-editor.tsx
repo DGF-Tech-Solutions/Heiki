@@ -451,7 +451,7 @@ function Challenge({
           alt=""
           width={112}
           height={150}
-          className="h-auto w-full bg-paper-2 shadow-[4px_4px_0_var(--color-mark)]"
+          className="h-auto w-full bg-paper-2"
         />
         <div className="grid gap-1.5">
           <p className={cx(eyebrow, "m-0")}>{t.eroeDelGiorno}</p>

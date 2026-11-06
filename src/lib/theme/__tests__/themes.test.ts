@@ -147,14 +147,13 @@ describe.each(THEMES)("il tema %s si legge", (theme) => {
     expect(c.plate, `${theme}: plate diverso da paper`).not.toBe(c.paper);
   });
 
-  it("il segno decorativo (ombre dei titoli, ombre sfalsate, retino) si vede sul fondo", () => {
+  it("nei temi colorati il segno e' l'accento e si vede sul fondo; nel Classico e' un filetto", () => {
+    if (c["on-brand"] !== "#ffffff") return expect(c.mark, `${theme}: mark`).toBe(c.rule);
     almeno("mark", "paper", 3);
   });
 
-  it("la scelta regge il suo testo, e non e' il blocco dell'azione principale", () => {
+  it("la scelta regge il suo testo", () => {
     almeno("on-select", "select", 7);
-    // nel Classico ink e brand sono lo stesso bianco: la scelta deve essere un'altra cosa
-    if (c.ink === c.brand) expect(c.select, `${theme}: select diverso da brand`).not.toBe(c.brand);
   });
 
   it("il bordo dei campi fa almeno 3:1 su ogni fondo (WCAG 1.4.11)", () => {

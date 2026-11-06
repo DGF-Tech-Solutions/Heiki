@@ -121,11 +121,6 @@ const SOFTWARE: readonly { name: string; use: Bilingual; license: string }[] = [
     use: { it: "il carattere del testo", en: "the typeface for body text" },
     license: "SIL Open Font License 1.1",
   },
-  {
-    name: "Geist Mono",
-    use: { it: "il carattere dei numeri", en: "the typeface for numbers" },
-    license: "SIL Open Font License 1.1",
-  },
 ];
 
 /** I fatti della pagina che vengono dal codice, gli stessi per le due lingue. */

@@ -27,7 +27,7 @@ export function FilterRow({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-      <span className={cx(eyebrow, "shrink-0", labelClassName)}>{label}</span>
+      <span className={cx(eyebrow, "filtri-etichetta shrink-0", labelClassName)}>{label}</span>
       {children}
     </div>
   );
@@ -87,11 +87,7 @@ export function Chip({
         // tutti - anche per "Tutte" e per la riga Ordina, che di icona non ne
         // hanno - perche' pulsanti di altezze diverse nella stessa fila si
         // leggono come due gruppi diversi.
-        // Persona: lama scura obliqua, chiara col testo scuro quando e' scelta,
-        // chiara anche al passaggio: la lama che spazza e l'affondo alla
-        // pressione li fa `p5-btn` (globals.css). Il rosso pieno no (24/10):
-        // e' il colore di «sei qui» e dell'azione della pagina.
-        "p5-cut-sm p5-btn group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3 max-sm:h-10",
+        "chip p5-cut-sm p5-btn group inline-flex h-9 cursor-pointer items-center gap-1.5 border-0 px-3 max-sm:h-10",
         "text-[12px] uppercase tracking-[0.04em] disabled:cursor-not-allowed disabled:opacity-35",
         chipColors(active),
       )}
@@ -127,7 +123,7 @@ export function Chip({
           className={cx(
             numeric,
             "text-[12px]",
-            active ? "text-paper" : "text-ink-3 group-enabled:group-hover:text-on-plate",
+            active ? "text-on-select" : "text-ink-3",
           )}
         >
           {count}

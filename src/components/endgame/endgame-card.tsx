@@ -5,10 +5,6 @@
  * griglia degli eroi, un pulsante per boss che porta alla sua pagina, invece di
  * tutti i boss in una pagina da scorrere. La stessa card, piu' piccola, sta in
  * fondo a ogni pagina di dettaglio per passare agli altri.
- *
- * Il taglio d'angolo sta su un riquadro DENTRO il collegamento, non sul
- * collegamento: il clip-path taglierebbe anche il contorno del fuoco da
- * tastiera, che e' disegnato fuori dal riquadro.
  */
 
 import Link from "next/link";
@@ -47,18 +43,18 @@ export function EndgameCard({
    * Come sta l'immagine nel riquadro, piu' largo che alto. I cut-in dei boss
    * (512px, il volto al centro) lo riempiono: si taglia un sesto sopra e sotto,
    * dove il volto non c'e'. I ritratti delle bestie (256px) restano interi e
-   * centrati sulla lama: allargati per riempire si sgranavano.
+   * centrati: allargati per riempire si sgranavano.
    */
   fit?: "cover" | "contain";
 }) {
   if (compact) {
     return (
       <Link href={href} aria-current={current ? "page" : undefined} className={cx("group block min-w-0", FOCUS)}>
-        {/* la card in cui si e' si accende di bianco, come la scelta nelle lame del sito */}
+        {/* la card in cui si e' e' il blocco bianco, come «dove sei» nel menu */}
         <span
           className={cx(
-            "p5-corner flex min-w-0 items-center gap-3 border p-2 transition-colors",
-            current ? "border-ink bg-select text-on-select" : "border-rule bg-paper group-hover:border-ink-3",
+            "flex min-w-0 items-center gap-3 p-2 transition-colors",
+            current ? "bg-select text-on-select" : "bg-piastra-fondo group-hover:bg-piastra",
           )}
         >
           {image ? (
@@ -92,17 +88,11 @@ export function EndgameCard({
     <Link href={href} aria-current={current ? "page" : undefined} className={cx("group block h-full min-w-0", FOCUS)}>
       <span
         className={cx(
-          "p5-corner flex h-full min-w-0 flex-col overflow-hidden border bg-paper transition-colors",
-          current ? "border-ink" : "border-rule group-hover:border-ink-3",
+          "flex h-full min-w-0 flex-col overflow-hidden transition-colors",
+          current ? "bg-select text-on-select" : "bg-piastra-fondo group-hover:bg-piastra",
         )}
       >
-        {/* il fondo della selezione del personaggio: retino e lama rossa, fermi */}
-        <span className="relative isolate block aspect-[3/2] overflow-hidden bg-paper-2">
-          <span aria-hidden className="stage-dots absolute inset-0 -z-10" />
-          <span
-            aria-hidden
-            className="absolute inset-0 -z-10 bg-brand [clip-path:polygon(68%_0,100%_0,100%_100%,46%_100%)]"
-          />
+        <span className="block aspect-[3/2] overflow-hidden">
           {image ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
@@ -115,13 +105,13 @@ export function EndgameCard({
                 "h-full w-full transition-transform duration-300 group-hover:scale-[1.04]",
                 fit === "cover"
                   ? "object-cover object-center"
-                  : "object-contain object-center p-3 [filter:drop-shadow(8px_6px_0_#000)]",
+                  : "object-contain object-center p-3",
               )}
             />
           ) : null}
         </span>
         <span className="block p-4">
-          <span className="block font-display text-[20px] font-extrabold uppercase leading-[1.05] tracking-[0.01em] [font-variation-settings:'wdth'_85] group-hover:text-brand-deep">
+          <span className="block font-display text-[20px] font-extrabold leading-[1.05]">
             {title}
           </span>
           {children ? <span className="mt-2 block text-[13px] leading-snug text-ink-2">{children}</span> : null}

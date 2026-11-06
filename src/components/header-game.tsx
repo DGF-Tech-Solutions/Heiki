@@ -10,7 +10,7 @@
  * elenca la home.
  *
  * Client solo per leggere l'indirizzo: l'intestazione sta nel layout radice, che
- * non sa in che gioco si e'. La barra obliqua rossa e' quella delle briciole.
+ * non sa in che gioco si e'.
  */
 
 import Link from "next/link";
@@ -35,14 +35,14 @@ export function HeaderGame({ games }: { games: readonly { slug: string; name: st
   // in basso
   return (
     <span className="flex min-w-0 shrink items-center gap-2.5 max-sm:hidden">
-      <span aria-hidden className="font-display text-[24px] font-black text-brand [font-variation-settings:'wdth'_80]">
+      <span aria-hidden className="font-display text-[20px] text-ink-3">
         /
       </span>
       <Link
         href={`/${game.slug}`}
         aria-label={t.menu(game.name)}
         aria-current={pathname === `/${game.slug}` ? "page" : undefined}
-        className="flex min-h-11 min-w-0 items-center font-display text-[17px] font-extrabold uppercase tracking-[0.02em] text-ink [font-variation-settings:'wdth'_78] hover:text-brand-deep"
+        className="flex min-h-11 min-w-0 items-center font-display text-[15px] font-semibold text-ink hover:text-ink-2"
       >
         <span className="truncate">{game.name}</span>
       </Link>

@@ -1,13 +1,17 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { AccountSync } from "@/components/game-account/account-sync";
 import { GameMenu } from "@/components/game-menu";
-import { GameSidebar } from "@/components/game-sidebar";
+import { GameSidebar, SezioniProvider } from "@/components/game-sidebar";
 import { MobileBar } from "@/components/mobile-bar";
 import { auth } from "@/lib/auth";
 import { accountCopy } from "@/lib/game-account/server";
 import { findGame, gameGroups, isPlayable } from "@/lib/games/catalog";
 import { getGameModule } from "@/lib/games/registry";
 import { getLocale } from "@/lib/i18n/server";
+
+/** Le sezioni del menu chiuse da chi legge, separate da uno spazio (game-sidebar.tsx). */
+const COOKIE_CHIUSE = "menu-chiuse";
 
 /**
  * Guscio di tutte le pagine di un gioco.
@@ -40,6 +44,7 @@ export default async function GameLayout({
 
   const locale = await getLocale();
   const groups = gameGroups(game, locale);
+  const chiuse = (await cookies()).get(COOKIE_CHIUSE)?.value.split(" ") ?? [];
 
   // Il tuo account di gioco segue chi e' entrato su ogni dispositivo: la copia del
   // database arriva qui, e AccountSync la confronta con quella del browser.
@@ -51,33 +56,29 @@ export default async function GameLayout({
     <>
       {userId ? <AccountSync gameSlug={game} userId={userId} server={server} /> : null}
       {/* sul telefono la barra laterale non c'e': le stesse voci in un pannello */}
-      <GameMenu game={game} title={entry.shortName} groups={groups} />
+      <SezioniProvider cookie={COOKIE_CHIUSE} chiuse={chiuse}>
+        <GameMenu game={game} title={entry.shortName} groups={groups} />
 
-      {/*
-        La barra laterale sale da 180 a 210px e il guscio si allarga: dentro
-        1200px centrati, su un monitor largo, restavano due fasce vuote ai lati
-        e la barra sembrava staccata dal bordo. Lo spazio recuperato va tutto
-        al contenuto, che qui sono griglie di card e schede fitte di dati.
-      */}
-      {/*
-        Nel menu principale del gioco (/<gioco>, la lista `.hub-menu`) la barra
-        laterale non c'e': ripeteva, a sinistra, le stesse voci dei comandi (10/10,
-        sera). Il layout non sa in che pagina e', quindi lo chiede alla pagina con
-        :has(); senza barra la griglia torna a una colonna.
-      */}
-      <div className="group/guscio mx-auto grid w-full max-w-shell items-start gap-9 px-6 lg:grid-cols-[minmax(0,210px)_minmax(0,1fr)] lg:has-[.hub-menu]:grid-cols-[minmax(0,1fr)]">
         {/*
-          Ferma sotto l'intestazione (61px) e alta al massimo quanto lo schermo,
-          con lo scorrimento suo: prima era ferma a 110px e alta ~900, e su uno
-          schermo da 900 le ultime voci non si vedevano mai (10/10).
+          La barra laterale sale da 180 a 210px e il guscio si allarga: dentro
+          1200px centrati, su un monitor largo, restavano due fasce vuote ai lati
+          e la barra sembrava staccata dal bordo. Lo spazio recuperato va tutto
+          al contenuto, che qui sono griglie di card e schede fitte di dati.
         */}
-        <aside className="pt-6 max-lg:hidden group-has-[.hub-menu]/guscio:hidden lg:sticky lg:top-[61px] lg:max-h-[calc(100dvh-61px)] lg:overflow-x-hidden lg:overflow-y-auto lg:pr-2 lg:pb-6 lg:[scrollbar-color:var(--color-rule)_transparent] lg:[scrollbar-width:thin]">
-          <GameSidebar game={game} groups={groups} />
-        </aside>
+        <div className="group/guscio mx-auto grid w-full max-w-shell items-start gap-9 px-6 lg:grid-cols-[minmax(0,210px)_minmax(0,1fr)]">
+          {/*
+            Ferma sotto l'intestazione (61px) e alta al massimo quanto lo schermo,
+            con lo scorrimento suo: prima era ferma a 110px e alta ~900, e su uno
+            schermo da 900 le ultime voci non si vedevano mai (10/10).
+          */}
+          <aside className="pt-6 max-lg:hidden lg:sticky lg:top-[61px] lg:max-h-[calc(100dvh-61px)] lg:overflow-x-hidden lg:overflow-y-auto lg:pr-2 lg:pb-6 lg:[scrollbar-color:var(--color-rule)_transparent] lg:[scrollbar-width:thin]">
+            <GameSidebar game={game} groups={groups} dove="barra" />
+          </aside>
 
-        {/* sul telefono la barra in basso: lo spazio sotto il contenuto e' suo */}
-        <div className="min-w-0 max-lg:pb-16">{children}</div>
-      </div>
+          {/* sul telefono la barra in basso: lo spazio sotto il contenuto e' suo */}
+          <div className="min-w-0 max-lg:pb-16">{children}</div>
+        </div>
+      </SezioniProvider>
       <MobileBar game={game} hasReleases={Boolean(getGameModule(game)?.releases)} />
     </>
   );

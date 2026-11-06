@@ -3,9 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { HeroStage, stageArtOf } from "@/components/heroes/hero-stage";
-import { buttonClass, cx, display, eyebrow, heroEpithetClass, heroNameClass, MoreLink, numeric } from "@/components/ui";
-import { findGame, gameGroups } from "@/lib/games/catalog";
-import { affinityLabel } from "@/lib/games/grand-cross/roster";
+import { buttonClass, cx, display, heroEpithetClass, heroNameClass, MoreLink, numeric } from "@/components/ui";
+import { findGame } from "@/lib/games/catalog";
 import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import { getGameModule } from "@/lib/games/registry";
 import { heroesIn } from "@/lib/games/releases";
@@ -13,27 +12,12 @@ import { intlLocale, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
 /**
- * L'ingresso di un gioco: il «menu principale».
+ * L'ingresso di un gioco: l'ultimo eroe uscito, gli ultimi eroi, il prossimo aggiornamento.
  *
- * Fino al 10/10 /<gioco> era il feed delle Discussioni, e la prima voce di ogni
- * briciola portava li': chi apriva Grand Cross trovava post di prova invece del
- * gioco. Ora e' la schermata di un menu alla Persona: i comandi grandi a
- * sinistra, di misura calante, uno per gruppo col nome del gruppo sopra e le
- * altre voci sotto, a destra il palco con l'ultimo eroe uscito, e sotto gli
- * ultimi eroi e il prossimo aggiornamento. Il feed sta in /<gioco>/discussioni.
- *
- * Dal 24/10 (revisione del design) i gruppi sono quelli della barra laterale,
- * nello stesso ordine e coi loro nomi: prima questa pagina li rimescolava e li
- * nascondeva, e chi arrivava imparava qui una mappa e alla pagina dopo ne trovava
- * un'altra.
- *
- * La scena sono i comandi. Fino alla sera del 10/10 il nome del gioco, a 84 px
- * su tre righe, si prendeva la prima meta' dello schermo e spingeva i comandi
- * sotto la piega; ora e' una testata di una o due righe, come le altre pagine, e
- * il primo comando parte subito sotto.
- *
- * Il movimento della pagina e' uno: i comandi entrano uno dopo l'altro
- * (`hub-command`, globals.css), come i menu del gioco a cui il sito si ispira.
+ * Fino al 06/11 era un «menu principale» alla Persona, coi comandi enormi a scalare e senza
+ * barra laterale: ripeteva le stesse voci. Ora la barra c'e' anche qui, come su ogni pagina
+ * del gioco, e la pagina dice quello che la barra non dice: cosa c'e' di nuovo. Il feed sta
+ * in /<gioco>/discussioni.
  */
 
 const TESTI = testi({
@@ -45,10 +29,7 @@ const TESTI = testi({
         {eroi} eroi e {aggiornamenti} aggiornamenti in calendario, coi dati presi dal gioco.
       </>
     ),
-    menu: "Sezioni",
-    ultimoEroe: "L'ultimo eroe uscito",
-    novita: "Ultima uscita",
-    percorso: (da: string, a: string) => (da === a ? da : `da ${da} a ${a}`),
+    ultimaUscita: (eroe: string) => `Ultima uscita: ${eroe}`,
     apri: "Apri la scheda",
     ultimi: "Gli ultimi eroi",
     tutti: "Tutti gli eroi",
@@ -76,10 +57,7 @@ const TESTI = testi({
         {heroes} heroes and {updates} updates in the calendar, with data taken from the game.
       </>
     ),
-    menu: "Sections",
-    ultimoEroe: "The latest hero released",
-    novita: "Latest release",
-    percorso: (from: string, to: string) => (from === to ? from : `${from} to ${to}`),
+    ultimaUscita: (hero: string) => `Latest release: ${hero}`,
     apri: "Open the page",
     ultimi: "The latest heroes",
     tutti: "All heroes",
@@ -122,8 +100,6 @@ export default async function GameHubPage({ params }: Props) {
   const locale = await getLocale();
   const t = TESTI[locale];
 
-  // nell'ordine del catalogo, come la barra laterale delle altre pagine
-  const groups = gameGroups(game, locale);
   const heroes = gameModule?.roster?.heroes ?? [];
   const latest = heroes[0];
   const affinity = latest ? gameModule?.roster?.affinities.find((a) => a.id === latest.affinity) : undefined;
@@ -150,120 +126,49 @@ export default async function GameHubPage({ params }: Props) {
 
   return (
     <main className="pt-6 pb-20">
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,440px)]">
-        <div className="min-w-0">
-          {/*
-            La testata: il nome del gioco alla misura di un titolo di sezione, e
-            sotto i conteggi, coi numeri nel monospaziato. Il filo rosso e' quello
-            delle testate delle altre pagine (PageHeader).
-          */}
-          <header className="border-b-2 border-mark pb-3">
-            <h1 className={cx(display, "text-[clamp(24px,2.2vw,30px)]")}>{entry.name}</h1>
-            <p className="m-0 mt-2 text-[13px] text-ink-2">
-              {t.riga(
-                <span className={cx(numeric, "font-medium text-ink")}>{heroes.length}</span>,
-                <span className={cx(numeric, "font-medium text-ink")}>{updates.length}</span>,
-              )}
-            </p>
-          </header>
-
-          {/*
-            I comandi: il primo enorme, poi a scalare. Ogni comando porta alla
-            prima voce del suo gruppo, e sotto ha le altre, piccole. Sopra, il nome
-            del gruppo nella targhetta della barra laterale (che qui non c'e': la
-            toglie il layout, vedendo `.hub-menu`). Dal 10/10 al 24/10 il nome non
-            c'era, e la prima voce sembrava il gruppo: «Tier list» stava sotto
-            «Squadra», «Discussioni» sotto «Il mio account».
-          */}
-          <nav aria-label={t.menu} className="mt-6">
-            <ol className="hub-menu m-0 grid list-none gap-6 p-0">
-              {groups.map((group, index) => {
-                const [main, ...rest] = group.items;
-                if (!main) return null;
-                const labelId = `hub-gruppo-${index}`;
-                return (
-                  <li key={group.label} className="hub-command" style={{ "--i": index } as React.CSSProperties}>
-                    <p id={labelId} className={cx(eyebrow, "p5-cut-sm m-0 mb-2 block w-fit bg-plate px-2.5 py-0.5 text-on-plate")}>
-                      {group.label}
-                    </p>
-                    <Link
-                      href={main.href}
-                      title={main.hint}
-                      className={cx("hub-command-link p5-menu-item", `hub-command--${Math.min(index, 4)}`)}
-                    >
-                      {main.label}
-                    </Link>
-                    {rest.length > 0 ? (
-                      <ul aria-labelledby={labelId} className="m-0 mt-1 flex list-none flex-wrap gap-x-5 p-0">
-                        {rest.map((item) => (
-                          <li key={item.path}>
-                            {/* alte 32px e non 20: si prendono col pollice */}
-                            <Link
-                              href={item.href}
-                              title={item.hint}
-                              className="inline-block py-1.5 font-display text-[16px] font-extrabold uppercase tracking-[0.02em] text-ink-2 [font-variation-settings:'wdth'_82] hover:text-brand-deep"
-                            >
-                              {item.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ol>
-          </nav>
-        </div>
-
-        {latest ? (
-          <aside aria-labelledby="hub-ultimo-eroe" className="lg:sticky lg:top-[76px]">
-            {/*
-              Il titolo del riquadro resta ai lettori di schermo; a chi guarda lo
-              dice la targhetta «Ultima uscita» nel palco. Fino al 24/10 era
-              un'etichetta sopra il palco, che il nome dell'eroe ripeteva subito sotto.
-            */}
-            <h2 id="hub-ultimo-eroe" className="sr-only">
-              {t.ultimoEroe}
-            </h2>
-            <HeroStage
-              game={game}
-              hero={latest}
-              locale={locale}
-              affinity={affinity}
-              badges={[
-                { label: t.novita },
-                ...(affinity ? [{ label: affinityLabel(affinity.id, locale) }] : []),
-                { label: t.percorso(latest.obtainedAs, latest.rarity) },
-              ]}
-              art={stageArtOf(gameModule?.heroAssets?.[latest.id])}
-              className="p5-corner h-[min(640px,calc(100dvh-140px))] min-h-[480px]"
-            >
-              <Link href={`/${game}/eroi/${latest.id}`} className={buttonClass("primary", "md")}>
-                {t.apri}
-              </Link>
-            </HeroStage>
-          </aside>
-        ) : null}
-      </div>
+      {latest ? (
+        <HeroStage
+          game={game}
+          hero={latest}
+          locale={locale}
+          affinity={affinity}
+          size="hero"
+          priority
+          headingLevel="h1"
+          plate={{ kicker: t.ultimaUscita(heroName(latest, locale)), title: entry.name }}
+          art={stageArtOf(gameModule?.heroAssets?.[latest.id])}
+        >
+          <p className="m-0 mb-3 max-w-[46ch] text-[14px] text-ink-2">
+            {t.riga(
+              <span className={cx(numeric, "font-medium text-ink")}>{heroes.length}</span>,
+              <span className={cx(numeric, "font-medium text-ink")}>{updates.length}</span>,
+            )}
+          </p>
+          <Link href={`/${game}/eroi/${latest.id}`} className={buttonClass("primary", "md")}>
+            {t.apri}
+          </Link>
+        </HeroStage>
+      ) : (
+        <h1 className={cx(display, "text-[clamp(38px,6vw,76px)]")}>{entry.name}</h1>
+      )}
 
       {heroes.length > 1 ? (
-        <section aria-labelledby="hub-ultimi" className="mt-14">
-          <div className="mb-4 flex items-baseline justify-between gap-3 border-b-2 border-mark pb-2">
-            <h2 id="hub-ultimi" className={cx(display, "text-2xl")}>
+        <section aria-labelledby="hub-ultimi" className="mt-10">
+          <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-rule pb-2">
+            <h2 id="hub-ultimi" className="m-0 font-display text-[20px] font-semibold">
               {t.ultimi}
             </h2>
             <MoreLink href={`/${game}/eroi`} className="shrink-0">
               {t.tutti}
             </MoreLink>
           </div>
-          <ul className="m-0 grid list-none grid-cols-4 gap-2.5 p-0 sm:grid-cols-6 lg:grid-cols-8">
-            {heroes.slice(0, 8).map((hero) => (
+          <ul className="griglia-eroi m-0 grid list-none gap-2.5 p-0">
+            {heroes.slice(0, 11).map((hero) => (
               <li key={hero.id} className="min-w-0">
                 <Link href={`/${game}/eroi/${hero.id}`} className="hero-card group block">
                   <span className="hero-card-art block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={heroCardSrc(game, hero.id)} alt="" width={128} height={128} loading="lazy" className="block aspect-square w-full bg-paper-2" />
+                    <img src={heroCardSrc(game, hero.id, 2)} alt="" width={256} height={256} loading="lazy" className="block aspect-square w-full bg-paper-2" />
                   </span>
                   <span className={cx(heroEpithetClass, "mt-1.5")}>{heroEpithet(hero, locale)}</span>
                   <span className={cx(heroNameClass, "mt-0.5")}>
@@ -277,16 +182,14 @@ export default async function GameHubPage({ params }: Props) {
       ) : null}
 
       {/*
-        Il prossimo aggiornamento. Fino al 10/10 era un riquadro a due colonne con
-        la data piccola a sinistra, e a destra niente nelle settimane senza eroi
-        (quasi tutte): sembrava vuoto. Ora e' una sezione come quella sopra, senza
-        riquadro, con la data come nel calendario del gioco: il giorno enorme,
-        accanto il mese e quanto manca. Quello che porta segue, se porta qualcosa.
+        Il prossimo aggiornamento: una sezione come quella sopra, senza riquadro, col
+        giorno in grande, accanto il mese e quanto manca. Quello che porta segue, se porta
+        qualcosa.
       */}
       {update && when ? (
         <section aria-labelledby="hub-aggiornamento" className="mt-12">
-          <div className="mb-4 flex items-baseline justify-between gap-3 border-b-2 border-mark pb-2">
-            <h2 id="hub-aggiornamento" className={cx(display, "text-2xl")}>
+          <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-rule pb-2">
+            <h2 id="hub-aggiornamento" className="m-0 font-display text-[20px] font-semibold">
               {next ? t.prossimo : t.ultimo}
             </h2>
             <MoreLink href={`/${game}/uscite#u-${update.date}`} className="shrink-0">
@@ -295,11 +198,11 @@ export default async function GameHubPage({ params }: Props) {
           </div>
           <div className="flex flex-wrap items-center gap-x-10 gap-y-4">
             <time dateTime={update.date} className="flex shrink-0 items-center gap-3.5">
-              <span className="p5-title font-display text-[76px] font-black leading-[0.8] tracking-[-0.03em] [font-variation-settings:'wdth'_80]">
+              <span className={cx(numeric, "font-display text-[44px] leading-[0.8] font-semibold")}>
                 {when.day}
               </span>
               <span className="grid gap-1.5">
-                <span className="font-display text-[22px] font-black uppercase leading-none tracking-[-0.01em] [font-variation-settings:'wdth'_80]">
+                <span className="font-display text-[18px] leading-none font-semibold">
                   {when.monthYear}
                 </span>
                 <span className="text-[13px] leading-none text-ink-2">
@@ -316,13 +219,13 @@ export default async function GameHubPage({ params }: Props) {
                     return (
                       <li key={`${released.name}-${released.rarity}`}>
                         {hero ? (
-                          <Link href={`/${game}/eroi/${hero.id}`} className="flex items-center gap-2 bg-paper-2 px-2 py-1.5 hover:bg-paper-3">
+                          <Link href={`/${game}/eroi/${hero.id}`} className="flex items-center gap-2 bg-piastra-fondo px-2 py-1.5 hover:bg-piastra">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={heroCardSrc(game, hero.id)} alt="" width={40} height={40} className="h-10 w-10" loading="lazy" />
                             <span className="text-[13px] font-semibold">{heroName(hero, locale)}</span>
                           </Link>
                         ) : (
-                          <span className="block bg-paper-2 px-2 py-1.5 text-[13px]" lang="en">
+                          <span className="block bg-piastra-fondo px-2 py-1.5 text-[13px]" lang="en">
                             {released.name}
                           </span>
                         )}

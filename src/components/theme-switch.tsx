@@ -97,7 +97,7 @@ export function ThemeSwitch({ current }: { current: Theme }) {
           if (event.newState === "open") posiziona();
         }}
         style={{ width: rem(LARGHEZZA) }}
-        className="inset-auto m-0 border-2 border-ink bg-paper p-0 whitespace-normal text-ink shadow-[6px_6px_0_0_var(--color-mark)]"
+        className="inset-auto m-0 border border-rule bg-paper-3 p-0 whitespace-normal text-ink"
       >
         <p className={cx(eyebrow, "m-0 border-b border-rule px-4 py-2.5")}>{t.titolo}</p>
         <div role="group" aria-label={t.gruppo} className="grid gap-0.5 p-2">

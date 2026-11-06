@@ -168,6 +168,10 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
   // profilo del sito (/profilo/<gioco>, src/lib/profile/games.ts): account di
   // gioco e box non sono piu' pagine del gioco ma la parte di quel gioco di un
   // profilo unico per tutti i giochi. Qui restano come scorciatoia (`profile`).
+  //
+  // Dal 06/11 Set e Carte artefatto stanno nel Database (sono dati, non progressi), e
+  // Cambiamenti e Guide non sono piu' nel menu: le pagine restano, ci si arriva per link.
+  // Progressione e Community hanno una voce sola: l'utente pensa di aggiungerne.
   {
     label: { it: "Database", en: "Database" },
     items: [
@@ -187,13 +191,22 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
         needs: "releases",
       },
       {
-        path: "/cambiamenti",
-        label: { it: "Cambiamenti", en: "Changes" },
+        path: "/set-artefatto",
+        label: { it: "Set artefatto", en: "Artifact Sets" },
         hint: {
-          it: "Cosa cambia negli eroi a ogni patch, dai dati del gioco",
-          en: "What changes for the heroes with every patch, from the game data",
+          it: "I set bonus: carte, effetto livello per livello, potenziamento",
+          en: "The set bonuses: cards, effect level by level, enhancement",
         },
-        needs: "changes",
+        needs: "artifacts",
+      },
+      {
+        path: "/carte-artefatto",
+        label: { it: "Carte artefatto", en: "Artifact Cards" },
+        hint: {
+          it: "Le carte: statistiche, set e pacchetti da cui si trovano",
+          en: "The cards: stats, sets and the packs they come from",
+        },
+        needs: "artifacts",
       },
       {
         path: "/meccaniche",
@@ -283,24 +296,6 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
     label: { it: "Progressione", en: "Progression" },
     items: [
       {
-        path: "/set-artefatto",
-        label: { it: "Set artefatto", en: "Artifact Sets" },
-        hint: {
-          it: "I set bonus: carte, effetto livello per livello, potenziamento",
-          en: "The set bonuses: cards, effect level by level, enhancement",
-        },
-        needs: "artifacts",
-      },
-      {
-        path: "/carte-artefatto",
-        label: { it: "Carte artefatto", en: "Artifact Cards" },
-        hint: {
-          it: "Le carte: statistiche, set e pacchetti da cui si trovano",
-          en: "The cards: stats, sets and the packs they come from",
-        },
-        needs: "artifacts",
-      },
-      {
         path: "/buff-account",
         label: { it: "Buff dell'account", en: "Account Buffs" },
         hint: {
@@ -314,14 +309,6 @@ const GROUPS: readonly { label: Bilingual; items: readonly SectionNames[] }[] = 
   {
     label: { it: "Community", en: "Community" },
     items: [
-      {
-        path: "/guide",
-        label: { it: "Guide e rotazioni", en: "Guides and rotations" },
-        hint: {
-          it: "Con la patch in cui i numeri sono stati verificati",
-          en: "With the patch in which the numbers were verified",
-        },
-      },
       {
         // dal 10/10 il feed ha un indirizzo suo: /<gioco> e' l'ingresso del gioco
         path: "/discussioni",

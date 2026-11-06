@@ -254,7 +254,6 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
       */}
       <EndgameStage
         title={t.titolo}
-        word={t.titolo}
         mode="card"
         image={{ src: endgameImageSrc(game, "re-demone/info.png"), width: 512, height: 512 }}
         subtitle={sayPlain(data.name, scope)}
@@ -265,7 +264,6 @@ export default async function DemonKingPage({ params, searchParams }: Props) {
 
       <SectionIndex
         label={t.inPagina}
-        numbered={false}
         entries={[
           { id: "difficolta", label: t.difficoltaSezione },
           { id: "squadre", label: t.squadre },

@@ -99,7 +99,7 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
 
 ### 2. Tier List Maker Integrato
 - **Interfaccia Drag & Drop Reattiva**: Gestione fluida HTML5 drag & drop su desktop e modalità touch rapida per dispositivi mobili.
-- **Configurazione Dinamica**: 6 livelli predefiniti (S+, S, A, B, C, D) con palette cromatica Persona a 13 tinte, riordinamento, etichette personalizzate e filtri simultanei per rarità e attributo.
+- **Configurazione Dinamica**: 6 livelli predefiniti (S+, S, A, B, C, D) con palette cromatica a 13 tinte, riordinamento, etichette personalizzate e filtri simultanei per rarità e attributo.
 - **Persistenza Cloud & Backup Locale**: Salvataggio di tier list multiple legate all'account utente su PostgreSQL (`user_tier_lists`), esportazione di backup JSON non volatili e link di condivisione permanente con clonazione one-click.
 - **Render Grafico Retina 2x**: Esportazione su Canvas ad altissima risoluzione con watermark e compositing grafico ottimizzato per social e condivisione.
 
@@ -150,9 +150,9 @@ Per garantire la sostenibilità a lungo termine del progetto senza saturare le r
    - **Rate Limiting** in memoria su finestra scorrevole per proteggere gli endpoint di mutazione e autenticazione.
    - Prevenzione XSS tramite parser Markdown basato su Abstract Syntax Tree, senza ricorso a `dangerouslySetInnerHTML`.
    - Cookie di sessione con attributi `SameSite=Lax`, `HttpOnly` e prefisso di produzione `__Secure-`.
-5. **Identità Visiva Persona 5**:
-   - Palette scura editoriale (`#0b0a0a` / `#151313`) con tagli geometrici `.p5-cut`, bottoni stilizzati `.p5-btn` e accento rosso iconico `#e61421`.
-   - 5 temi cromatici scuri selezionabili dall'utente con i contrasti controllati dai test: ≥ 7:1 per il testo principale (WCAG AAA), ≥ 4,5:1 per il testo secondario (WCAG AA).
+5. **Identità visiva pulita** (vedi `DESIGN.md`):
+   - Nero pieno con filetti da 1 px e interfaccia senza tinta: il colore lo portano illustrazioni, card, icone e testi del gioco. Tre stati soli: fermo niente, al passaggio la piastra, scelto o «dove sei» il blocco bianco.
+   - 6 temi cromatici scuri selezionabili dall'utente con i contrasti controllati dai test: ≥ 7:1 per il testo principale (WCAG AAA), ≥ 4,5:1 per il testo secondario (WCAG AA).
 
 ---
 
@@ -195,7 +195,7 @@ Heiki/
 │   │   ├── [game]/               # Route dinamiche per gioco (eroi, tierlist, guide, ecc.)
 │   │   ├── u/[username]/         # Profili pubblici, tier list salvate, badge
 │   │   └── api/                  # Route handler (callback auth, healthcheck)
-│   ├── components/               # Componenti UI stile Persona (filtri, griglie, modali)
+│   ├── components/               # Componenti UI (filtri, griglie, modali)
 │   │   ├── tier-list/            # Tier List Maker (rendering canvas, drag & drop)
 │   │   ├── ratings/              # Modali e badge per valutazioni della community
 │   │   └── game-account/         # Gestione e sincronizzazione box eroi

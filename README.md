@@ -99,7 +99,7 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
 
 ### 2. Interactive Tier List Maker
 - **Responsive HTML5 Drag & Drop**: Native desktop drag & drop combined with quick-tap mobile assignment.
-- **Customizable Structure**: 6 default tiers (S+, S, A, B, C, D) with Persona-inspired 13-color palettes, inline label editing, row reordering, and combined attribute/rarity filtering.
+- **Customizable Structure**: 6 default tiers (S+, S, A, B, C, D) with 13-color palettes, inline label editing, row reordering, and combined attribute/rarity filtering.
 - **Cloud Persistence & Local Backups**: Multi-list user storage via PostgreSQL (`user_tier_lists`), JSON backup export, and shareable permalinks with one-click cloning.
 - **High-DPI Retina (2x) Canvas Rendering**: Instant high-resolution PNG export with composite watermark and dark theme layout.
 
@@ -150,9 +150,9 @@ To sustain and scale this infrastructure without manual bottlenecks, Heiki is de
    - Sliding-window in-memory **Rate Limiting** protecting mutation and authentication routes.
    - XSS prevention via an abstract syntax tree Markdown parser without `dangerouslySetInnerHTML`.
    - Secure cookies with `SameSite=Lax`, `HttpOnly`, and `__Secure-` prefixes in production.
-5. **Persona 5 Visual Identity**:
-   - Editorial dark UI (`#0b0a0a` / `#151313`) featuring `.p5-cut` angular borders, `.p5-btn` dynamic buttons, and brand crimson `#e61421`.
-   - 5 user-selectable dark color schemes with contrast checked by the tests: ≥ 7:1 for body text (WCAG AAA), ≥ 4.5:1 for secondary text (WCAG AA).
+5. **Clean Visual Identity** (see `DESIGN.md`):
+   - Pure black UI with 1px rules and no interface tint: color comes from the game's art, cards, icons and text. Three states only: at rest nothing, on hover a plate, selected or "you are here" a white block.
+   - 6 user-selectable dark color schemes with contrast checked by the tests: ≥ 7:1 for body text (WCAG AAA), ≥ 4.5:1 for secondary text (WCAG AA).
 
 ---
 
@@ -195,7 +195,7 @@ Heiki/
 │   │   ├── [game]/               # Contextual game routes (heroes, tierlist, guides, etc.)
 │   │   ├── u/[username]/         # Public user profiles, saved tier lists, badges
 │   │   └── api/                  # Route handlers (auth callbacks, healthcheck)
-│   ├── components/               # Persona-styled UI components (filters, grids, modals)
+│   ├── components/               # UI components (filters, grids, modals)
 │   │   ├── tier-list/            # Tier List Maker (canvas renderer, drag & drop)
 │   │   ├── ratings/              # Community rating modals and facts badges
 │   │   └── game-account/         # Hero box management and synchronization

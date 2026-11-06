@@ -90,16 +90,6 @@ export interface ContentDistributionItem {
   percentage: number;
 }
 
-/** Il voto della community di un eroe in breve: per l'anteprima della griglia Eroi (getGameRatingOverview). */
-export interface HeroRatingOverview {
-  /** medie da 1 a 5, con un decimale */
-  readonly pve: number;
-  readonly pvp: number;
-  readonly count: number;
-  /** il contenuto indicato piu' spesso come quello in cui l'eroe spicca, se qualcuno l'ha indicato */
-  readonly best: BestContentKey | null;
-}
-
 export interface HeroRatingSummary {
   heroId: string;
   pveAvg: number;

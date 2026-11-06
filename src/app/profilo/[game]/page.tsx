@@ -137,15 +137,10 @@ export default async function ProfileGameAccountPage({ params }: Props) {
         */
         <Link
           href={`/profilo/${game}/eroi`}
-          className="group relative isolate mb-5 flex min-h-[132px] items-center gap-4 overflow-hidden border border-rule bg-paper-2 p-4 text-ink no-underline transition-colors hover:border-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 sm:p-5"
+          className="group relative mb-5 flex min-h-[132px] items-center gap-4 overflow-hidden bg-piastra-fondo p-4 text-ink no-underline transition-colors hover:bg-piastra focus-visible:outline-2 focus-visible:outline-offset-2 sm:p-5"
         >
-          <span
-            aria-hidden
-            className="absolute inset-0 -z-10 bg-[radial-gradient(color-mix(in_srgb,var(--color-mark)_34%,transparent)_1.1px,transparent_1.8px)] bg-[length:8px_8px] [mask-image:linear-gradient(110deg,transparent_30%,#000_100%)]"
-          />
-          <span aria-hidden className="absolute inset-0 -z-10 bg-mark [clip-path:polygon(72%_0,100%_0,100%_100%,60%_100%)] sm:[clip-path:polygon(66%_0,100%_0,100%_100%,54%_100%)]" />
           <span className="min-w-0 flex-1">
-            <span className={cx(display, "block text-[clamp(24px,3.4vw,34px)]")}>{t.box}</span>
+            <span className={cx(display, "block text-[clamp(20px,2.4vw,26px)]")}>{t.box}</span>
             <span className="mt-1.5 block max-w-[46ch] text-[13px] leading-snug text-ink-2">{t.boxRiga}</span>
             <span className="p5-cut mt-3 inline-flex h-9 items-center gap-1.5 bg-plate px-4 font-display text-[13px] font-extrabold tracking-[0.03em] text-on-plate uppercase [font-variation-settings:'wdth'_85] transition-colors group-hover:bg-brand group-hover:text-on-brand">
               {t.apriBox}
@@ -164,7 +159,7 @@ export default async function ProfileGameAccountPage({ params }: Props) {
                 width={76}
                 style={{ width: rem(76) }}
                 height={76}
-                className={cx("block h-[76px] w-[76px] bg-paper-2 shadow-[4px_4px_0_var(--color-paper)] transition-transform group-hover:-translate-y-0.5", i > 0 && "-ml-5")}
+                className={cx("block h-[76px] w-[76px] bg-paper-2 transition-transform group-hover:-translate-y-0.5", i > 0 && "-ml-5")}
               />
             ))}
           </span>

@@ -24,10 +24,8 @@ export const menuItemClass =
   "max-lg:min-h-11 pointer-coarse:min-h-11 " +
   "aria-disabled:pointer-events-none aria-disabled:opacity-40";
 
-/** Il pannello: come il menu dell'utente nell'intestazione, bordo pieno e ombra sfalsata. */
-const PANEL =
-  "absolute top-full z-[15] mt-1.5 grid gap-0.5 border-2 border-ink bg-paper p-2 text-ink " +
-  "shadow-[6px_6px_0_0_var(--color-mark)]";
+/** Il pannello: come il menu dell'utente nell'intestazione. */
+const PANEL = "absolute top-full z-[15] mt-1.5 grid gap-0.5 border border-rule bg-paper-3 p-2 text-ink";
 
 export function MenuButton({
   label,
