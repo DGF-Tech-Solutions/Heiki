@@ -55,6 +55,7 @@ const TESTI = testi({
     iconaPezzo: (parte: string, set: string, rarita: string, stelle: number, piu: number) =>
       `${parte} ${set}, ${rarita}, ${stelle} risvegli, +${piu}`,
     slotVuoto: (parte: string) => `${parte}: nessun pezzo`,
+    apriPezzo: "Clicca un pezzo per cambiarlo.",
   },
   en: {
     titolo: "Gear",
@@ -85,6 +86,7 @@ const TESTI = testi({
     iconaPezzo: (parte: string, set: string, rarita: string, stelle: number, piu: number) =>
       `${parte} ${set}, ${rarita}, ${stelle} awakenings, +${piu}`,
     slotVuoto: (parte: string) => `${parte}: no piece`,
+    apriPezzo: "Click a piece to change it.",
   },
 });
 
@@ -110,7 +112,8 @@ export function GearPanel({
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
-  const [selected, setSelected] = useState(1);
+  // nessun pezzo aperto di partenza: l'editor e' lungo, e serve solo a chi cambia qualcosa
+  const [selected, setSelected] = useState<number | null>(null);
   const preset = presetOf(gear, pieces);
   const setName = (id: number) => inLingua(gear.sets.find((s) => s.id === id)?.name, locale) ?? String(id);
   const setPiece = (part: number, piece: GearPiece | null) =>
@@ -154,7 +157,7 @@ export function GearPanel({
               key={part.part}
               type="button"
               aria-pressed={active}
-              onClick={() => setSelected(part.part)}
+              onClick={() => setSelected(active ? null : part.part)}
               className={cx(
                 // L'icona del pezzo e' un'insegna del gioco: si alza e cresce come
                 // le stelle dei ranghi (`rank-chip`, di un decimo: ICON_CHIP_GROW). Il
@@ -203,16 +206,20 @@ export function GearPanel({
         ))}
       </p>
 
-      <PieceEditor
-        key={selected}
-        game={game}
-        gear={gear}
-        part={selected}
-        piece={pieces[selected - 1] ?? null}
-        onChange={(piece) => setPiece(selected, piece)}
-        starSrc={starSrc}
-        locale={locale}
-      />
+      {selected === null ? (
+        <p className="m-0 text-[12px] text-ink-3">{t.apriPezzo}</p>
+      ) : (
+        <PieceEditor
+          key={selected}
+          game={game}
+          gear={gear}
+          part={selected}
+          piece={pieces[selected - 1] ?? null}
+          onChange={(piece) => setPiece(selected, piece)}
+          starSrc={starSrc}
+          locale={locale}
+        />
+      )}
     </Panel>
   );
 }

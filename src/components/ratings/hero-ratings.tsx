@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { StarScore } from "@/components/ratings/star-display";
 import { HeroRatingForm } from "@/components/ratings/hero-rating-form";
-import { cx, eyebrow, Tag } from "@/components/ui";
+import { cx, eyebrow, numeric, Tag } from "@/components/ui";
 import { roleLabel } from "@/lib/auth/permissions";
 import { relativeTime } from "@/lib/community/ranking";
-import { BEST_CONTENTS, type HeroRatingSummary } from "@/lib/ratings/types";
+import { BEST_CONTENTS, formatScore, type HeroRatingSummary } from "@/lib/ratings/types";
 import { testi, type Locale } from "@/lib/i18n/locale";
 
 const TESTI = testi({
@@ -50,6 +50,44 @@ const TESTI = testi({
   },
 });
 
+/** Un voto medio: il numero solo se c'e' qualcuno che ha votato, sotto le stelle. */
+function ScoreBlock({
+  game,
+  locale,
+  title,
+  note,
+  score,
+  votes,
+}: {
+  game: string;
+  locale: Locale;
+  title: string;
+  note: string;
+  score: number;
+  votes: number;
+}) {
+  const t = TESTI[locale];
+
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className={eyebrow}>{title}</span>
+        <span className="text-[12px] text-ink-3">{note}</span>
+      </div>
+      {score > 0 ? (
+        <p className="m-0 mt-2 flex items-baseline gap-2">
+          <span className={cx(numeric, "text-3xl font-semibold text-ink")}>{formatScore(score, locale)}</span>
+          <span className="text-xs text-ink-3">/ 5</span>
+        </p>
+      ) : null}
+      <div className="mt-2">
+        <StarScore game={game} locale={locale} score={score} size={20} showScoreText={false} />
+      </div>
+      <p className="m-0 mt-2 text-xs text-ink-3">{votes > 0 ? t.voti(votes) : t.nessunVoto}</p>
+    </div>
+  );
+}
+
 interface HeroRatingsProps {
   game: string;
   heroId: string;
@@ -76,73 +114,27 @@ export function HeroRatings({
         <p className="max-w-[65ch] text-sm text-ink-2">{t.descrizione}</p>
       </div>
 
-      {/* Riquadri di sintesi: PvE, PvP, Dove spicca */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Box PvE */}
-        <div className="p5-corner flex flex-col justify-between border border-rule bg-paper-2 p-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="font-display text-xs font-black uppercase tracking-wider text-ink-3">
-                {t.pveTitolo}
-              </span>
-              <span className="text-[11px] text-ink-3 font-normal">{t.pveDesc}</span>
-            </div>
-            <div className="mt-2 flex items-baseline gap-3">
-              <span className="font-display text-3xl font-black text-ink">
-                {summary.pveAvg > 0 ? summary.pveAvg.toFixed(1) : "—"}
-              </span>
-              <span className="text-xs text-ink-3">/ 5.0</span>
-            </div>
-            <div className="mt-1">
-              <StarScore
-                game={game}
-                locale={locale}
-                score={summary.pveAvg}
-                size={20}
-                showScoreText={false}
-              />
-            </div>
-          </div>
-          <div className="mt-4 border-t border-rule-2 pt-2 text-xs text-ink-3">
-            {summary.totalRatings > 0 ? t.voti(summary.totalRatings) : t.nessunVoto}
-          </div>
-        </div>
+      {/* Sintesi: PvE, PvP, Dove spicca, in fila sotto un filetto solo */}
+      <div className="grid gap-x-8 gap-y-6 border-t border-rule pt-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ScoreBlock
+          game={game}
+          locale={locale}
+          title={t.pveTitolo}
+          note={t.pveDesc}
+          score={summary.pveAvg}
+          votes={summary.totalRatings}
+        />
+        <ScoreBlock
+          game={game}
+          locale={locale}
+          title={t.pvpTitolo}
+          note={t.pvpDesc}
+          score={summary.pvpAvg}
+          votes={summary.totalRatings}
+        />
 
-        {/* Box PvP */}
-        <div className="p5-corner flex flex-col justify-between border border-rule bg-paper-2 p-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="font-display text-xs font-black uppercase tracking-wider text-ink-3">
-                {t.pvpTitolo}
-              </span>
-              <span className="text-[11px] text-ink-3 font-normal">{t.pvpDesc}</span>
-            </div>
-            <div className="mt-2 flex items-baseline gap-3">
-              <span className="font-display text-3xl font-black text-ink">
-                {summary.pvpAvg > 0 ? summary.pvpAvg.toFixed(1) : "—"}
-              </span>
-              <span className="text-xs text-ink-3">/ 5.0</span>
-            </div>
-            <div className="mt-1">
-              <StarScore
-                game={game}
-                locale={locale}
-                score={summary.pvpAvg}
-                size={20}
-                showScoreText={false}
-              />
-            </div>
-          </div>
-          <div className="mt-4 border-t border-rule-2 pt-2 text-xs text-ink-3">
-            {summary.totalRatings > 0 ? t.voti(summary.totalRatings) : t.nessunVoto}
-          </div>
-        </div>
-
-        {/* Box Dove spicca */}
-        <div className="p5-corner border border-rule bg-paper-2 p-4 sm:col-span-2 lg:col-span-1">
-          <span className="font-display text-xs font-black uppercase tracking-wider text-ink-3">
-            {t.doveSpicca}
-          </span>
+        <div className="sm:col-span-2 lg:col-span-1">
+          <p className={cx(eyebrow, "m-0")}>{t.doveSpicca}</p>
 
           {summary.distribution.length > 0 ? (
             <div className="mt-3 space-y-2">
@@ -152,7 +144,7 @@ export function HeroRatings({
                     <span>{item.label[locale]}</span>
                     <span className="font-mono text-ink-2">{item.percentage}%</span>
                   </div>
-                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-paper">
+                  <div className="mt-1 h-1.5 w-full overflow-hidden bg-piastra">
                     <div
                       className="h-full bg-brand transition-all duration-300"
                       style={{ width: `${item.percentage}%` }}

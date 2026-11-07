@@ -1,6 +1,7 @@
 "use client";
 
 import { AwakenStar } from "@/components/ratings/star-display";
+import { formatScore } from "@/lib/ratings/types";
 import { openRatingsTab } from "@/components/ratings/open-ratings-tab";
 import { cx, tapArea } from "@/components/ui";
 import { testi, type Locale } from "@/lib/i18n/locale";
@@ -12,7 +13,7 @@ const TESTI = testi({
     pvpAbbr: "PvP",
     votiBreve: (n: number) => `(${n})`,
     ariaLabelSummary: (pve: number, pvp: number, count: number) =>
-      `Valutazione della community: PvE ${pve.toFixed(1)}, PvP ${pvp.toFixed(1)}, su ${count} ${count === 1 ? "valutazione" : "valutazioni"}. Clicca per vedere le recensioni.`,
+      `Valutazione della community: PvE ${formatScore(pve, "it")}, PvP ${formatScore(pvp, "it")}, su ${count} ${count === 1 ? "valutazione" : "valutazioni"}. Clicca per vedere le recensioni.`,
     ariaLabelEmpty: "Nessuna valutazione per questo eroe. Clicca per essere il primo a valutarlo.",
   },
   en: {
@@ -21,7 +22,7 @@ const TESTI = testi({
     pvpAbbr: "PvP",
     votiBreve: (n: number) => `(${n})`,
     ariaLabelSummary: (pve: number, pvp: number, count: number) =>
-      `Community ratings: PvE ${pve.toFixed(1)}, PvP ${pvp.toFixed(1)}, based on ${count} ${count === 1 ? "rating" : "ratings"}. Click to view reviews.`,
+      `Community ratings: PvE ${formatScore(pve, "en")}, PvP ${formatScore(pvp, "en")}, based on ${count} ${count === 1 ? "rating" : "ratings"}. Click to view reviews.`,
     ariaLabelEmpty: "No ratings for this hero yet. Click to submit the first review.",
   },
 });
@@ -69,7 +70,7 @@ export function RatingFactsBadge({
         aria-label={t.ariaLabelEmpty}
         className={cx(
           tapArea,
-          "p5-press inline-flex items-center gap-1.5 font-display text-[15px] font-extrabold uppercase leading-tight tracking-[0.02em] text-brand-deep no-underline [font-variation-settings:'wdth'_85] hover:text-ink",
+          "p5-press inline-flex min-h-[30px] items-center gap-1.5 font-display text-[15px] font-extrabold uppercase leading-tight tracking-[0.02em] text-brand-deep no-underline [font-variation-settings:'wdth'_85] hover:text-ink",
           className,
         )}
       >
@@ -86,14 +87,14 @@ export function RatingFactsBadge({
       aria-label={t.ariaLabelSummary(pveAvg, pvpAvg, totalRatings)}
       className={cx(
         tapArea,
-        "p5-press inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-ink no-underline hover:text-brand-deep",
+        "p5-press inline-flex min-h-[30px] flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold text-ink no-underline hover:text-brand-deep",
         className,
       )}
     >
       <span className="inline-flex items-center gap-1">
         <span className="text-ink-3">{t.pveAbbr}</span>
         <AwakenStar game={game} size={14} ariaHidden />
-        <span className="font-mono">{pveAvg.toFixed(1)}</span>
+        <span className="font-mono">{formatScore(pveAvg, locale)}</span>
       </span>
 
       <span className="text-ink-3">·</span>
@@ -101,7 +102,7 @@ export function RatingFactsBadge({
       <span className="inline-flex items-center gap-1">
         <span className="text-ink-3">{t.pvpAbbr}</span>
         <AwakenStar game={game} size={14} ariaHidden />
-        <span className="font-mono">{pvpAvg.toFixed(1)}</span>
+        <span className="font-mono">{formatScore(pvpAvg, locale)}</span>
       </span>
 
       <span className="font-mono font-normal text-ink-3">

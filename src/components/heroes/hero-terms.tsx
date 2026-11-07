@@ -23,16 +23,18 @@
  */
 
 import Link from "next/link";
-import { localized } from "@/components/heroes/hero-parts";
+import { Lines } from "@/components/heroes/game-text";
+import { localized, textIn } from "@/components/heroes/hero-parts";
 import { TermPopoverClient } from "@/components/heroes/term-popover-client";
 import { cx, eyebrow, MoreArrow, moreLinkClass } from "@/components/ui";
-import { termWords } from "@/lib/games/hero-markup";
+import { heroNotes, noteKey, termWords, type TextLine } from "@/lib/games/hero-markup";
 import { heroCardSrc, heroEpithet, heroName } from "@/lib/games/heroes";
 import { inGroup, parseTarget, searchText, targetId, textKey, type TermMember } from "@/lib/games/hero-terms";
 import type { HeroTermGroup, HeroTermsIndex } from "@/lib/games/hero-terms-types";
 import type { MechanicsIndex, MechanicsStacking } from "@/lib/games/mechanics-types";
 import type {
   HeroAbilities,
+  HeroCard,
   HeroContextIndex,
   HeroEntry,
   HeroLabel,
@@ -40,13 +42,16 @@ import type {
   HeroSpecialsIndex,
 } from "@/lib/games/types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
-import { rem } from "@/lib/rem";
 
 const TESTI = testi({
   it: {
     eroi: (n: number) => (n === 1 ? "1 eroe" : `${n} eroi`),
     questoEroe: "questo eroe",
     soloQuesto: "Nessun altro eroe ce l’ha.",
+    conEffetto: (n: number) => (n === 1 ? "1 eroe con questo effetto" : `${n} eroi con questo effetto`),
+    razzaSotto: "Razza: gli eroi qui sotto ne fanno parte.",
+    caratteristicaSotto: "Caratteristica: gli eroi qui sotto ce l’hanno.",
+    valePer: (chi: string) => `Vale per: ${chi}`,
     carta: (slot: string) => `Carta ${slot}`,
     ultimate: "Ultimate",
     unica: "Unica",
@@ -81,6 +86,10 @@ const TESTI = testi({
     eroi: (n: number) => (n === 1 ? "1 hero" : `${n} heroes`),
     questoEroe: "this hero",
     soloQuesto: "No other hero has it.",
+    conEffetto: (n: number) => (n === 1 ? "1 hero with this effect" : `${n} heroes with this effect`),
+    razzaSotto: "Race: the heroes below belong to it.",
+    caratteristicaSotto: "Characteristic: the heroes below have it.",
+    valePer: (chi: string) => `Applies to: ${chi}`,
     carta: (slot: string) => `Card ${slot}`,
     ultimate: "Ultimate Move",
     unica: "Unique",
@@ -160,6 +169,9 @@ interface Row {
 /** Una parte della tendina: un concetto, una razza, una caratteristica o un gruppo. */
 interface Section {
   title: string;
+  /** cosa fa, com'e' scritto nei testi di questo eroe: la nota intera, coi suoi numeri */
+  note: readonly TextLine[] | null;
+  /** cosa fa, quando l'eroe non ha la nota: la definizione generica */
   subtitle: string | null;
   inferred: boolean;
   rows: Row[];
@@ -168,6 +180,77 @@ interface Section {
   grid: string | null;
   /** come si cumulano i buff col nome di questo concetto (meccaniche), la regola piu' usata prima */
   stacking: readonly MechanicsStacking[] | null;
+}
+
+/** La prima lettera maiuscola: le note del gioco cominciano dopo i due punti. */
+function capitalized(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** I colori con cui il gioco scrive un valore: il resto di una nota qui e' testo normale. */
+const VALUE_COLORS: ReadonlySet<string> = new Set(["#FFAE00", "#FF8000", "#00FF00", "#00FF31"]);
+
+/** La nota per la tendina: niente corsivo e niente grigio, restano solo i numeri colorati. */
+function noteForReading(lines: readonly TextLine[]): TextLine[] {
+  return lines.map((line, row) =>
+    line.map((segment, position) => {
+      const { color, italic: _italic, ...rest } = segment;
+      const text = row === 0 && position === 0 ? capitalized(segment.text) : segment.text;
+      return color && VALUE_COLORS.has(color.toUpperCase()) ? { ...rest, text, color } : { ...rest, text };
+    }),
+  );
+}
+
+/**
+ * Le note che il gioco scrive nei testi di QUESTO eroe, per nome.
+ *
+ * La definizione di un concetto e' la prima riga di una nota di un eroe qualunque:
+ * 194 note su 383 hanno piu' righe, e 109 nomi cambiano numeri da un eroe all'altro
+ * (Protezione pacifica: +10% su uno, +30% su un altro). La tendina deve dire cosa fa QUI,
+ * quindi vale la nota dell'eroe, intera, dal rango piu' alto: quello che la scheda apre.
+ */
+function ownNotes(
+  heroId: string,
+  abilities: Readonly<Record<string, HeroAbilities>> | undefined,
+  specials: HeroSpecialsIndex | undefined,
+  relics: HeroRelicsIndex | undefined,
+  locale: Locale,
+): Map<string, readonly TextLine[]> {
+  const own = abilities?.[heroId];
+  const texts: string[] = [];
+  const addCard = (card: HeroCard | undefined) => {
+    for (const rank of [...(card?.ranks ?? [])].reverse()) texts.push(textIn(rank, locale));
+  };
+  const addVersions = (item: {
+    text?: string;
+    textIt?: string;
+    ultimateSteps?: readonly { text: string; textIt?: string }[];
+  }) => {
+    for (const step of [...(item.ultimateSteps ?? [])].reverse()) texts.push(textIn(step, locale));
+    if (item.text) texts.push(locale === "it" ? (item.textIt ?? item.text) : item.text);
+  };
+
+  addCard(own?.ultimate);
+  own?.cards.forEach(addCard);
+  if (own?.passive) addVersions(own.passive);
+  for (const id of specials?.heroes[heroId] ?? []) {
+    const ability = specials?.abilities[id];
+    if (ability) addVersions(ability);
+  }
+  for (const id of relics?.heroes[heroId] ?? []) {
+    const passive = relics?.relics[id]?.passive;
+    const text = passive ? inLingua(passive.text, locale) : null;
+    if (text) texts.push(text);
+  }
+
+  const notes = new Map<string, readonly TextLine[]>();
+  for (const text of texts) {
+    for (const note of heroNotes(text)) {
+      const key = noteKey(note.name);
+      if (note.lines.length > 0 && !notes.has(key)) notes.set(key, note.lines);
+    }
+  }
+  return notes;
 }
 
 /**
@@ -226,6 +309,7 @@ export function HeroTermPopovers({
     };
   };
   const label = (value: HeroLabel | undefined) => inLingua(value, locale);
+  const notes = ownNotes(heroId, abilities, specials, relics, locale);
 
   /** «Carta B «Oceano misterioso» · dal rango 2» */
   const placeText = (hid: string, where: string, rank: number): string => {
@@ -280,9 +364,13 @@ export function HeroTermPopovers({
         row.places.push(placeText(hid, where, rank));
         grouped.set(hid, row);
       }
+      const title = label(concept?.label) ?? key;
+      const note = notes.get(noteKey(title));
+      const definition = label(concept?.definition);
       out.push({
-        title: label(concept?.label) ?? key,
-        subtitle: label(concept?.definition),
+        title,
+        note: note ? noteForReading(note) : null,
+        subtitle: !note && definition ? capitalized(definition) : null,
         inferred: concept?.certainty === "dedotto",
         rows: currentFirst([...grouped.values()]),
         effect: true,
@@ -293,7 +381,8 @@ export function HeroTermPopovers({
     for (const race of parts.races) {
       out.push({
         title: label(context?.codes.race[String(race)]) ?? String(race),
-        subtitle: null,
+        note: null,
+        subtitle: t.razzaSotto,
         inferred: false,
         rows: members((hero) => member(hero).race === race),
         effect: false,
@@ -304,7 +393,8 @@ export function HeroTermPopovers({
     for (const faction of parts.factions) {
       out.push({
         title: label(context?.codes.faction[String(faction)]) ?? String(faction),
-        subtitle: null,
+        note: null,
+        subtitle: t.caratteristicaSotto,
         inferred: false,
         rows: members((hero) => member(hero).factions.includes(faction)),
         effect: false,
@@ -315,9 +405,11 @@ export function HeroTermPopovers({
     for (const n of parts.groups) {
       const group = index.groups[n];
       if (!group) continue;
+      const rule = label(group.definition);
       out.push({
         title: group.enemies ? t.nemici : t.alleati,
-        subtitle: label(group.definition),
+        note: null,
+        subtitle: rule ? t.valePer(rule) : null,
         inferred: false,
         rows: members((hero) => inGroup(group, member(hero), heroId)),
         effect: false,
@@ -328,30 +420,24 @@ export function HeroTermPopovers({
     return out;
   };
 
-  /** Titolo, numero di eroi e definizione di una parte. */
-  const Heading = ({ section, index }: { section: Section; index: number }) => (
+  /** Prima di tutto cosa fa: il nome in grande e, sotto, la nota com'e' scritta per questo eroe. */
+  const Heading = ({ section }: { section: Section }) => (
     <>
-      <p className="m-0 text-[14px] font-semibold leading-snug">
+      <p className="m-0 pr-8 text-[18px] font-semibold leading-tight text-ink">
         {section.title}
         {section.inferred ? (
           <span className="ml-1 text-ink-3" title={t.dedotto}>
             ?
           </span>
         ) : null}
-        {/* cercando diventa «19 di 108»: lo riscrive TermPopoverClient */}
-        <span
-          className={cx(eyebrow, "ml-2")}
-          data-conta={index}
-          data-totale={section.rows.length}
-          data-di={t.di}
-          data-testo={t.eroi(section.rows.length)}
-        >
-          {t.eroi(section.rows.length)}
-        </span>
       </p>
-      {section.subtitle ? <p className="m-0 mt-0.5 text-[12px] leading-snug text-ink-2">{section.subtitle}</p> : null}
+      {section.note ? (
+        <Lines lines={section.note} className="mt-1.5 text-[15px] leading-snug text-ink" />
+      ) : section.subtitle ? (
+        <p className="m-0 mt-1.5 text-[15px] leading-snug text-ink">{section.subtitle}</p>
+      ) : null}
       {section.stacking && section.stacking.length > 0 ? (
-        <p className="m-0 mt-1 text-[12px] leading-snug text-ink-2">
+        <p className="m-0 mt-2 text-[12px] leading-snug text-ink-2">
           <span className="font-semibold text-ink">{t.cumulo}:</span>{" "}
           {section.stacking.length === 1
             ? t.regola(section.stacking[0]!)
@@ -374,120 +460,132 @@ export function HeroTermPopovers({
         if (list.length === 0) return null;
         const searchable = list.reduce((sum, section) => sum + section.rows.length, 0) >= SEARCH_FROM;
         return (
-          // Una colonna: in cima la testa, ferma, con la ricerca; sotto l'elenco,
-          // che scorre. `flex` solo da aperta: una classe di display sulla
-          // tendina chiusa vincerebbe sul display:none del browser, e le tendine
-          // resterebbero tutte aperte.
+          // Scorre tutta insieme: una nota lunga non deve schiacciare l'elenco. Ferme
+          // restano la × e, sopra l'elenco, il conteggio con la ricerca. Niente classi
+          // di display: vincerebbero sul display:none del browser a tendina chiusa.
           <div
             key={id}
             id={id}
             popover="auto"
             aria-label={list.map((section) => section.title).join(", ")}
-            className="tendina w-[min(26rem,calc(100vw-2rem))] max-h-[min(30rem,70vh)] flex-col overflow-hidden rounded-card border border-rule bg-paper-2 p-0 text-ink shadow-2xl [&:popover-open]:flex"
+            className="tendina w-[min(26rem,calc(100vw-2rem))] max-h-[min(30rem,70vh)] overflow-y-auto border border-rule bg-piastra-fondo p-0 text-ink"
           >
-            <header className="shrink-0 border-b border-rule px-3.5 py-2.5">
-              <div className="flex items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <Heading section={list[0]!} index={0} />
-                </div>
-                <button
-                  type="button"
-                  popoverTarget={id}
-                  popoverTargetAction="hide"
-                  aria-label={t.chiudi}
-                  className="-mr-1 shrink-0 cursor-pointer px-1 text-[18px] leading-none text-ink-3 hover:text-ink"
-                >
-                  ×
-                </button>
-              </div>
-              {/*
-                Nascosta finche' il JavaScript non la accende: senza, una casella
-                in cui si scrive e non succede niente sarebbe peggio di nessuna.
-              */}
-              {searchable ? (
-                <input
-                  type="search"
-                  hidden
-                  placeholder={t.cerca}
-                  aria-label={t.cercaEtichetta}
-                  className="tendina-cerca mt-2 h-8 w-full border border-rule bg-paper px-2.5 text-[13px] text-ink placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-brand"
-                />
-              ) : null}
-            </header>
-
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              {list.map((section, s) => (
-                <section key={s} data-sezione={s}>
-                  {s > 0 ? (
-                    <header className="sticky top-0 z-10 border-y border-rule bg-paper-2 px-3.5 py-2">
-                      <Heading section={section} index={s} />
-                    </header>
-                  ) : null}
-
-                  {section.rows.length === 0 ? (
-                    <p className="m-0 px-3.5 py-3 text-[13px] text-ink-3">{t.nessuno}</p>
-                  ) : (
-                    // Le classi stanno sull'elenco e non su ogni riga: gli elenchi
-                    // arrivano a 163 eroi (gli Umani), e ogni byte si ripete
-                    <ul className="m-0 list-none p-1.5 [&_a]:flex [&_a]:items-center [&_a]:gap-2.5 [&_a]:[&_a]:px-2 [&_a]:py-1.5 [&_a:hover]:bg-paper [&_img]:h-10 [&_img]:w-10 [&_img]:shrink-0 [&_img]:[&_img]:bg-paper">
-                      {section.rows.map(({ hero, places }) => {
-                        const current = hero.id === heroId;
-                        return (
-                          <li
-                            key={hero.id}
-                            // su cosa cerca la barra: nome ed epiteto nelle due
-                            // lingue, il personaggio, e le abilita' della riga
-                            data-cerca={
-                              searchable
-                                ? searchText(
-                                    [hero.name, hero.epithet, hero.nameIt, hero.epithetIt, hero.group, ...places]
-                                      .filter(Boolean)
-                                      .join(" "),
-                                  )
-                                : undefined
-                            }
-                          >
-                            <Link href={`/${game}/eroi/${hero.id}`} className={current ? "bg-brand-soft" : undefined}>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={heroCardSrc(game, hero.id)} alt="" width={128} style={{ width: rem(128) }} height={128} loading="lazy" />
-                              <span className="min-w-0 text-[13px] leading-tight">
-                                <span className="font-semibold">{heroName(hero, locale)}</span>
-                                <span className="text-ink-3">
-                                  {" · "}
-                                  {heroEpithet(hero, locale)}
-                                  {current ? ` (${t.questoEroe})` : ""}
-                                </span>
-                                {places.map((place) => (
-                                  <span key={place} className="block text-[12px] text-ink-2">
-                                    {place}
-                                  </span>
-                                ))}
-                              </span>
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                  {searchable && section.rows.length > 0 ? (
-                    <p data-vuoto="" hidden className="m-0 px-3.5 pb-3 text-[13px] text-ink-3">
-                      {t.nessunRisultato}
-                    </p>
-                  ) : null}
-                  {section.effect && section.rows.length === 1 && section.rows[0]!.hero.id === heroId ? (
-                    <p className="m-0 px-3.5 pb-3 text-[12px] text-ink-3">{t.soloQuesto}</p>
-                  ) : null}
-                  {section.grid ? (
-                    <p className="m-0 px-3.5 pb-3">
-                      <Link href={section.grid} className={moreLinkClass}>
-                        {t.griglia}
-                        <MoreArrow />
-                      </Link>
-                    </p>
-                  ) : null}
-                </section>
-              ))}
+            <div className="sticky top-0 z-20 flex h-0 justify-end">
+              <button
+                type="button"
+                popoverTarget={id}
+                popoverTargetAction="hide"
+                aria-label={t.chiudi}
+                className="mt-1.5 mr-1.5 grid size-8 shrink-0 cursor-pointer place-items-center bg-piastra-fondo text-[18px] leading-none text-ink-3 hover:bg-piastra hover:text-ink pointer-coarse:size-11"
+              >
+                ×
+              </button>
             </div>
+
+            {list.map((section, s) => {
+              // solo lui: la riga con la sua card non aggiunge niente alla nota qui sopra
+              const alone = section.effect && section.rows.length === 1 && section.rows[0]!.hero.id === heroId;
+              const count = section.effect ? t.conEffetto(section.rows.length) : t.eroi(section.rows.length);
+              return (
+                <section key={s} data-sezione={s} className={cx(s > 0 && "border-t border-rule")}>
+                  <header className="px-3.5 pt-3 pb-3">
+                    <Heading section={section} />
+                  </header>
+
+                  {alone ? (
+                    <p className="m-0 border-t border-rule px-3.5 py-2.5 text-[13px] text-ink-3">{t.soloQuesto}</p>
+                  ) : (
+                    <>
+                      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-rule bg-piastra-fondo py-2 pr-11 pl-3.5">
+                        {/* cercando diventa «19 di 108»: lo riscrive TermPopoverClient */}
+                        <span
+                          className={cx(eyebrow, "shrink-0")}
+                          data-conta={s}
+                          data-totale={section.rows.length}
+                          data-di={t.di}
+                          data-testo={count}
+                        >
+                          {count}
+                        </span>
+                        {/*
+                          Nascosta finche' il JavaScript non la accende: senza, una casella
+                          in cui si scrive e non succede niente sarebbe peggio di nessuna.
+                        */}
+                        {s === 0 && searchable ? (
+                          <input
+                            type="search"
+                            hidden
+                            placeholder={t.cerca}
+                            aria-label={t.cercaEtichetta}
+                            className="tendina-cerca h-8 min-w-[12rem] flex-1 border border-rule bg-paper px-2.5 text-[13px] text-ink placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-brand"
+                          />
+                        ) : null}
+                      </div>
+
+                      {section.rows.length === 0 ? (
+                        <p className="m-0 px-3.5 py-3 text-[13px] text-ink-3">{t.nessuno}</p>
+                      ) : (
+                        // Le classi stanno sull'elenco e non su ogni riga: gli elenchi
+                        // arrivano a 163 eroi (gli Umani), e ogni byte si ripete
+                        <ul className="m-0 list-none p-1.5 [&_a]:flex [&_a]:items-center [&_a]:gap-2.5 [&_a]:px-2 [&_a]:py-1.5 [&_a:hover]:bg-piastra [&_img]:h-10 [&_img]:w-10 [&_img]:shrink-0">
+                          {section.rows.map(({ hero, places }) => {
+                            const current = hero.id === heroId;
+                            return (
+                              <li
+                                key={hero.id}
+                                // su cosa cerca la barra: nome ed epiteto nelle due
+                                // lingue, il personaggio, e le abilita' della riga
+                                data-cerca={
+                                  searchable
+                                    ? searchText(
+                                        [hero.name, hero.epithet, hero.nameIt, hero.epithetIt, hero.group, ...places]
+                                          .filter(Boolean)
+                                          .join(" "),
+                                      )
+                                    : undefined
+                                }
+                              >
+                                <Link href={`/${game}/eroi/${hero.id}`} className={current ? "bg-piastra-forte" : undefined}>
+                                  {/* senza stile in linea: la misura la danno le classi dell'elenco, e una larghezza qui stirava la card */}
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={heroCardSrc(game, hero.id)} alt="" width={128} height={128} loading="lazy" />
+                                  <span className="min-w-0 text-[13px] leading-tight">
+                                    <span className="font-semibold">{heroName(hero, locale)}</span>
+                                    <span className="text-ink-3">
+                                      {" · "}
+                                      {heroEpithet(hero, locale)}
+                                      {current ? ` (${t.questoEroe})` : ""}
+                                    </span>
+                                    {places.map((place) => (
+                                      <span key={place} className="block text-[12px] text-ink-2">
+                                        {place}
+                                      </span>
+                                    ))}
+                                  </span>
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                      {searchable && section.rows.length > 0 ? (
+                        <p data-vuoto="" hidden className="m-0 px-3.5 pb-3 text-[13px] text-ink-3">
+                          {t.nessunRisultato}
+                        </p>
+                      ) : null}
+                      {section.grid ? (
+                        <p className="m-0 px-3.5 pb-3">
+                          <Link href={section.grid} className={moreLinkClass}>
+                            {t.griglia}
+                            <MoreArrow />
+                          </Link>
+                        </p>
+                      ) : null}
+                    </>
+                  )}
+                </section>
+              );
+            })}
           </div>
         );
       })}

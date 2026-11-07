@@ -25,9 +25,7 @@ import type {
   HeroAbilities as HeroAbilitiesData,
   HeroAssets,
   HeroCard,
-  HeroCardContext,
   HeroContext,
-  HeroEffect,
   HeroLabel,
   HeroSpecialAbility,
   HeroSpecialKind,
@@ -46,53 +44,51 @@ const ARTICOLO_SPECIALE: Readonly<Record<string, string>> = {
   talento: "il ",
 };
 
+/** La frase comincia col soggetto, che arriva minuscolo («il Talento»). */
+function iniziale(testo: string): string {
+  return testo.charAt(0).toUpperCase() + testo.slice(1);
+}
+
 const TESTI = testi({
   it: {
     carteAttacco: "Carte d’attacco",
-    fonteCarte:
-      "Quali carte ha l’eroe e cosa fanno a ogni rango vengono dalle tabelle del client del gioco.",
     // Solo in italiano: in inglese i testi dei ranghi sono semplicemente nella
     // lingua della pagina, e non c'e' niente da avvertire.
-    testiInInglese: " I testi restano in inglese: il client ne ha solo i modelli, senza i valori." as
+    testiInInglese: "I testi restano in inglese: il client ne ha solo i modelli, senza i valori." as
       | string
       | null,
     ultimate: "Ultimate",
     // Il nome della schermata dell'eroe nel gioco (UI_hero_info_49): «Unica».
     passiva: "Unica",
     passivaSenzaTesto: "Di questa Unica abbiamo l’icona dal client, non ancora il testo.",
-    accostamentoDedotto: "(accostamento dedotto dal vocabolario del client)",
     soggettoSpeciale: (tipo: string, etichetta: HeroLabel | undefined) =>
       etichetta?.it ? `${ARTICOLO_SPECIALE[tipo] ?? "l'abilità: "}${etichetta.it}` : "l'abilità",
     soggettoPassiva: "l’Unica",
     ultimateAlRango: (rango: number) => `Ultimate al rango ${rango}`,
-    segueRango: (soggetto: string) => `· ${soggetto} segue il rango scelto sulla carta dell’ultimate`,
+    segueRango: (soggetto: string) => `${iniziale(soggetto)} segue il rango scelto sulla carta dell’ultimate`,
     valoriArancione: ": i valori in arancione sono quelli legati al rango",
     unicaRanghi: (da: number, a: number) => (da === a ? `Ultimate al rango ${da}` : `Ultimate ai ranghi ${da}-${a}`),
-    unicaCambia:
-      "L’Unica cambia solo ai ranghi dell’ultimate dei pulsanti, e segue anche quello scelto sulla carta dell’ultimate",
+    unicaCambia: "Scegli il rango qui o sulla carta dell’ultimate",
     versioniUnica: "Versione dell’Unica secondo il rango dell’ultimate",
     rango: (rango: number) => `Rango ${rango}`,
     carta: (slot: string) => `carta ${slot}`,
   },
   en: {
     carteAttacco: "Skill cards",
-    fonteCarte: "Which cards the hero has and what they do at each rank come from the game client's tables.",
     testiInInglese: null,
     ultimate: "Ultimate Move",
     passiva: "Unique",
     passivaSenzaTesto: "For this Unique we have the icon from the client, not the text yet.",
-    accostamentoDedotto: "(match inferred from the client's vocabulary)",
     // In inglese l'articolo e' uno solo, e il nome del tipo e' quello del gioco.
     soggettoSpeciale: (_tipo: string, etichetta: HeroLabel | undefined) =>
       etichetta?.en ? `the ${etichetta.en}` : "the ability",
     soggettoPassiva: "the Unique",
     ultimateAlRango: (rango: number) => `Ultimate Move at rank ${rango}`,
-    segueRango: (soggetto: string) => `· ${soggetto} follows the rank chosen on the Ultimate Move card`,
+    segueRango: (soggetto: string) => `${iniziale(soggetto)} follows the rank chosen on the Ultimate Move card`,
     valoriArancione: ": values in orange are the ones tied to the rank",
     unicaRanghi: (from: number, to: number) =>
       from === to ? `Ultimate Move at rank ${from}` : `Ultimate Move at ranks ${from}-${to}`,
-    unicaCambia:
-      "The Unique only changes at the Ultimate Move ranks of these buttons, and also follows the rank chosen on the Ultimate Move card",
+    unicaCambia: "Pick the rank here or on the Ultimate Move card",
     versioniUnica: "Version of the Unique by Ultimate Move rank",
     rango: (rango: number) => `Rank ${rango}`,
     carta: (slot: string) => `card ${slot}`,
@@ -171,7 +167,6 @@ export function HeroAbilities({
   abilities,
   assets,
   context,
-  glossary,
   passiveConditions,
   specials,
   specialKinds,
@@ -186,7 +181,6 @@ export function HeroAbilities({
   abilities: HeroAbilitiesData | undefined;
   assets: HeroAssets | undefined;
   context: HeroContext | undefined;
-  glossary: Readonly<Record<string, HeroEffect>> | undefined;
   passiveConditions: Readonly<Record<string, { icon: string; description: HeroLabel }>> | undefined;
   specials: readonly { id: string; ability: HeroSpecialAbility }[];
   specialKinds: Readonly<Record<string, HeroSpecialKind>> | undefined;
@@ -290,8 +284,6 @@ export function HeroAbilities({
                             ? stepsIn(abilities.passive.ultimateSteps, locale)
                             : undefined
                         }
-                        context={context?.cards["passiva"]}
-                        glossary={glossary}
                         icons={icons}
                         own={{ group: `${heroId}-unica` }}
                         terms={versionTerms(
@@ -354,8 +346,6 @@ export function HeroAbilities({
                   locale={locale}
                   heroId={heroId}
                   card={card}
-                  context={card.slot ? context?.cards[card.slot] : undefined}
-                  glossary={glossary}
                   icons={icons}
                   termIds={termIds}
                 />
@@ -394,8 +384,6 @@ export function HeroAbilities({
                   locale={locale}
                   heroId={heroId}
                   card={abilities.ultimate}
-                  context={context?.cards["ultimate"]}
-                  glossary={glossary}
                   icons={icons}
                   artSrc={assets?.ultimate ? heroUltimateArtSrc(game, heroId) : undefined}
                   termIds={termIds}
@@ -409,16 +397,13 @@ export function HeroAbilities({
       </div>
       {left && right ? <HeroStickyColumns gridId="abilita-colonne" top={STICKY_TOP} /> : null}
 
-      {cards.length > 0 ? (
-        <p className="mt-5 text-[13px] text-ink-3">
-          {t.fonteCarte}
-          {/*
-            L'avviso vale solo se qualche testo resta davvero in inglese:
-            con `textsInItalian` la pagina in italiano li mostra tutti in
-            italiano, e in inglese l'avviso non esiste.
-          */}
-          {abilities?.textsInEnglish && !abilities.textsInItalian ? t.testiInInglese : null}
-        </p>
+      {/*
+        L'avviso vale solo se qualche testo resta davvero in inglese:
+        con `textsInItalian` la pagina in italiano li mostra tutti in
+        italiano, e in inglese l'avviso non esiste.
+      */}
+      {cards.length > 0 && abilities?.textsInEnglish && !abilities.textsInItalian && t.testiInInglese ? (
+        <p className="mt-5 text-[13px] text-ink-3">{t.testiInInglese}</p>
       ) : null}
     </>
   );
@@ -442,95 +427,6 @@ function Sprites({ game, heroId, count }: { game: string; heroId: string; count:
         </li>
       ))}
     </ul>
-  );
-}
-
-/**
- * Cosa fa una carta, detto con i termini del gioco.
- *
- * Il testo del rango, in una lingua o nell'altra, e' pieno di meccaniche
- * evidenziate che non si spiegano da sole. Qui ci sono le stesse meccaniche come termini, con la
- * definizione che il GIOCO ne da': quelle che si scrive nelle note dentro
- * l'abilita', il suo dizionario dei buff, la tassonomia con cui filtra gli
- * effetti.
- *
- * Un termine DEDOTTO si vede che lo e'. Il gioco quelle operazioni - "Removes
- * Buffs", "depletes" - non le definisce in nessun posto in chiaro, e
- * l'accostamento viene dal vocabolario interno del client: e' una garanzia
- * diversa da una definizione scritta, e chi legge ha diritto di distinguerle.
- */
-function Effects({
-  context,
-  glossary,
-  locale,
-}: {
-  context: HeroCardContext | undefined;
-  glossary: Readonly<Record<string, HeroEffect>> | undefined;
-  locale: Locale;
-}) {
-  if (!context || !glossary) return null;
-
-  // Prima quelli di tutta la carta, poi quelli che compaiono salendo di rango.
-  // Tenerli separati evita di dire che al rango 1 la carta fa gia' quello che
-  // impara al 3.
-  const common = context.effects
-    .map((key) => glossary[key])
-    .filter((effect): effect is HeroEffect => effect !== undefined);
-
-  const later = Object.entries(context.onlyAtRanks ?? {}).flatMap(([rank, keys]) =>
-    keys
-      .map((key) => ({ rank, effect: glossary[key] }))
-      .filter((item): item is { rank: string; effect: HeroEffect } => item.effect !== undefined),
-  );
-
-  if (common.length === 0 && later.length === 0) return null;
-
-  return (
-    <ul className="m-0 mt-2.5 flex list-none flex-wrap gap-1.5 p-0">
-      {common.map((effect, index) => (
-        <EffectTag key={`c${index}`} effect={effect} locale={locale} />
-      ))}
-      {later.map((item, index) => (
-        <EffectTag key={`l${index}`} effect={item.effect} rank={item.rank} locale={locale} />
-      ))}
-    </ul>
-  );
-}
-
-function EffectTag({
-  effect,
-  rank,
-  locale,
-}: {
-  effect: HeroEffect;
-  rank?: string;
-  locale: Locale;
-}) {
-  const label = inLingua(effect.label, locale);
-  if (!label) return null;
-
-  const definition = inLingua(effect.definition, locale);
-  const dedotto = effect.certainty === "dedotto";
-
-  return (
-    <li
-      className={cx(
-        "inline-flex items-baseline gap-1 border px-1.5 py-0.5 text-[12px]",
-        dedotto ? "border-dashed border-rule-2 text-ink-3" : "border-rule text-ink-2",
-      )}
-      title={
-        // Il titolo porta la definizione del gioco e, quando serve, il fatto
-        // che l'accostamento sia dedotto. Non e' il posto ideale per una
-        // spiegazione, ma e' quello che non allunga la scheda di 30 righe.
-        [definition, dedotto ? TESTI[locale].accostamentoDedotto : null]
-          .filter(Boolean)
-          .join(" ") || undefined
-      }
-    >
-      {rank ? <span className={cx(numeric, "text-[12px] text-ink-3")}>R{rank}</span> : null}
-      <span>{label}</span>
-      {dedotto ? <span className="text-ink-3">?</span> : null}
-    </li>
   );
 }
 
@@ -840,8 +736,6 @@ export function PassiveText({
   locale,
   text,
   steps,
-  context,
-  glossary,
   icons,
   subject,
   terms,
@@ -854,8 +748,6 @@ export function PassiveText({
   subject?: string;
   /** assenti quando la passiva non cambia, o quando non c'e' un rango da scegliere */
   steps?: readonly { fromUltimateRank: number; text: string }[];
-  context?: HeroCardContext;
-  glossary?: Readonly<Record<string, HeroEffect>>;
   icons?: Readonly<Record<string, readonly string[]>>;
   /** le tendine delle parole blu, una fila per versione come `[text, ...steps]` */
   terms?: readonly (readonly (string | null)[] | undefined)[];
@@ -872,7 +764,6 @@ export function PassiveText({
     return (
       <>
         <GameText text={text} omitNotes className={body} terms={terms?.[0]} />
-        <Effects context={context} glossary={glossary} locale={locale} />
         <GameNotes texts={[text]} className="mt-2.5" />
       </>
     );
@@ -966,8 +857,6 @@ export function PassiveText({
           </div>
         ))}
 
-        <Effects context={context} glossary={glossary} locale={locale} />
-
         {versions.map((version, index) => (
           <div key={`note-${version.fromUltimateRank}`} className={cx("hidden", UNICA_LINK[index]?.show)}>
             <GameNotes texts={[version.text]} className="mt-2.5" />
@@ -998,7 +887,7 @@ export function PassiveText({
             {t.ultimateAlRango(index + 1)}
           </span>
         ))}
-        <span>
+        <span className="basis-full">
           {t.segueRango(subject ?? t.soggettoPassiva)}
           {orange ? t.valoriArancione : ""}
         </span>
@@ -1009,8 +898,6 @@ export function PassiveText({
           <GameText text={version.text} omitNotes className={body} terms={terms?.[index]} />
         </div>
       ))}
-
-      <Effects context={context} glossary={glossary} locale={locale} />
 
       {versions.map((version, index) => (
         <div key={`note-${version.fromUltimateRank}`} className={cx("hidden", ...shows[index]!)}>
@@ -1210,8 +1097,6 @@ function CardRow({
   locale,
   heroId,
   card,
-  context,
-  glossary,
   icons,
   artSrc,
   termIds,
@@ -1220,8 +1105,6 @@ function CardRow({
   locale: Locale;
   heroId: string;
   card: HeroCard;
-  context?: HeroCardContext;
-  glossary?: Readonly<Record<string, HeroEffect>>;
   icons?: Readonly<Record<string, readonly string[]>>;
   /** l'illustrazione quando non e' uno sprite numerato: l'ultimate ha la sua cartella */
   artSrc?: string;
@@ -1301,8 +1184,6 @@ function CardRow({
           stampare tre volte la stessa spiegazione sotto tre righe che
           differiscono per una percentuale.
         */}
-        <Effects context={context} glossary={glossary} locale={locale} />
-
         <GameNotes texts={card.ranks.map((rank) => textIn(rank, locale))} className="mt-2.5" />
       </div>
     </div>

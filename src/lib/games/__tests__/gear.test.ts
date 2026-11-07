@@ -10,6 +10,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  costumeFlavor,
   GEAR_PRESETS,
   applyGear,
   associatedTo,
@@ -214,5 +215,17 @@ describe("associazioni", () => {
     expect(associatedTo(HERO_FATES, "1575001").map(({ main }) => main).sort()).toEqual(
       ["1030501", "1525001", "1525002", "1805001", "1805002", "1845001", "1926501", "1928501"].sort(),
     );
+  });
+});
+
+describe("costumi: la descrizione nella scheda", () => {
+  it("toglie la riga che dice solo di chi e' il costume, e tiene il resto", () => {
+    expect(costumeFlavor("Abito per Derrierie della Purezza.")).toBeNull();
+    expect(costumeFlavor("Basic weapon for Master Meliodas.")).toBeNull();
+    expect(costumeFlavor("Oggetto cosmetico di base per Ban.")).toBeNull();
+    expect(costumeFlavor("Arma per Melascula.\\n[DC143C]Un'arma leggendaria.[-]")).toBe("[DC143C]Un'arma leggendaria.[-]");
+    const vera = "Un abito per l'evento disegnato da Nakaba Suzuki.";
+    expect(costumeFlavor(vera)).toBe(vera);
+    expect(costumeFlavor(undefined)).toBeNull();
   });
 });

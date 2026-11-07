@@ -412,3 +412,18 @@ export function fateContribution(
   if (link && link.effect.mode !== "percent") after[link.effect.stat] = link.value;
   return { before, after };
 }
+
+/**
+ * La riga che dice solo di chi e' il costume: il 96% delle descrizioni, «Abito per
+ * Derrierie della Purezza.». Nella scheda dell'eroe non aggiunge niente, ripetuta su
+ * ogni costume; quello che viene dopo (la Prova delle stelle...) resta.
+ */
+const COSTUME_OWNER =
+  /^(?:abit[oi]|arm[ai]|oggett[oi] cosmetic[oi]|basic outfits?|outfits?|basic weapons?|weapons?|basic cosmetic items?|cosmetic items?)(?: di base)? (?:per|for) /i;
+
+/** La descrizione di un costume senza quella riga; null se non resta niente. */
+export function costumeFlavor(description: string | null | undefined): string | null {
+  if (!description) return null;
+  const [first = "", ...rest] = description.split("\\n");
+  return COSTUME_OWNER.test(first) ? rest.join("\\n") || null : description;
+}

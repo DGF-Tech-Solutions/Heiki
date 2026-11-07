@@ -126,7 +126,7 @@ function StarPicker({
           </label>
         ))}
         <span aria-hidden className="ml-2 font-mono text-sm font-bold text-ink">
-          {shown > 0 ? `${shown}/5` : "—"}
+          {shown}/5
         </span>
       </div>
     </fieldset>
@@ -164,7 +164,7 @@ export function HeroRatingForm({
 
   if (!isLoggedIn) {
     return (
-      <div className="p5-corner border border-rule bg-paper-2 p-5 text-center sm:text-left">
+      <div className="p5-corner border border-rule bg-paper-2 p-5">
         <h3 className={cx(eyebrow, "mb-2 text-ink")}>{t.titoloTuaValutazione}</h3>
         <p className="max-w-[54ch] text-sm text-ink-2">{t.messaggioAccesso}</p>
         <div className="mt-4">

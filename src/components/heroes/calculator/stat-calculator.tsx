@@ -358,7 +358,7 @@ export function StatCalculator({
                       {unit}
                     </td>
                     <td className={cx(numeric, "py-1.5 pr-3 text-right", diff > 0 ? "text-up" : diff < 0 ? "text-down" : "text-ink-3")}>
-                      {diff === 0 ? "—" : `${diff > 0 ? "+" : ""}${formatStat(diff, locale)}${unit}`}
+                      {diff === 0 ? "0" : `${diff > 0 ? "+" : ""}${formatStat(diff, locale)}${unit}`}
                     </td>
                     {battle ? (
                       <td className={cx(numeric, "py-1.5 text-right font-medium")}>
@@ -375,9 +375,9 @@ export function StatCalculator({
                   <td className={cx(numeric, "py-1.5 pr-3 text-right text-ink-2")}>{formatStat(classWithout, locale)}</td>
                   <td className={cx(numeric, "py-1.5 pr-3 text-right font-medium")}>{formatStat(classWith, locale)}</td>
                   <td className={cx(numeric, "py-1.5 pr-3 text-right", classWith > classWithout ? "text-up" : "text-ink-3")}>
-                    {classWith === classWithout ? "—" : `+${formatStat(classWith - classWithout, locale)}`}
+                    {classWith === classWithout ? "0" : `+${formatStat(classWith - classWithout, locale)}`}
                   </td>
-                  {battle ? <td className="py-1.5 text-right text-ink-3">—</td> : null}
+                  {battle ? <td className="py-1.5" /> : null}
                 </tr>
               ) : null}
             </tbody>

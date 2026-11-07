@@ -2039,6 +2039,7 @@ if (!existsSync(assetsJson)) {
   const copied: Record<string, number> = { splash: 0, abilita: 0, ultimate: 0, cutin: 0 };
   const opaque: string[] = [];
   const opaqueCutIns: string[] = [];
+  const cutInsAt512: string[] = [];
 
   for (const kind of ASSET_KINDS) {
     mkdirSync(resolve(DEST_IMAGES, kind.dir), { recursive: true });
@@ -2087,16 +2088,22 @@ if (!existsSync(assetsJson)) {
       }
     }
 
-    // Il cut-in della Mossa finale, per la fascia rossa del palco. In WebP: nel
-    // palco esce a due toni col retino, e a qualita' 90 pesa un terzo del PNG
-    // (21 MB contro 66 per i 376). Si scrive sempre, come l'illustrazione: l'11/10
+    // Il cut-in della Mossa finale, per la testa della scheda. In WebP, 1024 da
+    // cutin_hd/ (script/cutin_hd.py: i file del gioco sono da 512, e nella scheda stanno
+    // anche a 624 px); senza, il 512 a qualita' 90. Si scrive sempre, come l'illustrazione: l'11/10
     // mappa_asset.py ne ha corretti 11 (carte artefatto omonime, una copia
     // coreana, il Meliodas demone preso dalla cartella sbagliata). I cut-in sono
     // scontornati: uno con lo sfondo pieno e' di nuovo un omonimo
     if (voce.cutin) {
       const from = resolve(estratti, voce.cutin);
       if (existsSync(from)) {
-        await sharp(from).webp({ quality: 90 }).toFile(resolve(DEST_IMAGES, "cutin", `${hid}.webp`));
+        const to = resolve(DEST_IMAGES, "cutin", `${hid}.webp`);
+        const hd = resolve(SOURCE, "cutin_hd", `${hid}.webp`);
+        if (existsSync(hd)) copyFileSync(hd, to);
+        else {
+          await sharp(from).webp({ quality: 90 }).toFile(to);
+          cutInsAt512.push(hid);
+        }
         if ((await sharp(from).stats()).isOpaque) opaqueCutIns.push(hid);
         copied.cutin!++;
         flags.push(`cutIn: true`);
@@ -2152,6 +2159,9 @@ ${rows.join("\n")}
       `${copied.ultimate} carte dell'ultimate, ${copied.cutin} cut-in ` +
       `(${rows.length}/${heroes.length} eroi con almeno un asset)`,
   );
+  if (cutInsAt512.length > 0) {
+    console.log(`  ${cutInsAt512.length} cut-in a 512, senza il file di cutin_hd.py: ${cutInsAt512.join(", ")}`);
+  }
   if (opaqueCutIns.length > 0) {
     console.log(
       `  ATTENZIONE: ${opaqueCutIns.length} cut-in con lo sfondo pieno (${opaqueCutIns.join(", ")}): ` +

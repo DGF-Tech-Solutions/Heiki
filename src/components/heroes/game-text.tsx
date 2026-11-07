@@ -12,7 +12,7 @@
  * bersaglio - e vale anche dove non c'e' una definizione da mostrare.
  */
 
-import { collectHeroNotes, groupTerms, parseHeroText, splitHeroNotes } from "@/lib/games/hero-markup";
+import { collectHeroNotes, groupTerms, opensHeroNote, parseHeroText, splitHeroNotes } from "@/lib/games/hero-markup";
 import type { TextLine, TextSegment } from "@/lib/games/hero-markup";
 import { readableColor } from "@/components/heroes/game-color";
 import { cx } from "@/components/ui";
@@ -34,7 +34,7 @@ function Segment({ segment }: { segment: TextSegment }) {
  * La numerazione e' quella di `termWords` (hero-markup.ts), la stessa con cui
  * l'import ha legato le parole ai loro bersagli.
  */
-function Lines({
+export function Lines({
   lines,
   className,
   terms,
@@ -49,7 +49,7 @@ function Lines({
   return (
     <div className={cx("[&>p]:m-0 [&>p+p]:mt-2", className)}>
       {lines.map((line, index) => (
-        <p key={index}>
+        <p key={index} data-nota={opensHeroNote(line) ? "" : undefined}>
           {groupTerms(line).map((piece, position) => {
             if (piece.kind === "text") return <Segment key={position} segment={piece.segment} />;
             const id = terms?.[term++] ?? null;
@@ -108,6 +108,9 @@ export function GameText({
  *
  * Prende i ranghi di una carta tutti insieme proprio perche' ripetono la stessa
  * nota: e' qui che la ripetizione viene tolta, non in pagina.
+ *
+ * Una nota occupa spesso piu' righe: lo stacco sta fra una nota e l'altra, e il suo
+ * seguito resta attaccato, altrimenti non si vede dove finisce una definizione.
  */
 export function GameNotes({ texts, className }: { texts: readonly string[]; className?: string }) {
   const notes = collectHeroNotes(texts);
@@ -117,7 +120,7 @@ export function GameNotes({ texts, className }: { texts: readonly string[]; clas
     <Lines
       lines={notes}
       className={cx(
-        "border-t border-rule pt-2 text-[12px] leading-snug text-ink-3 [&>p+p]:mt-1",
+        "border-t border-rule pt-2 text-[12px] leading-snug text-ink-3 [&>p:not([data-nota])]:mt-0.5 [&>p[data-nota]:not(:first-child)]:mt-2.5",
         className,
       )}
     />

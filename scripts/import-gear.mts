@@ -126,10 +126,15 @@ function label(value: SrcLabel | null | undefined, what: string): HeroLabel {
   return { it: value.it, en: value.en };
 }
 
-/** una descrizione con una lingua sola prende l'altra; senza nessuna, non c'e' */
+/**
+ * Una descrizione con una lingua sola prende l'altra; senza nessuna, non c'e'.
+ * «NONE DB» e' il segnaposto del client per un testo che non esiste: 11 costumi
+ * lo avevano come nome, e in pagina si leggeva quello.
+ */
 function optionalLabel(value: SrcLabel | null | undefined): HeroLabel | undefined {
-  const it = value?.it ?? value?.en;
-  const en = value?.en ?? value?.it;
+  const real = (text: string | null | undefined) => (text && text !== "NONE DB" ? text : undefined);
+  const it = real(value?.it) ?? real(value?.en);
+  const en = real(value?.en) ?? real(value?.it);
   return it && en ? { it, en } : undefined;
 }
 

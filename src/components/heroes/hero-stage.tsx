@@ -7,8 +7,12 @@
  *     corna restano dentro
  *   - la TARGA: epiteto, nome, attributo e rarita', i comandi
  *
+ * Nella testa della scheda, dal 07/11, la figura e' il cut-in del gioco (`cutInSrc`, richiesta
+ * dell'utente): il gioco li inquadra tutti allo stesso modo, e l'illustrazione intera sta
+ * nella scheda Info. Home, menu del gioco e compleanni tengono l'illustrazione.
+ *
  * Fino al 06/11 c'erano anche il retino, il nome a contorno e la fascia obliqua col cut-in:
- * lo stile del sito li ha tolti, e il cut-in non si scarica piu'.
+ * lo stile del sito li ha tolti.
  *
  * Il movimento e' uno solo, ed e' il momento della scelta: cambiando eroe la figura entra e
  * la targa scatta al suo posto (classi `stage-*` in globals.css; con «riduci movimento»
@@ -79,6 +83,7 @@ export function HeroStage({
   headingLevel = "p",
   plate,
   art = DEFAULT_STAGE_ART,
+  cutInSrc,
   tint: tintOverride,
 }: {
   game: string;
@@ -101,6 +106,8 @@ export function HeroStage({
    */
   plate?: { readonly kicker: string; readonly title: string };
   art?: StageArt;
+  /** il cut-in al posto dell'illustrazione: solo la testa della scheda */
+  cutInSrc?: string;
   /** il colore del palco, se non e' quello dell'attributo (il profilo: il suo accento) */
   tint?: string;
 }) {
@@ -133,7 +140,12 @@ export function HeroStage({
       }
     >
       {/* la figura: si rimonta a ogni eroe (key), e l'animazione riparte */}
-      {art.art === "cutout" ? (
+      {cutInSrc ? (
+        // `unoptimized`: il file e' gia' un WebP da 512, ricomprimerlo lo sporcherebbe
+        <div key={hero.id} className="stage-figure stage-figure--cutin absolute">
+          <Image src={cutInSrc} alt="" fill unoptimized priority={priority} className="stage-figure-img object-contain" />
+        </div>
+      ) : art.art === "cutout" ? (
         <div key={hero.id} className="stage-figure absolute">
           <Image src={splash} alt="" fill sizes={ART_SIZES} priority={priority} className="stage-figure-img object-contain" />
         </div>

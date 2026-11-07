@@ -12,6 +12,9 @@ import {
   collectHeroNotes,
   parseHeroText,
   plainHeroText,
+  heroNotes,
+  noteKey,
+  opensHeroNote,
   splitHeroNotes,
 } from "../hero-markup";
 
@@ -145,6 +148,19 @@ describe("parseHeroText, corsivo", () => {
   });
 });
 
+describe("heroNotes", () => {
+  it("una voce per nota, col seguito e senza il nome davanti", () => {
+    const notes = heroNotes(
+      'Colpisce.\\n[i][C0C0C0]※"Modalità": [FF8000]+50%[-] danni.\\nImmune.\\n※Vendetta: infligge.[-][/i]',
+    );
+    const piano = (righe: readonly (readonly { text: string }[])[]) => righe.map((l) => l.map((s) => s.text).join(""));
+    expect(notes.map((n) => noteKey(n.name))).toEqual(["modalità", "vendetta"]);
+    expect(piano(notes[0]!.lines)).toEqual(["+50% danni.", "Immune."]);
+    expect(piano(notes[1]!.lines)).toEqual(["infligge."]);
+    expect(notes[0]!.lines[0]![0]).toMatchObject({ color: "#FF8000" });
+  });
+});
+
 describe("splitHeroNotes", () => {
   const testo = "Infligge danni.\\n※Pierce: 3x Perforazione.";
 
@@ -152,6 +168,17 @@ describe("splitHeroNotes", () => {
     const { body, notes } = splitHeroNotes(testo);
     expect(body.map((l) => l.map((s) => s.text).join(""))).toEqual(["Infligge danni."]);
     expect(notes.map((l) => l.map((s) => s.text).join(""))).toEqual(["※Pierce: 3x Perforazione."]);
+  });
+
+  it("porta a capo una nota aperta a meta' riga, col suo seguito", () => {
+    const { body, notes } = splitHeroNotes(
+      "Ottiene Vendetta.[i][C0C0C0]※Vendetta: immune ai Debuff.\\nContrattacca.[-][/i]\\n\\nPoi guarisce.",
+    );
+    const piano = (righe: typeof body) => righe.map((l) => l.map((s) => s.text).join(""));
+    expect(piano(body)).toEqual(["Ottiene Vendetta.", "Poi guarisce."]);
+    expect(piano(notes)).toEqual(["※Vendetta: immune ai Debuff.", "Contrattacca."]);
+    expect(notes[0]?.[0]).toMatchObject({ italic: true, color: "#C0C0C0" });
+    expect(notes.map(opensHeroNote)).toEqual([true, false]);
   });
 
   it("un testo senza note resta tutto corpo", () => {

@@ -1,6 +1,7 @@
 import { gameIconSrc } from "@/lib/games/heroes";
 import { cx } from "@/components/ui";
 import { testi, type Locale } from "@/lib/i18n/locale";
+import { formatScore } from "@/lib/ratings/types";
 import { rem } from "@/lib/rem";
 
 const TESTI = testi({
@@ -75,7 +76,7 @@ export function StarScore({
 }: StarScoreProps) {
   const rounded = Math.round(score);
   const accessibleLabel =
-    label ?? (score > 0 ? `${score.toFixed(1)} / ${max}` : TESTI[locale].nessunaValutazione);
+    label ?? (score > 0 ? `${formatScore(score, locale)} / ${max}` : TESTI[locale].nessunaValutazione);
 
   return (
     <div
@@ -98,9 +99,9 @@ export function StarScore({
           );
         })}
       </div>
-      {showScoreText ? (
+      {showScoreText && score > 0 ? (
         <span aria-hidden="true" className="font-mono text-sm font-bold text-ink">
-          {score > 0 ? score.toFixed(1) : "—"}
+          {formatScore(score, locale)}
         </span>
       ) : null}
     </div>

@@ -28,8 +28,6 @@ const TESTI = testi({
     totale: "Totale",
     materiali: "Materiali",
     creazione: "Creazione",
-    fonteReliquia:
-      "Nome, effetto, statistiche, potenziamenti e materiali vengono dalle tabelle del client: la reliquia è un costume d’arma con una passiva sua.",
   },
   en: {
     reliquiaTitolo: (quante: number) => (quante > 1 ? `Holy Relics · ${quante}` : "Holy Relic"),
@@ -43,8 +41,6 @@ const TESTI = testi({
     totale: "Total",
     materiali: "Materials",
     creazione: "Crafting",
-    fonteReliquia:
-      "Name, effect, stats, enhancements and materials come from the client's tables: the relic is a weapon costume with a passive of its own.",
   },
 });
 
@@ -61,7 +57,7 @@ const numero = (n: number, locale: Locale) =>
 const RELIC_STATS: readonly { key: string; label: Bilingual }[] = [
   { key: "atk", label: { it: "Attacco", en: "Attack" } },
   { key: "def", label: { it: "Difesa", en: "Defense" } },
-  { key: "hp", label: { it: "Salute", en: "HP" } },
+  { key: "hp", label: { it: "PS", en: "HP" } },
 ];
 
 /**
@@ -118,7 +114,6 @@ export function Relics({
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[13px] text-ink-3">{t.fonteReliquia}</p>
     </>
   );
 }
@@ -171,7 +166,7 @@ function RelicCard({
 
   return (
     <HeroBox title={t.reliquiaTitolo(1)}>
-      <div className={cx("grid items-start gap-4", relic.image && "sm:grid-cols-[88px_minmax(0,1fr)]")}>
+      <div className={cx("grid items-start gap-4", relic.image && "sm:grid-cols-[120px_minmax(0,1fr)]")}>
         {relic.image ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -180,7 +175,7 @@ function RelicCard({
             width={256}
             height={256}
             loading="lazy"
-            className="block h-[88px] w-[88px] rounded-card border border-rule bg-paper"
+            className="block h-[120px] w-[120px]"
           />
         ) : null}
 
@@ -258,7 +253,7 @@ function RelicCard({
                       <td className={cell}>{numero(relic.stats[row.key] ?? 0, locale)}</td>
                       {relic.upgrades.map((u, i) => (
                         <td key={i} className={cx(cell, "text-ink-3")}>
-                          {u.stats[row.key] ? `+${numero(u.stats[row.key]!, locale)}` : "—"}
+                          {`+${numero(u.stats[row.key] ?? 0, locale)}`}
                         </td>
                       ))}
                       {relic.upgrades.length > 0 ? (

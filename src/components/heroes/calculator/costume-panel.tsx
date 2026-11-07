@@ -33,6 +33,7 @@ const TESTI = testi({
     togli: "Togli",
     alMassimo: "Al massimo",
     scegli: "Registra un altro costume:",
+    apriPosto: "Clicca un costume per cambiarlo.",
     nessunAltro: "Non ci sono altri costumi di questo tipo.",
     senzaNome: (id: string) => `Costume ${id} (senza nome nel client)`,
     nessunaPercentuale: "nessuna percentuale",
@@ -54,6 +55,7 @@ const TESTI = testi({
     togli: "Remove",
     alMassimo: "Max it out",
     scegli: "Register another costume:",
+    apriPosto: "Click a costume to change it.",
     nessunAltro: "There are no other costumes of this type.",
     senzaNome: (id: string) => `Costume ${id} (no name in the client)`,
     nessunaPercentuale: "no percentages",
@@ -110,7 +112,8 @@ export function CostumePanel({
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
-  const [selected, setSelected] = useState<Slot>({ kind: "body", index: 0 });
+  // nessun posto aperto di partenza, come i pezzi dell'equipaggiamento
+  const [selected, setSelected] = useState<Slot | null>(null);
   const index = costumeIndexOf(data);
   const hero = data.costumes.hero;
   const setCostumes = (next: CostumeBuild) => onChange({ costumes: next });
@@ -118,14 +121,14 @@ export function CostumePanel({
   const slotButton = (kind: CostumeKind, i: number) => {
     const choice = build.costumes[kind][i] ?? null;
     const costume = choice ? data.costumes.items[choice.id] : undefined;
-    const active = selected !== "relic" && selected.kind === kind && selected.index === i;
+    const active = selected !== null && selected !== "relic" && selected.kind === kind && selected.index === i;
     const label = t.posto(t.tipo[kind], i + 1);
     return (
       <button
         key={`${kind}-${i}`}
         type="button"
         aria-pressed={active}
-        onClick={() => setSelected({ kind, index: i })}
+        onClick={() => setSelected(active ? null : { kind, index: i })}
         className={slotClass(active)}
       >
         {choice && costume ? (
@@ -175,7 +178,7 @@ export function CostumePanel({
               <button
                 type="button"
                 aria-pressed={selected === "relic"}
-                onClick={() => setSelected("relic")}
+                onClick={() => setSelected(selected === "relic" ? null : "relic")}
                 className={slotClass(selected === "relic")}
               >
                 <RelicThumb game={game} data={data} relic={build.relic} label={t.reliquia} empty={t.vuoto} />
@@ -186,7 +189,9 @@ export function CostumePanel({
       </div>
       <p className="m-0 max-w-[70ch] text-[12px] text-ink-3">{t.nota}</p>
 
-      {selected === "relic" ? (
+      {selected === null ? (
+        <p className="m-0 text-[12px] text-ink-3">{t.apriPosto}</p>
+      ) : selected === "relic" ? (
         <RelicEditor data={data} relic={build.relic} onChange={(relic) => onChange({ relic })} locale={locale} />
       ) : (
         <CostumeEditor

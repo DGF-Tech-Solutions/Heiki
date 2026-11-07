@@ -13,7 +13,7 @@ import { ItemIcon, costumeSrc } from "@/components/heroes/calculator/item-icon";
 import { formatStat, statName } from "@/components/heroes/calculator/stat-rows";
 import { IconArrowRight } from "@/components/icons";
 import { cx, MoreLink, numeric } from "@/components/ui";
-import { COSTUME_KINDS, costumeFlat, costumeMaxStep } from "@/lib/games/gear";
+import { COSTUME_KINDS, costumeFlat, costumeFlavor, costumeMaxStep } from "@/lib/games/gear";
 import type { CostumeIndex, CostumeKind, ItemIconLayers } from "@/lib/games/gear-types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
 
@@ -31,8 +31,6 @@ const TESTI = testi({
     senzaNome: (id: string) => `Costume ${id}`,
     senzaNomeNota: "senza nome nel client",
     nessunaPercentuale: "nessuna percentuale",
-    fonte:
-      "Dalle tabelle del client: DB_costume_base per i costumi e le percentuali, DB_costume_stat per il valore a ogni livello (dalla rarità del costume fino a UR livello 30, o LR per i LR), DB_skin_base per i posti.",
   },
   en: {
     titolo: (n: number) => `Costumes · ${n}`,
@@ -47,8 +45,6 @@ const TESTI = testi({
     senzaNome: (id: string) => `Costume ${id}`,
     senzaNomeNota: "no name in the client",
     nessunaPercentuale: "no percentages",
-    fonte:
-      "From the client's tables: DB_costume_base for the costumes and their percentages, DB_costume_stat for the value at every level (from the costume's rarity up to UR level 30, or LR for LR ones), DB_skin_base for the slots.",
   },
 });
 
@@ -98,16 +94,16 @@ export function HeroCostumes({
                 <span className={numeric}>{ids.length}</span> · {t.posti(hero.slots[kind])}
               </span>
             </h4>
-            <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 @4xl:grid-cols-3">
+            <ul className="m-0 grid list-none grid-cols-1 gap-x-6 gap-y-5 p-0 sm:grid-cols-2 @4xl:grid-cols-3">
               {ids.map((id) => {
                 const costume = costumes.costumes[id];
                 if (!costume) return null;
                 const name = inLingua(costume.name, locale);
-                const description = inLingua(costume.description, locale);
+                const description = costumeFlavor(inLingua(costume.description, locale));
                 const setName = costume.set ? inLingua(costumes.sets[String(costume.set)]?.name, locale) : null;
                 const percents = Object.entries(costume.percents);
                 return (
-                  <li key={id} className="grid grid-cols-[72px_minmax(0,1fr)] gap-3 rounded-card border border-rule bg-paper-2 p-2.5">
+                  <li key={id} className="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
                     <ItemIcon
                       game={game}
                       icons={icons}
@@ -150,7 +146,6 @@ export function HeroCostumes({
           </div>
         );
       })}
-      <p className="mt-5 max-w-[75ch] text-[12px] text-ink-3">{t.fonte}</p>
     </>
   );
 }

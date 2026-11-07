@@ -7,6 +7,7 @@
  */
 
 import type { Role } from "@/lib/auth/permissions";
+import { intlLocale, type Locale } from "@/lib/i18n/locale";
 
 export const BEST_CONTENTS = {
   pvp: {
@@ -98,4 +99,9 @@ export interface HeroRatingSummary {
   distribution: ContentDistributionItem[];
   userRating: UserRatingRecord | null;
   recentRatings: CommunityRatingEntry[];
+}
+
+/** Un voto medio con una cifra decimale, nel formato della lingua: 4,5 e non 4.5. */
+export function formatScore(score: number, locale: Locale): string {
+  return score.toLocaleString(intlLocale(locale), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }

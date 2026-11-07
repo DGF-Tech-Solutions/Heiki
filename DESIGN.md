@@ -305,7 +305,15 @@ Fuoco, solo da tastiera: filetto grigio `ink-3` su card e barra laterale; sugli 
 
 ### Palco
 
-La testa della scheda (`HeroStage`) e delle pagine Endgame (`EndgameStage`): figura scontornata a destra sul nero con la luce alle spalle, nome grande a sinistra, sotto attributo e rarità. L'epiteto sopra il nome (`.stage-epithet`) è un dato del gioco, in Atkinson `ink-3`. Niente fascia né cut-in. `EndgameStage` ha tre modi per i tre tipi di immagine: `cutout`, `card`, `backdrop`.
+La testa della scheda (`HeroStage`) e delle pagine Endgame (`EndgameStage`): figura a destra sul nero con la luce alle spalle, nome grande a sinistra, sotto attributo e rarità. L'epiteto sopra il nome (`.stage-epithet`) è un dato del gioco, in Atkinson `ink-3`. Niente fascia. `EndgameStage` ha tre modi per i tre tipi di immagine: `cutout`, `card`, `backdrop`.
+
+Nella testa della scheda eroe la figura è il cut-in del gioco (`cutInSrc`, 07/11): un quadrato alto quanto il palco, in fondo a destra, sfumato a destra e in basso dove il file è tagliato; sul telefono sale in cima e il nome gli sta sopra. I file sono a 1024 (`script\cutin_hd.py` nella pipeline, ingrandimento pulito dei 512 del gioco). L'illustrazione intera sta nella scheda Info. Home, menu del gioco, compleanni e profilo tengono l'illustrazione scontornata.
+
+Sul telefono i dati sotto il nome stanno in fila, senza etichette, perché le schede entrino nel primo schermo: Personaggio, Valutazione e la rarità a parole sono nella scheda Info (`HeroPhoneFacts`).
+
+### Tendina delle parole blu
+
+Prima di tutto dice cosa fa la parola: il nome a 18 px e, sotto, la nota che il gioco scrive per QUESTO eroe, intera e coi suoi numeri (`ownNotes` in `hero-terms.tsx`); solo se manca, la definizione generica. Sotto, il conteggio con la ricerca e l'elenco. Se ce l'ha solo lui, niente elenco. Fondo `piastra-fondo`, filetto `rule`, nessuna ombra. Le card dell'elenco prendono la misura dalle classi: uno stile in linea la stira.
 
 ### Barra della griglia
 

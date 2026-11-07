@@ -184,6 +184,39 @@ const NOTE_MARK = "※";
  */
 const ASTERISK_NOTE = /^\*[^\s*:][^:]{0,60}:/;
 
+/** La riga apre una nota: quelle dopo, fino alla prossima marca, sono il suo seguito. */
+export function opensHeroNote(line: TextLine): boolean {
+  return line
+    .map((segment) => segment.text)
+    .join("")
+    .trim()
+    .startsWith(NOTE_MARK);
+}
+
+/**
+ * Una nota aperta a meta' riga, portata a capo.
+ *
+ * Il gioco apre le note su una riga nuova, ma l'Unica di Meliodas Nemesi (13 testi
+ * su 5.895) attacca «※Trillion Revenge: ...» al punto della frase prima. Restando
+ * sulla riga del corpo la definizione si spezzava: le prime righe in mezzo agli
+ * effetti, il seguito in fondo con le altre note. Fa lo stesso `note_a_capo` di
+ * parole_blu.py nella pipeline.
+ */
+function noteOnItsLine(line: TextLine): TextLine[] {
+  let hasText = false;
+  for (const [index, segment] of line.entries()) {
+    const at = segment.text.indexOf(NOTE_MARK);
+    const before = at === -1 ? segment.text : segment.text.slice(0, at);
+    if (at !== -1 && (hasText || before.trim() !== "")) {
+      const head = [...line.slice(0, index), ...(before ? [{ ...segment, text: before }] : [])];
+      const tail = [{ ...segment, text: segment.text.slice(at) }, ...line.slice(index + 1)];
+      return [head, ...noteOnItsLine(tail)];
+    }
+    if (segment.text.trim() !== "") hasText = true;
+  }
+  return [line];
+}
+
 export interface SplitHeroText {
   /** l'effetto vero e proprio */
   body: TextLine[];
@@ -216,7 +249,7 @@ export function splitHeroNotes(raw: string): SplitHeroText {
   const notes: TextLine[] = [];
   let dentroLaNota = false;
 
-  for (const line of parseLines(raw)) {
+  for (const line of parseLines(raw).flatMap(noteOnItsLine)) {
     const plain = line
       .map((segment) => segment.text)
       .join("")
@@ -236,6 +269,56 @@ export function splitHeroNotes(raw: string): SplitHeroText {
   }
 
   return { body, notes };
+}
+
+/** Una nota che spiega un termine: il suo nome, e le sue righe senza il nome davanti. */
+export interface HeroNote {
+  readonly name: string;
+  readonly lines: readonly TextLine[];
+}
+
+/** La riga senza i suoi primi `count` caratteri, attraverso i segmenti. */
+function dropChars(line: TextLine, count: number): TextLine {
+  let left = count;
+  const out: TextSegment[] = [];
+  for (const segment of line) {
+    if (left >= segment.text.length) {
+      left -= segment.text.length;
+      continue;
+    }
+    out.push(left > 0 ? { ...segment, text: segment.text.slice(left) } : segment);
+    left = 0;
+  }
+  return out;
+}
+
+/** Le note di un testo, una voce per termine: «※Nome: ...» e le righe che la seguono. */
+export function heroNotes(raw: string): HeroNote[] {
+  const notes: { name: string; lines: TextLine[] }[] = [];
+  for (const line of splitHeroNotes(raw).notes) {
+    const plain = line.map((segment) => segment.text).join("");
+    const colon = opensHeroNote(line) ? plain.indexOf(":") : -1;
+    if (colon === -1) {
+      notes.at(-1)?.lines.push(line);
+      continue;
+    }
+    const rest = plain.slice(colon + 1);
+    const first = dropChars(line, plain.length - rest.trimStart().length);
+    notes.push({
+      name: plain.slice(plain.indexOf(NOTE_MARK) + 1, colon),
+      lines: first.length > 0 ? [first] : [],
+    });
+  }
+  return notes;
+}
+
+/** Il nome di una nota o di un termine, per confrontarli: le virgolette non contano. */
+export function noteKey(name: string): string {
+  return name
+    .replace(/["“”«»]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 /** L'azzurro con cui il gioco evidenzia i termini: meccaniche, razze, caratteristiche. */

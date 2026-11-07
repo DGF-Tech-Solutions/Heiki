@@ -833,6 +833,36 @@ header.sticky .p5-btn[class~="[--btn-bg:var(--color-brand)]"] {
   inset: 6%;
   background: radial-gradient(closest-side, var(--color-piastra), transparent);
 }
+/*
+ * La testa della scheda col cut-in del gioco (07/11). Il gioco li inquadra tutti allo stesso
+ * modo, quindi niente da centrare eroe per eroe: un quadrato alto quanto il palco, in fondo a
+ * destra. I file sono tagliati di netto in basso (376 su 381) e a destra (324): in basso li
+ * sfuma `.stage::after`, a destra la maschera.
+ */
+.stage-figure--cutin {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: min(var(--stage-h), 100cqi);
+  -webkit-mask-image: linear-gradient(to left, transparent, #000 12%);
+  mask-image: linear-gradient(to left, transparent, #000 12%);
+}
+/*
+ * Sul telefono il nome sta in fondo: il busto sale e il volto resta sopra la sfumatura. Il
+ * file finisce prima del palco, e il suo taglio in basso va sfumato qui: quello del palco li'
+ * e' ancora leggero
+ */
+@media (max-width: 639px) {
+  .stage-figure--cutin {
+    top: 0;
+    bottom: auto;
+    -webkit-mask-image: linear-gradient(to left, transparent, #000 12%), linear-gradient(to top, transparent, #000 30%);
+    mask-image: linear-gradient(to left, transparent, #000 12%), linear-gradient(to top, transparent, #000 30%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+}
 .stage-name {
   text-shadow: none;
 }
@@ -864,6 +894,10 @@ header.mb-5 nav.absolute {
   top: 0;
   right: 0;
 }
+/* le frecce stanno sopra il cut-in: col fondo pieno, altrimenti il disegno le copre */
+header.mb-5 nav.absolute .p5-btn {
+  --btn-bg: var(--color-paper);
+}
 .stage-epithet {
   padding: 0;
   background: none;
@@ -886,12 +920,13 @@ header.mb-5 nav.absolute {
 
 /* ---------------------------------------------------------- schede dell'eroe -- */
 
-#schede [role="radiogroup"] {
+/* `>`: dentro la scheda Abilita' ci sono i ranghi dell'Unica, che sono un altro radiogroup */
+#schede > [role="radiogroup"] {
   gap: 0;
   padding-block: 0;
   border-bottom-color: var(--color-rule);
 }
-#schede [role="radiogroup"] label {
+#schede > [role="radiogroup"] > label {
   padding-block: 12px;
   font-size: 15px;
   font-weight: 500;
@@ -899,14 +934,14 @@ header.mb-5 nav.absolute {
   --btn-fg: var(--color-ink-3);
 }
 /* dove sei: testo bianco e il filo sulla linea, e il passaggio non lo riempie */
-#schede:has(.tab1:checked) [role="radiogroup"] label:nth-of-type(1),
-#schede:has(.tab2:checked) [role="radiogroup"] label:nth-of-type(2),
-#schede:has(.tab3:checked) [role="radiogroup"] label:nth-of-type(3),
-#schede:has(.tab4:checked) [role="radiogroup"] label:nth-of-type(4),
-#schede:has(.tab5:checked) [role="radiogroup"] label:nth-of-type(5),
-#schede:has(.tab6:checked) [role="radiogroup"] label:nth-of-type(6),
-#schede:has(.tab7:checked) [role="radiogroup"] label:nth-of-type(7),
-#schede:has(.tab8:checked) [role="radiogroup"] label:nth-of-type(8) {
+#schede:has(.tab1:checked) > [role="radiogroup"] > label:nth-of-type(1),
+#schede:has(.tab2:checked) > [role="radiogroup"] > label:nth-of-type(2),
+#schede:has(.tab3:checked) > [role="radiogroup"] > label:nth-of-type(3),
+#schede:has(.tab4:checked) > [role="radiogroup"] > label:nth-of-type(4),
+#schede:has(.tab5:checked) > [role="radiogroup"] > label:nth-of-type(5),
+#schede:has(.tab6:checked) > [role="radiogroup"] > label:nth-of-type(6),
+#schede:has(.tab7:checked) > [role="radiogroup"] > label:nth-of-type(7),
+#schede:has(.tab8:checked) > [role="radiogroup"] > label:nth-of-type(8) {
   --btn-bg: transparent;
   --btn-hi: transparent;
   --btn-fg: var(--color-ink);

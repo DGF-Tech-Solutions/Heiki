@@ -34,12 +34,10 @@ import { heroHistory } from "@/lib/games/changes";
 import type { EndgameHeroLink } from "@/lib/games/endgame-types";
 import { calculatorDataFor, type CalculatorData } from "@/lib/games/hero-build";
 import { plainHeroText } from "@/lib/games/hero-markup";
-import { gameIconSrc, heroCardSrc, heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
+import { gameIconSrc, heroCardSrc, heroCutInSrc, heroEpithet, heroName, heroSplashSrc } from "@/lib/games/heroes";
 import { requireGameModule } from "@/lib/games/registry";
 import type {
   HeroAffinity,
-  HeroContext,
-  HeroEffect,
   HeroEntry,
   HeroLabel,
   HeroRelease,
@@ -97,7 +95,7 @@ const TESTI = testi({
       `esce come ${da}, ${puoArrivare ? "può arrivare a" : "arriva a"} ${a}`,
     statisticheTitolo: "Calcolatore delle statistiche",
     statisticheFonte:
-      "Calcolate dalle tabelle del client, come le somma il gioco (SkinData.GetTotalStatWithoutPassive e GetApplyPassiveStat): base e crescita per livello, Risvegli, Super risvegli, Reliquia sacra, costumi registrati, e l’equipaggiamento pezzo per pezzo. Si parte da tutto al massimo, coi cinque costumi migliori per tipo e l’equipaggiamento PS/Difesa. Il Vero risveglio aggiunge resistenza ai danni e non tocca queste righe.",
+      "Si parte da tutto al massimo, coi cinque costumi migliori per tipo e l’equipaggiamento PS/Difesa. Il Vero risveglio aggiunge resistenza ai danni e non tocca queste righe.",
     statisticheFonteMassimo:
       "Calcolate dalle tabelle del client: livello massimo, Risvegli, Super risvegli, Reliquia sacra e i cinque costumi migliori per tipo.",
     schede: "Parti della scheda",
@@ -153,7 +151,7 @@ const TESTI = testi({
       `starts as ${da}, ${puoArrivare ? "can reach" : "reaches"} ${a}`,
     statisticheTitolo: "Stats calculator",
     statisticheFonte:
-      "Computed from the client's tables the way the game adds them up (SkinData.GetTotalStatWithoutPassive and GetApplyPassiveStat): base and growth per level, Awakenings, Super Awakenings, Holy Relic, registered costumes, and gear piece by piece. It starts with everything maxed, the five best costumes of each type and HP/Defense gear. True Awakening adds damage resistance and doesn't touch these rows.",
+      "It starts with everything maxed, the five best costumes of each type and HP/Defense gear. True Awakening adds damage resistance and doesn't touch these rows.",
     statisticheFonteMassimo:
       "Computed from the client's tables: max level, Awakenings, Super Awakenings, Holy Relic and the five best costumes of each type.",
     schede: "Hero page sections",
@@ -224,34 +222,6 @@ function relicsOf(
   });
 }
 
-/**
- * Le sole voci del glossario che l'eroe cita, invece del glossario intero.
- *
- * Le 460 voci arrivavano a ogni carta, a ogni blocco di effetti e alla passiva.
- * Sono componenti server, ma in sviluppo React mette nel payload le props dei
- * componenti server per i propri strumenti di debug: ogni scheda si portava
- * dietro tutto il glossario - 460 chiavi su 460, fra 280 e 505 KB di pagina per
- * l'86-89% script - per usarne una ventina.
- */
-function glossaryFor(
-  glossary: Readonly<Record<string, HeroEffect>> | undefined,
-  context: HeroContext | undefined,
-): Readonly<Record<string, HeroEffect>> | undefined {
-  if (!glossary || !context) return undefined;
-
-  const keys = new Set<string>();
-  for (const card of Object.values(context.cards)) {
-    for (const key of card.effects) keys.add(key);
-    for (const list of Object.values(card.onlyAtRanks ?? {})) {
-      for (const key of list) keys.add(key);
-    }
-  }
-
-  return Object.fromEntries(
-    [...keys].flatMap((key) => (glossary[key] ? [[key, glossary[key]] as const] : [])),
-  );
-}
-
 function lookup(game: string, heroId: string) {
   const entry = findGame(game);
   if (!entry) return null;
@@ -271,9 +241,6 @@ function lookup(game: string, heroId: string) {
     assets: gameModule.heroAssets?.[heroId],
     abilities: gameModule.heroAbilities?.[heroId],
     stats: gameModule.heroStats?.[heroId],
-    // Due cose e non una: il glossario vale per tutti gli eroi e si legge una
-    // volta, il contesto e' di questo eroe soltanto.
-    glossary: glossaryFor(gameModule.heroContext?.glossary, gameModule.heroContext?.heroes[heroId]),
     codes: gameModule.heroContext?.codes,
     passiveConditions: gameModule.heroContext?.passiveConditions,
     specials: specialsOf(gameModule.heroSpecials, heroId),
@@ -357,7 +324,6 @@ export default async function HeroPage({ params, searchParams }: Props) {
     abilities,
     stats,
     affinity,
-    glossary,
     codes,
     passiveConditions,
     specials,
@@ -478,7 +444,6 @@ export default async function HeroPage({ params, searchParams }: Props) {
           abilities={abilities}
           assets={assets}
           context={context}
-          glossary={glossary}
           passiveConditions={passiveConditions}
           specials={specials}
           specialKinds={specialKinds}
@@ -548,6 +513,15 @@ export default async function HeroPage({ params, searchParams }: Props) {
         others={others}
         release={release}
         birthday={birthday}
+        phoneFacts={
+          <HeroPhoneFacts
+            game={game}
+            locale={locale}
+            hero={hero}
+            canReachLr={context?.rarity.canReachLr ?? false}
+            ratingSummary={ratingSummary}
+          />
+        }
         changes={
           changes?.firstPatch ? (
             <HeroChanges
@@ -594,8 +568,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
         {/*
           L'intestazione resta sopra le schede, qualunque sia aperta: chi e',
           che rarita' (le date dal 24/10 stanno in Info). Dal 10/10 e' un palco (hero-stage.tsx):
-          l'illustrazione grande, che prima stava nell'ultima scheda a 340px, e
-          il nome in targa. Sotto, la fascia dei dati (HeroFacts); in alto a
+          dal 07/11 il cut-in del gioco, e il nome in targa; l'illustrazione intera sta in Info. Sotto, la fascia dei dati (HeroFacts); in alto a
           destra l'eroe prima e dopo nell'ordine della griglia (anche coi tasti
           freccia).
         */}
@@ -610,6 +583,7 @@ export default async function HeroPage({ params, searchParams }: Props) {
               priority
               headingLevel="h1"
               art={stageArtOf(assets)}
+              cutInSrc={assets?.cutIn ? heroCutInSrc(game, hero.id) : undefined}
               className="p5-corner"
             />
             {prev || next ? (
@@ -698,6 +672,7 @@ function HeroInfo({
   others,
   release,
   birthday,
+  phoneFacts,
   changes,
 }: {
   game: string;
@@ -712,6 +687,8 @@ function HeroInfo({
   others: readonly HeroEntry[];
   release: HeroRelease | undefined;
   birthday: HeroBirthday | null;
+  /** i dati che sul telefono non stanno sopra le schede */
+  phoneFacts: React.ReactNode;
   /** la sezione dei cambiamenti di patch, gia' pronta */
   changes: React.ReactNode;
 }) {
@@ -719,6 +696,7 @@ function HeroInfo({
 
   return (
     <>
+      {phoneFacts}
       <div className={cx("grid items-start gap-6", splash && "@2xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)]")}>
         {/*
           L'illustrazione e' collegata all'eroe con certezza: il suo heroId
@@ -737,7 +715,7 @@ function HeroInfo({
             height={1024}
             // 340px del disegno, fino a 425 sugli schermi larghi (globals.css)
             sizes="(min-width: 1441px) 425px, 340px"
-            className="h-auto w-full max-w-[340px] rounded-card border border-rule bg-paper-2"
+            className="h-auto w-full max-w-[340px]"
           />
         ) : null}
 
@@ -801,14 +779,24 @@ function HeroInfo({
  * usa (bianco il dato, rosso il collegamento).
  */
 const factValue =
-  "font-display text-[15px] font-extrabold uppercase leading-tight tracking-[0.02em] [font-variation-settings:'wdth'_85]";
+  "min-h-[30px] font-display text-[15px] font-extrabold uppercase leading-tight tracking-[0.02em] [font-variation-settings:'wdth'_85]";
 
 /** Un dato: il suo nome sopra, il valore sotto. */
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+function Fact({
+  label,
+  children,
+  wide,
+}: {
+  label: string;
+  children: React.ReactNode;
+  /** solo da tablet in su: sul telefono sta nella scheda Info (`HeroPhoneFacts`) */
+  wide?: boolean;
+}) {
   return (
-    <div className="min-w-0">
-      <dt className={eyebrow}>{label}</dt>
-      <dd className="m-0 mt-1.5">{children}</dd>
+    <div className={cx("min-w-0", wide && "max-sm:hidden")}>
+      {/* sul telefono i valori parlano da soli: le etichette prendevano mezza riga ognuna */}
+      <dt className={cx(eyebrow, "max-sm:sr-only")}>{label}</dt>
+      <dd className="m-0 sm:mt-1.5">{children}</dd>
     </div>
   );
 }
@@ -866,7 +854,11 @@ function HeroFacts({
 
   return (
     <div className="@container mt-4">
-      <dl className="m-0 grid grid-cols-2 gap-x-5 gap-y-4 @xl:flex @xl:flex-wrap @xl:gap-x-10">
+      {/*
+        Sul telefono i dati stanno in due righe, in fila: in colonne con le etichette
+        riempivano il primo schermo, e le schede restavano sotto, da cercare scorrendo.
+      */}
+      <dl className="m-0 flex flex-wrap items-center gap-x-4 gap-y-1 sm:grid sm:grid-cols-2 sm:items-start sm:gap-x-5 sm:gap-y-4 @xl:flex @xl:flex-wrap @xl:gap-x-10">
         {/*
           L'attributo con l'icona del gioco: chi gioca la riconosce prima di
           leggere, e il nome accanto la spiega a chi non gioca (l'icona e'
@@ -924,7 +916,7 @@ function HeroFacts({
         {factions.length > 0 ? (
           <Fact label={t.caratteristiche}>
             {factions.map((value) => (
-              <span key={value} className={cx(factValue, "block text-ink [&+&]:mt-1")}>
+              <span key={value} className={cx(factValue, "flex items-center text-ink")}>
                 {value}
               </span>
             ))}
@@ -932,31 +924,97 @@ function HeroFacts({
         ) : null}
 
         {/* il personaggio porta alla griglia cercata per nome: tutte le sue versioni */}
-        <Fact label={t.personaggio}>
-          <Link
-            href={`/${game}/eroi?cerca=${encodeURIComponent(hero.group)}`}
-            title={t.versioniPersonaggio(hero.group)}
-            className={cx(factValue, tapArea, "p5-press group/more inline-flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink")}
-          >
-            {hero.group}
-            <MoreArrow />
-          </Link>
+        <Fact label={t.personaggio} wide>
+          <CharacterLink game={game} locale={locale} group={hero.group} />
         </Fact>
 
-        <Fact label={t.valutazione}>
-          {/* solo i numeri: il riepilogo intero (recensioni, commenti, id degli
-              utenti) finirebbe serializzato nella pagina per un componente client */}
-          <RatingFactsBadge
-            game={game}
-            heroId={hero.id}
-            locale={locale}
-            pveAvg={ratingSummary.pveAvg}
-            pvpAvg={ratingSummary.pvpAvg}
-            totalRatings={ratingSummary.totalRatings}
-          />
+        <Fact label={t.valutazione} wide>
+          <HeroRatingFact game={game} locale={locale} heroId={hero.id} ratingSummary={ratingSummary} />
         </Fact>
       </dl>
     </div>
+  );
+}
+
+/** Il personaggio porta alla griglia cercata per nome: tutte le sue versioni. */
+function CharacterLink({ game, locale, group }: { game: string; locale: Locale; group: string }) {
+  const t = TESTI[locale];
+  return (
+    <Link
+      href={`/${game}/eroi?cerca=${encodeURIComponent(group)}`}
+      title={t.versioniPersonaggio(group)}
+      className={cx(factValue, tapArea, "p5-press group/more inline-flex items-center gap-1.5 text-brand-deep no-underline hover:text-ink")}
+    >
+      {group}
+      <MoreArrow />
+    </Link>
+  );
+}
+
+function HeroRatingFact({
+  game,
+  locale,
+  heroId,
+  ratingSummary,
+}: {
+  game: string;
+  locale: Locale;
+  heroId: string;
+  ratingSummary: HeroRatingSummary;
+}) {
+  return (
+    // solo i numeri: il riepilogo intero (recensioni, commenti, id degli utenti)
+    // finirebbe serializzato nella pagina per un componente client
+    <RatingFactsBadge
+      game={game}
+      heroId={heroId}
+      locale={locale}
+      pveAvg={ratingSummary.pveAvg}
+      pvpAvg={ratingSummary.pvpAvg}
+      totalRatings={ratingSummary.totalRatings}
+    />
+  );
+}
+
+/**
+ * Quello che sul telefono non sta nella riga dei dati: la rarita' a parole, il
+ * personaggio e il voto. Dal tablet in su stanno sopra le schede, e qui non servono.
+ */
+function HeroPhoneFacts({
+  game,
+  locale,
+  hero,
+  canReachLr,
+  ratingSummary,
+}: {
+  game: string;
+  locale: Locale;
+  hero: HeroEntry;
+  canReachLr: boolean;
+  ratingSummary: HeroRatingSummary;
+}) {
+  const t = TESTI[locale];
+  return (
+    <dl className="m-0 mb-6 grid grid-cols-2 gap-x-5 gap-y-4 sm:hidden">
+      {hero.obtainedAs !== hero.rarity ? (
+        <div className="col-span-2 min-w-0">
+          <dt className={eyebrow}>{t.raritaCampo}</dt>
+          <dd className="m-0 mt-1.5 text-[14px] text-ink-2">{t.percorsoRarita(hero.obtainedAs, hero.rarity, canReachLr)}</dd>
+        </div>
+      ) : null}
+      <div className="min-w-0">
+        <dt className={eyebrow}>{t.personaggio}</dt>
+        <dd className="m-0 mt-1.5">
+          <CharacterLink game={game} locale={locale} group={hero.group} />
+        </dd>
+      </div>
+      <div className="min-w-0">
+        <dt className={eyebrow}>{t.valutazione}</dt>
+        <dd className="m-0 mt-1.5">
+          <HeroRatingFact game={game} locale={locale} heroId={hero.id} ratingSummary={ratingSummary} />
+        </dd>
+      </div>
+    </dl>
   );
 }
 
@@ -1046,7 +1104,7 @@ function HeroDates({
                   ) : null}
                 </Link>
               ) : (
-                <span key={index} className={cx(factValue, "block text-ink-3 [&+&]:mt-1")}>
+                <span key={index} className={cx(factValue, "flex items-center text-ink-3")}>
                   {t.compleannoSconosciuto}
                 </span>
               ),
@@ -1118,16 +1176,22 @@ function RarityPath({
   canReachLr: boolean;
 }) {
   const t = TESTI[locale];
-  if (from === to) return <Rarity game={game} icons={icons} rarity={from} />;
+  if (from === to) {
+    return (
+      <span className="flex min-h-[30px] items-center">
+        <Rarity game={game} icons={icons} rarity={from} />
+      </span>
+    );
+  }
 
   return (
     <>
-      <span aria-hidden className="flex items-center gap-1.5">
+      <span aria-hidden className="flex min-h-[30px] items-center gap-1.5">
         <Rarity game={game} icons={icons} rarity={from} />
         <IconArrowRight className="shrink-0 text-ink-3" />
         <Rarity game={game} icons={icons} rarity={to} />
       </span>
-      <span className="mt-1 block text-[12px] leading-snug text-ink-2">{t.percorsoRarita(from, to, canReachLr)}</span>
+      <span className="mt-1 block text-[12px] leading-snug text-ink-2 max-sm:sr-only">{t.percorsoRarita(from, to, canReachLr)}</span>
     </>
   );
 }
