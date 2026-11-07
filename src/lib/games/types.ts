@@ -37,6 +37,7 @@ import type { ArtifactIndex } from "./artifact-types";
 import type { CostumeIndex, GearIndex } from "./gear-types";
 import type { HeroFatesIndex } from "./hero-fates-types";
 import type { HeroTermsIndex } from "./hero-terms-types";
+import type { SkillTagsIndex } from "./skill-tags-types";
 import type { ChangesIndex } from "./changes-types";
 import type { MechanicsIndex } from "./mechanics-types";
 import type { BirthdaysIndex } from "./birthdays-types";
@@ -864,6 +865,13 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * server. Il contratto sta in hero-terms-types.ts.
    */
   readonly heroTerms?: HeroTermsIndex;
+
+  /**
+   * Le voci della ricerca del gioco e gli eroi che le hanno sulle carte, per il
+   * filtro «Effetto» della griglia. Al browser arrivano solo nella lingua della
+   * pagina: le traduce il server. Il contratto sta in skill-tags-types.ts.
+   */
+  readonly skillTags?: SkillTagsIndex;
 
   /**
    * I legami: per ogni eroe, gli eroi associati con cui si attiva l'Effetto

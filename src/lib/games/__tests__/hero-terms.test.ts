@@ -136,6 +136,27 @@ describe("i dati di Grand Cross", () => {
     }
   });
 
+  it("si apre solo cio' che il gioco nomina e spiega, e le appartenenze", () => {
+    // scelta dell'utente del 07/11: il blu e' evidenziazione, non vuol dire «termine»
+    const open = new Set<string>();
+    for (const targets of Object.values(terms.texts)) {
+      for (const target of targets) {
+        if (target) for (const concept of parseTarget(target).concepts) open.add(concept);
+      }
+    }
+    for (const concept of open) {
+      const { definition, certainty } = terms.concepts[concept]!;
+      expect(definition.it || definition.en, concept).toBeTruthy();
+      expect(certainty, concept).toBe("dichiarato");
+    }
+    for (const concept of ["sever", "taunt", "ignite", "pierce", "stun"]) expect(open.has(concept), concept).toBe(true);
+    // statistiche, azioni, momenti, e nomi di una nota che valgono per tutti
+    const closed = ["damage_dealt_increase", "damage_taken_decrease", "attack_related_stats_increase", "stance_cancel", "skill_dispell_buff", "ultimate_move", "attack_skills", "barrier"];
+    for (const concept of closed) expect(open.has(concept), concept).toBe(false);
+    // i nomi restano: li legge la pagina Meccaniche
+    expect(terms.concepts.damage_dealt_increase).toBeDefined();
+  });
+
   it("ogni testo della pagina ha una voce per parola blu, se ne ha", () => {
     let checked = 0;
     for (const hero of Object.values(abilities)) {

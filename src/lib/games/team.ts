@@ -17,14 +17,15 @@
  *     alleati in battaglia sono tutti Demoni»)
  * Ne escono due relazioni fra compagni: chi DA' a chi (l'effetto va a lui) e chi
  * FA SCATTARE chi (la sua presenza accende o fa crescere la passiva dell'altro).
- * I suggerimenti contano quante relazioni nuove porta un eroe in un posto.
+ * I suggerimenti dicono cosa cambia mettendo un eroe in un posto: quali passive si
+ * accendono, crescono o si spengono, e di chi.
  *
  * Cosa si e' scelto, e non e' scritto dal gioco:
  *   - «alleati» comprende l'eroe stesso, come nel gioco («Increases allies'
  *     Attack»); dove la frase dice «other than the hero», no
  *   - chi e' in panchina non «partecipa alla battaglia»: non conta per le
  *     condizioni dei compagni, salvo le frasi che dicono «including those in the
- *     Secondary Slot»
+ *     Secondary Slot» (confermato dall'utente, 07/11)
  *   - «with a Unity effect» vuol dire chi ha un'Unita' fra le abilita' speciali (il
  *     giapponese del gioco dice «団結効果を持つ», chi possiede l'effetto Unita')
  */
@@ -275,9 +276,11 @@ export interface TeamAnalysis {
   readonly gives: readonly Influence[];
   /** `from` fa scattare (o crescere) la passiva di `to` */
   readonly enables: readonly Influence[];
-  /** le condizioni «tutti» rispettate e quelle no */
+  /** le condizioni «tutti» rispettate a squadra piena, e quelle rotte */
   readonly allMet: number;
   readonly allBroken: number;
+  /** tutti i posti in campo sono occupati */
+  readonly fieldFull: boolean;
   /** abilita' speciali spente dalla regola dell'eroe piu' a sinistra */
   readonly leftmostOff: number;
 }
@@ -422,6 +425,7 @@ export function analyzeTeam(setup: TeamSetup, data: TeamData): TeamAnalysis {
   const isBench = (slot: number) => setup.bench && slot === TEAM_SLOTS - 1;
   const field = placed.filter((p) => !isBench(p.slot)).map((p) => p.hero);
   const bench = placed.find((p) => isBench(p.slot))?.hero ?? null;
+  const fieldFull = field.length === (setup.bench ? TEAM_SLOTS - 1 : TEAM_SLOTS);
 
   // 1. le abilita' speciali: se due sono dello stesso tipo, vale quella piu' a sinistra
   const firstHolder = new Map<string, string>();
@@ -501,12 +505,14 @@ export function analyzeTeam(setup: TeamSetup, data: TeamData): TeamAnalysis {
         if (!off && conditions.some((c) => c.condition.kind === "all" && !c.met)) off = "condition";
         if (!off && conditions.some((c) => c.condition.kind !== "all" && !c.met)) off = "nobody";
         const active = !off;
-        // le condizioni «tutti» contano anche quando la passiva e' accesa per il resto
+        // Le condizioni «tutti» contano anche quando la passiva e' accesa per il
+        // resto. Rotte lo restano; rispettate solo a squadra piena: con un eroe solo
+        // «tutti gli alleati sono Demoni» e' vero per forza, e non vuol dire niente
         if (!state.off && placesAllow(link, setup.content)) {
           for (const c of conditions) {
             if (c.condition.kind !== "all") continue;
-            if (c.met) allMet++;
-            else allBroken++;
+            if (!c.met) allBroken++;
+            else if (fieldFull) allMet++;
           }
         }
         if (active) {
@@ -540,39 +546,133 @@ export function analyzeTeam(setup: TeamSetup, data: TeamData): TeamAnalysis {
     enables: [...enables.values()],
     allMet,
     allBroken,
+    fieldFull,
     leftmostOff: leftmostBy.size,
   };
 }
 
-/**
- * Quanto si incastra una squadra: una relazione per coppia di compagni (chi da' a
- * chi, chi fa scattare chi), due punti per ogni condizione «tutti» rispettata e
- * due in meno per ognuna infranta, uno in meno per ogni abilita' speciale spenta
- * da quella di un compagno piu' a sinistra. E' un conteggio, non un giudizio: dice
- * quante passive lavorano per i compagni, non quanto valgono.
- */
-export function synergyScore(analysis: TeamAnalysis): number {
-  return analysis.gives.length + analysis.enables.length + 2 * analysis.allMet - 2 * analysis.allBroken - analysis.leftmostOff;
+/** Una passiva che cambia mettendo un eroe in un posto: di chi e', quale, e le frasi coinvolte. */
+export interface PassiveChange {
+  readonly hero: string;
+  readonly source: TeamSource;
+  readonly sentences: readonly number[];
+  /** i compagni che ricevono l'effetto; vuoto dove non c'entra */
+  readonly to: readonly string[];
 }
 
+/**
+ * Cosa cambia mettendo un eroe in un posto. Sono fatti, non un voto: fino al 07/11
+ * qui c'era un punteggio («+6») coi pesi inventati da Claude, che contava +3% come
+ * +60%, una sola volta per coppia, e premiava da solo chi aveva una condizione
+ * «tutti»: Chandler prendeva +4 a squadra vuota. L'utente non capiva di cosa
+ * tenesse conto, e aveva ragione.
+ */
 export interface Suggestion {
   readonly hero: string;
-  /** quanto sale il punteggio mettendolo nel posto */
-  readonly gain: number;
-  /** le relazioni nuove che lo riguardano */
-  readonly gives: readonly Influence[];
-  readonly receives: readonly Influence[];
-  readonly enables: readonly Influence[];
-  readonly enabledBy: readonly Influence[];
+  /** passive dei compagni che con lui si accendono */
+  readonly lights: readonly PassiveChange[];
+  /** passive dei compagni che con lui crescono («per ogni alleato applicabile») */
+  readonly boosts: readonly PassiveChange[];
+  /** sue passive che arrivano ai compagni */
+  readonly gives: readonly PassiveChange[];
+  /** passive dei compagni che arrivano a lui */
+  readonly receives: readonly PassiveChange[];
+  /** sue passive che i compagni fanno scattare */
+  readonly wakes: readonly PassiveChange[];
+  /** passive che con lui si spengono: dei compagni, o sue (un'altra vale al suo posto) */
+  readonly breaks: readonly PassiveChange[];
+}
+
+/** Raccoglie le frasi per passiva: un'Unica con tre frasi per i compagni resta una passiva. */
+function changeList() {
+  const byPassive = new Map<string, { hero: string; source: TeamSource; sentences: Set<number>; to: Set<string> }>();
+  return {
+    add(hero: string, source: TeamSource, sentence: number, to: readonly string[] = []) {
+      const key = `${hero}:${source.kind}:${source.id}`;
+      const entry = byPassive.get(key) ?? { hero, source, sentences: new Set<number>(), to: new Set<string>() };
+      entry.sentences.add(sentence);
+      for (const id of to) entry.to.add(id);
+      byPassive.set(key, entry);
+    },
+    list(): PassiveChange[] {
+      return [...byPassive.values()].map((c) => ({ ...c, sentences: [...c.sentences], to: [...c.to] }));
+    },
+  };
+}
+
+/** Cosa cambia fra la squadra senza l'eroe e la squadra con lui. */
+function changesOf(candidate: string, before: TeamAnalysis, after: TeamAnalysis): Suggestion {
+  const key = (hero: string, source: TeamSource, sentence: number) => `${hero}:${source.kind}:${source.id}:${sentence}`;
+  const past = new Map<string, LinkResult>();
+  for (const member of before.members) {
+    for (const result of member.sources) {
+      for (const link of result.links) past.set(key(member.hero, result.source, link.link.sentence), link);
+    }
+  }
+  const lights = changeList();
+  const boosts = changeList();
+  const gives = changeList();
+  const receives = changeList();
+  const wakes = changeList();
+  const breaks = changeList();
+
+  for (const member of after.members) {
+    for (const result of member.sources) {
+      for (const link of result.links) {
+        const sentence = link.link.sentence;
+        if (member.hero === candidate) {
+          if (!link.active) {
+            if (result.off === "leftmost") breaks.add(member.hero, result.source, sentence);
+            continue;
+          }
+          const to = link.receivers.filter((r) => r.ok).map((r) => r.hero);
+          if (to.length > 0) gives.add(member.hero, result.source, sentence, to);
+          // una condizione «tutti» a squadra incompleta non e' ancora un fatto
+          const byTeam = link.conditions.some(
+            (c) => (c.condition.kind !== "all" || after.fieldFull) && c.members.some((m) => m.ok && m.hero !== candidate),
+          );
+          if (byTeam) wakes.add(member.hero, result.source, sentence);
+          continue;
+        }
+        const was = past.get(key(member.hero, result.source, sentence));
+        if (link.active && !was?.active) lights.add(member.hero, result.source, sentence);
+        else if (!link.active && was?.active) breaks.add(member.hero, result.source, sentence);
+        else if (link.active) {
+          const grew = link.conditions.some(
+            (c, i) => c.condition.kind === "each" && c.count > (was?.conditions[i]?.count ?? 0),
+          );
+          if (grew) boosts.add(member.hero, result.source, sentence);
+        }
+        if (link.active && link.receivers.some((r) => r.hero === candidate && r.ok)) {
+          receives.add(member.hero, result.source, sentence, [candidate]);
+        }
+      }
+    }
+  }
+  return {
+    hero: candidate,
+    lights: lights.list(),
+    boosts: boosts.list(),
+    gives: gives.list(),
+    receives: receives.list(),
+    wakes: wakes.list(),
+    breaks: breaks.list(),
+  };
 }
 
 /**
- * Gli eroi che si incastrano meglio in un posto della squadra: per ogni candidato
- * (un personaggio che non c'e' gia', associati compresi) quanto sale il
- * punteggio. Si tengono solo quelli che portano qualcosa, dal piu' alto; a parita'
- * chi da' a piu' compagni, poi l'ordine di `candidates`. Di un personaggio si
- * tiene la versione migliore: tre Drole di fila riempirebbero l'elenco con lo
- * stesso posto in squadra (nella prima prova, 6 nomi su 12 erano doppi).
+ * Gli eroi che si incastrano in un posto della squadra: per ogni candidato (un
+ * personaggio che non c'e' gia', associati compresi) cosa cambia mettendolo li'. Si
+ * tengono quelli che portano piu' di quello che spengono.
+ *
+ * L'ordine e' una fila di domande, una dopo l'altra, senza pesi: quante passive dei
+ * compagni accende o fa crescere, tolte quelle che spegne; poi quante passive si
+ * scambia coi compagni, date e ricevute insieme (stare nel gruppo di King vale
+ * quanto dare qualcosa a King); poi quante delle sue fanno scattare i compagni. Di
+ * un personaggio si tiene la versione migliore: tre Drole di fila riempirebbero
+ * l'elenco con lo stesso posto in squadra.
+ *
+ * Non dice quanto e' forte la squadra: guarda solo le passive, non quanto valgono.
  */
 export function suggest(
   setup: TeamSetup,
@@ -586,27 +686,23 @@ export function suggest(
       .filter((id): id is string => !!id)
       .map((id) => data.heroes.get(id)?.group),
   );
-  const base = synergyScore(analyzeTeam({ ...setup, mains: setup.mains.map((id, i) => (i === slot ? null : id)) }, data));
+  const before = analyzeTeam({ ...setup, mains: setup.mains.map((id, i) => (i === slot ? null : id)) }, data);
+  const rank = (s: Suggestion) => [s.lights.length + s.boosts.length - s.breaks.length, s.gives.length + s.receives.length, s.wakes.length];
   const out: Suggestion[] = [];
   for (const candidate of candidates) {
     if (used.has(candidate.group)) continue;
-    const mains = setup.mains.map((id, i) => (i === slot ? candidate.id : id));
-    const analysis = analyzeTeam({ ...setup, mains }, data);
-    const gain = synergyScore(analysis) - base;
-    if (gain <= 0) continue;
-    out.push({
-      hero: candidate.id,
-      gain,
-      gives: analysis.gives.filter((i) => i.from === candidate.id),
-      receives: analysis.gives.filter((i) => i.to === candidate.id),
-      enables: analysis.enables.filter((i) => i.from === candidate.id),
-      enabledBy: analysis.enables.filter((i) => i.to === candidate.id),
-    });
+    const after = analyzeTeam({ ...setup, mains: setup.mains.map((id, i) => (i === slot ? candidate.id : id)) }, data);
+    const change = changesOf(candidate.id, before, after);
+    const brings = change.lights.length + change.boosts.length + change.gives.length + change.wakes.length + change.receives.length;
+    if (brings > change.breaks.length) out.push(change);
   }
   const seen = new Set<string>();
   return out
-    .map((s, order) => ({ s, order }))
-    .sort((a, b) => b.s.gain - a.s.gain || b.s.gives.length - a.s.gives.length || a.order - b.order)
+    .map((s, order) => ({ s, order, by: rank(s) }))
+    .sort((a, b) => {
+      for (let i = 0; i < a.by.length; i++) if (a.by[i] !== b.by[i]) return b.by[i]! - a.by[i]!;
+      return a.order - b.order;
+    })
     .filter(({ s }) => {
       const group = data.heroes.get(s.hero)!.group;
       if (seen.has(group)) return false;

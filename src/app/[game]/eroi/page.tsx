@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui";
 import { findGame } from "@/lib/games/catalog";
 import { affinityLabel } from "@/lib/games/grand-cross/roster";
 import { requireGameModule } from "@/lib/games/registry";
+import type { HeroLabel } from "@/lib/games/types";
 import { inLingua, testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -76,7 +77,7 @@ export default async function HeroesPage({ params }: Props) {
   if (!entry) notFound();
 
   const gameModule = requireGameModule(game);
-  const { roster, icons, releases, heroContext } = gameModule;
+  const { roster, icons, releases, heroContext, skillTags } = gameModule;
   // La voce di menu non compare senza roster, ma l'indirizzo si puo' digitare.
   if (!roster) notFound();
 
@@ -127,6 +128,30 @@ export default async function HeroesPage({ params }: Props) {
       }
     : undefined;
 
+  // Le voci del filtro «Effetto» come razze e caratteristiche: una lingua sola verso il
+  // browser, perche' 312 descrizioni in due lingue peserebbero il doppio per niente.
+  // Il gioco da' lo stesso nome italiano a effetti diversi (Shatter e Crush sono tutti e
+  // due «Frantumazione»): nel menu sarebbero due righe uguali, con numeri diversi. Li
+  // distingue il nome nell'altra lingua, e non si fondono perche' gli eroi sono altri
+  const effectNames = new Map<string, number>();
+  for (const entry of skillTags?.groups.flatMap((group) => group.entries) ?? []) {
+    const name = inLingua(entry.label, locale) ?? "";
+    effectNames.set(name, (effectNames.get(name) ?? 0) + 1);
+  }
+  const effectName = (label: HeroLabel) => {
+    const name = inLingua(label, locale) ?? "";
+    return (effectNames.get(name) ?? 0) > 1 ? `${name} · ${inLingua(label, locale === "it" ? "en" : "it")}` : name;
+  };
+  const effects = skillTags?.groups.map((group) => ({
+    label: inLingua(group.label, locale) ?? group.id,
+    entries: group.entries.map((entry) => ({
+      tags: entry.tags,
+      label: effectName(entry.label),
+      description: inLingua(entry.description, locale) ?? "",
+      heroes: entry.heroes,
+    })),
+  }));
+
   const rarest = roster.rarities[0];
   const counted = roster.heroes.filter((hero) => hero.rarity === rarest).length;
 
@@ -154,7 +179,7 @@ export default async function HeroesPage({ params }: Props) {
         </p>
       </PageHeader>
 
-      <RosterBrowser game={game} roster={localized} icons={icons} traits={traits} />
+      <RosterBrowser game={game} roster={localized} icons={icons} traits={traits} effects={effects} />
 
       <p className="mt-8 border-t border-rule-2 pt-4 text-[13px] text-ink-3">
         {t.card} {t.diritti(entry.publisher)}

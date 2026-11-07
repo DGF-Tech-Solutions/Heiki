@@ -12,8 +12,8 @@
  *
  * Si sceglie un eroe cliccando un posto: si apre il riquadro della scelta, con
  * la ricerca e, per i posti in campo, gli eroi che si incastrano meglio
- * (`suggest`, contati solo sulle passive, come ha chiesto l'utente); per gli
- * associati, i legami dell'eroe del posto.
+ * (`suggest`: cosa cambia nelle passive, detto a parole, senza un punteggio); per
+ * gli associati, i legami dell'eroe del posto.
  *
  * L'ordine della pagina (10/10): prima la squadra, che e' lo strumento; sotto i
  * suoi comandi (link, svuota), poi la scelta, poi dove si gioca, e in fondo il
@@ -40,19 +40,61 @@ import {
   fateOf,
   fateSuggestions,
   parseSetup,
+  sentenceText,
   setupToQuery,
   suggest,
   TEAM_SLOTS,
+  type PassiveChange,
   type Suggestion,
   type TeamData,
   type TeamSetup,
 } from "@/lib/games/team";
+import type { TeamContent } from "@/lib/games/team-types";
 import { useLocale } from "@/lib/i18n/client";
 import { inLingua } from "@/lib/i18n/locale";
 import { TeamReport } from "./team-report";
 import { slotLabel, TESTI, type BuilderData, type BuilderHero, type Texts } from "./team-labels";
 import { moveLegacyStorage } from "@/lib/legacy-storage";
 import { rem } from "@/lib/rem";
+
+/** Il nome di una passiva che cambia, in parole: «Unica di King», «Comandamento di Derieri». */
+function whose(change: PassiveChange, t: Texts, data: BuilderData, heroes: ReadonlyMap<string, BuilderHero>): string {
+  const { source } = change;
+  const kind = source.kind === "special" && source.special ? (data.specials[source.special]?.label ?? t.tipo.special) : t.tipo[source.kind];
+  return t.passivaDi(kind, heroes.get(change.hero)?.name ?? change.hero);
+}
+
+/**
+ * I motivi di un consiglio, nell'ordine in cui contano: solo quelli che ci sono, e
+ * ogni passiva una volta sola. Una stessa Unica puo' crescere con lui e arrivargli
+ * insieme, o partire da lui e scattare coi compagni: la si dice dove pesa di piu'.
+ */
+function reasonGroups(s: Suggestion, t: Texts) {
+  const said = new Set<string>();
+  const once = (changes: readonly PassiveChange[]) =>
+    changes.filter((c) => {
+      const key = `${c.hero}:${c.source.kind}:${c.source.id}`;
+      if (said.has(key)) return false;
+      said.add(key);
+      return true;
+    });
+  return [
+    { label: t.spegneLe, changes: once(s.breaks), bad: true },
+    { label: t.accendeLe, changes: once(s.lights), bad: false },
+    { label: t.faCrescere, changes: once(s.boosts), bad: false },
+    { label: t.arrivaA, changes: once(s.gives), bad: false },
+    { label: t.scattaCon, changes: once(s.wakes), bad: false },
+    { label: t.riceveLe, changes: once(s.receives), bad: false },
+  ].filter((group) => group.changes.length > 0);
+}
+
+/** Le frasi di una passiva che cambia: da tutti i motivi in cui compare, una volta sola. */
+function sentencesOfChange(s: Suggestion, change: PassiveChange): number[] {
+  const same = [...s.breaks, ...s.lights, ...s.boosts, ...s.gives, ...s.wakes, ...s.receives].filter(
+    (c) => c.hero === change.hero && c.source.kind === change.source.kind && c.source.id === change.source.id,
+  );
+  return [...new Set(same.flatMap((c) => c.sentences))];
+}
 
 type Picking = { readonly kind: "main" | "associate"; readonly slot: number };
 /** l'ultimo eroe messo in un posto: solo lui entra col taglio del palco */
@@ -279,6 +321,11 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
 
 /* --------------------------------------------------------------- comandi -- */
 
+const BENCH_BY_CONTENT: Partial<Record<TeamContent, { bench: boolean }>> = {
+  destroy: { bench: true },
+  nest: { bench: false },
+};
+
 function Controls({
   t,
   data,
@@ -299,7 +346,10 @@ function Controls({
         legend={t.contenuto}
         name="squadra-contenuto"
         value={setup.content}
-        onChange={(content) => update({ content })}
+        // Dove il gioco lo dice, il quarto eroe segue il contenuto: `stage_hero_entry_all`
+        // vale 0 su tutti i 118 livelli dello Scontro finale e 1 su tutti i 30 delle
+        // Bestie. Storia e PvP mescolano modalita' diverse: li' si lascia la scelta fatta
+        onChange={(content) => update({ content, ...BENCH_BY_CONTENT[content] })}
         options={CONTENTS.map((value) => ({ value, label: t.contenuti[value], title: t.contenutiTitolo[value] }))}
       />
       <RadioChips
@@ -491,6 +541,9 @@ function Picker({
     [picking, setup, pool, teamData],
   );
 
+  // senza compagni non c'e' niente da incastrare: nessun consiglio, e lo si dice
+  const teammates = setup.mains.filter((id, i) => id && !(picking.kind === "main" && i === picking.slot)).length;
+
   const main = picking.kind === "associate" && setup.mains[picking.slot] ? heroes.get(setup.mains[picking.slot]!) : undefined;
   const bonds = useMemo(
     () =>
@@ -535,27 +588,18 @@ function Picker({
           <p className={cx(eyebrow, "m-0")}>{t.suggeriti}</p>
           <p className="mt-1 mb-2 max-w-[72ch] text-[12px] text-ink-3">{t.suggeritiSpiega}</p>
           {suggestions.length === 0 ? (
-            <p className="m-0 text-[13px] text-ink-3">{t.nessunSuggerimento}</p>
+            <p className="m-0 text-[13px] text-ink-3">{teammates === 0 ? t.primaUnEroe : t.nessunSuggerimento}</p>
           ) : (
-            <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="m-0 grid list-none grid-cols-1 items-start gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">
               {suggestions.map((s) => {
                 const hero = heroes.get(s.hero)!;
-                const givesTo = new Set(s.gives.map((i) => i.to)).size;
-                const from = new Set(s.receives.map((i) => i.from)).size;
-                const lights = new Set(s.enables.map((i) => i.to)).size;
-                const litBy = new Set(s.enabledBy.map((i) => i.from)).size;
-                const reasons = [
-                  givesTo ? t.daA(givesTo) : null,
-                  from ? t.riceveDa(from) : null,
-                  lights ? t.accende(lights) : null,
-                  litBy ? t.accesoDa(litBy) : null,
-                ].filter(Boolean);
+                const groups = reasonGroups(s, t);
                 return (
-                  <li key={s.hero}>
+                  <li key={s.hero} className="border border-rule bg-paper">
                     <button
                       type="button"
                       onClick={() => onPlace(s.hero)}
-                      className="group flex w-full cursor-pointer items-center gap-2.5 border border-rule bg-paper p-1.5 text-left text-ink transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2"
+                      className="group flex w-full cursor-pointer items-center gap-2.5 p-1.5 text-left text-ink transition-colors hover:bg-paper-2 focus-visible:outline-2 focus-visible:outline-offset-2"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element -- card gia' pronte */}
                       <img src={heroCardSrc(data.game, hero.id)} alt="" width={44} style={{ width: rem(44) }} height={44} className="shrink-0" />
@@ -564,12 +608,35 @@ function Picker({
                           {hero.epithet}
                         </span>
                         <span className="block truncate font-display text-[13px] font-black uppercase [font-variation-settings:'wdth'_80] group-hover:text-brand-deep">{hero.name}</span>
-                        <span className="block text-[12px] leading-snug text-ink-3">{reasons.join(", ")}</span>
-                      </span>
-                      <span title={t.guadagnoTitolo(s.gain)} className={cx(numeric, "p5-cut-sm shrink-0 bg-brand px-2 py-0.5 text-[12px] font-bold text-on-brand")}>
-                        {t.guadagno(s.gain)}
                       </span>
                     </button>
+                    <ul className="m-0 list-none border-t border-rule px-2 py-1.5 text-[12px] leading-snug text-ink-2">
+                      {groups.map((group) => (
+                        <li key={group.label} className={group.bad ? "text-down" : undefined}>
+                          <span className="font-bold">{group.label}:</span> {group.changes.map((c) => whose(c, t, data, heroes)).join(", ")}
+                        </li>
+                      ))}
+                    </ul>
+                    <details className="border-t border-rule">
+                      <summary className="cursor-pointer px-2 py-1.5 text-[12px] text-ink-3 max-sm:py-3">{t.perche2}</summary>
+                      <ul className="m-0 list-none px-2 pb-2 text-[12px] leading-snug text-ink-2">
+                        {groups.flatMap((group) =>
+                          group.changes.map((c) => (
+                            <li key={`${group.label}-${c.hero}-${c.source.id}`} className="mt-1.5">
+                              <span className="font-bold">{whose(c, t, data, heroes)}</span>
+                              {sentencesOfChange(s, c).map((n) => {
+                                const sentence = sentenceText(data.team, n, locale);
+                                return (
+                                  <span key={n} className="block" lang={sentence.english ? "en" : undefined}>
+                                    {sentence.text}
+                                  </span>
+                                );
+                              })}
+                            </li>
+                          )),
+                        )}
+                      </ul>
+                    </details>
                   </li>
                 );
               })}

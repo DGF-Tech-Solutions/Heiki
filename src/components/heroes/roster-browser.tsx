@@ -6,7 +6,8 @@
  *   - a tutta larghezza: l'anteprima accanto alla griglia non c'e' piu', rubava spazio
  *   - sul computer i filtri sono sempre aperti, in una tabella compatta. Sul telefono
  *     stanno dietro «Filtri», e quelli scelti restano in vista come tasselli
- *   - l'ordine e' un menu nativo del browser
+ *   - l'ordine e' un menu nativo del browser, e cosi' l'effetto (07/11): sono 312 voci,
+ *     come pulsanti non starebbero in nessuno schermo
  *
  * I filtri si scrivono nell'indirizzo e si rileggono da li': su Indietro Next rimette la
  * pagina del primo arrivo, e uno stato seminato dal server tornerebbe vecchio (11/10).
@@ -58,6 +59,9 @@ const TESTI = testi({
     esceCome: "Esce come",
     razza: "Razza",
     caratteristica: "Caratteristica",
+    effetto: "Effetto",
+    effettoTutti: "Tutti",
+    effettoLimite: "Il filtro guarda le carte e la Mossa finale, non le passive: il gioco non le etichetta.",
     filtri: "Filtri",
     attivi: (n: number) => (n === 1 ? "1 attivo" : `${n} attivi`),
     miei: "I miei",
@@ -83,6 +87,9 @@ const TESTI = testi({
     esceCome: "Obtained as",
     razza: "Race",
     caratteristica: "Characteristic",
+    effetto: "Effect",
+    effettoTutti: "All",
+    effettoLimite: "This filter looks at the cards and the Ultimate Move, not the passives: the game doesn't tag those.",
     filtri: "Filters",
     attivi: (n: number) => `${n} active`,
     miei: "Mine",
@@ -106,6 +113,18 @@ const ORDERS: readonly HeroOrder[] = ["roster", "name", "group"];
 const SALTO =
   "salto sr-only focus:not-sr-only focus:block focus:w-fit focus:px-3 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-ink";
 
+/** Un gruppo del menu «Effetto», gia' nella lingua della pagina. */
+interface EffectGroup {
+  label: string;
+  entries: readonly {
+    /** il primo e' quello dell'indirizzo; gli altri li raccoglie la stessa voce */
+    tags: readonly [number, ...number[]];
+    label: string;
+    description: string;
+    heroes: readonly string[];
+  }[];
+}
+
 /** Lo stato dei filtri, come sta nell'indirizzo. */
 interface RosterQuery {
   search: string;
@@ -114,6 +133,7 @@ interface RosterQuery {
   obtainable: string | null;
   race: number | null;
   faction: number | null;
+  effect: number | null;
   order: HeroOrder;
   mine: boolean;
 }
@@ -125,6 +145,7 @@ const EMPTY_QUERY: RosterQuery = {
   obtainable: null,
   race: null,
   faction: null,
+  effect: null,
   order: "roster",
   mine: false,
 };
@@ -138,6 +159,7 @@ function toSearchParams(query: RosterQuery): string {
   if (query.obtainable) params.set("esce", query.obtainable);
   if (query.race !== null) params.set("razza", String(query.race));
   if (query.faction !== null) params.set("caratteristica", String(query.faction));
+  if (query.effect !== null) params.set("effetto", String(query.effect));
   if (query.order !== "roster") params.set("ordine", query.order);
   if (query.mine) params.set("miei", "1");
   const text = params.toString();
@@ -154,6 +176,7 @@ function fromSearchParams(
   params: Pick<URLSearchParams, "get">,
   roster: HeroRoster,
   traits: { races: readonly { code: number }[]; factions: readonly { code: number }[] } | undefined,
+  effects: readonly EffectGroup[] | undefined,
 ): RosterQuery {
   const one = (key: string, offered: readonly string[]) => {
     const value = params.get(key);
@@ -162,6 +185,10 @@ function fromSearchParams(
   const code = (key: string, offered: readonly { code: number }[] | undefined) =>
     offered?.find((item) => String(item.code) === params.get(key))?.code ?? null;
   const order = params.get("ordine");
+  // qualunque tag di una voce fusa porta alla voce, e nell'indirizzo torna il suo primo
+  const effect = effects
+    ?.flatMap((group) => group.entries)
+    .find((entry) => entry.tags.some((tag) => String(tag) === params.get("effetto")));
   return {
     search: (params.get("cerca") ?? "").slice(0, 80),
     rarity: one("rarita", roster.rarities),
@@ -169,6 +196,7 @@ function fromSearchParams(
     obtainable: one("esce", roster.obtainable),
     race: code("razza", traits?.races),
     faction: code("caratteristica", traits?.factions),
+    effect: effect?.tags[0] ?? null,
     order: order === "name" || order === "group" ? order : "roster",
     mine: params.get("miei") === "1",
   };
@@ -179,6 +207,7 @@ export function RosterBrowser({
   roster,
   icons,
   traits,
+  effects,
 }: {
   game: string;
   roster: HeroRoster;
@@ -194,15 +223,17 @@ export function RosterBrowser({
     races: readonly { code: number; label: string; iconKey?: string }[];
     factions: readonly { code: number; label: string }[];
   };
+  /** i gruppi del menu «Effetto»; senza, il menu non c'e' */
+  effects?: readonly EffectGroup[];
 }) {
   const locale = useLocale();
   const t = TESTI[locale];
   // i filtri all'arrivo dall'indirizzo di adesso, anche tornando con Indietro
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState<RosterQuery>(() => fromSearchParams(searchParams, roster, traits));
+  const [query, setQuery] = useState<RosterQuery>(() => fromSearchParams(searchParams, roster, traits, effects));
   const [box] = useHeroBox(game);
   const hasBox = boxSize(box) > 0;
-  const { search, rarity, affinity, obtainable, race, faction, order } = query;
+  const { search, rarity, affinity, obtainable, race, faction, effect, order } = query;
   const mine = query.mine && hasBox;
   const change = (patch: Partial<RosterQuery>) => setQuery((current) => ({ ...current, ...patch }));
 
@@ -212,10 +243,21 @@ export function RosterBrowser({
     if (next !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, "", next);
   }, [query]);
 
-  const heroes = useMemo(
+  const owned = useMemo(
     () => (mine ? roster.heroes.filter((hero) => ownsHero(box, hero.id)) : roster.heroes),
     [roster.heroes, mine, box],
   );
+
+  const effectEntries = useMemo(() => effects?.flatMap((group) => group.entries) ?? [], [effects]);
+  const chosenEffect = effectEntries.find((entry) => entry.tags[0] === effect);
+
+  // L'effetto stringe l'elenco di partenza, come il box: cosi' i numeri dei pulsanti lo
+  // seguono da soli, senza un criterio in piu' in ognuno dei conteggi qui sotto
+  const heroes = useMemo(() => {
+    if (!chosenEffect) return owned;
+    const having = new Set(chosenEffect.heroes);
+    return owned.filter((hero) => having.has(hero.id));
+  }, [owned, chosenEffect]);
 
   const visible = useMemo(
     () => sortHeroes(filterHeroes(heroes, { search, rarity, affinity, obtainable, race, faction }), order, locale),
@@ -245,6 +287,12 @@ export function RosterBrowser({
     () => countTraits(filterHeroes(heroes, { search, rarity, affinity, obtainable, race }), "faction"),
     [heroes, search, rarity, affinity, obtainable, race],
   );
+
+  // Il menu si conta come i pulsanti: parte da `owned`, cioe' senza se stesso
+  const effectCounts = useMemo(() => {
+    const ids = new Set(filterHeroes(owned, { search, rarity, affinity, obtainable, race, faction }).map((hero) => hero.id));
+    return new Map(effectEntries.map((entry) => [entry.tags[0], entry.heroes.filter((id) => ids.has(id)).length]));
+  }, [owned, effectEntries, search, rarity, affinity, obtainable, race, faction]);
 
   const byAffinity = useMemo(() => new Map(roster.affinities.map((item) => [item.id, item])), [roster.affinities]);
 
@@ -291,6 +339,7 @@ export function RosterBrowser({
     ...(faction !== null
       ? [{ label: traits?.factions.find((item) => item.code === faction)?.label ?? String(faction), clear: { faction: null } }]
       : []),
+    ...(chosenEffect ? [{ label: `${t.effetto}: ${chosenEffect.label}`, clear: { effect: null } }] : []),
   ];
   const activeCount = chosen.length;
   const filtered = activeCount > 0 || search !== "";
@@ -362,6 +411,22 @@ export function RosterBrowser({
           </button>
         ) : null}
 
+        {/* solo sul computer: sul telefono sta dietro «Filtri», qui sotto */}
+        {effects ? (
+          <label className="flex shrink-0 items-center gap-2 text-[13px] text-ink-3 max-lg:hidden lg:ml-3">
+            {t.effetto}
+            <EffectSelect
+              groups={effects}
+              counts={effectCounts}
+              value={effect}
+              allLabel={t.effettoTutti}
+              onPick={(next) => change({ effect: next })}
+              // la voce scelta si legge intera nella riga sotto la barra; a 1024 la colonna e' di 730 px
+              className="barra-ordine lg:w-[200px] xl:w-[260px]"
+            />
+          </label>
+        ) : null}
+
         <label className="flex shrink-0 items-center gap-2 text-[13px] text-ink-3 lg:ml-3">
           {t.ordina}
           <Select
@@ -377,6 +442,12 @@ export function RosterBrowser({
           </Select>
         </label>
       </div>
+
+      {chosenEffect ? (
+        <p className="m-0 mt-3 text-[14px] text-ink-2">
+          <strong className="font-semibold text-ink">{chosenEffect.label}</strong>: {chosenEffect.description} {t.effettoLimite}
+        </p>
+      ) : null}
 
       {/* da tastiera i filtri sono una trentina di pulsanti: chi vuole gli eroi ci salta sopra */}
       {visible.length > 0 ? (
@@ -472,6 +543,21 @@ export function RosterBrowser({
             ))}
           </FilterGroup>
         ) : null}
+        {/* solo a pannello aperto: chiuso sarebbero 312 voci in piu' da rifare a ogni tasto della ricerca */}
+        {effects && panelOpen ? (
+          // `min-w-0` qui e sul menu: la voce piu' lunga ha 55 caratteri, e in una griglia sforerebbe i 358 px
+          <label className="grid min-w-0 gap-1.5 lg:hidden">
+            <span className={cx(eyebrow, "filtri-etichetta")}>{t.effetto}</span>
+            <EffectSelect
+              groups={effects}
+              counts={effectCounts}
+              value={effect}
+              allLabel={t.effettoTutti}
+              onPick={(next) => change({ effect: next })}
+              className="barra-ordine min-w-0 pointer-coarse:min-h-11"
+            />
+          </label>
+        ) : null}
       </div>
 
       {activeCount > 0 ? (
@@ -482,10 +568,11 @@ export function RosterBrowser({
               type="button"
               onClick={() => change(item.clear)}
               aria-label={t.togli(item.label)}
-              className={buttonClass("ghost", "sm", "tassello shrink-0")}
+              // un effetto ha fino a 55 caratteri: si taglia qui, intero sta nella riga sotto la barra
+              className={buttonClass("ghost", "sm", "tassello min-w-0 max-w-full")}
             >
-              {item.label}
-              <IconClose size={12} />
+              <span className="truncate">{item.label}</span>
+              <IconClose size={12} className="shrink-0" />
             </button>
           ))}
           <button type="button" onClick={reset} aria-label={t.azzera} className={buttonClass("ghost", "sm", "shrink-0")}>
@@ -520,7 +607,7 @@ export function RosterBrowser({
               id="eroi"
               tabIndex={-1}
               onKeyDown={onGridKey}
-              className="griglia-eroi m-0 grid list-none scroll-mt-24 gap-x-2.5 gap-y-4 p-0 focus:outline-none lg:scroll-mt-36"
+              className="griglia-eroi m-0 grid list-none scroll-mt-24 gap-x-2.5 gap-y-4 p-0 focus:outline-none lg:max-xl:scroll-mt-48 xl:scroll-mt-36"
             >
               {visible.map((hero) => (
                 <HeroCard
@@ -538,6 +625,45 @@ export function RosterBrowser({
         )}
       </div>
     </>
+  );
+}
+
+/** Il menu degli effetti, coi gruppi del gioco. A zero eroi una voce non si sceglie, come un pulsante. */
+function EffectSelect({
+  groups,
+  counts,
+  value,
+  allLabel,
+  onPick,
+  className,
+}: {
+  groups: readonly EffectGroup[];
+  counts: ReadonlyMap<number, number>;
+  value: number | null;
+  allLabel: string;
+  onPick: (effect: number | null) => void;
+  className: string;
+}) {
+  return (
+    <Select
+      value={value ?? ""}
+      onChange={(event) => onPick(event.target.value ? Number(event.target.value) : null)}
+      className={className}
+    >
+      <option value="">{allLabel}</option>
+      {groups.map((group) => (
+        <optgroup key={group.label} label={group.label}>
+          {group.entries.map((entry) => {
+            const count = counts.get(entry.tags[0]) ?? 0;
+            return (
+              <option key={entry.tags[0]} value={entry.tags[0]} disabled={count === 0}>
+                {`${entry.label} (${count})`}
+              </option>
+            );
+          })}
+        </optgroup>
+      ))}
+    </Select>
   );
 }
 
@@ -615,7 +741,7 @@ const HeroCard = memo(function HeroCard({
         data-hero={hero.id}
         style={tint ? ({ "--tinta": tint } as CSSProperties) : undefined}
         // col fuoco la card scorre in vista sotto intestazione e barra ferme, non dietro (WCAG 2.4.11)
-        className="hero-card group block scroll-mt-24 scroll-mb-4 lg:scroll-mt-36"
+        className="hero-card group block scroll-mt-24 scroll-mb-4 lg:max-xl:scroll-mt-48 xl:scroll-mt-36"
       >
         <span className="hero-card-art relative block">
           {/*

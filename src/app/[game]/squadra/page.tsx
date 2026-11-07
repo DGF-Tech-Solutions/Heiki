@@ -47,7 +47,7 @@ const TESTI = testi({
     lettura:
       "Le passive si leggono dal testo del gioco, frase per frase: a chi va l'effetto («alleati applicabili», «alleati Giganti», «tutti gli alleati») e quali compagni lo fanno scattare («per ogni alleato applicabile in battaglia», «se gli alleati in battaglia sono tutti Demoni»). Le razze e le caratteristiche lette nelle Uniche coincidono con i dati del client in 111 casi; nei 7 che non coincidono è il testo del gioco a nominarne di più.",
     suggerimenti:
-      "I suggerimenti contano soltanto le passive: quanti effetti in più vanno ai compagni, quante passive in più si accendono, le condizioni «tutti» rispettate o rotte, le abilità speciali che si spengono a vicenda. È un conteggio, non un giudizio: non dice quanto vale un eroe.",
+      "I consigli guardano solo le passive e non danno un punteggio: dicono quali passive dei compagni si accendono, crescono o si spengono, e cosa si danno gli eroi. Prima chi accende o fa crescere di più, poi chi si scambia più effetti coi compagni. Una condizione «tutti gli alleati...» conta solo a squadra piena.",
     panchina:
       "Chi è nello slot secondario non partecipa alla battaglia finché non entra: non conta per le condizioni dei compagni, e le sue passive aspettano, tranne quelle che il gioco segna «Si attiva anche in uno slot secondario». Il quarto eroe parte in panchina nella storia e nel PvP normale, in campo nei boss e nelle Bestie demoniache.",
     speciali:
@@ -66,7 +66,7 @@ const TESTI = testi({
     lettura:
       "Passives are read from the game's text, sentence by sentence: who gets the effect («Applicable Allies», «Giant allies», «all allies») and which teammates trigger it («for each Applicable Ally participating in battle», «if allies in battle are all Demons»). The races and characteristics read in the Uniques match the client's data in 111 cases; in the 7 that don't, it's the game's text that names more.",
     suggerimenti:
-      "Suggestions count only the passives: how many more effects go to teammates, how many more passives light up, the «all» conditions met or broken, the special abilities that turn each other off. It's a count, not a judgment: it doesn't say how good a hero is.",
+      "Suggestions only look at passives and give no score: they say which teammates' passives turn on, grow or turn off, and what the heroes give each other. First who turns on or grows the most, then who trades the most effects with teammates. An «all allies...» condition only counts with a full team.",
     panchina:
       "The hero in the Sub slot doesn't take part in the battle until it enters: it doesn't count for its teammates' conditions, and its passives wait, except those the game marks «Active even in Sub slot». The fourth hero starts on the bench in the story and normal PvP, on the field in bosses and Demonic Beasts.",
     speciali:

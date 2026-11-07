@@ -313,11 +313,13 @@ Sul telefono i dati sotto il nome stanno in fila, senza etichette, perché le sc
 
 ### Tendina delle parole blu
 
+Il blu del gioco è evidenziazione, non vuol dire «termine»: si aprono solo gli effetti che il gioco nomina e spiega, e le appartenenze (razze, caratteristiche, alleati applicabili). Statistiche, azioni e momenti restano blu ma fermi (`isNamedEffect` in `scripts/import-hero-terms.mts`). Per trovare chi ha un'azione c'è il filtro Effetto della griglia.
+
 Prima di tutto dice cosa fa la parola: il nome a 18 px e, sotto, la nota che il gioco scrive per QUESTO eroe, intera e coi suoi numeri (`ownNotes` in `hero-terms.tsx`); solo se manca, la definizione generica. Sotto, il conteggio con la ricerca e l'elenco. Se ce l'ha solo lui, niente elenco. Fondo `piastra-fondo`, filetto `rule`, nessuna ombra. Le card dell'elenco prendono la misura dalle classi: uno stile in linea la stira.
 
 ### Barra della griglia
 
-`.barra-eroi`: ricerca, conteggio, Azzera, Ordina, alti uguali, ferma sotto l'intestazione solo sul computer. Sul telefono i filtri scelti tornano come tasselli (`.tassello`).
+`.barra-eroi`: ricerca, conteggio, Azzera, Effetto, Ordina, alti uguali, ferma sotto l'intestazione solo sul computer. Sul telefono i filtri scelti tornano come tasselli (`.tassello`).
 
 ## Do's and Don'ts
 

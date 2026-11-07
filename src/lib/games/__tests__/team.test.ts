@@ -19,7 +19,6 @@ import {
   sentencesOf,
   setupToQuery,
   suggest,
-  synergyScore,
   teamHeroesOf,
   textAt,
   type TeamData,
@@ -170,13 +169,33 @@ describe("il rango della Mossa finale", () => {
 });
 
 describe("i suggerimenti", () => {
-  it("per il posto libero accanto a King e Diane vengono Fate e Giganti, con un guadagno", () => {
+  it("a squadra vuota non si consiglia nessuno: non ci sono compagni da guardare", () => {
+    // fino al 07/11 Chandler prendeva +4 da solo: «tutti gli alleati sono applicabili» e' vero se c'e' solo lui
+    expect(suggest(team([]), 0, [...heroes.values()], data)).toEqual([]);
+  });
+
+  it("una condizione «tutti» conta come rispettata solo a squadra piena, ma si puo' rompere prima", () => {
+    const CHANDLER = "1911501";
+    expect(analyzeTeam(team([CHANDLER]), data).allMet).toBe(0);
+    expect(analyzeTeam(team([CHANDLER]), data).fieldFull).toBe(false);
+    expect(analyzeTeam(team([CHANDLER, KING]), data).allBroken).toBeGreaterThan(0);
+  });
+
+  it("per il posto libero accanto a King e Diane ogni consiglio dice cosa cambia", () => {
     const setup = team([KING, DIANE]);
     const list = suggest(setup, 2, [...heroes.values()], data);
     expect(list.length).toBeGreaterThan(0);
-    for (const s of list) expect(s.gain).toBeGreaterThan(0);
-    const top = heroes.get(list[0]!.hero)!;
-    expect(top.race === 2 || top.race === 4 || synergyScore(analyzeTeam({ ...setup, mains: [KING, DIANE, top.id, null] }, data)) > 0).toBe(true);
+    for (const s of list) {
+      const brings = s.lights.length + s.boosts.length + s.gives.length + s.wakes.length + s.receives.length;
+      expect(brings).toBeGreaterThan(s.breaks.length);
+      // i motivi hanno sempre le frasi del gioco dietro
+      for (const c of [...s.lights, ...s.boosts, ...s.gives, ...s.wakes, ...s.receives, ...s.breaks]) {
+        expect(c.sentences.length).toBeGreaterThan(0);
+      }
+    }
+    // chi sta in cima si scambia passive con King e Diane: ne riceve da tutti e due
+    const top = list[0]!;
+    expect(new Set(top.receives.map((c) => c.hero))).toEqual(new Set([KING, DIANE]));
     // nessun personaggio gia' in squadra
     expect(list.some((s) => heroes.get(s.hero)!.group === heroes.get(KING)!.group)).toBe(false);
     // un personaggio una volta sola, nella versione che porta di piu'

@@ -170,6 +170,8 @@ const groups: HeroTermGroup[] = [];
 const groupIndex = new Map<string, number>();
 const texts = new Map<string, (string | null)[]>();
 const keyOwner = new Map<string, string>();
+// i nomi inglesi delle note «※Nome:» di tutti i testi: il gioco spiega questo effetto
+const noteNames = new Set<string>();
 // nome inglese di una nota -> nome e definizione italiani, per voto
 const itNoteName = new Map<string, Map<string, number>>();
 const itNoteDefinition = new Map<string, Map<string, number>>();
@@ -215,6 +217,7 @@ for (const text of pageTexts) {
   // le note italiane, appaiate per posizione alle inglesi: danno il nome e la
   // definizione italiani ai concetti che il glossario ha solo in inglese
   const enNotes = noteHeads(text.en);
+  for (const note of enNotes) noteNames.add(note.name.toLowerCase());
   const itNotes = text.it ? noteHeads(text.it) : [];
   const notesPaired = enNotes.length > 0 && enNotes.length === itNotes.length;
   if (notesPaired) {
@@ -503,12 +506,76 @@ for (const [pairKey, pair] of italianPairs) {
   });
 }
 
+/* -------------------------------------------- quali parole si aprono davvero -- */
+
+/*
+ * Il blu non vuol dire «termine del gioco»: e' solo evidenziazione. Misurato il
+ * 07/11, meta' delle parole blu non ha nessuna nota che la spieghi: «danni
+ * inflitti», «statistiche relative alla Difesa», «Rimuove i Buff», e anche
+ * momenti come «all'inizio della battaglia», legati a un nome interno solo perche'
+ * le parole si somigliano. Aprivano una tendina senza spiegazione, con un elenco
+ * che contava poco e a volte col verso sbagliato («Decreases Human allies' damage
+ * taken» finiva su «Aumento danni subiti»).
+ *
+ * Scelta dell'utente (07/11): si aprono solo gli effetti che il gioco nomina e
+ * spiega, e le appartenenze (razze, caratteristiche, alleati applicabili). Il resto
+ * resta blu e non si clicca. «Chi annulla gli Atteggiamenti?» e' una ricerca, non
+ * una parola da spiegare: e sulle carte il filtro del gioco la risponde meglio
+ * (`list_array_skill_search_tag`), mentre qui mancavano 34 eroi su 95.
+ *
+ * Il filtro sta QUI, dopo il legame dell'italiano: togliendo i bersagli prima, le
+ * parole italiane rimaste senza prove andrebbero per posizione su altre parole.
+ * `concetti` resta intero perche' la pagina Meccaniche ne legge i nomi.
+ */
+
+/**
+ * Nomi che il gioco spiega, ma non in queste parole: una nota di un solo eroe si
+ * chiama come una cosa di tutti, o la voce del gioco e' un'azione.
+ *   ultimate_move, attack_skills: «Mossa finale» e «Abilita' Attacco» aprivano la
+ *     nota di un eroe («tutte le statistiche +25%», «danni inflitti +50%»)
+ *   skill_rank_increase, stance_cancel_immunity, disables_single_target_attacks:
+ *     azioni scritte per esteso, come «Rimuove i Buff»
+ */
+const NOT_NAMED = new Set([
+  "ultimate_move",
+  "attack_skills",
+  "skill_rank_increase",
+  "stance_cancel_immunity",
+  "disables_single_target_attacks",
+]);
+
+/** Il gioco nomina e spiega questo effetto? Con una definizione, o con una nota «※Nome:» in qualche testo. */
+function isNamedEffect(concept: string): boolean {
+  const src = source.concetti[concept];
+  if (!src || src.certezza !== "dichiarato" || NOT_NAMED.has(concept)) return false;
+  if (src.definizione.en || src.definizione.it) return true;
+  return noteNames.has(src.etichetta.en?.toLowerCase() ?? "");
+}
+
+const cited = new Set(
+  [...texts.values()].flatMap((targets) =>
+    targets.flatMap((target) => (target ? target.split("|").filter((p) => p.startsWith("c:")).map((p) => p.slice(2)) : [])),
+  ),
+);
+
+const opens = (part: string) => !part.startsWith("c:") || isNamedEffect(part.slice(2));
+const clickable = new Map(
+  [...texts].map(([key, targets]) => [
+    key,
+    targets.map((target) => {
+      const parts = target?.split("|").filter(opens) ?? [];
+      return parts.length > 0 ? parts.join("|") : null;
+    }),
+  ]),
+);
+const wordsClickable = [...clickable.values()].reduce((sum, targets) => sum + targets.filter((target) => target !== null).length, 0);
+
 /* ------------------------------------------------ dove compare un concetto -- */
 
 // concetto -> eroe e abilita' -> il rango piu' basso in cui c'e'
 const firstRank = new Map<string, Map<string, number>>();
 for (const text of pageTexts) {
-  for (const target of texts.get(textKey(text.en)) ?? []) {
+  for (const target of clickable.get(textKey(text.en)) ?? []) {
     if (!target) continue;
     for (const part of target.split("|")) {
       if (!part.startsWith("c:")) continue;
@@ -531,11 +598,6 @@ for (const [concept, byPlace] of [...firstRank].sort((a, b) => a[0].localeCompar
 
 /* ------------------------------------------------------------- i concetti -- */
 
-const cited = new Set(
-  [...texts.values()].flatMap((targets) =>
-    targets.flatMap((target) => (target ? target.split("|").filter((p) => p.startsWith("c:")).map((p) => p.slice(2)) : [])),
-  ),
-);
 const concepts: Record<string, HeroTermConcept> = {};
 let italianFromNotes = 0;
 let italianFromWords = 0;
@@ -593,7 +655,7 @@ const lines = [
   `];`,
   ``,
   `const TEXTS: Readonly<Record<string, readonly (string | null)[]>> = {`,
-  ...[...texts]
+  ...[...clickable]
     .filter(([, targets]) => targets.some((target) => target !== null))
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([key, targets]) => `  ${json(key)}: ${json(targets)},`),
@@ -615,7 +677,7 @@ writeFileSync(DEST, lines.join("\n"), "utf8");
 const pct = (a: number, b: number) => (b ? `${((100 * a) / b).toFixed(1)}%` : "-");
 console.log(`  parole blu della scheda eroe`);
 console.log(`    testi della pagina         ${pageTexts.length} (${texts.size} diversi); senza voce nella pipeline ${missingText}`);
-console.log(`    parole blu                 ${words}: accostate ${wordsMatched} (${pct(wordsMatched, words)}), cliccabili ${wordsTargeted}`);
+console.log(`    parole blu                 ${words}: accostate ${wordsMatched} (${pct(wordsMatched, words)}), lette ${wordsTargeted}, si aprono ${wordsClickable}`);
 console.log(`    italiano                   ${italianAligned} testi su ${withItalian} con parole legate; parole ${italianWords}: con una prova ${italianByProof}, per posizione ${italianByPosition}, senza legame ${italianWords - italianByProof - italianByPosition}`);
 console.log(`                               testi in cui il legame per posizione di prima sbagliava almeno una parola: ${italianChanged}`);
 console.log(`    concetti                   ${Object.keys(concepts).length}; nome italiano dalle note ${italianFromNotes}, dalle parole ${italianFromWords}; senza ${Object.values(concepts).filter((c) => !c.label.it).length}`);
