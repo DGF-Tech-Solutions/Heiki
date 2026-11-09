@@ -12,15 +12,19 @@ import { HERO_CONTEXT } from "../grand-cross/hero-context.generated";
 import { HERO_SPECIALS } from "../grand-cross/hero-specials.generated";
 import { HEROES } from "../grand-cross/heroes.generated";
 import { TEAM } from "../grand-cross/team.generated";
+import { formatPercent, numberLines, otherStatsLine, TESTI } from "@/components/team-builder/team-labels";
 import {
   analyzeTeam,
   emptySetup,
   parseSetup,
+  plainSum,
   sentencesOf,
   setupToQuery,
   suggest,
   teamHeroesOf,
+  teamTotals,
   textAt,
+  totalValue,
   type TeamData,
   type TeamSetup,
 } from "../team";
@@ -201,6 +205,146 @@ describe("i suggerimenti", () => {
     // un personaggio una volta sola, nella versione che porta di piu'
     const groups = list.map((s) => heroes.get(s.hero)!.group);
     expect(new Set(groups).size).toBe(groups.length);
+  });
+});
+
+describe("il totale dei numeri", () => {
+  const DERIERI = "1575001"; // Demone e Comandamento: alleata applicabile di Meliodas Nemesi
+  const KING_ELAINE = "1866503"; // «For each ally ... basic stats +7%, damage dealt +10%»
+  const JOKER = "2011501"; // «For each Applicable Ally ... basic stats +6%, Max HP +5%»
+  const totals = (mains: (string | null)[], more: Partial<TeamSetup> = {}) => teamTotals(team(mains, more), data);
+  const row = (all: ReturnType<typeof totals>, id: string) => all.heroes.find((h) => h.hero === id);
+
+  it("somma per ognuno, e ognuno comprende l'eroe (Meliodas Nemesi, 15% e 7% per ogni applicabile)", () => {
+    const all = totals([MELIODAS_NEMESI, DERIERI]);
+    expect(totalValue(row(all, MELIODAS_NEMESI), "atk")).toBe(29); // 15 + 7 x 2, la stessa parola chiave
+    expect(totalValue(row(all, MELIODAS_NEMESI), "crit_per")).toBe(14); // solo «all stats»
+    expect(totalValue(row(all, DERIERI), "atk")).toBe(15);
+    expect(totalValue(row(all, DERIERI), "crit_per")).toBe(0);
+  });
+
+  it("su Attacco, Difesa e PS le parole chiave diverse si moltiplicano; i danni si sommano", () => {
+    const all = totals([MELIODAS_NEMESI, DERIERI, KING_ELAINE, JOKER]);
+    const nemesi = row(all, MELIODAS_NEMESI);
+    // (1 + 0,15 + 0,07 x 4) x (1 + 0,07 x 4) x (1 + 0,06 x 3)
+    expect(totalValue(nemesi, "atk")).toBeCloseTo((1.43 * 1.28 * 1.18 - 1) * 100, 0);
+    // i PS di Joker sono 6% + 5% sulla stessa riga
+    expect(totalValue(nemesi, "hp")).toBeCloseTo((1.43 * 1.28 * 1.33 - 1) * 100, 0);
+    expect(totalValue(nemesi, "dmg")).toBe(40); // 10 x 4
+  });
+
+  it("«alleati» comprende l'eroe, come DistributePassive; «other than the hero» no", () => {
+    const giver = "1876503"; // «Increases allies' Defense by 50%»
+    expect(totalValue(row(totals([giver]), giver), "def")).toBeGreaterThanOrEqual(50);
+    const other = "1695003"; // «...by 15% for each Human ally other than the hero...»
+    const human = [...heroes.values()].find((h) => h.race === 3 && h.group !== heroes.get(other)!.group)!;
+    const alone = row(totals([other]), other)!.totals.find((t) => t.key === "atk");
+    expect(alone?.parts.some((p) => p.count > 0 && TEAM.sentences[p.sentence]!.en!.includes("other than the hero")) ?? false).toBe(false);
+    const pair = row(totals([other, human.id]), other)!.totals.find((t) => t.key === "atk")!;
+    const part = pair.parts.find((p) => TEAM.sentences[p.sentence]!.en!.includes("other than the hero"))!;
+    expect(part.count).toBe(1);
+    expect(part.value).toBe(15);
+  });
+
+  it("quello che dipende dalla battaglia si mostra e non si somma", () => {
+    // la reliquia di King: «+15% danni inflitti, poi +15% agli alleati protetti dalla barriera»
+    const alone = row(totals([KING_ELAINE]), KING_ELAINE)!;
+    expect(totalValue(alone, "dmg")).toBe(25); // 15 della reliquia + 10 x 1
+    expect(totalValue(alone, "atk")).toBe(7); // niente 15% della barriera
+    const sentences = alone.sometimes.map((s) => TEAM.sentences[s.sentence]!.en!);
+    expect(sentences.some((s) => s.includes("protected by the hero's barrier"))).toBe(true);
+  });
+
+  it("segue dove si gioca, le reliquie e la panchina", () => {
+    const pvp = "1144002"; // «Increases allies' Defense-related stats by 30% in PVP»
+    expect(totalValue(row(totals([pvp], { content: "pvp" }), pvp), "def")).toBeGreaterThanOrEqual(30);
+    expect(totalValue(row(totals([pvp]), pvp), "def")).toBeLessThan(30);
+
+    const withRelic = totals([JOKER, MELIODAS_NEMESI]);
+    const withoutRelic = totals([JOKER, MELIODAS_NEMESI], { relics: false });
+    expect(totalValue(row(withRelic, JOKER), "dmg_taken")).toBe(-40); // 20 x 2
+    expect(totalValue(row(withoutRelic, JOKER), "dmg_taken")).toBe(0);
+
+    // in panchina non riceve e non da': Joker e' il quarto
+    const bench = totals([MELIODAS_NEMESI, DERIERI, null, JOKER], { bench: true });
+    expect(row(bench, JOKER)).toBeUndefined();
+    expect(totalValue(row(bench, DERIERI), "dmg_taken")).toBe(0);
+  });
+
+  it("i consigli dicono quanto cambiano i numeri, e chi porta di piu' viene prima a parita' di passive", () => {
+    const setup = team([MELIODAS_NEMESI, DERIERI]);
+    const list = suggest(setup, 2, [...heroes.values()], data, 40);
+    const joker = list.find((s) => s.hero === JOKER)!;
+    expect(joker.numbers.some((n) => n.hero === MELIODAS_NEMESI && n.key === "dmg_taken" && n.delta === -60)).toBe(true);
+    const sameFirstKey = list.filter((s) => s.lights.length + s.boosts.length - s.breaks.length === 1);
+    for (let i = 1; i < sameFirstKey.length; i++) {
+      expect(sameFirstKey[i - 1]!.numbersSum).toBeGreaterThanOrEqual(sameFirstKey[i]!.numbersSum);
+    }
+  });
+
+  it("le riduzioni dei danni subiti contano fino a -80% nella somma", () => {
+    const hero = (value: number) => ({ hero: "x", sometimes: [], totals: [{ key: "dmg_taken" as const, value, parts: [] }] });
+    expect(plainSum([hero(-50)])).toBe(50);
+    expect(plainSum([hero(-160)])).toBe(80);
+    expect(plainSum([hero(20)])).toBe(-20);
+  });
+
+  it("i dati: ogni effetto sa a chi va, e i numeri che valgono sempre sono pochi per frase", () => {
+    let effects = 0;
+    for (const text of TEAM.texts) {
+      for (const line of text.numbers ?? []) {
+        expect(TEAM.sentences[line.sentence]).toBeTruthy();
+        for (const effect of line.effects) {
+          effects++;
+          expect(effect.stats.length).toBeGreaterThan(0);
+          expect(Number.isFinite(effect.value)).toBe(true);
+          if (effect.to === "team") expect(effect.who?.length).toBeGreaterThan(0);
+          else expect(effect.who).toBeUndefined();
+        }
+      }
+    }
+    expect(effects).toBeGreaterThan(1000);
+  });
+});
+
+describe("le parole dei numeri", () => {
+  const t = TESTI.it;
+
+  it("scrive le percentuali con la virgola e il meno vero", () => {
+    expect(formatPercent(15, "it")).toBe("+15%");
+    expect(formatPercent(-7.5, "it")).toBe("−7,5%");
+    expect(formatPercent(0, "it")).toBe("0%");
+    expect(formatPercent(7.5, "en")).toBe("+7.5%");
+  });
+
+  it("una riga per eroe, coi gruppi del gioco, e lui per ultimo", () => {
+    const lines = numberLines(
+      [
+        { hero: "a", key: "atk", delta: 10 },
+        { hero: "a", key: "def", delta: 10 },
+        { hero: "a", key: "hp", delta: 10 },
+        { hero: "a", key: "crit_per", delta: 10 },
+        { hero: "b", key: "dmg_taken", delta: -30 },
+        { hero: "b", key: "dmg", delta: -5 },
+      ],
+      "a",
+      t,
+      "it",
+    );
+    expect(lines.map((l) => l.hero)).toEqual(["b", "a"]);
+    expect(lines[1]!.parts).toEqual([{ text: "Statistiche di base +10%", bad: false }]);
+    expect(lines[0]!.parts).toEqual([
+      { text: "Danni subiti −30%", bad: false },
+      { text: "Danni inflitti −5%", bad: true },
+    ]);
+  });
+
+  it("le altre statistiche uguali stanno insieme", () => {
+    const others = ["fixed_atk_per", "crit_per", "crit_atk_per", "fixed_def_per", "crit_res_per", "crit_def_per", "hp_regen_per", "hp_recovery_per", "hp_steal_per"] as const;
+    expect(otherStatsLine(others.map((key) => ({ key, value: 28 })), t, "it")).toBe("Tutte le altre statistiche +28%");
+    expect(otherStatsLine([{ key: "crit_per", value: 10 }, { key: "dmg:single", value: 5 }], t, "it")).toBe(
+      "Possibilità critico +10% · Danni inflitti con attacchi a bersaglio singolo +5%",
+    );
   });
 });
 

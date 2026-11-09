@@ -19,9 +19,12 @@ import { GameText } from "@/components/heroes/game-text";
 import { IconCheck, IconChevronLeft, IconClose } from "@/components/icons";
 import { cx, display, eyebrow, Tag } from "@/components/ui";
 import { heroCardSrc, gameIconSrc } from "@/lib/games/heroes";
+import { useMemo } from "react";
+import { TeamNumbers } from "./team-numbers";
 import {
   fateOf,
   sentenceText,
+  teamTotals,
   type Influence,
   type LinkResult,
   type MemberCheck,
@@ -57,7 +60,10 @@ export function TeamReport({
   analysis: TeamAnalysis;
 }) {
   const accesi = new Set(analysis.enables.map((i) => `${i.to}:${i.source}`)).size;
+  const totals = useMemo(() => teamTotals(setup, { team: data.team, heroes }, analysis), [setup, data.team, heroes, analysis]);
   return (
+    <>
+    <TeamNumbers t={t} data={data} heroes={heroes} totals={totals} />
     <section className="mt-10">
       <h2 className={cx(display, "m-0 text-[clamp(24px,3vw,32px)]")}>{t.resoconto}</h2>
       <p className="mt-1.5 mb-0 text-[13px] text-ink-2">
@@ -74,6 +80,7 @@ export function TeamReport({
 
       <TeamWide t={t} data={data} heroes={heroes} setup={setup} analysis={analysis} />
     </section>
+    </>
   );
 }
 

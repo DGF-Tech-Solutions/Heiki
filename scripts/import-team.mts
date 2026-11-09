@@ -40,7 +40,17 @@ import { HERO_TERMS } from "../src/lib/games/grand-cross/hero-terms.generated";
 import { HEROES } from "../src/lib/games/grand-cross/heroes.generated";
 import type { HeroTermGroup } from "../src/lib/games/hero-terms-types";
 import { sentencesOf } from "../src/lib/games/team";
-import type { TeamCondition, TeamLink, TeamPlace, TeamSource, TeamText, TeamWho } from "../src/lib/games/team-types";
+import type {
+  TeamCondition,
+  TeamEffect,
+  TeamEffectLine,
+  TeamLink,
+  TeamPlace,
+  TeamSource,
+  TeamStat,
+  TeamText,
+  TeamWho,
+} from "../src/lib/games/team-types";
 import type { HeroLabel } from "../src/lib/games/types";
 
 const SOURCE = process.env.GC_ASSETS ?? "C:/Users/franc/Desktop/All/Ougi/Video/GC/_7dsgc";
@@ -84,6 +94,34 @@ interface SrcLink {
   tranne?: string[];
 }
 
+interface SrcEffect {
+  stat: string[];
+  v: number;
+  a: "se" | "bersaglio" | "nemici";
+  chi?: SrcWho[];
+  ogni?: SrcWho;
+  se?: { tipo: "se" | "tutti"; chi: SrcWho }[];
+  tetto?: number;
+  volte?: number;
+  quando: "sempre" | "a_volte";
+  sul?: "singolo" | "tutti" | "finale" | "altro";
+  finale?: boolean;
+  punti?: boolean;
+  relativo?: boolean;
+  parola?: string;
+}
+
+interface SrcNumbers {
+  n: number;
+  en: string;
+  effetti: SrcEffect[];
+  senza_se?: boolean;
+  con_panchina?: boolean;
+  dalla_panchina?: boolean;
+  solo?: string[];
+  tranne?: string[];
+}
+
 interface SrcGroup {
   definizione: string;
   razze: number[];
@@ -95,7 +133,7 @@ interface SrcGroup {
 
 interface Source {
   meta: Record<string, unknown>;
-  testi: Record<string, { fonte: string; frasi: number; gruppi: SrcGroup[]; legami: SrcLink[] }>;
+  testi: Record<string, { fonte: string; frasi: number; gruppi: SrcGroup[]; legami: SrcLink[]; numeri?: SrcNumbers[] }>;
 }
 
 if (!existsSync(SOURCE_JSON)) {
@@ -134,6 +172,61 @@ function who(chi: SrcWho, where: string): TeamWho {
 }
 
 const KIND: Record<string, TeamCondition["kind"]> = { ogni: "each", quando: "when", se: "if", tutti: "all" };
+
+const STATS = new Set<string>([
+  "atk",
+  "fixed_atk_per",
+  "crit_per",
+  "crit_atk_per",
+  "def",
+  "fixed_def_per",
+  "crit_res_per",
+  "crit_def_per",
+  "hp",
+  "hp_regen_per",
+  "hp_recovery_per",
+  "hp_steal_per",
+  "dmg",
+  "dmg_taken",
+]);
+const TO: Record<string, TeamEffect["to"]> = { se: "self", bersaglio: "team", nemici: "enemies" };
+const ON = { singolo: "single", tutti: "all", finale: "ultimate" } as const;
+const keywordIds = new Map<string, number>();
+
+/**
+ * Un effetto numerico. «Sempre» lo decide la pipeline; qui diventano «a volte» anche i
+ * numeri in punti e quelli sui colpi contro bersagli particolari («contro i nemici con
+ * un Debuff»): non si possono sommare a una percentuale che vale sempre.
+ */
+function effect(src: SrcEffect, where: string): TeamEffect {
+  for (const stat of src.stat) if (!STATS.has(stat)) fail(`${where}: statistica sconosciuta «${stat}»`);
+  const to = TO[src.a];
+  if (!to) fail(`${where}: destinatario sconosciuto «${src.a}»`);
+  const out: { -readonly [K in keyof TeamEffect]: TeamEffect[K] } = { stats: src.stat as TeamStat[], value: src.v, to };
+  if (src.chi?.length) out.who = src.chi.map((chi) => who(chi, where));
+  if (src.ogni) out.each = who(src.ogni, where);
+  if (src.se?.length) {
+    out.needs = src.se.map((c) => {
+      const kind = KIND[c.tipo];
+      if (!kind) fail(`${where}: condizione sconosciuta «${c.tipo}»`);
+      return { kind, who: who(c.chi, where) };
+    });
+  }
+  if (src.tetto !== undefined) out.cap = src.tetto;
+  if (src.volte !== undefined) out.times = src.volte;
+  if (src.quando !== "sempre" || src.punti || src.relativo || src.sul === "altro") out.sometimes = true;
+  if (src.sul && src.sul !== "altro") out.on = ON[src.sul];
+  if (src.finale) out.final = true;
+  if (src.parola) {
+    let id = keywordIds.get(src.parola);
+    if (id === undefined) {
+      id = keywordIds.size;
+      keywordIds.set(src.parola, id);
+    }
+    out.keyword = id;
+  }
+  return out;
+}
 
 /* ------------------------------------------ frasi, gruppi, testi (indici) -- */
 
@@ -191,7 +284,7 @@ function text(en: string, it: string | undefined, where: string): number {
     missing.push(where);
     return -1;
   }
-  if (read.legami.length === 0) return -1;
+  if (read.legami.length === 0 && !read.numeri?.length) return -1;
   const key = `${en}\u0001${it ?? ""}`;
   const known = textIndex.get(key);
   if (known !== undefined) return known;
@@ -236,11 +329,36 @@ function text(en: string, it: string | undefined, where: string): number {
     if (except) link.except = except;
     return link;
   });
-  const usesGroup = links.some((link) =>
-    [...(link.receives ?? []), ...(link.conditions ?? []).map((c) => c.who)].some((w) => w.group),
-  );
+  const numbers: TeamEffectLine[] = (read.numeri ?? []).map((src) => {
+    const here = `${where}, frase ${src.n}`;
+    const mine = enSentences[src.n];
+    if (!mine || mine.text !== src.en) fail(`${here}: il sito trova «${mine?.text}», la pipeline «${src.en}»`);
+    const line: { -readonly [K in keyof TeamEffectLine]: TeamEffectLine[K] } = {
+      sentence: sentence({ it: paired ? itSentences[src.n]!.text : null, en: src.en }),
+      effects: src.effetti.map((e) => effect(e, here)),
+    };
+    if (src.senza_se) line.notSelf = true;
+    if (src.con_panchina) line.withBench = true;
+    if (src.dalla_panchina) line.fromBench = true;
+    const only = places(src.solo, here);
+    const except = places(src.tranne, here);
+    if (only) line.only = only;
+    if (except) line.except = except;
+    return line;
+  });
+  const usesGroup =
+    links.some((link) => [...(link.receives ?? []), ...(link.conditions ?? []).map((c) => c.who)].some((w) => w.group)) ||
+    numbers.some((line) =>
+      line.effects.some((e) =>
+        [...(e.who ?? []), ...(e.each ? [e.each] : []), ...(e.needs ?? []).map((c) => c.who)].some((w) => w.group),
+      ),
+    );
   const index = texts.length;
-  texts.push({ group: usesGroup && read.gruppi[0] ? group(read.gruppi[0]) : null, links });
+  texts.push({
+    group: usesGroup && read.gruppi[0] ? group(read.gruppi[0]) : null,
+    links,
+    ...(numbers.length > 0 ? { numbers } : {}),
+  });
   textIndex.set(key, index);
   return index;
 }

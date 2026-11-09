@@ -92,10 +92,79 @@ export interface TeamLink {
   readonly except?: readonly TeamPlace[];
 }
 
-/** Un testo di passiva: il suo gruppo «applicabili» (posizione in `TeamIndex.groups`) e le frasi lette. */
+/**
+ * Una statistica come la chiamano le tabelle del client (concetti/statistiche.json),
+ * piu' i danni inflitti e subiti, che nel gioco sono un numero solo per colpo.
+ */
+export type TeamStat =
+  | "atk"
+  | "fixed_atk_per"
+  | "crit_per"
+  | "crit_atk_per"
+  | "def"
+  | "fixed_def_per"
+  | "crit_res_per"
+  | "crit_def_per"
+  | "hp"
+  | "hp_regen_per"
+  | "hp_recovery_per"
+  | "hp_steal_per"
+  | "dmg"
+  | "dmg_taken";
+
+/**
+ * Un effetto numerico di una frase: «basic stats of Applicable Allies +15%». Letto dal
+ * testo da numeri_passive.py e controllato contro le righe di DB_skill_passive: delle
+ * 597 voci che valgono sempre (09/11), una sola non sta nelle righe, ed e' `sometimes`:
+ * l'Unica di Mono 1685503 scrive «-20%» e la sua riga dice 10.
+ */
+export interface TeamEffect {
+  readonly stats: readonly TeamStat[];
+  /** col segno, in punti percentuali: 15 vuol dire +15% */
+  readonly value: number;
+  readonly to: "self" | "team" | "enemies";
+  /** per `to: "team"`: chi lo riceve, l'uno O l'altro */
+  readonly who?: readonly TeamWho[];
+  /** si moltiplica per quanti in squadra corrispondono */
+  readonly each?: TeamWho;
+  /** vale solo se la squadra rispetta queste condizioni */
+  readonly needs?: readonly TeamCondition[];
+  /** il valore non supera questo («up to a maximum of 30%») */
+  readonly cap?: number;
+  /** il conteggio non supera questo («(Limit 5 times)») */
+  readonly times?: number;
+  /**
+   * Dipende da cosa succede in battaglia (un turno, un colpo, uno stato) e non da chi
+   * c'e' in squadra: si mostra e non si somma.
+   */
+  readonly sometimes?: true;
+  /** solo con certi colpi; assente vuol dire tutti */
+  readonly on?: "single" | "all" | "ultimate";
+  /** «final damage taken»: nel gioco vale la riduzione piu' forte, non la somma */
+  readonly final?: true;
+  /**
+   * La parola chiave della riga, come numero: valori con la stessa si sommano, con
+   * parole diverse si moltiplicano. Serve solo a confrontarle: il nome resta in squadra.json.
+   */
+  readonly keyword?: number;
+}
+
+/** Una frase con dei numeri, anche se non nomina nessun compagno («Increases all stats of the hero by 10%»). */
+export interface TeamEffectLine {
+  readonly sentence: number;
+  readonly effects: readonly TeamEffect[];
+  readonly notSelf?: true;
+  readonly withBench?: true;
+  readonly fromBench?: true;
+  readonly only?: readonly TeamPlace[];
+  readonly except?: readonly TeamPlace[];
+}
+
+/** Un testo di passiva: il suo gruppo «applicabili» (posizione in `TeamIndex.groups`), le frasi lette e i numeri. */
 export interface TeamText {
   readonly group: number | null;
   readonly links: readonly TeamLink[];
+  readonly numbers?: readonly TeamEffectLine[];
 }
 
 /**

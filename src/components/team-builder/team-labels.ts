@@ -7,8 +7,8 @@
 import type { HeroFatesIndex } from "@/lib/games/hero-fates-types";
 import type { HeroTermGroup } from "@/lib/games/hero-terms-types";
 import type { MechanicsTeamEffect } from "@/lib/games/mechanics-types";
-import type { OffReason, TeamHero } from "@/lib/games/team";
-import type { TeamCondition, TeamContent, TeamIndex, TeamWho } from "@/lib/games/team-types";
+import { MAIN_STATS, type NumberChange, type OffReason, type TeamHero, type TotalKey } from "@/lib/games/team";
+import type { TeamCondition, TeamContent, TeamIndex, TeamStat, TeamWho } from "@/lib/games/team-types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
 
 /** Un eroe come lo mostra la pagina, gia' nella sua lingua. */
@@ -93,7 +93,44 @@ export const TESTI = testi({
     soloMieiTitolo: "Solo gli eroi che hai segnato in «I tuoi eroi»",
     suggeriti: "Si incastrano meglio qui",
     suggeritiSpiega:
-      "Guardano solo le passive: prima chi accende o fa crescere quelle dei compagni, poi chi si scambia più effetti con loro. Non dicono quanto vale un effetto né quanto è forte la squadra.",
+      "Guardano solo le passive: prima chi accende o fa crescere quelle dei compagni, poi chi fa crescere di più i numeri della squadra (la somma semplice delle percentuali di Attacco, Difesa, PS e danni), poi chi si scambia più effetti con loro.",
+    numeriConsiglio: "Numeri",
+    numeriTitolo: "I numeri delle passive",
+    numeriSpiega:
+      "Quello che vale sempre con questa squadra, dove giochi e al rango scelto. Non contano equipaggiamento, costumi e carte, né chi è nello slot secondario. Come nel gioco, su Attacco, Difesa e PS gli effetti di tipo diverso si moltiplicano; i danni subiti sono la somma delle riduzioni, e un colpo non scende mai sotto un quinto del danno.",
+    daDove: (n: number) => (n === 1 ? "Da dove viene (1 passiva)" : `Da dove vengono (${n} passive)`),
+    inCertiMomenti: (n: number) => `In certi momenti, non sommati (${n})`,
+    suiNemici: "Sui nemici",
+    altreStat: "Tutte le altre statistiche",
+    stat: {
+      atk: "Attacco",
+      def: "Difesa",
+      hp: "PS",
+      dmg: "Danni inflitti",
+      dmg_taken: "Danni subiti",
+      fixed_atk_per: "Perforazione",
+      crit_per: "Possibilità critico",
+      crit_atk_per: "Danno critico",
+      fixed_def_per: "Resistenza",
+      crit_res_per: "Resistenza critico",
+      crit_def_per: "Difesa critico",
+      hp_regen_per: "Velocità di rigenerazione",
+      hp_recovery_per: "Velocità di recupero",
+      hp_steal_per: "Furto di vita",
+    } as Record<TeamStat, string>,
+    gruppoStat: {
+      tutte: "Tutte le statistiche",
+      attacco: "Statistiche relative all'Attacco",
+      difesa: "Statistiche relative alla Difesa",
+      ps: "Statistiche relative ai PS",
+      base: "Statistiche di base",
+    },
+    variante: {
+      single: "con attacchi a bersaglio singolo",
+      all: "con attacchi a tutti",
+      ultimate: "della Mossa finale",
+      final: "finali",
+    },
     nessunSuggerimento: "Nessun eroe cambia le passive della squadra in questo posto.",
     primaUnEroe: "Scegli prima un altro eroe: i consigli guardano i compagni che ha.",
     passivaDi: (tipo: string, nome: string) => `${tipo} di ${nome}`,
@@ -219,7 +256,44 @@ export const TESTI = testi({
     soloMieiTitolo: "Only the heroes you marked in «Your heroes»",
     suggeriti: "Fit best here",
     suggeritiSpiega:
-      "They only look at passives: first who turns on or grows those of teammates, then who trades the most effects with them. They do not say how much an effect is worth or how strong the team is.",
+      "They only look at passives: first who turns on or grows those of teammates, then who raises the team's numbers the most (the plain sum of Attack, Defense, HP and damage percentages), then who trades the most effects with them.",
+    numeriConsiglio: "Numbers",
+    numeriTitolo: "The passives' numbers",
+    numeriSpiega:
+      "What always applies with this team, where you play and at the chosen rank. Gear, costumes and cards don't count, nor does the Sub slot hero. As in the game, on Attack, Defense and HP effects of different types multiply; damage taken is the sum of the reductions, and a hit never goes below a fifth of the damage.",
+    daDove: (n: number) => (n === 1 ? "Where it comes from (1 passive)" : `Where they come from (${n} passives)`),
+    inCertiMomenti: (n: number) => `At certain moments, not added up (${n})`,
+    suiNemici: "On enemies",
+    altreStat: "All other stats",
+    stat: {
+      atk: "Attack",
+      def: "Defense",
+      hp: "HP",
+      dmg: "Damage dealt",
+      dmg_taken: "Damage taken",
+      fixed_atk_per: "Pierce Rate",
+      crit_per: "Crit Chance",
+      crit_atk_per: "Crit Damage",
+      fixed_def_per: "Resistance",
+      crit_res_per: "Crit Resistance",
+      crit_def_per: "Crit Defense",
+      hp_regen_per: "Regeneration Rate",
+      hp_recovery_per: "Recovery Rate",
+      hp_steal_per: "Lifesteal",
+    } as Record<TeamStat, string>,
+    gruppoStat: {
+      tutte: "All Stats",
+      attacco: "Attack-related Stats",
+      difesa: "Defense-related Stats",
+      ps: "HP-related Stats",
+      base: "Basic Stats",
+    },
+    variante: {
+      single: "with single-target attacks",
+      all: "with all-target attacks",
+      ultimate: "of the Ultimate Move",
+      final: "final",
+    },
     nessunSuggerimento: "No hero changes the team's passives in this slot.",
     primaUnEroe: "Pick another hero first: suggestions look at the teammates it has.",
     passivaDi: (tipo: string, nome: string) => `${nome}'s ${tipo}`,
@@ -334,6 +408,90 @@ export function conditionLabel(condition: TeamCondition, t: Texts): string {
 export function offLabel(off: OffReason, t: Texts, by: string | null): string {
   if (off === "leftmost") return t.perche.leftmost(by ?? "?");
   return t.perche[off];
+}
+
+/** Il nome di un totale: «Danni inflitti», «Danni inflitti con attacchi a tutti», «Danni subiti finali». */
+export function statLabel(key: TotalKey, t: Texts): string {
+  const [stat, variant] = key.split(":") as [TeamStat, keyof Texts["variante"] | undefined];
+  return variant ? `${t.stat[stat]} ${t.variante[variant]}` : t.stat[stat];
+}
+
+/** Un numero come lo scrive la pagina: «+15%», «−7,5%». */
+export function formatPercent(value: number, locale: Locale): string {
+  const number = Math.abs(value).toLocaleString(locale === "it" ? "it-IT" : "en-US", { maximumFractionDigits: 1 });
+  return `${value > 0 ? "+" : value < 0 ? "−" : ""}${number}%`;
+}
+
+// I gruppi come li scrive il gioco, dal piu' largo: «Statistiche di base» invece di
+// «Attacco, Difesa, PS». Gli stessi di data/grand-cross/concetti/statistiche.json
+const STAT_GROUPS: readonly (readonly [keyof Texts["gruppoStat"], readonly TeamStat[]])[] = [
+  [
+    "tutte",
+    ["atk", "fixed_atk_per", "crit_per", "crit_atk_per", "def", "fixed_def_per", "crit_res_per", "crit_def_per", "hp", "hp_regen_per", "hp_recovery_per", "hp_steal_per"],
+  ],
+  ["attacco", ["atk", "fixed_atk_per", "crit_per", "crit_atk_per"]],
+  ["difesa", ["def", "fixed_def_per", "crit_res_per", "crit_def_per"]],
+  ["ps", ["hp", "hp_regen_per", "hp_recovery_per", "hp_steal_per"]],
+  ["base", ["atk", "def", "hp"]],
+];
+
+/** Un insieme di statistiche in parole, coi nomi dei gruppi del gioco dove si puo'. */
+function statsPhrase(keys: readonly TotalKey[], t: Texts): string {
+  const left = new Set<TotalKey>(keys);
+  const out: string[] = [];
+  for (const [name, members] of STAT_GROUPS) {
+    if (members.every((stat) => left.has(stat))) {
+      for (const stat of members) left.delete(stat);
+      out.push(t.gruppoStat[name]);
+    }
+  }
+  for (const key of left) out.push(statLabel(key, t));
+  return out.join(", ");
+}
+
+/** Le statistiche fuori dalle cinque di testa, coi valori uguali insieme: «Tutte le altre statistiche +28%». */
+export function otherStatsLine(totals: readonly { key: TotalKey; value: number }[], t: Texts, locale: Locale): string {
+  const others = STAT_GROUPS[0]![1].filter((stat) => !MAIN_STATS.includes(stat));
+  const byValue = new Map<number, TotalKey[]>();
+  for (const { key, value } of totals) byValue.set(value, [...(byValue.get(value) ?? []), key]);
+  return [...byValue.entries()]
+    .map(([value, keys]) => {
+      const everyOther = others.every((stat) => keys.includes(stat));
+      const rest = keys.filter((key) => !everyOther || !others.includes(key as TeamStat));
+      const label = [...(everyOther ? [t.altreStat] : []), ...rest.map((key) => statLabel(key, t))].join(", ");
+      return `${label} ${formatPercent(value, locale)}`;
+    })
+    .join(" · ");
+}
+
+/** Cosa cambia per un eroe mettendone un altro in un posto: un pezzo per valore. */
+export interface NumberLine {
+  readonly hero: string;
+  readonly parts: readonly { readonly text: string; readonly bad: boolean }[];
+}
+
+/**
+ * Cosa cambia nei numeri mettendo un eroe in un posto, una riga per eroe, solo le
+ * cinque statistiche di testa: «Joker: Statistiche di base +35,7%, Danni subiti −60%».
+ * Il resto si legge nel resoconto, una volta scelto. Prima i compagni, poi lui.
+ */
+export function numberLines(changes: readonly NumberChange[], candidate: string, t: Texts, locale: Locale): NumberLine[] {
+  const perHero = new Map<string, Map<number, TotalKey[]>>();
+  for (const change of changes) {
+    if (!MAIN_STATS.includes(change.key as TeamStat)) continue;
+    const byDelta = perHero.get(change.hero) ?? new Map<number, TotalKey[]>();
+    byDelta.set(change.delta, [...(byDelta.get(change.delta) ?? []), change.key]);
+    perHero.set(change.hero, byDelta);
+  }
+  const lines = [...perHero.entries()].map(([hero, byDelta]) => ({
+    hero,
+    parts: [...byDelta.entries()].map(([delta, keys]) => ({
+      text: `${statsPhrase(keys, t)} ${formatPercent(delta, locale)}`,
+      // per i danni subiti scendere e' un guadagno
+      bad: keys.every((key) => key === "dmg_taken") ? delta > 0 : delta < 0,
+    })),
+  }));
+  return [...lines.filter((line) => line.hero !== candidate), ...lines.filter((line) => line.hero === candidate)];
 }
 
 /** Il nome di un posto: «Eroe 2», o «Slot secondario» per il quarto in panchina. */

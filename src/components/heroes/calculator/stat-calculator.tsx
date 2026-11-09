@@ -7,7 +7,7 @@ import { buttonClass, cx, numeric, rankChipColors } from "@/components/ui";
 import type { AccountSliderData } from "@/lib/games/account-buff-types";
 import { heroCombatClass } from "@/lib/games/account-buff";
 import { setupEffect } from "@/lib/games/account-setup";
-import { shownValue } from "@/lib/games/gear";
+import { shownDifference, shownValue } from "@/lib/games/gear";
 import { battleWith, buildFromBox, computeBuild, defaultBuild, type CalculatorData, type HeroBuild } from "@/lib/games/hero-build";
 import { useLocale } from "@/lib/i18n/client";
 import { testi } from "@/lib/i18n/locale";
@@ -184,7 +184,7 @@ export function StatCalculator({
         className="sticky top-[104px] z-[5] -mx-1 grid grid-cols-3 gap-2 border border-rule bg-paper/95 px-3 py-1.5 text-[12px] backdrop-blur @4xl:hidden"
       >
         {(["atk", "def", "hp"] as const).map((key) => {
-          const diff = shown(key, result.withGear) - shown(key, result.without);
+          const diff = shownDifference(key, result.withGear[key] ?? 0, result.without[key] ?? 0);
           return (
             <span key={key} className="min-w-0">
               <span className="block text-[12px] text-ink-3">{STAT_ROWS.find((r) => r.key === key)!.label[locale]}</span>
@@ -344,7 +344,7 @@ export function StatCalculator({
               {rows.map((row) => {
                 const without = shown(row.key, result.without);
                 const withGear = shown(row.key, result.withGear);
-                const diff = Math.round((withGear - without) * 100) / 100;
+                const diff = shownDifference(row.key, result.withGear[row.key] ?? 0, result.without[row.key] ?? 0);
                 const unit = row.percent ? "%" : "";
                 return (
                   <tr key={row.key} className="border-b border-rule/60">

@@ -266,6 +266,17 @@ export function shownValue(stat: string, value: number): number {
   return (FLAT_STATS as readonly string[]).includes(stat) ? Math.ceil(clean) : Math.round(clean * 100) / 100;
 }
 
+/**
+ * Quanto aggiunge l'equipaggiamento, come lo scrive il gioco: la differenza vera,
+ * arrotondata, non la differenza dei due numeri gia' arrotondati per eccesso. Provato
+ * sulle schermate di Gowther compromesso del 09/11: +5.077, +5.065 e +92.624, mentre
+ * sottraendo i numeri mostrati la Difesa e i PS uscivano con un punto in piu'.
+ */
+export function shownDifference(stat: string, withGear: number, without: number): number {
+  const difference = withGear - without;
+  return (FLAT_STATS as readonly string[]).includes(stat) ? Math.round(difference) : Math.round(difference * 100) / 100;
+}
+
 /* =============================================================== costumi == */
 
 /**

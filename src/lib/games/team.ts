@@ -20,9 +20,10 @@
  * I suggerimenti dicono cosa cambia mettendo un eroe in un posto: quali passive si
  * accendono, crescono o si spengono, e di chi.
  *
+ * «Alleati» comprende l'eroe stesso: lo dice il codice del gioco (`DistributePassive`,
+ * vedi `teamTotals`), e dove la frase dice «other than the hero», no.
+ *
  * Cosa si e' scelto, e non e' scritto dal gioco:
- *   - «alleati» comprende l'eroe stesso, come nel gioco («Increases allies'
- *     Attack»); dove la frase dice «other than the hero», no
  *   - chi e' in panchina non «partecipa alla battaglia»: non conta per le
  *     condizioni dei compagni, salvo le frasi che dicono «including those in the
  *     Secondary Slot» (confermato dall'utente, 07/11)
@@ -38,10 +39,12 @@ import type { HeroContextIndex, HeroEntry, HeroSpecialsIndex } from "./types";
 import type {
   TeamCondition,
   TeamContent,
+  TeamEffect,
   TeamIndex,
   TeamLink,
   TeamPlace,
   TeamSource,
+  TeamStat,
   TeamWho,
 } from "./team-types";
 
@@ -334,7 +337,7 @@ export function codesAllow(codes: readonly number[], content: TeamContent): bool
 }
 
 /** La frase dice che vale dove si gioca? «In PVE» vale anche negli altri contenuti contro il computer. */
-export function placesAllow(link: TeamLink, content: TeamContent): boolean {
+export function placesAllow(link: Pick<TeamLink, "only" | "except">, content: TeamContent): boolean {
   const here = (place: TeamPlace) => place === content || (place === "pve" && content !== "pvp");
   if (link.only?.length && !link.only.some(here)) return false;
   if (link.except?.some((place) => place === content)) return false;
@@ -384,7 +387,7 @@ export function matches(
 
 function checkCondition(
   condition: TeamCondition,
-  link: TeamLink,
+  link: Pick<TeamLink, "withBench" | "notSelf">,
   giver: TeamHero,
   field: readonly TeamHero[],
   bench: TeamHero | null,
@@ -551,6 +554,198 @@ export function analyzeTeam(setup: TeamSetup, data: TeamData): TeamAnalysis {
   };
 }
 
+/* -------------------------------------------------- il totale dei numeri -- */
+
+/**
+ * Il totale dei numeri delle passive per ogni eroe in campo: quello che vale sempre,
+ * data la squadra, dove si gioca e il rango della Mossa finale. Niente equipaggiamento,
+ * costumi, carte, e niente di quello che scatta in battaglia: quello finisce in
+ * `sometimes`, con la sua frase, e non si somma.
+ *
+ * Il cumulo e' quello del gioco (MECCANICHE_COMBATTIMENTO.md, par. 4): su Attacco,
+ * Difesa e PS i valori con la stessa parola chiave si sommano e le parole diverse si
+ * moltiplicano; le altre statistiche si sommano; aumenti e riduzioni dei danni sono un
+ * numero solo; dei «danni finali» vale il piu' forte.
+ *
+ * «Alleati» comprende l'eroe: IngameUnitManager.DistributePassive copia una passiva
+ * con target global_ally su ogni unita' del campo, senza saltare chi la possiede. Le
+ * frasi che lo escludono lo dicono («other than the hero», `notSelf`).
+ */
+
+/** Da dove viene una parte di un totale. */
+export interface TotalPart {
+  readonly from: string;
+  readonly source: TeamSource;
+  readonly sentence: number;
+  readonly value: number;
+  /** quanti ne ha contati «per ogni»; 1 se non conta nessuno */
+  readonly count: number;
+  readonly keyword?: number;
+}
+
+/** La chiave di un totale: la statistica, e con quali colpi vale («dmg:single», «dmg_taken:final»). */
+export type TotalKey = TeamStat | `${TeamStat}:${"single" | "all" | "ultimate" | "final"}`;
+
+export interface StatTotal {
+  readonly key: TotalKey;
+  readonly value: number;
+  readonly parts: readonly TotalPart[];
+}
+
+/** Un numero che dipende da cosa succede in battaglia: si mostra con la sua frase. */
+export interface SometimesLine {
+  readonly from: string;
+  readonly source: TeamSource;
+  readonly sentence: number;
+}
+
+export interface HeroTotals {
+  readonly hero: string;
+  readonly totals: readonly StatTotal[];
+  readonly sometimes: readonly SometimesLine[];
+}
+
+export interface TeamTotals {
+  /** gli eroi in campo, nell'ordine dei posti */
+  readonly heroes: readonly HeroTotals[];
+  readonly enemies: readonly StatTotal[];
+}
+
+const MULTIPLIES = new Set<TeamStat>(["atk", "def", "hp"]);
+/** Le colonne del totale, e quello che i consigli sommano. Le altre statistiche si mostrano e basta. */
+export const MAIN_STATS: readonly TeamStat[] = ["atk", "def", "hp", "dmg", "dmg_taken"];
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+function totalOf(stat: TeamStat, final: boolean, parts: readonly TotalPart[]): number {
+  if (final) return Math.min(...parts.map((p) => p.value));
+  if (!MULTIPLIES.has(stat)) return round1(parts.reduce((sum, p) => sum + p.value, 0));
+  const byKeyword = new Map<number | string, number>();
+  parts.forEach((p, i) => {
+    const key = p.keyword ?? `#${i}`; // senza parola chiave nota, una a se': si moltiplica
+    byKeyword.set(key, (byKeyword.get(key) ?? 0) + p.value);
+  });
+  let product = 1;
+  for (const value of byKeyword.values()) product *= 1 + value / 100;
+  return round1((product - 1) * 100);
+}
+
+export function teamTotals(setup: TeamSetup, data: TeamData, analysis: TeamAnalysis = analyzeTeam(setup, data)): TeamTotals {
+  const { team, heroes } = data;
+  const fieldIds = analysis.members.filter((m) => !m.bench).map((m) => m.hero);
+  const field = fieldIds.map((id) => heroes.get(id)!);
+  const benchId = analysis.members.find((m) => m.bench)?.hero;
+  const bench = benchId ? heroes.get(benchId)! : null;
+  const racesOf = new Map(analysis.members.map((m) => [m.hero, m.races]));
+  const races = (id: string) => racesOf.get(id) ?? [];
+
+  const parts = new Map<string, Map<TotalKey, TotalPart[]>>(fieldIds.map((id) => [id, new Map()]));
+  const enemies = new Map<TotalKey, TotalPart[]>();
+  const sometimes = new Map<string, Map<string, SometimesLine>>(fieldIds.map((id) => [id, new Map()]));
+
+  const add = (into: Map<TotalKey, TotalPart[]>, effect: TeamEffect, part: TotalPart) => {
+    const variant = effect.final ? "final" : effect.on;
+    for (const stat of effect.stats) {
+      const key = (variant ? `${stat}:${variant}` : stat) as TotalKey;
+      const list = into.get(key) ?? [];
+      list.push(part);
+      into.set(key, list);
+    }
+  };
+
+  for (const member of analysis.members) {
+    const giver = heroes.get(member.hero)!;
+    for (const result of member.sources) {
+      if (!result.active) continue;
+      const text = team.texts[result.text];
+      if (!text?.numbers) continue;
+      const group = text.group === null ? null : team.groups[text.group]!;
+      for (const line of text.numbers) {
+        if (!placesAllow(line, setup.content)) continue;
+        if (line.fromBench && !member.bench) continue;
+        const context = { withBench: line.withBench, notSelf: line.notSelf };
+        for (const effect of line.effects) {
+          const check = (condition: TeamCondition) => checkCondition(condition, context, giver, field, bench, group, races);
+          if (!(effect.needs ?? []).every((c) => check(c).met)) continue;
+          const count = effect.each ? check({ kind: "each", who: effect.each }).count : 1;
+          if (count === 0) continue;
+          let value = effect.value * (effect.times ? Math.min(count, effect.times) : count);
+          if (effect.cap !== undefined) value = Math.sign(value) * Math.min(Math.abs(value), effect.cap);
+          const part: TotalPart = {
+            from: member.hero,
+            source: result.source,
+            sentence: line.sentence,
+            value,
+            count,
+            ...(effect.keyword === undefined ? {} : { keyword: effect.keyword }),
+          };
+          if (effect.to === "enemies") {
+            if (!effect.sometimes) add(enemies, effect, part);
+            continue;
+          }
+          const receivers =
+            effect.to === "self"
+              ? member.bench
+                ? []
+                : [member.hero]
+              : field
+                  .filter((hero) => !(line.notSelf && hero.id === member.hero))
+                  .filter((hero) => (effect.who ?? []).some((who) => matches(who, hero, giver, group, races)))
+                  .map((hero) => hero.id);
+          for (const id of receivers) {
+            if (effect.sometimes) {
+              sometimes.get(id)!.set(`${member.hero}:${line.sentence}`, {
+                from: member.hero,
+                source: result.source,
+                sentence: line.sentence,
+              });
+            } else {
+              add(parts.get(id)!, effect, part);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const totalsOf = (from: Map<TotalKey, TotalPart[]>): StatTotal[] =>
+    [...from.entries()].map(([key, list]) => {
+      const [stat, variant] = key.split(":") as [TeamStat, string | undefined];
+      return { key, value: totalOf(stat, variant === "final", list), parts: list };
+    });
+
+  return {
+    heroes: fieldIds.map((id) => ({
+      hero: id,
+      totals: totalsOf(parts.get(id)!),
+      sometimes: [...sometimes.get(id)!.values()],
+    })),
+    enemies: totalsOf(enemies),
+  };
+}
+
+/** Il valore di un totale per un eroe; 0 se non ne ha. */
+export function totalValue(totals: HeroTotals | undefined, key: TotalKey): number {
+  return totals?.totals.find((t) => t.key === key)?.value ?? 0;
+}
+
+/**
+ * La somma semplice delle percentuali di Attacco, Difesa, PS, danni inflitti e danni
+ * subiti (una riduzione conta come un guadagno). Non pesa niente: serve solo a mettere
+ * in fila i consigli, dopo chi accende le passive, ed e' spiegata nella pagina. Le
+ * riduzioni dei danni subiti contano fino a -80%: il gioco non scende sotto un quinto
+ * del danno (`damageModifier` in mechanics.ts), quindi oltre non portano altro se il
+ * nemico non ha aumenti suoi.
+ */
+export function plainSum(totals: readonly HeroTotals[]): number {
+  let sum = 0;
+  for (const hero of totals) {
+    for (const stat of MAIN_STATS) {
+      sum += stat === "dmg_taken" ? Math.min(-totalValue(hero, stat), 80) : totalValue(hero, stat);
+    }
+  }
+  return round1(sum);
+}
+
 /** Una passiva che cambia mettendo un eroe in un posto: di chi e', quale, e le frasi coinvolte. */
 export interface PassiveChange {
   readonly hero: string;
@@ -581,6 +776,33 @@ export interface Suggestion {
   readonly wakes: readonly PassiveChange[];
   /** passive che con lui si spengono: dei compagni, o sue (un'altra vale al suo posto) */
   readonly breaks: readonly PassiveChange[];
+  /** cosa cambia nei totali dei numeri, eroe per eroe; lui compreso */
+  readonly numbers: readonly NumberChange[];
+  /** quanto cresce `plainSum` con lui in squadra */
+  readonly numbersSum: number;
+}
+
+/** Un totale che cambia mettendo un eroe in un posto. */
+export interface NumberChange {
+  readonly hero: string;
+  readonly key: TotalKey;
+  /** di quanto cambia, in punti percentuali */
+  readonly delta: number;
+}
+
+/** Cosa cambia nei totali fra la squadra senza l'eroe e quella con lui. */
+function numberChanges(before: TeamTotals, after: TeamTotals): NumberChange[] {
+  const past = new Map(before.heroes.map((h) => [h.hero, h]));
+  const out: NumberChange[] = [];
+  for (const hero of after.heroes) {
+    const was = past.get(hero.hero);
+    const keys = new Set<TotalKey>([...hero.totals.map((t) => t.key), ...(was?.totals ?? []).map((t) => t.key)]);
+    for (const key of keys) {
+      const delta = round1(totalValue(hero, key) - totalValue(was, key));
+      if (delta !== 0) out.push({ hero: hero.hero, key, delta });
+    }
+  }
+  return out;
 }
 
 /** Raccoglie le frasi per passiva: un'Unica con tre frasi per i compagni resta una passiva. */
@@ -601,7 +823,13 @@ function changeList() {
 }
 
 /** Cosa cambia fra la squadra senza l'eroe e la squadra con lui. */
-function changesOf(candidate: string, before: TeamAnalysis, after: TeamAnalysis): Suggestion {
+function changesOf(
+  candidate: string,
+  before: TeamAnalysis,
+  after: TeamAnalysis,
+  totalsBefore: TeamTotals,
+  totalsAfter: TeamTotals,
+): Suggestion {
   const key = (hero: string, source: TeamSource, sentence: number) => `${hero}:${source.kind}:${source.id}:${sentence}`;
   const past = new Map<string, LinkResult>();
   for (const member of before.members) {
@@ -657,6 +885,8 @@ function changesOf(candidate: string, before: TeamAnalysis, after: TeamAnalysis)
     receives: receives.list(),
     wakes: wakes.list(),
     breaks: breaks.list(),
+    numbers: numberChanges(totalsBefore, totalsAfter),
+    numbersSum: round1(plainSum(totalsAfter.heroes) - plainSum(totalsBefore.heroes)),
   };
 }
 
@@ -666,13 +896,14 @@ function changesOf(candidate: string, before: TeamAnalysis, after: TeamAnalysis)
  * tengono quelli che portano piu' di quello che spengono.
  *
  * L'ordine e' una fila di domande, una dopo l'altra, senza pesi: quante passive dei
- * compagni accende o fa crescere, tolte quelle che spegne; poi quante passive si
- * scambia coi compagni, date e ricevute insieme (stare nel gruppo di King vale
- * quanto dare qualcosa a King); poi quante delle sue fanno scattare i compagni. Di
+ * compagni accende o fa crescere, tolte quelle che spegne; poi quanto crescono i
+ * numeri della squadra (`plainSum`, la somma semplice delle percentuali); poi quante
+ * passive si scambia coi compagni, date e ricevute insieme (stare nel gruppo di King
+ * vale quanto dare qualcosa a King); poi quante delle sue fanno scattare i compagni. Di
  * un personaggio si tiene la versione migliore: tre Drole di fila riempirebbero
  * l'elenco con lo stesso posto in squadra.
  *
- * Non dice quanto e' forte la squadra: guarda solo le passive, non quanto valgono.
+ * Non dice quanto e' forte la squadra: guarda solo le passive che valgono sempre.
  */
 export function suggest(
   setup: TeamSetup,
@@ -686,13 +917,21 @@ export function suggest(
       .filter((id): id is string => !!id)
       .map((id) => data.heroes.get(id)?.group),
   );
-  const before = analyzeTeam({ ...setup, mains: setup.mains.map((id, i) => (i === slot ? null : id)) }, data);
-  const rank = (s: Suggestion) => [s.lights.length + s.boosts.length - s.breaks.length, s.gives.length + s.receives.length, s.wakes.length];
+  const withoutHim = { ...setup, mains: setup.mains.map((id, i) => (i === slot ? null : id)) };
+  const before = analyzeTeam(withoutHim, data);
+  const totalsBefore = teamTotals(withoutHim, data, before);
+  const rank = (s: Suggestion) => [
+    s.lights.length + s.boosts.length - s.breaks.length,
+    s.numbersSum,
+    s.gives.length + s.receives.length,
+    s.wakes.length,
+  ];
   const out: Suggestion[] = [];
   for (const candidate of candidates) {
     if (used.has(candidate.group)) continue;
-    const after = analyzeTeam({ ...setup, mains: setup.mains.map((id, i) => (i === slot ? candidate.id : id)) }, data);
-    const change = changesOf(candidate.id, before, after);
+    const withHim = { ...setup, mains: setup.mains.map((id, i) => (i === slot ? candidate.id : id)) };
+    const after = analyzeTeam(withHim, data);
+    const change = changesOf(candidate.id, before, after, totalsBefore, teamTotals(withHim, data, after));
     const brings = change.lights.length + change.boosts.length + change.gives.length + change.wakes.length + change.receives.length;
     if (brings > change.breaks.length) out.push(change);
   }

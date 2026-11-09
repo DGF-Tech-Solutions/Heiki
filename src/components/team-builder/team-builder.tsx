@@ -53,7 +53,7 @@ import type { TeamContent } from "@/lib/games/team-types";
 import { useLocale } from "@/lib/i18n/client";
 import { inLingua } from "@/lib/i18n/locale";
 import { TeamReport } from "./team-report";
-import { slotLabel, TESTI, type BuilderData, type BuilderHero, type Texts } from "./team-labels";
+import { numberLines, slotLabel, TESTI, type BuilderData, type BuilderHero, type Texts } from "./team-labels";
 import { moveLegacyStorage } from "@/lib/legacy-storage";
 import { rem } from "@/lib/rem";
 
@@ -594,6 +594,7 @@ function Picker({
               {suggestions.map((s) => {
                 const hero = heroes.get(s.hero)!;
                 const groups = reasonGroups(s, t);
+                const numbers = numberLines(s.numbers, s.hero, t, locale);
                 return (
                   <li key={s.hero} className="border border-rule bg-paper">
                     <button
@@ -611,6 +612,22 @@ function Picker({
                       </span>
                     </button>
                     <ul className="m-0 list-none border-t border-rule px-2 py-1.5 text-[12px] leading-snug text-ink-2">
+                      {numbers.length > 0 ? (
+                        <li className="mb-1">
+                          <span className="font-bold">{t.numeriConsiglio}</span>
+                          {numbers.map((line) => (
+                            <span key={line.hero} className="block">
+                              {heroes.get(line.hero)?.name ?? line.hero}:{" "}
+                              {line.parts.map((part, i) => (
+                                <span key={i} className={part.bad ? "text-down" : "font-mono text-ink"}>
+                                  {i > 0 ? ", " : ""}
+                                  {part.text}
+                                </span>
+                              ))}
+                            </span>
+                          ))}
+                        </li>
+                      ) : null}
                       {groups.map((group) => (
                         <li key={group.label} className={group.bad ? "text-down" : undefined}>
                           <span className="font-bold">{group.label}:</span> {group.changes.map((c) => whose(c, t, data, heroes)).join(", ")}

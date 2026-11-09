@@ -47,13 +47,13 @@ const TESTI = testi({
     lettura:
       "Le passive si leggono dal testo del gioco, frase per frase: a chi va l'effetto («alleati applicabili», «alleati Giganti», «tutti gli alleati») e quali compagni lo fanno scattare («per ogni alleato applicabile in battaglia», «se gli alleati in battaglia sono tutti Demoni»). Le razze e le caratteristiche lette nelle Uniche coincidono con i dati del client in 111 casi; nei 7 che non coincidono è il testo del gioco a nominarne di più.",
     suggerimenti:
-      "I consigli guardano solo le passive e non danno un punteggio: dicono quali passive dei compagni si accendono, crescono o si spengono, e cosa si danno gli eroi. Prima chi accende o fa crescere di più, poi chi si scambia più effetti coi compagni. Una condizione «tutti gli alleati...» conta solo a squadra piena.",
+      "I consigli guardano solo le passive: dicono quali passive dei compagni si accendono, crescono o si spengono, cosa si danno gli eroi e come cambiano i numeri. Prima chi accende o fa crescere di più, poi chi fa salire di più i numeri (la somma semplice delle percentuali di Attacco, Difesa, PS e danni, una riduzione dei danni subiti conta come un guadagno), poi chi si scambia più effetti coi compagni. Una condizione «tutti gli alleati...» conta solo a squadra piena.",
     panchina:
       "Chi è nello slot secondario non partecipa alla battaglia finché non entra: non conta per le condizioni dei compagni, e le sue passive aspettano, tranne quelle che il gioco segna «Si attiva anche in uno slot secondario». Il quarto eroe parte in panchina nella storia e nel PvP normale, in campo nei boss e nelle Bestie demoniache.",
     speciali:
       "Se in squadra ci sono due Comandamenti vale quello dell'eroe più a sinistra; due Grazie o due Unità dello stesso tipo, lo stesso. «Con un effetto Unità» vuol dire chi ha un'Unità fra le abilità speciali. Delle Reliquie sacre si conta la classica: un eroe che ne ha due ne attiva una alla volta.",
     frasi:
-      "Le frasi sono quelle del gioco; dove la frase italiana non si appaia a quella inglese si legge l'inglese. «Alleati» comprende l'eroe stesso, salvo dove la frase dice il contrario.",
+      "Le frasi sono quelle del gioco; dove la frase italiana non si appaia a quella inglese si legge l'inglese. «Alleati» comprende l'eroe stesso, come nel codice del gioco, salvo dove la frase dice il contrario. I numeri si leggono dalle frasi e ognuno si controlla contro i dati della passiva. Quelli che dipendono da cosa succede in battaglia (un turno, un colpo, uno stato) si mostrano ma non si sommano.",
   },
   en: {
     titoloPagina: (gioco: string) => `${gioco} Team Builder`,
@@ -66,13 +66,13 @@ const TESTI = testi({
     lettura:
       "Passives are read from the game's text, sentence by sentence: who gets the effect («Applicable Allies», «Giant allies», «all allies») and which teammates trigger it («for each Applicable Ally participating in battle», «if allies in battle are all Demons»). The races and characteristics read in the Uniques match the client's data in 111 cases; in the 7 that don't, it's the game's text that names more.",
     suggerimenti:
-      "Suggestions only look at passives and give no score: they say which teammates' passives turn on, grow or turn off, and what the heroes give each other. First who turns on or grows the most, then who trades the most effects with teammates. An «all allies...» condition only counts with a full team.",
+      "Suggestions only look at passives: they say which teammates' passives turn on, grow or turn off, what the heroes give each other and how the numbers change. First who turns on or grows the most, then who raises the numbers the most (the plain sum of Attack, Defense, HP and damage percentages, where less damage taken counts as a gain), then who trades the most effects with teammates. An «all allies...» condition only counts with a full team.",
     panchina:
       "The hero in the Sub slot doesn't take part in the battle until it enters: it doesn't count for its teammates' conditions, and its passives wait, except those the game marks «Active even in Sub slot». The fourth hero starts on the bench in the story and normal PvP, on the field in bosses and Demonic Beasts.",
     speciali:
       "If the team has two Commandments, the one of the hero furthest left applies; two Graces or two Unities of the same type, the same. «With a Unity effect» means whoever has a Unity among its special abilities. Of the Holy Relics the classic one counts: a hero that has two activates one at a time.",
     frasi:
-      "The sentences are the game's own. «Allies» includes the hero itself, except where the sentence says otherwise.",
+      "The sentences are the game's own. «Allies» includes the hero itself, as in the game's code, except where the sentence says otherwise. Numbers are read from the sentences and each one is checked against the passive's data. Those that depend on what happens in battle (a turn, a hit, a state) are shown but not added up.",
   },
 });
 
