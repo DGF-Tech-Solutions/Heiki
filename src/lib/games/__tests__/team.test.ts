@@ -215,9 +215,11 @@ describe("il totale dei numeri", () => {
   const totals = (mains: (string | null)[], more: Partial<TeamSetup> = {}) => teamTotals(team(mains, more), data);
   const row = (all: ReturnType<typeof totals>, id: string) => all.heroes.find((h) => h.hero === id);
 
-  it("somma per ognuno, e ognuno comprende l'eroe (Meliodas Nemesi, 15% e 7% per ogni applicabile)", () => {
+  it("conta per ognuno, e ognuno comprende l'eroe (Meliodas Nemesi, 15% e 7% per ogni applicabile)", () => {
     const all = totals([MELIODAS_NEMESI, DERIERI]);
-    expect(totalValue(row(all, MELIODAS_NEMESI), "atk")).toBe(29); // 15 + 7 x 2, la stessa parola chiave
+    // 15 e 7 stanno sulla stessa riga (701661), ma in due colonne: si moltiplicano.
+    // Fino all'11/11 qui si chiedeva la somma (29): la battaglia di Escanor ha detto di no
+    expect(totalValue(row(all, MELIODAS_NEMESI), "atk")).toBeCloseTo((1.15 * 1.14 - 1) * 100, 1);
     expect(totalValue(row(all, MELIODAS_NEMESI), "crit_per")).toBe(14); // solo «all stats»
     expect(totalValue(row(all, DERIERI), "atk")).toBe(15);
     expect(totalValue(row(all, DERIERI), "crit_per")).toBe(0);
@@ -226,11 +228,32 @@ describe("il totale dei numeri", () => {
   it("su Attacco, Difesa e PS le parole chiave diverse si moltiplicano; i danni si sommano", () => {
     const all = totals([MELIODAS_NEMESI, DERIERI, KING_ELAINE, JOKER]);
     const nemesi = row(all, MELIODAS_NEMESI);
-    // (1 + 0,15 + 0,07 x 4) x (1 + 0,07 x 4) x (1 + 0,06 x 3)
-    expect(totalValue(nemesi, "atk")).toBeCloseTo((1.43 * 1.28 * 1.18 - 1) * 100, 0);
-    // i PS di Joker sono 6% + 5% sulla stessa riga
-    expect(totalValue(nemesi, "hp")).toBeCloseTo((1.43 * 1.28 * 1.33 - 1) * 100, 0);
+    // Nemesi (1 + 0,15) x (1 + 0,07 x 4), King (1 + 0,07 x 4), Joker (1 + 0,06 x 3)
+    expect(totalValue(nemesi, "atk")).toBeCloseTo((1.15 * 1.28 * 1.28 * 1.18 - 1) * 100, 0);
+    // i PS di Joker sono 6% e 5% sulla stessa riga, in due colonne: si moltiplicano anche loro
+    expect(totalValue(nemesi, "hp")).toBeCloseTo((1.15 * 1.28 * 1.28 * 1.18 * 1.15 - 1) * 100, 0);
     expect(totalValue(nemesi, "dmg")).toBe(40); // 10 x 4
+  });
+
+  it("una battaglia vera dell'utente (11/11): Yeon Yihwa, Escanor «Luce del sole», Priscilla, Sigurd in panchina", () => {
+    // Cavalieri ribelli, senza associati e senza artefatti. Il rapporto fra la finestra degli
+    // effetti al primo turno e la schermata della squadra, eroe per eroe:
+    // Yeon Yihwa 18.324 / 10.758, 17.132 / 10.058, 333.902 / 196.024 (x1,7033 tutte e tre)
+    // Escanor 20.917 / 12.956, 362.621 / 224.602 (x1,6145); Priscilla 22.840 / 15.420 (x1,4812)
+    const YEON = "1970501";
+    const ESCANOR = "1475002";
+    const PRISCILLA = "1999501";
+    const all = totals([YEON, ESCANOR, PRISCILLA, "1895502"], { bench: true, ultimate: 1 });
+    // quattro Uniche, quattro parole chiave: 1,15 x 1,12 x 1,15 x 1,15. Sigurd da' dalla panchina
+    // e non conta fra chi partecipa (x3, non x4)
+    for (const stat of ["atk", "def", "hp"] as const) expect(totalValue(row(all, YEON), stat)).toBeCloseTo((18324 / 10758 - 1) * 100, 0);
+    expect(totalValue(row(all, PRISCILLA), "def")).toBeCloseTo((20982 / 14166 - 1) * 100, 0);
+    // la riga 701680 di Escanor: 4 agli alleati e 3 (sub_value) a lui, che si moltiplicano.
+    // Sommati sarebbero +60,0%, il gioco fa +61,45%
+    expect(totalValue(row(all, ESCANOR), "def")).toBeCloseTo((20917 / 12956 - 1) * 100, 0);
+    expect(totalValue(row(all, ESCANOR), "hp")).toBeCloseTo((362621 / 224602 - 1) * 100, 0);
+    // l'Attacco di Escanor (55.850 / 19.845) no: lo alzano anche la Reliquia (meta' della Difesa)
+    // e la Fiamma eterna sui nemici, che il totale non conta
   });
 
   it("«alleati» comprende l'eroe, come DistributePassive; «other than the hero» no", () => {
