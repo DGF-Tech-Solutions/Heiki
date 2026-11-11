@@ -35,7 +35,11 @@ const TESTI = testi({
 
 const INITIAL: FormState = {};
 
-export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
+/**
+ * `profileHost` e' l'host del sito configurato (siteUrl): l'esempio del profilo segue
+ * il dominio vero, e fino al 09/11 diceva «heiki.it», che non e' stato scelto.
+ */
+export function RegisterForm({ demoMode = false, profileHost }: { demoMode?: boolean; profileHost: string }) {
   const t = TESTI[useLocale()];
   const [state, action, pending] = useActionState(registerAction, INITIAL);
   const errors = state.fieldErrors ?? {};
@@ -48,7 +52,7 @@ export function RegisterForm({ demoMode = false }: { demoMode?: boolean }) {
         </Notice>
       ) : null}
 
-      <Field label={t.handle} hint="heiki.it/u/…" error={errors.username}>
+      <Field label={t.handle} hint={`${profileHost}/u/…`} error={errors.username}>
         <Input
           className="font-mono"
           name="username"

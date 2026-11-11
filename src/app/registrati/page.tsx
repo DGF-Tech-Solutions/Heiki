@@ -9,6 +9,7 @@ import { auth } from "@/lib/auth";
 import { databaseReachable } from "@/lib/db";
 import { testi } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
+import { siteUrl } from "@/lib/site";
 
 const TESTI = testi({
   it: {
@@ -70,7 +71,7 @@ export default async function RegisterPage() {
 
       <div className="p5-corner border border-rule bg-paper-2 p-6 sm:p-7">
         <DemoNotice />
-        <RegisterForm demoMode={demoMode} />
+        <RegisterForm demoMode={demoMode} profileHost={new URL(siteUrl()).host} />
         {/* l'informativa va data quando si raccolgono i dati, accanto al modulo (art. 13 GDPR) */}
         <PrivacyNote variant="signup" className="mt-3" />
         <SetupHint />

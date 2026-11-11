@@ -85,18 +85,37 @@ describe("i dati del gestore", () => {
     pec: null,
   };
   const hosting = { name: "Esempio Hosting", location: { it: "Germania", en: "Germany" }, outsideEea: false, logRetentionDays: 14 };
+  const mail = { name: "Esempio Posta", location: { it: "Germania", en: "Germany" }, outsideEea: false };
 
   it("completi: non manca niente, e la PEC non e' obbligatoria", () => {
-    expect(missingOperatorFields(complete, hosting)).toEqual([]);
+    expect(missingOperatorFields(complete, hosting, mail)).toEqual([]);
   });
 
   it("il capitale sociale `false` vuol dire «non previsto», null «manca»", () => {
-    expect(missingOperatorFields({ ...complete, shareCapital: false }, hosting)).toEqual([]);
-    expect(missingOperatorFields({ ...complete, shareCapital: null }, hosting)).toEqual(["shareCapital"]);
+    expect(missingOperatorFields({ ...complete, shareCapital: false }, hosting, mail)).toEqual([]);
+    expect(missingOperatorFields({ ...complete, shareCapital: null }, hosting, mail)).toEqual(["shareCapital"]);
   });
 
   it("senza hosting e senza email lo dice", () => {
-    expect(missingOperatorFields({ ...complete, email: null }, null)).toEqual(["email", "hosting"]);
+    expect(missingOperatorFields({ ...complete, email: null }, null, mail)).toEqual(["email", "hosting"]);
+  });
+
+  it("della posta servono chi la ospita e il paese dei server", () => {
+    expect(missingOperatorFields(complete, hosting, null)).toEqual(["mailProvider"]);
+    expect(missingOperatorFields(complete, hosting, { ...mail, location: null })).toEqual(["mailLocation"]);
+  });
+
+  it("la partita IVA del gestore ha la cifra di controllo giusta", () => {
+    const vat = OPERATOR.vatNumber?.replace(/^IT/, "");
+    if (!vat) return;
+    expect(vat).toMatch(/^\d{11}$/);
+    let sum = 0;
+    for (let i = 0; i < 10; i++) {
+      let digit = Number(vat[i]);
+      if (i % 2 === 1) digit = digit * 2 > 9 ? digit * 2 - 9 : digit * 2;
+      sum += digit;
+    }
+    expect((10 - (sum % 10)) % 10).toBe(Number(vat[10]));
   });
 
   it("finche' i dati veri mancano, le pagine legali restano una bozza", () => {

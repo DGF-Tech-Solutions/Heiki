@@ -12,7 +12,7 @@ import { testi, type Locale } from "@/lib/i18n/locale";
 import { getLocale } from "@/lib/i18n/server";
 import { BACKUP_COPIES, MIN_AGE, PRIVACY_RESPONSE_MONTHS } from "@/lib/legal/commitments";
 import { legalDocument, type LegalDocumentKey } from "@/lib/legal/documents";
-import { HOSTING, OPERATOR } from "@/lib/legal/operator";
+import { HOSTING, MAIL_PROVIDER, OPERATOR } from "@/lib/legal/operator";
 import { RETENTION } from "@/lib/legal/retention";
 import { FAVORITES_LIMIT } from "@/lib/profile/favorites";
 import { RULES } from "@/lib/rate-limit";
@@ -148,11 +148,51 @@ function HostingName({ locale }: { locale: Locale }) {
   return HOSTING ? <>{HOSTING.name}</> : <Missing field="hosting" locale={locale} />;
 }
 
+function MailName({ locale }: { locale: Locale }) {
+  return MAIL_PROVIDER ? <>{MAIL_PROVIDER.name}</> : <Missing field="mailProvider" locale={locale} />;
+}
+
+/**
+ * Dove stanno le email scritte al gestore: il paese dei server della posta, o il
+ * segno che manca; fuori dallo Spazio economico europeo, anche la garanzia del
+ * trasferimento, che operator.ts non ha ancora un campo per dire.
+ */
+function MailPlace({ locale }: { locale: Locale }) {
+  const en = locale === "en";
+  if (!MAIL_PROVIDER) return <Missing field="mailProvider" locale={locale} />;
+  const where = MAIL_PROVIDER.location ? MAIL_PROVIDER.location[locale] : <Missing field="mailLocation" locale={locale} />;
+  if (!MAIL_PROVIDER.location || !MAIL_PROVIDER.outsideEea) {
+    return en ? (
+      <>
+        The emails you write to the operator are on the servers of {MAIL_PROVIDER.name}, in {where}
+        {MAIL_PROVIDER.location ? ", inside the European Economic Area" : null}.
+      </>
+    ) : (
+      <>
+        Le email che scrivi al gestore stanno sui server di {MAIL_PROVIDER.name}, in {where}
+        {MAIL_PROVIDER.location ? ", dentro lo Spazio economico europeo" : null}.
+      </>
+    );
+  }
+  return en ? (
+    <>
+      The emails you write to the operator are on the servers of {MAIL_PROVIDER.name}, in {where}, outside the European
+      Economic Area. The transfer relies on{" "}
+      <ToComplete>to be completed: the transfer safeguard (Art. 45 or 46 GDPR)</ToComplete>.
+    </>
+  ) : (
+    <>
+      Le email che scrivi al gestore stanno sui server di {MAIL_PROVIDER.name}, in {where}, fuori dallo Spazio economico
+      europeo. Il trasferimento si basa su{" "}
+      <ToComplete>da completare: la garanzia del trasferimento (art. 45 o 46 GDPR)</ToComplete>.
+    </>
+  );
+}
+
 /**
  * Un dato che operator.ts non ha ancora un campo per dire: si vede come
- * `Missing`. Serve per il servizio di posta del gestore, che conserva le email
- * che gli si scrivono (chi e', in che paese), e per la garanzia del
- * trasferimento se l'hosting scelto sta fuori dallo Spazio economico europeo.
+ * `Missing`. Serve per la garanzia del trasferimento se l'hosting o la posta
+ * stanno fuori dallo Spazio economico europeo.
  */
 function ToComplete({ children }: { children: ReactNode }) {
   return <span className="border border-dashed border-gold px-1.5 text-ink">{children}</span>;
@@ -593,8 +633,7 @@ function PrivacyIt({ providers, linked, moderatorAlert }: DocProps) {
           registri tecnici del server.
         </li>
         <li>
-          <strong>Il servizio di posta del gestore</strong> (
-          <ToComplete>da completare: chi ospita la casella email del gestore</ToComplete>): conserva per conto del
+          <strong>Il servizio di posta del gestore</strong> (<MailName locale="it" />): conserva per conto del
           gestore le email che gli scrivi, con un contratto che lo obbliga a usarle solo per questo (art. 28 GDPR).
         </li>
         <li>
@@ -652,12 +691,7 @@ function PrivacyIt({ providers, linked, moderatorAlert }: DocProps) {
           )}
         </li>
         <li>
-          <strong>Posta del gestore.</strong>{" "}
-          <ToComplete>
-            da completare: in che paese stanno le email che scrivi al gestore e, se è fuori dallo Spazio economico
-            europeo, su quale garanzia si basa il trasferimento (art. 45 o 46 GDPR)
-          </ToComplete>
-          .
+          <strong>Posta del gestore.</strong> <MailPlace locale="it" />
         </li>
         {discord ? (
           <li>
@@ -1426,8 +1460,7 @@ function PrivacyEn({ providers, linked, moderatorAlert }: DocProps) {
           the technical server logs.
         </li>
         <li>
-          <strong>The operator&apos;s email service</strong> (
-          <ToComplete>to be completed: who hosts the operator&apos;s mailbox</ToComplete>): keeps the emails you write to
+          <strong>The operator&apos;s email service</strong> (<MailName locale="en" />): keeps the emails you write to
           the operator on its behalf, under a contract that requires it to use them only for this (Art. 28 GDPR).
         </li>
         <li>
@@ -1485,12 +1518,7 @@ function PrivacyEn({ providers, linked, moderatorAlert }: DocProps) {
           )}
         </li>
         <li>
-          <strong>Operator&apos;s email.</strong>{" "}
-          <ToComplete>
-            to be completed: in which country the emails you write to the operator are kept and, if it is outside the
-            European Economic Area, which safeguard the transfer relies on (Art. 45 or 46 GDPR)
-          </ToComplete>
-          .
+          <strong>Operator&apos;s email.</strong> <MailPlace locale="en" />
         </li>
         {discord ? (
           <li>

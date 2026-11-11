@@ -9,10 +9,10 @@
  * e il pie' di pagina li leggono da qui: cambiato un dato, nessuna pagina resta
  * con quello vecchio.
  *
- * Il 25/10 l'utente ha detto che il gestore e' una societa', senza ancora i
- * dati. I campi a null le pagine li scrivono «da completare», e il guscio delle
- * pagine legali elenca quelli che mancano: la bozza non puo' andare online
- * senza che si veda.
+ * Il 25/10 l'utente ha detto che il gestore e' una societa'; i primi dati sono
+ * arrivati il 09/11. I campi a null le pagine li scrivono «da completare», e il
+ * guscio delle pagine legali elenca quelli che mancano: la bozza non puo' andare
+ * online senza che si veda.
  */
 
 import type { Bilingual } from "@/lib/i18n/locale";
@@ -45,22 +45,27 @@ export interface OperatorData {
   pec: string | null;
 }
 
+/**
+ * Dati forniti dall'utente il 09/11. La partita IVA ha la cifra di controllo giusta e
+ * l'ufficio 083 (Messina). Della sede l'utente ha scritto solo «Via Leonardo Sciascia,
+ * 24»: mancano CAP, comune e provincia, e un indirizzo a meta' sembrerebbe completo,
+ * quindi resta null finche' non arrivano. Mancano anche registro, REA e capitale.
+ */
 export const OPERATOR: OperatorData = {
-  name: null,
+  name: "DGF Tech Solutions SRL",
   registeredOffice: null,
-  vatNumber: null,
+  vatNumber: "03882320835",
   companyRegister: null,
   shareCapital: null,
   singleMember: false,
-  email: null,
+  email: "info@dgftechsolutions.com",
   pec: null,
 };
 
 /**
  * Chi ospita il sito e il database: e' il responsabile del trattamento a cui
  * arrivano tutti i dati, e l'informativa deve dire chi e' e in che paese li
- * tiene. Il servizio non e' ancora scelto (03/10, «solo preparare»): quando lo
- * sara', il suo nome e il paese dei server vanno qui.
+ * tiene.
  */
 export interface HostingData {
   /** «Hetzner Online GmbH», «Vercel Inc.»... */
@@ -77,7 +82,47 @@ export interface HostingData {
   logRetentionDays: number;
 }
 
-export const HOSTING: HostingData | null = null;
+/**
+ * Scelto dall'utente il 09/11: Amazon, server in Italia. Per chi sta nello Spazio
+ * economico europeo il contratto con AWS si fa con Amazon Web Services EMEA SARL
+ * (Lussemburgo). Il paese e' quello detto dall'utente; l'unica regione AWS in Italia e'
+ * Milano (eu-south-1), e va scelta quella.
+ *
+ * I 14 giorni dei registri li ha scelti Claude, perche' l'utente non li ha indicati:
+ * bastano per capire un abuso e restano pochi. AWS di suo non li cancella (i gruppi di
+ * CloudWatch e i registri in S3 restano per sempre): quando il sito va online, la
+ * scadenza va impostata li', uguale a questa.
+ */
+export const HOSTING: HostingData | null = {
+  name: "Amazon Web Services EMEA SARL",
+  location: { it: "Italia", en: "Italy" },
+  outsideEea: false,
+  logRetentionDays: 14,
+};
+
+/**
+ * Chi ospita la casella email del gestore: conserva per conto suo le email che gli si
+ * scrivono, e l'informativa deve dire chi e' e in che paese stanno.
+ */
+export interface MailProviderData {
+  name: string;
+  /** dove stanno i server della posta; null finche' non si sa */
+  location: Bilingual | null;
+  /** true se fuori dallo Spazio economico europeo: allora serve una garanzia per il trasferimento */
+  outsideEea: boolean;
+}
+
+/**
+ * Hostinger: lo dicono i record pubblici del dominio (MX mx1/mx2.hostinger.com, SPF
+ * _spf.mail.hostinger.com), controllati il 09/11. La societa' e' Hostinger
+ * International Ltd, a Cipro. In che paese stiano i server della posta lo dice il
+ * pannello di Hostinger, non i record: finche' manca la pagina lo segna.
+ */
+export const MAIL_PROVIDER: MailProviderData | null = {
+  name: "Hostinger International Ltd",
+  location: null,
+  outsideEea: false,
+};
 
 /** I campi che le pagine legali non possono ancora scrivere. */
 export type MissingField =
@@ -87,7 +132,9 @@ export type MissingField =
   | "companyRegister"
   | "shareCapital"
   | "email"
-  | "hosting";
+  | "hosting"
+  | "mailProvider"
+  | "mailLocation";
 
 export const MISSING_FIELD_LABELS: Readonly<Record<MissingField, Bilingual>> = {
   name: { it: "ragione sociale", en: "company name" },
@@ -97,11 +144,14 @@ export const MISSING_FIELD_LABELS: Readonly<Record<MissingField, Bilingual>> = {
   shareCapital: { it: "capitale sociale", en: "share capital" },
   email: { it: "email di contatto", en: "contact email" },
   hosting: { it: "fornitore di hosting", en: "hosting provider" },
+  mailProvider: { it: "chi ospita la casella email del gestore", en: "who hosts the operator's mailbox" },
+  mailLocation: { it: "in che paese stanno i server della posta", en: "which country the mail servers are in" },
 };
 
 export function missingOperatorFields(
   operator: OperatorData = OPERATOR,
   hosting: HostingData | null = HOSTING,
+  mail: MailProviderData | null = MAIL_PROVIDER,
 ): MissingField[] {
   const missing: MissingField[] = [];
   if (!operator.name) missing.push("name");
@@ -112,5 +162,7 @@ export function missingOperatorFields(
   if (operator.shareCapital === null) missing.push("shareCapital");
   if (!operator.email) missing.push("email");
   if (!hosting) missing.push("hosting");
+  if (!mail) missing.push("mailProvider");
+  else if (!mail.location) missing.push("mailLocation");
   return missing;
 }
