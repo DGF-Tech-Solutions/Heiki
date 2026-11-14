@@ -42,6 +42,7 @@ import type { ChangesIndex } from "./changes-types";
 import type { MechanicsIndex } from "./mechanics-types";
 import type { BirthdaysIndex } from "./birthdays-types";
 import type { TeamIndex } from "./team-types";
+import type { SimData } from "./grand-cross/simulation-types";
 
 /** Descrittore di una versione di dataset caricata dal modulo. */
 export interface DatasetInfo {
@@ -887,6 +888,14 @@ export interface GameModule<TBuild extends GameBuildPayload = GameBuildPayload> 
    * la valutazione in team.ts.
    */
   readonly team?: TeamIndex;
+
+  /**
+   * Il simulatore delle statistiche al primo turno: le righe delle tabelle del
+   * gioco e le regole lette nel suo codice, che grand-cross/simulation.ts esegue.
+   * Lo usa la pagina «Squadra» per Attacco, Difesa, PS e le altre statistiche
+   * (team-sim.ts). Il contratto sta in grand-cross/simulation-types.ts.
+   */
+  readonly simulation?: SimData;
 
   /**
    * L'equipaggiamento (set, parti, valori, effetti bonus, gli strati delle icone)

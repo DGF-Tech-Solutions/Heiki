@@ -32,6 +32,7 @@
  */
 
 import { inLingua, type Locale } from "../i18n/locale";
+import type { HeroBox } from "./hero-box";
 import type { HeroFate, HeroFatesIndex } from "./hero-fates-types";
 import type { TermMember } from "./hero-terms";
 import type { HeroTermGroup } from "./hero-terms-types";
@@ -149,9 +150,27 @@ export interface TeamSetup {
   readonly ultimate: number;
   /** le Reliquie sacre create */
   readonly relics: boolean;
+  /**
+   * Quanti nemici in campo, 1-4 (DB_stage_free.monster_count arriva a 4): alcune
+   * passive li contano, come la Fiamma eterna di Escanor, che ne mette su ognuno.
+   */
+  readonly enemies: number;
+  /**
+   * Il rango della Mossa finale e la Reliquia di un eroe che hai nel box: per lui
+   * valgono al posto dei due comandi, come nel calcolatore della scheda eroe. Non
+   * si salvano nell'indirizzo: chi apre il link vede i suoi.
+   */
+  readonly byHero?: Readonly<Record<string, HeroOwn>>;
+}
+
+/** Quello che il box dice di un eroe e che cambia le sue passive. */
+export interface HeroOwn {
+  readonly ultimate: number;
+  readonly relic: boolean;
 }
 
 export const CONTENTS: readonly TeamContent[] = ["pve", "pvp", "destroy", "nest"];
+export const MAX_ENEMIES = 4;
 
 export function emptySetup(): TeamSetup {
   return {
@@ -161,7 +180,30 @@ export function emptySetup(): TeamSetup {
     bench: true,
     ultimate: 6,
     relics: true,
+    enemies: 3,
   };
+}
+
+/**
+ * La squadra come la giochi tu: per ogni eroe del box il suo rango e la sua
+ * Reliquia (`byHero`), anche per chi non c'e' ancora, perche' i consigli provano
+ * ogni eroe in un posto libero.
+ */
+export function withBox(setup: TeamSetup, box: HeroBox): TeamSetup {
+  const entries = Object.entries(box.heroes);
+  if (entries.length === 0) return setup;
+  const byHero = Object.fromEntries(entries.map(([id, entry]) => [id, { ultimate: entry.ultimateRank, relic: entry.relic }]));
+  return { ...setup, byHero };
+}
+
+/** Il rango della Mossa finale di un eroe della squadra: il suo nel box, se no quello scelto. */
+export function ultimateOf(setup: TeamSetup, hero: string): number {
+  return setup.byHero?.[hero]?.ultimate ?? setup.ultimate;
+}
+
+/** Se la Reliquia di un eroe della squadra vale: dal box, se no dal comando. */
+export function relicOf(setup: TeamSetup, hero: string): boolean {
+  return setup.byHero?.[hero]?.relic ?? setup.relics;
 }
 
 /* -------------------------------------------------- l'indirizzo e il salvataggio -- */
@@ -182,6 +224,7 @@ export function setupToQuery(setup: TeamSetup): string {
   if (setup.bench !== base.bench) params.set("p", setup.bench ? "1" : "0");
   if (setup.ultimate !== base.ultimate) params.set("u", String(setup.ultimate));
   if (setup.relics !== base.relics) params.set("r", setup.relics ? "1" : "0");
+  if (setup.enemies !== base.enemies) params.set("n", String(setup.enemies));
   return params.toString();
 }
 
@@ -199,6 +242,7 @@ export function parseSetup(
   };
   const content = read("c");
   const ultimate = Number(read("u"));
+  const enemies = Number(read("n"));
   return {
     mains: ids(read("s")),
     associates: ids(read("a")),
@@ -206,6 +250,7 @@ export function parseSetup(
     bench: read("p") === "0" ? false : read("p") === "1" ? true : base.bench,
     ultimate: Number.isInteger(ultimate) && ultimate >= 1 && ultimate <= 6 ? ultimate : base.ultimate,
     relics: read("r") === "0" ? false : base.relics,
+    enemies: Number.isInteger(enemies) && enemies >= 1 && enemies <= MAX_ENEMIES ? enemies : base.enemies,
   };
 }
 
@@ -451,7 +496,7 @@ export function analyzeTeam(setup: TeamSetup, data: TeamData): TeamAnalysis {
 
   // 2. lo stato delle passive, senza le condizioni sui compagni
   const sourceState = (hero: TeamHero, slot: number, source: TeamSource): { off?: OffReason; by?: string } => {
-    if (source.kind === "relic" && !setup.relics) return { off: "relics" };
+    if (source.kind === "relic" && !relicOf(setup, hero.id)) return { off: "relics" };
     if (!codesAllow(source.conditions, setup.content)) return { off: "content" };
     const by = leftmostBy.get(`${hero.id}:${source.id}`);
     if (by) return { off: "leftmost", by };
@@ -466,7 +511,7 @@ export function analyzeTeam(setup: TeamSetup, data: TeamData): TeamAnalysis {
     const mine = new Set(racesOf(hero));
     for (const source of team.heroes[hero.id] ?? []) {
       if (sourceState(hero, slot, source).off) continue;
-      const text = team.texts[textAt(source, setup.ultimate)];
+      const text = team.texts[textAt(source, ultimateOf(setup, hero.id))];
       for (const link of text?.links ?? []) {
         if (!link.extraRaces?.length) continue;
         const group = text!.group === null ? null : team.groups[text!.group]!;
@@ -489,7 +534,7 @@ export function analyzeTeam(setup: TeamSetup, data: TeamData): TeamAnalysis {
     const onBench = isBench(slot);
     const sources: SourceResult[] = (team.heroes[hero.id] ?? []).map((source) => {
       const state = sourceState(hero, slot, source);
-      const textIndex = textAt(source, setup.ultimate);
+      const textIndex = textAt(source, ultimateOf(setup, hero.id));
       const text = team.texts[textIndex];
       const group = text && text.group !== null ? team.groups[text.group]! : null;
       const links: LinkResult[] = (text?.links ?? []).map((link) => {
@@ -603,6 +648,48 @@ export interface HeroTotals {
   readonly hero: string;
   readonly totals: readonly StatTotal[];
   readonly sometimes: readonly SometimesLine[];
+  /** dal simulatore del primo turno (team-sim.ts): i numeri e da dove viene ogni cambiamento */
+  readonly battle?: HeroBattle;
+}
+
+/** Le dodici statistiche che il gioco ricalcola in battaglia (UnitBase.RefreshStatus). */
+export type BattleStat = Exclude<TeamStat, "dmg" | "dmg_taken">;
+
+/**
+ * Un eroe al primo turno, prima di giocare carte, come lo calcola il gioco: da
+ * dove parte (la schermata della squadra), dove arriva, e cosa l'ha cambiato.
+ * Le percentuali sono in punti (33,5 vuol dire 33,5%), come nel resto del sito.
+ */
+export interface HeroBattle {
+  /** i numeri d'inizio: dal tuo box o al massimo del calcolatore (team-start.ts) */
+  readonly from: "box" | "max";
+  readonly start: Readonly<Record<BattleStat, number>>;
+  readonly firstTurn: Readonly<Record<BattleStat, number>>;
+  /** passiva per passiva, nell'ordine del gioco */
+  readonly parts: readonly BattlePart[];
+}
+
+/** Cosa ha fatto una passiva (o un buff dato da una passiva) a un eroe. */
+export interface BattlePart {
+  /** l'eroe che l'ha data; null per il tetto del gioco */
+  readonly from: string | null;
+  /** la passiva come la mostra il sito; null se non si lega a nessuna (il tetto) */
+  readonly source: TeamSource | null;
+  /** la riga di DB_skill_passive */
+  readonly passive: number | null;
+  /** il buff dato dalla passiva, se l'effetto passa da un buff */
+  readonly buff: number | null;
+  readonly changes: readonly BattleChange[];
+}
+
+export interface BattleChange {
+  readonly stat: BattleStat;
+  /** come nel gioco: «per» e «gruppo_per» moltiplicano, «piu» somma, e i loro contrari */
+  readonly mode: string;
+  /** il valore applicato: 0,12 per ×1,12, o il numero sommato */
+  readonly value: number;
+  readonly before: number;
+  readonly after: number;
 }
 
 export interface TeamTotals {
@@ -822,14 +909,17 @@ function changeList() {
   };
 }
 
-/** Cosa cambia fra la squadra senza l'eroe e la squadra con lui. */
+/**
+ * Cosa cambia nelle passive fra la squadra senza l'eroe e la squadra con lui. I
+ * numeri si contano dopo, e solo per chi resta fra i consigli: col simulatore del
+ * primo turno sono la parte cara (11/11: 307 ms su 373 candidati, contro 28 dal
+ * testo), e chi non porta niente ai compagni si scarta senza.
+ */
 function changesOf(
   candidate: string,
   before: TeamAnalysis,
   after: TeamAnalysis,
-  totalsBefore: TeamTotals,
-  totalsAfter: TeamTotals,
-): Suggestion {
+): Omit<Suggestion, "numbers" | "numbersSum"> {
   const key = (hero: string, source: TeamSource, sentence: number) => `${hero}:${source.kind}:${source.id}:${sentence}`;
   const past = new Map<string, LinkResult>();
   for (const member of before.members) {
@@ -885,8 +975,6 @@ function changesOf(
     receives: receives.list(),
     wakes: wakes.list(),
     breaks: breaks.list(),
-    numbers: numberChanges(totalsBefore, totalsAfter),
-    numbersSum: round1(plainSum(totalsAfter.heroes) - plainSum(totalsBefore.heroes)),
   };
 }
 
@@ -905,12 +993,16 @@ function changesOf(
  *
  * Non dice quanto e' forte la squadra: guarda solo le passive che valgono sempre.
  */
+/** Come si fanno i totali di una squadra: dalle frasi (`teamTotals`) o dal simulatore del primo turno (team-sim.ts). */
+export type TotalsOf = (setup: TeamSetup, analysis: TeamAnalysis) => TeamTotals;
+
 export function suggest(
   setup: TeamSetup,
   slot: number,
   candidates: readonly TeamHero[],
   data: TeamData,
   limit = 12,
+  totalsOf: TotalsOf = (s, a) => teamTotals(s, data, a),
 ): Suggestion[] {
   const used = new Set(
     [...setup.mains.filter((_, i) => i !== slot), ...setup.associates]
@@ -919,7 +1011,7 @@ export function suggest(
   );
   const withoutHim = { ...setup, mains: setup.mains.map((id, i) => (i === slot ? null : id)) };
   const before = analyzeTeam(withoutHim, data);
-  const totalsBefore = teamTotals(withoutHim, data, before);
+  const totalsBefore = totalsOf(withoutHim, before);
   const rank = (s: Suggestion) => [
     s.lights.length + s.boosts.length - s.breaks.length,
     s.numbersSum,
@@ -931,9 +1023,15 @@ export function suggest(
     if (used.has(candidate.group)) continue;
     const withHim = { ...setup, mains: setup.mains.map((id, i) => (i === slot ? candidate.id : id)) };
     const after = analyzeTeam(withHim, data);
-    const change = changesOf(candidate.id, before, after, totalsBefore, teamTotals(withHim, data, after));
+    const change = changesOf(candidate.id, before, after);
     const brings = change.lights.length + change.boosts.length + change.gives.length + change.wakes.length + change.receives.length;
-    if (brings > change.breaks.length) out.push(change);
+    if (brings <= change.breaks.length) continue;
+    const totalsAfter = totalsOf(withHim, after);
+    out.push({
+      ...change,
+      numbers: numberChanges(totalsBefore, totalsAfter),
+      numbersSum: round1(plainSum(totalsAfter.heroes) - plainSum(totalsBefore.heroes)),
+    });
   }
   const seen = new Set<string>();
   return out

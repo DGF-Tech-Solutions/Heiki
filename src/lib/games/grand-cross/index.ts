@@ -57,6 +57,7 @@ import { HERO_TERMS } from "./hero-terms.generated";
 import { SKILL_TAGS } from "./skill-tags.generated";
 import { HERO_FATES } from "./hero-fates.generated";
 import { TEAM } from "./team.generated";
+import { SIMULATION_DATA } from "./simulation.generated";
 import { MECHANICS } from "./mechanics.generated";
 import { CHANGES } from "./changes.generated";
 import { BIRTHDAYS } from "./birthdays.generated";
@@ -501,6 +502,7 @@ export const grandCrossModule: GameModule<GrandCrossBuild> = {
   skillTags: SKILL_TAGS,
   heroFates: HERO_FATES,
   team: TEAM,
+  simulation: SIMULATION_DATA,
   mechanics: MECHANICS,
   changes: CHANGES,
   releases: RELEASES,

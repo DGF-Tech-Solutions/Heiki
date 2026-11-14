@@ -24,8 +24,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Chip } from "@/components/filter-chips";
+import { useAccountSetup } from "@/components/account-buff/use-account-setup";
 import { useHeroBox } from "@/components/game-account/use-hero-box";
 import { IconCheck, IconChevronRight, IconClose, IconLink } from "@/components/icons";
 import { AssociateStrip, ChooseMark, PartyPanel, partyGridClass } from "@/components/party-slot";
@@ -39,7 +40,9 @@ import {
   emptySetup,
   fateOf,
   fateSuggestions,
+  MAX_ENEMIES,
   parseSetup,
+  withBox,
   sentenceText,
   setupToQuery,
   suggest,
@@ -48,7 +51,11 @@ import {
   type Suggestion,
   type TeamData,
   type TeamSetup,
+  type TotalsOf,
 } from "@/lib/games/team";
+import { setupEffect } from "@/lib/games/account-setup";
+import type { TeamSimLoaded } from "@/lib/games/grand-cross/team-sim-load";
+import type { SimContext } from "@/lib/games/team-sim";
 import type { TeamContent } from "@/lib/games/team-types";
 import { useLocale } from "@/lib/i18n/client";
 import { inLingua } from "@/lib/i18n/locale";
@@ -122,7 +129,45 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
 
   const heroes = useMemo(() => new Map(data.heroes.map((hero) => [hero.id, hero])), [data.heroes]);
   const teamData: TeamData = useMemo(() => ({ team: data.team, heroes }), [data.team, heroes]);
-  const analysis = useMemo(() => analyzeTeam(setup, teamData), [setup, teamData]);
+  // Per gli eroi del tuo box valgono il loro rango della Mossa finale e la loro
+  // Reliquia, come nel calcolatore della scheda eroe (11/11); l'indirizzo e i
+  // comandi restano quelli scelti, e valgono per gli altri
+  const played = useMemo(() => withBox(setup, box), [setup, box]);
+  const analysis = useMemo(() => analyzeTeam(played, teamData), [played, teamData]);
+  // Il simulatore del primo turno: i numeri d'inizio vengono dal box e, se l'hai
+  // impostato, dal titolo e dalle costellazioni dell'account, come nel calcolatore
+  const [accountSetup] = useAccountSetup(data.game);
+  // Arriva dopo la pagina, in un pezzo a parte (team-sim-load.ts, scelta del 14/11):
+  // finche' non c'e', numeri e consigli aspettano; se non arriva, si torna ai
+  // numeri letti dalle frasi
+  const [loaded, setLoaded] = useState<TeamSimLoaded | "failed" | null>(null);
+  useEffect(() => {
+    if (!data.simulation) return;
+    let live = true;
+    import("@/lib/games/grand-cross/team-sim-load").then(
+      (module) => {
+        if (live) setLoaded(module.TEAM_SIM);
+      },
+      () => {
+        if (live) setLoaded("failed");
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [data.simulation]);
+  const simPending = data.simulation && loaded === null;
+  const totalsOf: TotalsOf | null = useMemo(() => {
+    if (!loaded || loaded === "failed") return null;
+    const effect = data.account ? setupEffect(data.account, accountSetup) : null;
+    const context: SimContext = {
+      sim: loaded.simulation,
+      start: loaded.start,
+      box,
+      account: effect?.active ? { tier: effect.tier, bonus: effect.bonus } : null,
+    };
+    return (setup, analysis) => loaded.simTotals(setup, teamData, analysis, context);
+  }, [loaded, data.account, accountSetup, box, teamData]);
 
   // L'indirizzo e il browser. Al primo disegno, se l'indirizzo non porta una
   // squadra, si riprende l'ultima salvata; poi ogni cambio si scrive in tutti e due.
@@ -279,7 +324,14 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
           <button
             type="button"
             onClick={() => {
-              setSetup((before) => ({ ...emptySetup(), content: before.content, bench: before.bench, ultimate: before.ultimate, relics: before.relics }));
+              setSetup((before) => ({
+                ...emptySetup(),
+                content: before.content,
+                bench: before.bench,
+                ultimate: before.ultimate,
+                relics: before.relics,
+                enemies: before.enemies,
+              }));
               setPicking(null);
             }}
             className={buttonClass("ghost", "sm")}
@@ -300,7 +352,9 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
           data={data}
           heroes={heroes}
           teamData={teamData}
-          setup={setup}
+          setup={played}
+          totalsOf={totalsOf}
+          simPending={simPending}
           picking={picking}
           noCollab={noCollab}
           setNoCollab={setNoCollab}
@@ -314,7 +368,17 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
 
       <Controls t={t} data={data} setup={setup} update={update} />
 
-      {filled ? <TeamReport t={t} data={data} heroes={heroes} setup={setup} analysis={analysis} /> : null}
+      {filled ? (
+        <TeamReport
+          t={t}
+          data={data}
+          heroes={heroes}
+          setup={played}
+          analysis={analysis}
+          totalsOf={totalsOf}
+          simPending={simPending}
+        />
+      ) : null}
     </div>
   );
 }
@@ -412,6 +476,13 @@ function Controls({
           { value: "no", label: t.no, title: t.reliquieTitolo.no },
         ]}
       />
+      <RadioChips
+        legend={t.nemici}
+        name="squadra-nemici"
+        value={String(setup.enemies)}
+        onChange={(value) => update({ enemies: Number(value) })}
+        options={Array.from({ length: MAX_ENEMIES }, (_, i) => ({ value: String(i + 1), label: String(i + 1), title: t.nemiciTitolo(i + 1) }))}
+      />
     </div>
   );
 }
@@ -479,6 +550,8 @@ function Picker({
   heroes,
   teamData,
   setup,
+  totalsOf,
+  simPending,
   picking,
   noCollab,
   setNoCollab,
@@ -493,6 +566,10 @@ function Picker({
   heroes: ReadonlyMap<string, BuilderHero>;
   teamData: TeamData;
   setup: TeamSetup;
+  /** i totali dal simulatore, quando e' arrivato; senza, dalle frasi */
+  totalsOf: TotalsOf | null;
+  /** il simulatore deve ancora arrivare: i consigli aspettano */
+  simPending: boolean;
   picking: Picking;
   noCollab: boolean;
   setNoCollab: (value: boolean) => void;
@@ -536,9 +613,20 @@ function Picker({
     [data.heroes, usedGroups, allowed],
   );
 
-  const suggestions: Suggestion[] = useMemo(
-    () => (picking.kind === "main" ? suggest(setup, picking.slot, pool, teamData, 12) : []),
-    [picking, setup, pool, teamData],
+  // I numeri dei consigli sono quelli del simulatore, come quelli del resoconto, e
+  // costano: 280 ms in Node su 373 candidati (14/11), contro 26 dal testo, perche'
+  // quasi tutti portano qualcosa ai compagni. Il pannello si apre subito coi suoi
+  // eroi, e i consigli arrivano col disegno dopo, che React fa quando ha tempo
+  const asked = useMemo(() => ({ picking, setup, pool }), [picking, setup, pool]);
+  const ready = useDeferredValue(asked, null);
+  const suggestions: Suggestion[] | null = useMemo(
+    () =>
+      !ready || simPending
+        ? null
+        : ready.picking.kind === "main"
+          ? suggest(ready.setup, ready.picking.slot, ready.pool, teamData, 12, totalsOf ?? undefined)
+          : [],
+    [ready, teamData, totalsOf, simPending],
   );
 
   // senza compagni non c'e' niente da incastrare: nessun consiglio, e lo si dice
@@ -587,7 +675,11 @@ function Picker({
         <div className="mt-3">
           <p className={cx(eyebrow, "m-0")}>{t.suggeriti}</p>
           <p className="mt-1 mb-2 max-w-[72ch] text-[12px] text-ink-3">{t.suggeritiSpiega}</p>
-          {suggestions.length === 0 ? (
+          {suggestions === null ? (
+            <p className="m-0 text-[13px] text-ink-3" role="status">
+              {t.cercoConsigli}
+            </p>
+          ) : suggestions.length === 0 ? (
             <p className="m-0 text-[13px] text-ink-3">{teammates === 0 ? t.primaUnEroe : t.nessunSuggerimento}</p>
           ) : (
             <ul className="m-0 grid list-none grid-cols-1 items-start gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">

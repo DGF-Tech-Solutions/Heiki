@@ -18,6 +18,7 @@ import {
   emptySetup,
   parseSetup,
   plainSum,
+  relicOf,
   sentencesOf,
   setupToQuery,
   suggest,
@@ -25,6 +26,7 @@ import {
   teamTotals,
   textAt,
   totalValue,
+  ultimateOf,
   type TeamData,
   type TeamSetup,
 } from "../team";
@@ -382,6 +384,7 @@ describe("l'indirizzo", () => {
       bench: false,
       ultimate: 3,
       relics: false,
+      enemies: 2,
     };
     const params = new URLSearchParams(setupToQuery(setup));
     expect(parseSetup((k) => params.get(k), known)).toEqual(setup);
@@ -389,12 +392,22 @@ describe("l'indirizzo", () => {
 
   it("la partenza non scrive niente, e i valori senza senso tornano alla partenza", () => {
     expect(setupToQuery(emptySetup())).toBe("");
-    const junk = new URLSearchParams("s=abc.1095001.99999999&c=arena&u=9&p=x&r=2");
+    const junk = new URLSearchParams("s=abc.1095001.99999999&c=arena&u=9&p=x&r=2&n=9");
     const setup = parseSetup((k) => junk.get(k), known);
     expect(setup.mains).toEqual([null, KING, null, null]);
     expect(setup.content).toBe("pve");
     expect(setup.ultimate).toBe(6);
     expect(setup.bench).toBe(true);
     expect(setup.relics).toBe(true);
+    expect(setup.enemies).toBe(3);
+  });
+
+  it("il rango e la Reliquia del box valgono per quell'eroe, e non finiscono nell'indirizzo", () => {
+    const setup: TeamSetup = { ...emptySetup(), ultimate: 6, relics: true, byHero: { [KING]: { ultimate: 2, relic: false } } };
+    expect(ultimateOf(setup, KING)).toBe(2);
+    expect(relicOf(setup, KING)).toBe(false);
+    expect(ultimateOf(setup, DIANE)).toBe(6);
+    expect(relicOf(setup, DIANE)).toBe(true);
+    expect(setupToQuery(setup)).toBe("");
   });
 });

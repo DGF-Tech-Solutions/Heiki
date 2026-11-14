@@ -5,6 +5,7 @@ import { hasIcon } from "@/components/heroes/hero-parts";
 import { TeamBuilder } from "@/components/team-builder/team-builder";
 import type { BuilderData, BuilderHero } from "@/components/team-builder/team-labels";
 import { HowItWorks, PageHeader } from "@/components/ui";
+import { sliderData } from "@/lib/games/account-buff";
 import { findGame } from "@/lib/games/catalog";
 import { heroEpithet, heroName } from "@/lib/games/heroes";
 import { searchText } from "@/lib/games/hero-terms";
@@ -53,7 +54,9 @@ const TESTI = testi({
     speciali:
       "Se in squadra ci sono due Comandamenti vale quello dell'eroe più a sinistra; due Grazie o due Unità dello stesso tipo, lo stesso. «Con un effetto Unità» vuol dire chi ha un'Unità fra le abilità speciali. Delle Reliquie sacre si conta la classica: un eroe che ne ha due ne attiva una alla volta.",
     frasi:
-      "Le frasi sono quelle del gioco; dove la frase italiana non si appaia a quella inglese si legge l'inglese. «Alleati» comprende l'eroe stesso, come nel codice del gioco, salvo dove la frase dice il contrario. I numeri si leggono dalle frasi e ognuno si controlla contro i dati della passiva. Quelli che dipendono da cosa succede in battaglia (un turno, un colpo, uno stato) si mostrano ma non si sommano.",
+      "Le frasi sono quelle del gioco; dove la frase italiana non si appaia a quella inglese si legge l'inglese. «Alleati» comprende l'eroe stesso, come nel codice del gioco, salvo dove la frase dice il contrario.",
+    simulatore:
+      "Attacco, Difesa, PS e le altre statistiche li calcola un simulatore che rifà i conti del gioco al primo turno, passo per passo, con le tabelle e le regole lette nel codice del client giapponese 2.115.0. Provato su una battaglia vera: nove numeri su nove tornano entro due punti. I danni inflitti e subiti, che il gioco conta al momento del colpo, si leggono ancora dalle frasi, e ognuno si controlla contro i dati della passiva; quelli che dipendono da cosa succede dopo (un turno, un colpo, uno stato) si mostrano ma non si sommano.",
   },
   en: {
     titoloPagina: (gioco: string) => `${gioco} Team Builder`,
@@ -72,7 +75,9 @@ const TESTI = testi({
     speciali:
       "If the team has two Commandments, the one of the hero furthest left applies; two Graces or two Unities of the same type, the same. «With a Unity effect» means whoever has a Unity among its special abilities. Of the Holy Relics the classic one counts: a hero that has two activates one at a time.",
     frasi:
-      "The sentences are the game's own. «Allies» includes the hero itself, as in the game's code, except where the sentence says otherwise. Numbers are read from the sentences and each one is checked against the passive's data. Those that depend on what happens in battle (a turn, a hit, a state) are shown but not added up.",
+      "The sentences are the game's own. «Allies» includes the hero itself, as in the game's code, except where the sentence says otherwise.",
+    simulatore:
+      "Attack, Defense, HP and the other stats are computed by a simulator that redoes the game's math on the first turn, step by step, with the tables and the rules read in the code of the Japanese client 2.115.0. Tested on a real battle: nine numbers out of nine come back within two points. Damage dealt and taken, which the game counts when the hit lands, are still read from the sentences, each checked against the passive's data; those that depend on what happens later (a turn, a hit, a state) are shown but not added up.",
   },
 });
 
@@ -95,7 +100,7 @@ export default async function TeamPage({ params }: Props) {
   const entry = findGame(game);
   if (!entry) notFound();
 
-  const { roster, team, heroContext, heroSpecials, heroFates, mechanics, icons } = requireGameModule(game);
+  const { roster, team, heroContext, heroSpecials, heroFates, mechanics, icons, accountBuff, simulation } = requireGameModule(game);
   // La voce di menu non compare senza la squadra, ma l'indirizzo si puo' digitare.
   if (!roster || !team || !heroContext || !heroFates) notFound();
 
@@ -158,6 +163,10 @@ export default async function TeamPage({ params }: Props) {
     ),
     stones: [1, 2, 3, 4, 5, 6].every((n) => hasIcon(icons, "carta", `pietra_${n}`)),
     conditionIcons: Object.values(heroContext.passiveConditions).every((c) => hasIcon(icons, "condizione", c.icon)),
+    account: accountBuff ? sliderData(accountBuff, game, locale) : null,
+    // il simulatore, coi gradini degli eroi, lo scarica il browser dopo la pagina
+    // (team-sim-load.ts): qui si dice solo che c'e'
+    simulation: !!simulation,
   };
 
   return (
@@ -177,6 +186,7 @@ export default async function TeamPage({ params }: Props) {
         <p>{t.panchina}</p>
         <p>{t.speciali}</p>
         <p>{t.frasi}</p>
+        <p>{t.simulatore}</p>
       </HowItWorks>
     </main>
   );

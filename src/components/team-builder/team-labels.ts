@@ -4,10 +4,18 @@
  * dal costruttore e dal resoconto (componenti client) e dai loro test.
  */
 
+import type { AccountSliderData } from "@/lib/games/account-buff-types";
 import type { HeroFatesIndex } from "@/lib/games/hero-fates-types";
 import type { HeroTermGroup } from "@/lib/games/hero-terms-types";
 import type { MechanicsTeamEffect } from "@/lib/games/mechanics-types";
-import { MAIN_STATS, type NumberChange, type OffReason, type TeamHero, type TotalKey } from "@/lib/games/team";
+import {
+  MAIN_STATS,
+  type BattleChange,
+  type NumberChange,
+  type OffReason,
+  type TeamHero,
+  type TotalKey,
+} from "@/lib/games/team";
 import type { TeamCondition, TeamContent, TeamIndex, TeamStat, TeamWho } from "@/lib/games/team-types";
 import { inLingua, testi, type Locale } from "@/lib/i18n/locale";
 
@@ -44,6 +52,13 @@ export interface BuilderData {
   readonly stones: boolean;
   /** ci sono le icone di dove si attiva una passiva */
   readonly conditionIcons: boolean;
+  /** il titolo della classe e le costellazioni, per chi ha impostato l'account (account-setup.ts) */
+  readonly account: AccountSliderData | null;
+  /**
+   * il gioco ha il simulatore del primo turno: il browser lo scarica dopo la pagina
+   * (grand-cross/team-sim-load.ts), coi gradini degli eroi per i numeri d'inizio
+   */
+  readonly simulation: boolean;
 }
 
 export const TESTI = testi({
@@ -69,6 +84,11 @@ export const TESTI = testi({
     si: "Sì",
     no: "No",
     reliquieTitolo: { si: "Con le Reliquie sacre create", no: "Senza Reliquie sacre" },
+    nemici: "Nemici in campo",
+    nemiciTitolo: (n: number) =>
+      n === 1
+        ? "Un nemico in campo: conta per le passive che guardano i nemici, come la Fiamma eterna di Escanor"
+        : `${n} nemici in campo: contano per le passive che guardano i nemici, come la Fiamma eterna di Escanor`,
     copia: "Copia il link",
     copiato: "Copiato",
     svuota: "Svuota",
@@ -97,7 +117,15 @@ export const TESTI = testi({
     numeriConsiglio: "Numeri",
     numeriTitolo: "I numeri delle passive",
     numeriSpiega:
+      "Le statistiche al primo turno, prima di giocare carte, calcolate come le calcola il gioco: Uniche, Reliquie, abilità speciali ed effetti d'inizio battaglia, nell'ordine del suo codice. Si parte dai numeri del tuo box, o da quelli al massimo del calcolatore, con l'equipaggiamento PS/Difesa: col tuo equipaggiamento vero i numeri cambiano, le percentuali quasi mai.",
+    numeriSpiegaVecchio:
       "Quello che vale sempre con questa squadra, dove giochi e al rango scelto. Non contano equipaggiamento, costumi e carte, né chi è nello slot secondario. Come nel gioco, su Attacco, Difesa e PS gli effetti di tipo diverso si moltiplicano; i danni subiti sono la somma delle riduzioni, e un colpo non scende mai sotto un quinto del danno.",
+    danniDalTesto: "Danni inflitti e subiti si leggono ancora dalle frasi delle passive.",
+    daDoveDanni: (n: number) => (n === 1 ? "Danni: da dove vengono (1 passiva)" : `Danni: da dove vengono (${n} passive)`),
+    partenza: { box: "All'inizio, dal tuo box", max: "All'inizio, al massimo del calcolatore" } as Record<"box" | "max", string>,
+    tetto: "Il tetto del gioco: almeno un quinto del numero d'inizio",
+    viaBuff: "con un effetto d'inizio battaglia",
+    passivaNascosta: (nome: string) => `Passiva di ${nome}`,
     daDove: (n: number) => (n === 1 ? "Da dove viene (1 passiva)" : `Da dove vengono (${n} passive)`),
     inCertiMomenti: (n: number) => `In certi momenti, non sommati (${n})`,
     suiNemici: "Sui nemici",
@@ -132,6 +160,8 @@ export const TESTI = testi({
       final: "finali",
     },
     nessunSuggerimento: "Nessun eroe cambia le passive della squadra in questo posto.",
+    cercoConsigli: "Cerco chi si incastra…",
+    calcoloNumeri: "Calcolo i numeri del primo turno…",
     primaUnEroe: "Scegli prima un altro eroe: i consigli guardano i compagni che ha.",
     passivaDi: (tipo: string, nome: string) => `${tipo} di ${nome}`,
     accendeLe: "Accende",
@@ -233,6 +263,11 @@ export const TESTI = testi({
     si: "Yes",
     no: "No",
     reliquieTitolo: { si: "With the Holy Relics crafted", no: "Without Holy Relics" },
+    nemici: "Enemies on the field",
+    nemiciTitolo: (n: number) =>
+      n === 1
+        ? "One enemy on the field: it counts for passives that look at enemies, like Escanor's Eternal Flame"
+        : `${n} enemies on the field: they count for passives that look at enemies, like Escanor's Eternal Flame`,
     copia: "Copy link",
     copiato: "Copied",
     svuota: "Clear",
@@ -260,7 +295,15 @@ export const TESTI = testi({
     numeriConsiglio: "Numbers",
     numeriTitolo: "The passives' numbers",
     numeriSpiega:
+      "Stats on the first turn, before playing cards, computed the way the game computes them: Uniques, Holy Relics, special abilities and battle-start effects, in the order of its code. They start from the numbers in your box, or from the calculator's maximum, with HP/Defense gear: with your real gear the numbers change, the percentages hardly ever.",
+    numeriSpiegaVecchio:
       "What always applies with this team, where you play and at the chosen rank. Gear, costumes and cards don't count, nor does the Sub slot hero. As in the game, on Attack, Defense and HP effects of different types multiply; damage taken is the sum of the reductions, and a hit never goes below a fifth of the damage.",
+    danniDalTesto: "Damage dealt and taken are still read from the passives' sentences.",
+    daDoveDanni: (n: number) => (n === 1 ? "Damage: where it comes from (1 passive)" : `Damage: where it comes from (${n} passives)`),
+    partenza: { box: "At the start, from your box", max: "At the start, at the calculator's maximum" } as Record<"box" | "max", string>,
+    tetto: "The game's floor: at least a fifth of the starting number",
+    viaBuff: "through a battle-start effect",
+    passivaNascosta: (nome: string) => `${nome}'s passive`,
     daDove: (n: number) => (n === 1 ? "Where it comes from (1 passive)" : `Where they come from (${n} passives)`),
     inCertiMomenti: (n: number) => `At certain moments, not added up (${n})`,
     suiNemici: "On enemies",
@@ -295,6 +338,8 @@ export const TESTI = testi({
       final: "final",
     },
     nessunSuggerimento: "No hero changes the team's passives in this slot.",
+    cercoConsigli: "Looking for who fits…",
+    calcoloNumeri: "Working out the first-turn numbers…",
     primaUnEroe: "Pick another hero first: suggestions look at the teammates it has.",
     passivaDi: (tipo: string, nome: string) => `${nome}'s ${tipo}`,
     accendeLe: "Turns on",
@@ -434,6 +479,53 @@ const STAT_GROUPS: readonly (readonly [keyof Texts["gruppoStat"], readonly TeamS
   ["ps", ["hp", "hp_regen_per", "hp_recovery_per", "hp_steal_per"]],
   ["base", ["atk", "def", "hp"]],
 ];
+
+/**
+ * Un numero di battaglia come lo mostra il gioco: intero e troncato («55.851»).
+ * Sui nove numeri della battaglia dell'utente dell'11/11 il troncamento torna in
+ * sette, l'arrotondamento in due (simulatore, NOTE.md par. 6).
+ */
+export function formatWhole(value: number, locale: Locale): string {
+  return Math.floor(value + 1e-6).toLocaleString(locale === "it" ? "it-IT" : "en-US");
+}
+
+const FLAT_BATTLE = new Set<TeamStat>(["atk", "def", "hp"]);
+
+/**
+ * Un cambiamento in parole. Su Attacco, Difesa e PS il gioco moltiplica («×1,12»)
+ * o somma un numero («+6.478», la Reliquia di Escanor: meta' della Difesa); sulle
+ * altre statistiche somma punti («+14%»). Si legge dal prima e dopo, che sono
+ * quelli del gioco; il modo dice solo se e' una moltiplicazione.
+ */
+export function changeText(change: BattleChange, locale: Locale): string {
+  const loc = locale === "it" ? "it-IT" : "en-US";
+  if (FLAT_BATTLE.has(change.stat)) {
+    if (change.mode.includes("per") && change.before !== 0) {
+      return `×${(change.after / change.before).toLocaleString(loc, { maximumFractionDigits: 3 })}`;
+    }
+    const delta = change.after - change.before;
+    return `${delta < 0 ? "−" : "+"}${formatWhole(Math.abs(delta), locale)}`;
+  }
+  // prima e dopo sono gia' in punti (team-sim.ts li porta da frazione a punti)
+  return formatPercent(Math.round((change.after - change.before) * 10) / 10, locale);
+}
+
+/**
+ * Cosa ha fatto una passiva a un eroe, in una riga: le statistiche con gli stessi
+ * cambiamenti insieme, coi nomi dei gruppi del gioco. «Statistiche di base ×1,12 ·
+ * ×1,09» e' l'Unica di Escanor sul suo Escanor: due moltiplicazioni, nell'ordine del
+ * gioco.
+ */
+export function battlePartLine(changes: readonly BattleChange[], t: Texts, locale: Locale): string {
+  const byStat = new Map<TeamStat, string[]>();
+  for (const change of changes) byStat.set(change.stat, [...(byStat.get(change.stat) ?? []), changeText(change, locale)]);
+  const byTexts = new Map<string, TeamStat[]>();
+  for (const [stat, texts] of byStat) {
+    const key = texts.join(" · ");
+    byTexts.set(key, [...(byTexts.get(key) ?? []), stat]);
+  }
+  return [...byTexts.entries()].map(([texts, stats]) => `${statsPhrase(stats, t)} ${texts}`).join("; ");
+}
 
 /** Un insieme di statistiche in parole, coi nomi dei gruppi del gioco dove si puo'. */
 function statsPhrase(keys: readonly TotalKey[], t: Texts): string {

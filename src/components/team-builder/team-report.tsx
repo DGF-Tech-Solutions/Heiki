@@ -32,6 +32,7 @@ import {
   type SourceResult,
   type TeamAnalysis,
   type TeamSetup,
+  type TotalsOf,
 } from "@/lib/games/team";
 import { useLocale } from "@/lib/i18n/client";
 import { inLingua } from "@/lib/i18n/locale";
@@ -52,18 +53,27 @@ export function TeamReport({
   heroes,
   setup,
   analysis,
+  totalsOf,
+  simPending,
 }: {
   t: Texts;
   data: BuilderData;
   heroes: ReadonlyMap<string, BuilderHero>;
   setup: TeamSetup;
   analysis: TeamAnalysis;
+  /** i totali dal simulatore del primo turno, quando e' arrivato (team-sim.ts); senza, dalle frasi */
+  totalsOf: TotalsOf | null;
+  /** il simulatore deve ancora arrivare: i numeri aspettano, invece di cambiare sotto gli occhi */
+  simPending: boolean;
 }) {
   const accesi = new Set(analysis.enables.map((i) => `${i.to}:${i.source}`)).size;
-  const totals = useMemo(() => teamTotals(setup, { team: data.team, heroes }, analysis), [setup, data.team, heroes, analysis]);
+  const totals = useMemo(
+    () => (totalsOf ? totalsOf(setup, analysis) : teamTotals(setup, { team: data.team, heroes }, analysis)),
+    [setup, data.team, heroes, analysis, totalsOf],
+  );
   return (
     <>
-    <TeamNumbers t={t} data={data} heroes={heroes} totals={totals} />
+    <TeamNumbers t={t} data={data} heroes={heroes} totals={totals} pending={simPending} />
     <section className="mt-10">
       <h2 className={cx(display, "m-0 text-[clamp(24px,3vw,32px)]")}>{t.resoconto}</h2>
       <p className="mt-1.5 mb-0 text-[13px] text-ink-2">
