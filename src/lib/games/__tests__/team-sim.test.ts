@@ -9,7 +9,7 @@ import { SIMULATION_DATA } from "../grand-cross/simulation.generated";
 import { TEAM } from "../grand-cross/team.generated";
 import { EMPTY_BOX } from "../hero-box";
 import { analyzeTeam, emptySetup, suggest, teamHeroesOf, totalValue, type TeamData, type TeamSetup } from "../team";
-import { simTotals, type SimContext } from "../team-sim";
+import { simTotals, simTotalsBoth, type SimContext } from "../team-sim";
 
 /**
  * Il simulatore nella pagina Squadra: la squadra della battaglia dell'utente
@@ -90,5 +90,42 @@ describe("i numeri della squadra dal simulatore", () => {
     const without = 1.1 * 1.08 * 1.1;
     const withHer = 1.15 * 1.12 * 1.15 * 1.15;
     expect(yeon?.delta).toBeCloseTo((withHer - without) * 100, 0);
+  });
+});
+
+describe("il secondo numero, senza effetti a tempo (14/11)", () => {
+  const TAIZOO = "1373001";
+  const setup: TeamSetup = { ...emptySetup(), mains: [YEON, ESCANOR, TAIZOO, SIGURD] };
+  const totals = simTotalsBoth(setup, data, analyzeTeam(setup, data), ctx);
+  const row = (id: string) => totals.heroes.find((h) => h.hero === id)!;
+
+  it("toglie i +150% di Difesa che Campione Taizoo si da' per un turno", () => {
+    const b = row(TAIZOO).battle!;
+    // al primo turno la Difesa passa per x2,5 (701761 da' il buff 40013, buff_turn 1)
+    expect(b.firstTurn.def / b.lasting!.def).toBeCloseTo(2.5, 6);
+    const taunt = b.parts.find((p) => p.buff === 40013);
+    expect(taunt?.turns).toBe(1);
+    expect(taunt?.source?.kind).toBe("unique");
+  });
+
+  it("toglie la Fiamma eterna di Escanor, e lascia chi non ha effetti a tempo", () => {
+    const escanor = row(ESCANOR).battle!;
+    // la Fiamma (80214) dura 3 turni nella tabella: senza, la riga 700382 non conta niente
+    expect(escanor.lasting!.atk).toBeLessThan(escanor.firstTurn.atk);
+    expect(escanor.lasting!.def).toBeCloseTo(escanor.firstTurn.def, 6);
+    const yeon = row(YEON).battle!;
+    expect(yeon.lasting!.atk).toBeCloseTo(yeon.firstTurn.atk, 6);
+  });
+
+  it("i consigli mostrati hanno anche il secondo numero, e restano ordinati sul primo turno", () => {
+    const three: TeamSetup = { ...setup, mains: [YEON, ESCANOR, null, SIGURD] };
+    const pool = [...heroes.values()].filter((h) => h.id === TAIZOO || h.id === PRISCILLA);
+    const first = (s: TeamSetup, a: ReturnType<typeof analyzeTeam>) => simTotals(s, data, a, ctx, true);
+    const lasting = (s: TeamSetup, a: ReturnType<typeof analyzeTeam>) => simTotals(s, data, a, ctx, false);
+    const list = suggest(three, 2, pool, data, 12, first, lasting);
+    const taizoo = list.find((s) => s.hero === TAIZOO)!;
+    const def = (n: readonly { hero: string; key: string; delta: number }[] | undefined) =>
+      n?.find((x) => x.hero === TAIZOO && x.key === "def")?.delta ?? 0;
+    expect(def(taizoo.numbers)).toBeGreaterThan(def(taizoo.numbersLasting) + 100);
   });
 });

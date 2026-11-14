@@ -157,7 +157,9 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
     };
   }, [data.simulation]);
   const simPending = data.simulation && loaded === null;
-  const totalsOf: TotalsOf | null = useMemo(() => {
+  // tre modi di fare i totali: tutti e due i numeri per il resoconto, il primo turno
+  // per ordinare i consigli, senza effetti a tempo per il loro secondo numero (14/11)
+  const totals: { report: TotalsOf; first: TotalsOf; lasting: TotalsOf } | null = useMemo(() => {
     if (!loaded || loaded === "failed") return null;
     const effect = data.account ? setupEffect(data.account, accountSetup) : null;
     const context: SimContext = {
@@ -166,7 +168,11 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
       box,
       account: effect?.active ? { tier: effect.tier, bonus: effect.bonus } : null,
     };
-    return (setup, analysis) => loaded.simTotals(setup, teamData, analysis, context);
+    return {
+      report: (setup, analysis) => loaded.simTotalsBoth(setup, teamData, analysis, context),
+      first: (setup, analysis) => loaded.simTotals(setup, teamData, analysis, context, true),
+      lasting: (setup, analysis) => loaded.simTotals(setup, teamData, analysis, context, false),
+    };
   }, [loaded, data.account, accountSetup, box, teamData]);
 
   // L'indirizzo e il browser. Al primo disegno, se l'indirizzo non porta una
@@ -353,7 +359,8 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
           heroes={heroes}
           teamData={teamData}
           setup={played}
-          totalsOf={totalsOf}
+          totalsOf={totals?.first ?? null}
+          lastingOf={totals?.lasting ?? null}
           simPending={simPending}
           picking={picking}
           noCollab={noCollab}
@@ -375,7 +382,7 @@ export function TeamBuilder({ data }: { data: BuilderData }) {
           heroes={heroes}
           setup={played}
           analysis={analysis}
-          totalsOf={totalsOf}
+          totalsOf={totals?.report ?? null}
           simPending={simPending}
         />
       ) : null}
@@ -544,6 +551,34 @@ function Slot({
 
 /* --------------------------------------------------------------- la scelta -- */
 
+/** I numeri di un consiglio, una riga per eroe: «Yeon Yihwa: Statistiche di base +22,2%». */
+function NumberBlock({
+  label,
+  lines,
+  heroes,
+}: {
+  label: string;
+  lines: ReturnType<typeof numberLines>;
+  heroes: ReadonlyMap<string, BuilderHero>;
+}) {
+  return (
+    <li className="mb-1">
+      <span className="font-bold">{label}</span>
+      {lines.map((line) => (
+        <span key={line.hero} className="block">
+          {heroes.get(line.hero)?.name ?? line.hero}:{" "}
+          {line.parts.map((part, i) => (
+            <span key={i} className={part.bad ? "text-down" : "font-mono text-ink"}>
+              {i > 0 ? ", " : ""}
+              {part.text}
+            </span>
+          ))}
+        </span>
+      ))}
+    </li>
+  );
+}
+
 function Picker({
   t,
   data,
@@ -551,6 +586,7 @@ function Picker({
   teamData,
   setup,
   totalsOf,
+  lastingOf,
   simPending,
   picking,
   noCollab,
@@ -568,6 +604,8 @@ function Picker({
   setup: TeamSetup;
   /** i totali dal simulatore, quando e' arrivato; senza, dalle frasi */
   totalsOf: TotalsOf | null;
+  /** i totali senza effetti a tempo, per il secondo numero dei consigli */
+  lastingOf: TotalsOf | null;
   /** il simulatore deve ancora arrivare: i consigli aspettano */
   simPending: boolean;
   picking: Picking;
@@ -624,9 +662,9 @@ function Picker({
       !ready || simPending
         ? null
         : ready.picking.kind === "main"
-          ? suggest(ready.setup, ready.picking.slot, ready.pool, teamData, 12, totalsOf ?? undefined)
+          ? suggest(ready.setup, ready.picking.slot, ready.pool, teamData, 12, totalsOf ?? undefined, lastingOf ?? undefined)
           : [],
-    [ready, teamData, totalsOf, simPending],
+    [ready, teamData, totalsOf, lastingOf, simPending],
   );
 
   // senza compagni non c'e' niente da incastrare: nessun consiglio, e lo si dice
@@ -687,6 +725,9 @@ function Picker({
                 const hero = heroes.get(s.hero)!;
                 const groups = reasonGroups(s, t);
                 const numbers = numberLines(s.numbers, s.hero, t, locale);
+                // il secondo numero, senza effetti a tempo: solo se dice qualcosa di diverso (14/11)
+                const lasting = s.numbersLasting ? numberLines(s.numbersLasting, s.hero, t, locale) : [];
+                const sameLasting = JSON.stringify(lasting) === JSON.stringify(numbers);
                 return (
                   <li key={s.hero} className="border border-rule bg-paper">
                     <button
@@ -705,20 +746,10 @@ function Picker({
                     </button>
                     <ul className="m-0 list-none border-t border-rule px-2 py-1.5 text-[12px] leading-snug text-ink-2">
                       {numbers.length > 0 ? (
-                        <li className="mb-1">
-                          <span className="font-bold">{t.numeriConsiglio}</span>
-                          {numbers.map((line) => (
-                            <span key={line.hero} className="block">
-                              {heroes.get(line.hero)?.name ?? line.hero}:{" "}
-                              {line.parts.map((part, i) => (
-                                <span key={i} className={part.bad ? "text-down" : "font-mono text-ink"}>
-                                  {i > 0 ? ", " : ""}
-                                  {part.text}
-                                </span>
-                              ))}
-                            </span>
-                          ))}
-                        </li>
+                        <NumberBlock label={sameLasting ? t.numeriConsiglio : t.numeriPrimoTurno} lines={numbers} heroes={heroes} />
+                      ) : null}
+                      {!sameLasting && lasting.length > 0 ? (
+                        <NumberBlock label={t.numeriSenzaTempo} lines={lasting} heroes={heroes} />
                       ) : null}
                       {groups.map((group) => (
                         <li key={group.label} className={group.bad ? "text-down" : undefined}>

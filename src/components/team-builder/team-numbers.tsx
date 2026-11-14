@@ -40,12 +40,26 @@ import {
 
 const MAIN = new Set<string>(MAIN_STATS);
 
-function MainNumber({ label, value, zero, sub }: { label: string; value: string; zero: boolean; sub?: string }) {
+function MainNumber({
+  label,
+  value,
+  zero,
+  sub,
+  sub2,
+}: {
+  label: string;
+  value: string;
+  zero: boolean;
+  sub?: string;
+  /** il secondo numero, senza effetti a tempo */
+  sub2?: string;
+}) {
   return (
     <div className="min-w-0">
       <dt className="text-[12px] leading-tight text-ink-3">{label}</dt>
       <dd className={cx("m-0 font-mono text-[15px] leading-snug", zero ? "text-ink-3" : "text-ink")}>{value}</dd>
       {sub ? <dd className={cx("m-0 font-mono text-[12px] leading-snug", zero ? "text-ink-3" : "text-ink-2")}>{sub}</dd> : null}
+      {sub2 ? <dd className="m-0 font-mono text-[12px] leading-snug text-ink-3">{sub2}</dd> : null}
     </div>
   );
 }
@@ -88,7 +102,7 @@ function BattleList({
                 ? t.passivaNascosta(heroes.get(group.from)?.name ?? group.from)
                 : t.tetto}
           </span>
-          {group.buff ? <span> {t.viaBuff}</span> : null}
+          {group.buff ? <span> {group.turns && group.turns > 0 ? `${t.viaBuff}, ${t.perTurni(group.turns)}` : t.viaBuff}</span> : null}
           <span className="block">{battlePartLine(group.changes, t, locale)}</span>
         </li>
       ))}
@@ -100,12 +114,14 @@ function BattleList({
 function battleGroups(battle: HeroBattle) {
   const groups = new Map<
     string,
-    { key: string; from: string | null; source: TeamSource | null; buff: boolean; changes: BattleChange[] }
+    { key: string; from: string | null; source: TeamSource | null; buff: boolean; turns: number | null; changes: BattleChange[] }
   >();
   for (const part of battle.parts) {
     const base = part.source ? `${part.from}:${part.source.kind}:${part.source.id}` : `${part.from}:${part.passive}`;
     const key = `${base}:${part.buff !== null ? "b" : ""}`;
-    const group = groups.get(key) ?? { key, from: part.from, source: part.source, buff: part.buff !== null, changes: [] };
+    const group = groups.get(key) ?? { key, from: part.from, source: part.source, buff: part.buff !== null, turns: null, changes: [] };
+    // la durata: la piu' lunga fra i buff del gruppo (-1, per sempre, non conta come «a tempo»)
+    if (part.turns !== null && part.turns > 0) group.turns = Math.max(group.turns ?? 0, part.turns);
     group.changes.push(...part.changes);
     groups.set(key, group);
   }
@@ -199,16 +215,23 @@ function HeroRow({
             {MAIN_STATS.map((stat) => {
               const value = totalValue(totals, stat);
               const flat = battle && (BATTLE_MAIN as readonly string[]).includes(stat) ? battle.firstTurn[stat as (typeof BATTLE_MAIN)[number]] : null;
-              return flat !== null && flat !== undefined ? (
+              if (flat === null || flat === undefined) {
+                return <MainNumber key={stat} label={t.stat[stat]} value={formatPercent(value, locale)} zero={value === 0} />;
+              }
+              // il secondo numero, senza effetti a tempo, solo dove cambia (scelta del 14/11)
+              const key = stat as (typeof BATTLE_MAIN)[number];
+              const start = battle!.start[key];
+              const lasting = battle!.lasting && start > 0 ? Math.round((battle!.lasting[key] / start - 1) * 1000) / 10 : value;
+              const differs = Math.abs(lasting - value) >= 0.1;
+              return (
                 <MainNumber
                   key={stat}
                   label={t.stat[stat]}
                   value={formatWhole(flat, locale)}
-                  sub={formatPercent(value, locale)}
+                  sub={differs ? t.alPrimoTurno(formatPercent(value, locale)) : formatPercent(value, locale)}
+                  sub2={differs ? t.senzaATempo(formatPercent(lasting, locale)) : undefined}
                   zero={value === 0}
                 />
-              ) : (
-                <MainNumber key={stat} label={t.stat[stat]} value={formatPercent(value, locale)} zero={value === 0} />
               );
             })}
           </dl>

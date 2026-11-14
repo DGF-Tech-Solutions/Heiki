@@ -115,6 +115,11 @@ export const TESTI = testi({
     suggeritiSpiega:
       "Guardano solo le passive: prima chi accende o fa crescere quelle dei compagni, poi chi fa crescere di più i numeri della squadra (la somma semplice delle percentuali di Attacco, Difesa, PS e danni), poi chi si scambia più effetti con loro.",
     numeriConsiglio: "Numeri",
+    numeriPrimoTurno: "Numeri al primo turno",
+    numeriSenzaTempo: "Senza effetti a tempo",
+    alPrimoTurno: (percent: string) => `${percent} al primo turno`,
+    senzaATempo: (percent: string) => `${percent} senza effetti a tempo`,
+    perTurni: (n: number) => (n === 1 ? "per 1 turno" : `per ${n} turni`),
     numeriTitolo: "I numeri delle passive",
     numeriSpiega:
       "Le statistiche al primo turno, prima di giocare carte, calcolate come le calcola il gioco: Uniche, Reliquie, abilità speciali ed effetti d'inizio battaglia, nell'ordine del suo codice. Si parte dai numeri del tuo box, o da quelli al massimo del calcolatore, con l'equipaggiamento PS/Difesa: col tuo equipaggiamento vero i numeri cambiano, le percentuali quasi mai.",
@@ -293,6 +298,11 @@ export const TESTI = testi({
     suggeritiSpiega:
       "They only look at passives: first who turns on or grows those of teammates, then who raises the team's numbers the most (the plain sum of Attack, Defense, HP and damage percentages), then who trades the most effects with them.",
     numeriConsiglio: "Numbers",
+    numeriPrimoTurno: "Numbers on the first turn",
+    numeriSenzaTempo: "Without timed effects",
+    alPrimoTurno: (percent: string) => `${percent} on the first turn`,
+    senzaATempo: (percent: string) => `${percent} without timed effects`,
+    perTurni: (n: number) => (n === 1 ? "for 1 turn" : `for ${n} turns`),
     numeriTitolo: "The passives' numbers",
     numeriSpiega:
       "Stats on the first turn, before playing cards, computed the way the game computes them: Uniques, Holy Relics, special abilities and battle-start effects, in the order of its code. They start from the numbers in your box, or from the calculator's maximum, with HP/Defense gear: with your real gear the numbers change, the percentages hardly ever.",

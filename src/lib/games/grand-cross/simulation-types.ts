@@ -69,6 +69,11 @@ export interface SimInput {
   readonly enemies?: { readonly count: number };
   /** se ProcessTurnStartEffect gira prima del primo turno (non letto nel client); vero se manca */
   readonly turnStart?: boolean;
+  /**
+   * con gli effetti a tempo, i buff che durano un numero di turni (buff_turn > 0); vero se
+   * manca. Falso: solo quello che resta quando scadono, il secondo numero del sito (14/11)
+   */
+  readonly timed?: boolean;
 }
 
 export interface SimTraceEntry {

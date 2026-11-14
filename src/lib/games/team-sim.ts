@@ -1,5 +1,5 @@
-import { simulate } from "./grand-cross/simulation";
-import type { SimData, SimHeroInput, SimStat, SimTraceEntry } from "./grand-cross/simulation-types";
+import { buffTurns, simulate } from "./grand-cross/simulation";
+import type { SimData, SimHeroInput, SimNode, SimStat, SimTraceEntry } from "./grand-cross/simulation-types";
 import type { HeroBox } from "./hero-box";
 import {
   relicOf,
@@ -91,8 +91,9 @@ function sourceOf(team: TeamIndex, from: string | null, origin: SimTraceEntry["o
 }
 
 /** La traccia del simulatore come parti della pagina: una per passiva (o buff), nell'ordine del gioco. */
-function partsOf(trace: readonly SimTraceEntry[], team: TeamIndex): BattlePart[] {
+function partsOf(trace: readonly SimTraceEntry[], team: TeamIndex, sim: SimData): BattlePart[] {
   const parts = new Map<string, BattlePart & { changes: BattlePart["changes"][number][] }>();
+  const buffs = buffRows(sim);
   for (const entry of trace) {
     const stat = SITE_OF.get(entry.stat);
     if (!stat) continue;
@@ -102,6 +103,7 @@ function partsOf(trace: readonly SimTraceEntry[], team: TeamIndex): BattlePart[]
       source: sourceOf(team, entry.from, entry.origin),
       passive: entry.passive,
       buff: entry.buff ?? null,
+      turns: entry.buff ? buffTurns(buffs.get(entry.buff)!) : null,
       changes: [],
     };
     part.changes.push({
@@ -131,6 +133,16 @@ function legendHeroes(sim: SimData): ReadonlySet<string> {
   return out;
 }
 
+const buffCache = new WeakMap<SimData, ReadonlyMap<number, SimNode>>();
+function buffRows(sim: SimData): ReadonlyMap<number, SimNode> {
+  let out = buffCache.get(sim);
+  if (!out) {
+    out = new Map(sim.buffs.map((row) => [Number(row.id), row]));
+    buffCache.set(sim, out);
+  }
+  return out;
+}
+
 /** Le statistiche d'inizio coi nomi del gioco, le percentuali in frazione. */
 function simStatsOf(start: HeroStart): Partial<Record<SimStat, number>> {
   return Object.fromEntries(
@@ -144,7 +156,14 @@ function simStatsOf(start: HeroStart): Partial<Record<SimStat, number>> {
  * Attacco, Difesa e PS in percentuale sul numero d'inizio (il gioco moltiplica),
  * le altre in punti.
  */
-export function simTotals(setup: TeamSetup, data: TeamData, analysis: TeamAnalysis, ctx: SimContext): TeamTotals {
+export function simTotals(
+  setup: TeamSetup,
+  data: TeamData,
+  analysis: TeamAnalysis,
+  ctx: SimContext,
+  // falso: senza gli effetti a tempo, cioe' quello che resta quando scadono (il secondo numero, 14/11)
+  timed = true,
+): TeamTotals {
   const base = teamTotals(setup, data, analysis);
   const starts = new Map<string, HeroStart>();
   const heroes: (SimHeroInput | null)[] = setup.mains.map((id, slot) => {
@@ -162,7 +181,7 @@ export function simTotals(setup: TeamSetup, data: TeamData, analysis: TeamAnalys
       stats: start ? simStatsOf(start) : {},
     };
   });
-  const result = simulate({ content: setup.content, heroes, enemies: { count: setup.enemies } }, ctx.sim);
+  const result = simulate({ content: setup.content, heroes, enemies: { count: setup.enemies }, timed }, ctx.sim);
   const simulated = new Map(result.heroes.map((hero) => [hero.id, hero]));
 
   return {
@@ -186,7 +205,7 @@ export function simTotals(setup: TeamSetup, data: TeamData, analysis: TeamAnalys
           : round1(firstTurn[site] - startStats[site]);
         return value === 0 ? [] : [{ key: site, value, parts: [] }];
       });
-      const battle: HeroBattle = { from: start.from, start: startStats, firstTurn, parts: partsOf(sim.trace, data.team) };
+      const battle: HeroBattle = { from: start.from, start: startStats, firstTurn, parts: partsOf(sim.trace, data.team, ctx.sim) };
       return {
         ...row,
         // dalle frasi restano i danni e le varianti per colpo («Possibilita' critico della Mossa finale»)
@@ -195,5 +214,25 @@ export function simTotals(setup: TeamSetup, data: TeamData, analysis: TeamAnalys
       };
     }),
     enemies: base.enemies,
+  };
+}
+
+/**
+ * I due numeri della pagina (scelta dell'utente del 14/11, «entrambi»): il primo
+ * turno con tutto, e accanto `battle.lasting`, la stessa squadra senza gli effetti
+ * a tempo (buff con una durata in turni). Il secondo dice quanto resta quando
+ * scadono, per esempio i +150% di Difesa di Campione Taizoo che si provoca il
+ * nemico per un turno. Non e' un numero di dopo: la Fiamma eterna di Escanor dura
+ * 3 turni ma se ne aggiunge una ogni turno, e il secondo numero la toglie.
+ */
+export function simTotalsBoth(setup: TeamSetup, data: TeamData, analysis: TeamAnalysis, ctx: SimContext): TeamTotals {
+  const first = simTotals(setup, data, analysis, ctx, true);
+  const lasting = new Map(simTotals(setup, data, analysis, ctx, false).heroes.map((row) => [row.hero, row.battle]));
+  return {
+    ...first,
+    heroes: first.heroes.map((row) => {
+      const other = lasting.get(row.hero);
+      return row.battle && other ? { ...row, battle: { ...row.battle, lasting: other.firstTurn } } : row;
+    }),
   };
 }

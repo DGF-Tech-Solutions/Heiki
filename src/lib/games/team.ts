@@ -665,6 +665,8 @@ export interface HeroBattle {
   readonly from: "box" | "max";
   readonly start: Readonly<Record<BattleStat, number>>;
   readonly firstTurn: Readonly<Record<BattleStat, number>>;
+  /** al primo turno senza gli effetti a tempo: quello che resta quando scadono (team-sim.ts, `simTotalsBoth`) */
+  readonly lasting?: Readonly<Record<BattleStat, number>>;
   /** passiva per passiva, nell'ordine del gioco */
   readonly parts: readonly BattlePart[];
 }
@@ -679,6 +681,8 @@ export interface BattlePart {
   readonly passive: number | null;
   /** il buff dato dalla passiva, se l'effetto passa da un buff */
   readonly buff: number | null;
+  /** quanti turni dura il buff (-1 per sempre); null per le passive */
+  readonly turns: number | null;
   readonly changes: readonly BattleChange[];
 }
 
@@ -867,6 +871,8 @@ export interface Suggestion {
   readonly numbers: readonly NumberChange[];
   /** quanto cresce `plainSum` con lui in squadra */
   readonly numbersSum: number;
+  /** come `numbers`, senza gli effetti a tempo (solo se la pagina ha il simulatore) */
+  readonly numbersLasting?: readonly NumberChange[];
 }
 
 /** Un totale che cambia mettendo un eroe in un posto. */
@@ -1003,7 +1009,10 @@ export function suggest(
   data: TeamData,
   limit = 12,
   totalsOf: TotalsOf = (s, a) => teamTotals(s, data, a),
+  // i totali senza effetti a tempo, per il secondo numero dei consigli mostrati
+  lastingOf?: TotalsOf,
 ): Suggestion[] {
+  let beforeLasting: TeamTotals | undefined;
   const used = new Set(
     [...setup.mains.filter((_, i) => i !== slot), ...setup.associates]
       .filter((id): id is string => !!id)
@@ -1047,7 +1056,15 @@ export function suggest(
       return true;
     })
     .slice(0, limit)
-    .map(({ s }) => s);
+    .map(({ s }) => (lastingOf ? withLasting(s) : s));
+
+  // Il secondo numero, senza effetti a tempo (14/11): solo per i consigli mostrati,
+  // perche' raddoppierebbe il simulatore su tutti i candidati. L'ordine resta sul primo turno
+  function withLasting(s: Suggestion): Suggestion {
+    const lastingBefore = (beforeLasting ??= lastingOf!(withoutHim, before));
+    const withHim = { ...setup, mains: setup.mains.map((id, i) => (i === slot ? s.hero : id)) };
+    return { ...s, numbersLasting: numberChanges(lastingBefore, lastingOf!(withHim, analyzeTeam(withHim, data))) };
+  }
 }
 
 /* ------------------------------------------------------------- associati -- */

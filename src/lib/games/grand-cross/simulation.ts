@@ -359,6 +359,8 @@ interface State {
   units: Unit[];
   register: Map<string, Map<string, number>>;
   target: Unit | null;
+  /** con i buff che durano un numero di turni (SimInput.timed) */
+  timed: boolean;
 }
 
 function zeroStats(from?: Partial<Record<SimStat, number>>): Stats {
@@ -646,7 +648,14 @@ function initialFlags(st: State): void {
 
 /** inizializza: passive, copie, ordine per ID, cariche del primo turno, buff */
 function initialize(input: SimInput, data: Prepared): State {
-  const st: State = { data, content: input.content ?? "pve", units: [], register: new Map(), target: null };
+  const st: State = {
+    data,
+    content: input.content ?? "pve",
+    units: [],
+    register: new Map(),
+    target: null,
+    timed: input.timed !== false,
+  };
   input.heroes.forEach((hero, i) => {
     if (hero) st.units.push(createUnit(hero, i, data)); // un posto vuoto: il posto degli altri resta
   });
@@ -669,6 +678,11 @@ function initialize(input: SimInput, data: Prepared): State {
 }
 
 /* ------------------------------------------------------------------ i buff -- */
+
+/** Quanti turni dura un buff della tabella: -1 per sempre (DB_skill_card_buff.buff_turn). */
+export function buffTurns(row: SimNode): number {
+  return pyFloat(getOr(row, "buff_turn", -1));
+}
 
 /** crea_buff: valore = effect_value x 0,01 se la parola ha «per»; CurBuffValue = max(0, valore) */
 function createBuff(bid: number, from: string | null, data: Prepared): Buff {
@@ -801,7 +815,8 @@ function runGiveBuff(raw: SimNode, self: Unit, st: State): void {
     const times = has(raw, "volte") ? Math.trunc(evalExpr(get(raw, "volte"), ctx)) : 1;
     for (let k = 0; k < times; k++) {
       for (const bid of chosenIds(raw, pd, ctx)) {
-        if (typeof bid === "number" && bid >= 2 && st.data.buffs.has(bid)) {
+        // senza effetti a tempo: si salta chi dura un numero di turni (buff_turn > 0; -1 e' per sempre)
+        if (typeof bid === "number" && bid >= 2 && st.data.buffs.has(bid) && (st.timed || buffTurns(st.data.buffs.get(bid)!) <= 0)) {
           for (const [u, b] of buffReceivers(node(get(raw, "a", { tipo: "riga" }), "a"), bid, ctx)) {
             putBuff(u, { ...b, passive: pd.id, origin: pd.origin }); // la passiva che lo da': per la traccia
           }

@@ -1,5 +1,5 @@
 import { GEAR_PRESETS, gearTotals, presetBuild } from "../gear";
-import { simTotals } from "../team-sim";
+import { simTotals, simTotalsBoth } from "../team-sim";
 import type { StartStatsData } from "../team-start";
 import { GEAR } from "./gear.generated";
 import { SIMULATION_DATA, SIMULATION_STEPS } from "./simulation.generated";
@@ -22,5 +22,5 @@ const start: StartStatsData = {
   gear: gearTotals(GEAR, presetBuild(GEAR, GEAR_PRESETS[0]!)),
 };
 
-export const TEAM_SIM = { simulation: SIMULATION_DATA, start, simTotals };
+export const TEAM_SIM = { simulation: SIMULATION_DATA, start, simTotals, simTotalsBoth };
 export type TeamSimLoaded = typeof TEAM_SIM;
